@@ -197,6 +197,10 @@ private:
     insertPointInTriangle(const V2d<T>& pos, const TriInd iTri);
     TriInd triangleAt(const V2d<T>& pos) const;
     void flipEdge(const TriInd iTri, const TriInd iTriOpo);
+    void changeNeighbor(
+        const TriInd iTri,
+        const TriInd oldNeighbor,
+        const TriInd newNeighbor);
 };
 
 template <typename T>
@@ -294,16 +298,8 @@ Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iTri)
     v2Tris.push_back(iNewTri1);
     v2Tris.push_back(iNewTri2);
     // change triangle neighbor's neighbors to new triangles
-    if(nn[1] != noNeighbor)
-    {
-        Triangle& n = triangles[nn[1]];
-        n.neighbors[neiborInd(n, iTri)] = iNewTri1;
-    }
-    if(nn[2] != noNeighbor)
-    {
-        Triangle& n = triangles[nn[2]];
-        n.neighbors[neiborInd(n, iTri)] = iNewTri2;
-    }
+    changeNeighbor(nn[1], iTri, iNewTri1);
+    changeNeighbor(nn[2], iTri, iNewTri2);
     // return newly added triangles
     std::stack<TriInd> newTriangles;
     newTriangles.push(iTri);
@@ -366,16 +362,8 @@ void Triangulation<T>::flipEdge(const TriInd iTri, const TriInd iTriOpo)
     tri = {{v4, v1, v3}, {n3, iTriOpo, n4}};
     triOpo = {{v2, v3, v1}, {n2, iTri, n1}};
     // adjust neighbors
-    if(n1 != noNeighbor)
-    {
-        Triangle& n = triangles[n1];
-        n.neighbors[neiborInd(n, iTri)] = iTriOpo;
-    }
-    if(n4 != noNeighbor)
-    {
-        Triangle& n = triangles[n4];
-        n.neighbors[neiborInd(n, iTriOpo)] = iTri;
-    }
+    changeNeighbor(n1, iTri, iTriOpo);
+    changeNeighbor(n4, iTriOpo, iTri);
     // adjust vertices' triangle lists
     vertices[v1].triangles.push_back(iTriOpo);
     vertices[v3].triangles.push_back(iTri);
@@ -383,6 +371,18 @@ void Triangulation<T>::flipEdge(const TriInd iTri, const TriInd iTriOpo)
     vtris.erase(std::remove(vtris.begin(), vtris.end(), iTri));
     vtris = vertices[v4].triangles;
     vtris.erase(std::remove(vtris.begin(), vtris.end(), iTriOpo));
+}
+
+template <typename T>
+void Triangulation<T>::changeNeighbor(
+    const TriInd iTri,
+    const TriInd oldNeighbor,
+    const TriInd newNeighbor)
+{
+    if(iTri == noNeighbor)
+        return;
+    Triangle& tri = triangles[iTri];
+    tri.neighbors[neiborInd(tri, oldNeighbor)] = newNeighbor;
 }
 
 template <typename T>
