@@ -93,19 +93,47 @@ Index cw(Index i)
     return Index((i + 2) % 3);
 }
 
+struct PtInsideTri
+{
+    enum Enum
+    {
+        Inside,
+        Ourside,
+        OnTheEdge,
+    };
+};
+
+/// Helper for inside-triangle test, checks one edge of triangle
+template <typename T>
+PtInsideTri::Enum
+checkTriEdge(const V2d<T>& p, const V2d<T>& v1, const V2d<T>& v2)
+{
+    using namespace predicates::adaptive;
+    const T orientation = orient2d(v1.raw(), v2.raw(), p.raw());
+    if(orientation < T(0))
+        return PtInsideTri::Ourside;
+    else if(orientation == T(0))
+        return PtInsideTri::OnTheEdge;
+    return PtInsideTri::Inside;
+}
+
 /// Check if a point is inside a triangle defined by three points (2D)
 template <typename T>
-bool isInsideTriangle(
+PtInsideTri::Enum isInsideTriangle(
     const V2d<T>& p,
     const V2d<T>& v1,
     const V2d<T>& v2,
     const V2d<T>& v3)
 {
     using namespace predicates::adaptive;
-    // positive => left, negative => right, zero => on
-    return orient2d(v1.raw(), v2.raw(), p.raw()) > T(0) &&
-           orient2d(v2.raw(), v3.raw(), p.raw()) > T(0) &&
-           orient2d(v3.raw(), v1.raw(), p.raw()) > T(0);
+    PtInsideTri::Enum result;
+    result = checkTriEdge(p, v1, v2);
+    if(result != PtInsideTri::Inside)
+        return result;
+    result = checkTriEdge(p, v2, v3);
+    if(result != PtInsideTri::Inside)
+        return result;
+    return checkTriEdge(p, v3, v1);
 }
 
 /// Bounding box of a collection of 2D points
@@ -344,7 +372,7 @@ TriInd Triangulation<T>::triangleAt(const V2d<T>& pos) const
         const V2d<T> v1 = vertices[tri.vertices[0]].pos;
         const V2d<T> v2 = vertices[tri.vertices[1]].pos;
         const V2d<T> v3 = vertices[tri.vertices[2]].pos;
-        if(isInsideTriangle(pos, v1, v2, v3))
+        if(isInsideTriangle(pos, v1, v2, v3) == PtInsideTri::Inside)
             return i;
     }
     throw std::runtime_error("no triangle was found");
