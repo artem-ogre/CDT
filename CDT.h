@@ -27,6 +27,7 @@ CDT_TYPEDEF(std::size_t, VertInd);
 CDT_TYPEDEF(std::size_t, TriInd);
 const static std::size_t noNeighbor = std::numeric_limits<std::size_t>::max();
 
+/// 2D vector
 template <typename T>
 struct V2d
 {
@@ -44,6 +45,7 @@ struct V2d
     }
 };
 
+/// 2D bounding box
 template <typename T>
 struct Box2d
 {
@@ -51,6 +53,7 @@ struct Box2d
     V2d<T> max; /// max box corner
 };
 
+/// Triangulation vertex
 template <typename T>
 struct Vertex
 {
@@ -64,31 +67,33 @@ struct Vertex
     }
 };
 
+/// Triangulation triangle
 /* Counter-clockwise winding:
- *      v3
- *      /\
- *   n3/  \n2
- *    /____\
- *  v1  n1  v2
- */
+*      v3
+*      /\
+*   n3/  \n2
+*    /____\
+*  v1  n1  v2
+*/
 struct Triangle
 {
     std::tr1::array<VertInd, 3> vertices;
     std::tr1::array<TriInd, 3> neighbors;
 };
 
-// Advance vertex or neighbor index counter-clockwise
+/// Advance vertex or neighbor index counter-clockwise
 Index ccw(Index i)
 {
     return Index((i + 1) % 3);
 }
 
-// Advance vertex or neighbor index clockwise
+/// Advance vertex or neighbor index clockwise
 Index cw(Index i)
 {
     return Index((i + 2) % 3);
 }
 
+/// Check if a point is inside a triangle defined by three points (2D)
 template <typename T>
 bool isInsideTriangle(
     const V2d<T>& p,
@@ -103,6 +108,7 @@ bool isInsideTriangle(
            orient2d(v3.raw(), v1.raw(), p.raw()) > T(0);
 }
 
+/// Bounding box of a collection of 2D points
 template <typename T>
 Box2d<T> calculateBox(const std::vector<V2d<T> >& vertices)
 {
@@ -118,6 +124,7 @@ Box2d<T> calculateBox(const std::vector<V2d<T> >& vertices)
     return box;
 }
 
+/// Opposed neighbor index from vertex index
 Index opoNbr(const Index vertIndex)
 {
     if(vertIndex == Index(0))
@@ -129,6 +136,7 @@ Index opoNbr(const Index vertIndex)
     throw std::runtime_error("Invalid vertex index");
 }
 
+/// Opposed vertex index from neighbor index
 Index opoVrt(const Index neighborIndex)
 {
     if(neighborIndex == Index(0))
@@ -140,6 +148,7 @@ Index opoVrt(const Index neighborIndex)
     throw std::runtime_error("Invalid neighbor index");
 }
 
+/// Index of triangle's neighbor opposed to a vertex
 Index opposedTriangleInd(const Triangle& tri, const VertInd iVert)
 {
     for(Index vi = Index(0); vi < Index(3); ++vi)
@@ -148,6 +157,7 @@ Index opposedTriangleInd(const Triangle& tri, const VertInd iVert)
     throw std::runtime_error("Could not find opposed triangle index");
 }
 
+/// Index of triangle's vertex opposed to a triangle
 Index opposedVertexInd(const Triangle& tri, const TriInd iTopo)
 {
     for(Index ni = Index(0); ni < Index(3); ++ni)
@@ -156,24 +166,28 @@ Index opposedVertexInd(const Triangle& tri, const TriInd iTopo)
     throw std::runtime_error("Could not find opposed vertex index");
 }
 
-Index neighborInd(const Triangle& tri, const TriInd iTopo)
+/// If triangle has a given neighbor return neighbor-index, throw otherwise
+Index neighborInd(const Triangle& tri, const TriInd iTnbr)
 {
     for(Index ni = Index(0); ni < Index(3); ++ni)
-        if(iTopo == tri.neighbors[ni])
+        if(iTnbr == tri.neighbors[ni])
             return ni;
     throw std::runtime_error("Could not find neighbor triangle index");
 }
 
+/// Given triangle and a vertex find opposed triangle
 TriInd opposedTriangle(const Triangle& tri, const VertInd iVert)
 {
     return tri.neighbors[opposedTriangleInd(tri, iVert)];
 }
 
+/// Given two triangles, return vertex of first triangle opposed to the second
 VertInd opposedVertex(const Triangle& tri, const TriInd iTopo)
 {
     return tri.vertices[opposedVertexInd(tri, iTopo)];
 }
 
+/// Test if point lies in a circumscribed circle of a triangle
 template <typename T>
 bool isInCircumcircle(const V2d<T>& p, const std::tr1::array<V2d<T>, 3>& tri)
 {
