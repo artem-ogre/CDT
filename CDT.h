@@ -103,7 +103,7 @@ Box2d<T> calculateBox(const std::vector<V2d<T> >& vertices)
     return box;
 }
 
-Index opoNeib(const Index vertIndex)
+Index opoNbr(const Index vertIndex)
 {
     switch(vertIndex)
     {
@@ -117,7 +117,7 @@ Index opoNeib(const Index vertIndex)
     throw std::runtime_error("Invalid vertex index");
 }
 
-Index opoVert(const Index neighborIndex)
+Index opoVrt(const Index neighborIndex)
 {
     switch(neighborIndex)
     {
@@ -135,7 +135,7 @@ Index opposedTriangleInd(const Triangle& tri, const VertInd iVert)
 {
     for(Index vi = 0; vi < 3; ++vi)
         if(iVert == tri.vertices[vi])
-            return opoNeib(vi);
+            return opoNbr(vi);
     throw std::runtime_error("Could not find opposed triangle index");
 }
 
@@ -143,11 +143,11 @@ Index opposedVertexInd(const Triangle& tri, const TriInd iTriOpo)
 {
     for(Index ni = 0; ni < 3; ++ni)
         if(iTriOpo == tri.neighbors[ni])
-            return opoVert(ni);
+            return opoVrt(ni);
     throw std::runtime_error("Could not find opposed vertex index");
 }
 
-Index neiborInd(const Triangle& tri, const TriInd iTriOpo)
+Index neighborInd(const Triangle& tri, const TriInd iTriOpo)
 {
     for(Index ni = 0; ni < 3; ++ni)
         if(iTriOpo == tri.neighbors[ni])
@@ -382,7 +382,7 @@ void Triangulation<T>::changeNeighbor(
     if(iTri == noNeighbor)
         return;
     Triangle& tri = triangles[iTri];
-    tri.neighbors[neiborInd(tri, oldNeighbor)] = newNeighbor;
+    tri.neighbors[neighborInd(tri, oldNeighbor)] = newNeighbor;
 }
 
 template <typename T>
