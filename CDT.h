@@ -2,11 +2,11 @@
 
 #include "predicates.h"
 
+#include <boost/assign/list_of.hpp>
 #include <boost/foreach.hpp>
 #include <boost/serialization/strong_typedef.hpp>
 #include <boost/tr1/array.hpp>
 #include <boost/tr1/unordered_set.hpp>
-#include <boost/assign/list_of.hpp>
 
 #include <limits>
 #include <stack>
@@ -17,6 +17,14 @@ namespace CDT
 typedef unsigned char Index;
 typedef std::size_t VertInd;
 typedef std::size_t TriInd;
+
+// Un-comment for additional type-safety checking
+/*
+BOOST_STRONG_TYPEDEF(unsigned char, Index)
+BOOST_STRONG_TYPEDEF(std::size_t, VertInd)
+BOOST_STRONG_TYPEDEF(std::size_t, TriInd)
+/**/
+
 const static std::size_t noNeighbor = std::numeric_limits<std::size_t>::max();
 
 template <typename T>
@@ -72,13 +80,13 @@ struct Triangle
 // Advance vertex or neighbor index counter-clockwise
 Index ccw(Index i)
 {
-    return (i + 1) % 3;
+    return Index((i + 1) % 3);
 }
 
 // Advance vertex or neighbor index clockwise
 Index cw(Index i)
 {
-    return (i + 2) % 3;
+    return Index((i + 2) % 3);
 }
 
 template <typename T>
@@ -112,35 +120,29 @@ Box2d<T> calculateBox(const std::vector<V2d<T> >& vertices)
 
 Index opoNbr(const Index vertIndex)
 {
-    switch(vertIndex)
-    {
-    case 0:
-        return 1;
-    case 1:
-        return 2;
-    case 2:
-        return 0;
-    }
+    if(vertIndex == Index(0))
+        return Index(1);
+    if(vertIndex == Index(1))
+        return Index(2);
+    if(vertIndex == Index(2))
+        return Index(0);
     throw std::runtime_error("Invalid vertex index");
 }
 
 Index opoVrt(const Index neighborIndex)
 {
-    switch(neighborIndex)
-    {
-    case 0:
-        return 2;
-    case 1:
-        return 0;
-    case 2:
-        return 1;
-    }
+    if(neighborIndex == Index(0))
+        return Index(2);
+    if(neighborIndex == Index(1))
+        return Index(0);
+    if(neighborIndex == Index(2))
+        return Index(1);
     throw std::runtime_error("Invalid neighbor index");
 }
 
 Index opposedTriangleInd(const Triangle& tri, const VertInd iVert)
 {
-    for(Index vi = 0; vi < 3; ++vi)
+    for(Index vi = Index(0); vi < Index(3); ++vi)
         if(iVert == tri.vertices[vi])
             return opoNbr(vi);
     throw std::runtime_error("Could not find opposed triangle index");
@@ -148,7 +150,7 @@ Index opposedTriangleInd(const Triangle& tri, const VertInd iVert)
 
 Index opposedVertexInd(const Triangle& tri, const TriInd iTriOpo)
 {
-    for(Index ni = 0; ni < 3; ++ni)
+    for(Index ni = Index(0); ni < Index(3); ++ni)
         if(iTriOpo == tri.neighbors[ni])
             return opoVrt(ni);
     throw std::runtime_error("Could not find opposed vertex index");
@@ -156,7 +158,7 @@ Index opposedVertexInd(const Triangle& tri, const TriInd iTriOpo)
 
 Index neighborInd(const Triangle& tri, const TriInd iTriOpo)
 {
-    for(Index ni = 0; ni < 3; ++ni)
+    for(Index ni = Index(0); ni < Index(3); ++ni)
         if(iTriOpo == tri.neighbors[ni])
             return ni;
     throw std::runtime_error("Could not find neighbor triangle index");
@@ -224,11 +226,11 @@ void Triangulation<T>::addSuperTriangle(const Box2d<T>& box)
     const V2d<T> posV1 = {center.x - shift, center.y - shift};
     const V2d<T> posV2 = {center.x + shift, center.y - shift};
     const V2d<T> posV3 = {center.x, center.y + diag};
-    vertices.push_back(Vertex<T>::make(posV1, 0));
-    vertices.push_back(Vertex<T>::make(posV2, 0));
-    vertices.push_back(Vertex<T>::make(posV3, 0));
+    vertices.push_back(Vertex<T>::make(posV1, TriInd(0)));
+    vertices.push_back(Vertex<T>::make(posV2, TriInd(0)));
+    vertices.push_back(Vertex<T>::make(posV3, TriInd(0)));
     Triangle superTri;
-    for(Index i = 0; i < 3; ++i)
+    for(Index i = Index(0); i < Index(3); ++i)
     {
         superTri.vertices[i] = i;
         superTri.neighbors[i] = noNeighbor;
@@ -239,7 +241,7 @@ void Triangulation<T>::addSuperTriangle(const Box2d<T>& box)
 template <typename T>
 void Triangulation<T>::insertVertex(const V2d<T>& pos)
 {
-    const VertInd iVert = vertices.size();
+    const VertInd iVert(vertices.size());
     std::stack<TriInd> triStack = insertPointInTriangle(pos, triangleAt(pos));
     while(!triStack.empty())
     {
@@ -285,9 +287,9 @@ Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iTri)
     Triangle& tri = triangles[iTri];
     const std::tr1::array<VertInd, 3> v = tri.vertices;
     const std::tr1::array<TriInd, 3> n = tri.neighbors;
-    const VertInd iVert = vertices.size();
-    const VertInd iNewTri1 = triangles.size();
-    const VertInd iNewTri2 = iNewTri1 + 1;
+    const VertInd iVert(vertices.size());
+    const TriInd iNewTri1(triangles.size());
+    const TriInd iNewTri2(iNewTri1 + 1);
     // make two new triangles
     const Triangle newTri1 = {{v[1], v[2], iVert}, {n[1], iNewTri2, iTri}};
     const Triangle newTri2 = {{v[2], v[0], iVert}, {n[2], iTri, iNewTri1}};
@@ -302,11 +304,11 @@ Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iTri)
     triangles.push_back(newTri2);
     vertices.push_back(newVert);
     // adjust lists of adjacent triangles for v1, v2, v3
-    addAdjacentTriangle(v[0],iNewTri2);
-    addAdjacentTriangle(v[1],iNewTri1);
+    addAdjacentTriangle(v[0], iNewTri2);
+    addAdjacentTriangle(v[1], iNewTri1);
     removeAdjacentTriangle(v[2], iTri);
-    addAdjacentTriangle(v[2],iNewTri1);
-    addAdjacentTriangle(v[2],iNewTri2);
+    addAdjacentTriangle(v[2], iNewTri1);
+    addAdjacentTriangle(v[2], iNewTri2);
     // change triangle neighbor's neighbors to new triangles
     changeNeighbor(n[1], iTri, iNewTri1);
     changeNeighbor(n[2], iTri, iNewTri2);
@@ -321,7 +323,7 @@ Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iTri)
 template <typename T>
 TriInd Triangulation<T>::triangleAt(const V2d<T>& pos) const
 {
-    for(TriInd i = 0; i < triangles.size(); ++i)
+    for(TriInd i = TriInd(0); i < TriInd(triangles.size()); ++i)
     {
         const Triangle& tri = triangles[i];
         const V2d<T> v1 = vertices[tri.vertices[0]].pos;
