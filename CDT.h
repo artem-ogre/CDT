@@ -4,6 +4,7 @@
 
 #include <boost/assign/list_of.hpp>
 #include <boost/foreach.hpp>
+#include <boost/functional/hash.hpp>
 #include <boost/serialization/strong_typedef.hpp>
 #include <boost/tr1/array.hpp>
 #include <boost/tr1/unordered_set.hpp>
@@ -69,11 +70,11 @@ struct Vertex
 
 /// Triangulation triangle
 /* Counter-clockwise winding:
-*      v3
-*      /\
-*   n3/  \n2
-*    /____\
-*  v1  n1  v2
+       v3
+       /\
+    n3/  \n2
+     /____\
+   v1  n1  v2
 */
 struct Triangle
 {
@@ -232,7 +233,7 @@ public:
 
     std::vector<Vertex<T> > vertices;
     std::vector<Triangle> triangles;
-    std::tr1::unordered_set<Edge> fixedEdges;
+    std::tr1::unordered_set<Edge, boost::hash<Edge>> fixedEdges;
 
     /*____ API _____*/
     void insertVertices(const std::vector<V2d<T> >& vertices);
