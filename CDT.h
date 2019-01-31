@@ -14,16 +14,17 @@
 namespace CDT
 {
 
-typedef unsigned char Index;
-typedef std::size_t VertInd;
-typedef std::size_t TriInd;
+// #define STRONG_TYPE_INDICES // strong type checks on indices
 
-// Un-comment for additional type-safety checking
-/*
+#ifdef STRONG_TYPE_INDICES
 BOOST_STRONG_TYPEDEF(unsigned char, Index)
 BOOST_STRONG_TYPEDEF(std::size_t, VertInd)
 BOOST_STRONG_TYPEDEF(std::size_t, TriInd)
-/**/
+#else
+typedef unsigned char Index;
+typedef std::size_t VertInd;
+typedef std::size_t TriInd;
+#endif
 
 const static std::size_t noNeighbor = std::numeric_limits<std::size_t>::max();
 
@@ -279,7 +280,7 @@ void Triangulation<T>::insertVertex(const V2d<T>& pos)
  *              /    __/ \__    \
  *             /  __/       \__  \
  *            / _/     tri     \_ \
- *           v3 _________________ v2
+ *          v1 ___________________ v2
  *                     n1
  */
 template <typename T>
@@ -287,18 +288,17 @@ std::stack<TriInd>
 Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iT)
 {
     Triangle& tri = triangles[iT];
-    const std::tr1::array<VertInd, 3> v = tri.vertices;
-    const std::tr1::array<TriInd, 3> n = tri.neighbors;
-    const VertInd iVert(vertices.size());
+    const std::tr1::array<VertInd, 3> vv = tri.vertices;
+    const std::tr1::array<TriInd, 3> nn = tri.neighbors;
+    const VertInd v1 = vv[0], v2 = vv[1], v3 = vv[2];
+    const TriInd n1 = nn[0], n2 = nn[1], n3 = nn[2];
+    const VertInd v(vertices.size());
     const TriInd iNewT1(triangles.size());
     const TriInd iNewT2(iNewT1 + 1);
-    // make two new triangles
-    const Triangle newTri1 = {{v[1], v[2], iVert}, {n[1], iNewT2, iT}};
-    const Triangle newTri2 = {{v[2], v[0], iVert}, {n[2], iT, iNewT1}};
-    // convert current triangle to third new triangle in-place
-    tri.neighbors[1] = iNewT1;
-    tri.neighbors[2] = iNewT2;
-    tri.vertices[2] = iVert;
+    // make two new triangles and convert current triangle to 3rd new triangle
+    const Triangle newTri1 = {{v2, v3, v}, {n2, iNewT2, iT}};
+    const Triangle newTri2 = {{v3, v1, v}, {n3, iT, iNewT1}};
+    tri = {{v1, v2, v}, {n1, iNewT1, iNewT2}};
     // make new vertex
     Vertex<T> newVert = {pos, boost::assign::list_of(iT)(iNewT1)(iNewT2)};
     // add new triangles and vertices to triangulation
@@ -306,14 +306,14 @@ Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iT)
     triangles.push_back(newTri2);
     vertices.push_back(newVert);
     // adjust lists of adjacent triangles for v1, v2, v3
-    addAdjacentTriangle(v[0], iNewT2);
-    addAdjacentTriangle(v[1], iNewT1);
-    removeAdjacentTriangle(v[2], iT);
-    addAdjacentTriangle(v[2], iNewT1);
-    addAdjacentTriangle(v[2], iNewT2);
+    addAdjacentTriangle(v1, iNewT2);
+    addAdjacentTriangle(v2, iNewT1);
+    removeAdjacentTriangle(v3, iT);
+    addAdjacentTriangle(v3, iNewT1);
+    addAdjacentTriangle(v3, iNewT2);
     // change triangle neighbor's neighbors to new triangles
-    changeNeighbor(n[1], iT, iNewT1);
-    changeNeighbor(n[2], iT, iNewT2);
+    changeNeighbor(n2, iT, iNewT1);
+    changeNeighbor(n3, iT, iNewT2);
     // return newly added triangles
     std::stack<TriInd> newTriangles;
     newTriangles.push(iT);
