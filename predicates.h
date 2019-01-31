@@ -30,8 +30,7 @@
  *                                                                                 *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#ifndef _PREDICATES_H_
-#define _PREDICATES_H_
+#pragma once
 
 #include <array>
 #include <cmath>//abs, fma, exp2, signbit
@@ -203,7 +202,7 @@ class ExpansionBase {
 		}
 
 		//roundoff error of x = a * b via dekkers product
-		static inline T DekkersProduct(const T a, const std::pair<T, T> aSplit, const T b, const std::pair<T, T> bSplit, const T p) {
+        static inline T DekkersProduct(const T /*a*/, const std::pair<T, T> aSplit, const T /*b*/, const std::pair<T, T> bSplit, const T p) {
 			T y = p - T(aSplit.first * bSplit.first);
 			y -= T(aSplit.second * bSplit.first);
 			y -= T(aSplit.first * bSplit.second);
@@ -214,7 +213,7 @@ class ExpansionBase {
 		template <typename S = T> static typename std::enable_if< use_fma<S>::value, S>::type MultTail(const T a, const T b, const T p) {return std::fma(a, b, -p);}
 		template <typename S = T> static typename std::enable_if<!use_fma<S>::value, S>::type MultTail(const T a, const T b, const T p) {return DekkersProduct(a, Split(a), b, Split(b), p);}
 
-		template <typename S = T> static typename std::enable_if< use_fma<S>::value, S>::type MultTailPreSplit(const T a, const T b, const std::pair<T, T> bSplit, const T p) {return std::fma(a, b, -p);}
+        template <typename S = T> static typename std::enable_if< use_fma<S>::value, S>::type MultTailPreSplit(const T a, const T b, const std::pair<T, T> /*bSplit*/, const T p) {return std::fma(a, b, -p);}
 		template <typename S = T> static typename std::enable_if<!use_fma<S>::value, S>::type MultTailPreSplit(const T a, const T b, const std::pair<T, T> bSplit, const T p) {return DekkersProduct(a, Split(a), b, bSplit, p);}
 
 		//expand a + b
@@ -667,5 +666,3 @@ namespace  predicates {
 		}
 	}
 }
-
-#endif
