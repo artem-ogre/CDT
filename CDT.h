@@ -6,6 +6,7 @@
 #include <boost/serialization/strong_typedef.hpp>
 #include <boost/tr1/array.hpp>
 #include <boost/tr1/unordered_set.hpp>
+#include <boost/assign/list_of.hpp>
 
 #include <limits>
 #include <stack>
@@ -45,8 +46,14 @@ struct Box2d
 template <typename T>
 struct Vertex
 {
-    std::vector<TriInd> triangles;
     V2d<T> pos;
+    std::vector<TriInd> triangles;
+
+    static Vertex make(const V2d<T>& pos, const TriInd iTriangle)
+    {
+        Vertex out = {pos, std::vector<TriInd>(1, iTriangle)};
+        return out;
+    }
 };
 
 /* Counter-clockwise winding:
@@ -201,6 +208,8 @@ private:
         const TriInd iTri,
         const TriInd oldNeighbor,
         const TriInd newNeighbor);
+    void addAdjacentTriangle(const VertInd iVertex, const TriInd iTriangle);
+    void removeAdjacentTriangle(const VertInd iVertex, const TriInd iTriangle);
 };
 
 template <typename T>
@@ -212,13 +221,12 @@ void Triangulation<T>::addSuperTriangle(const Box2d<T>& box)
     const T h = box.max.y - box.min.y;
     const T diag = T(4) * std::sqrt(w * w + h * h);
     const T shift = diag / std::sqrt(2.0); // diagonal * sin(45deg)
-    const std::vector<TriInd> vTris(1, 0); // just 0-index of super-triangle
-    const Vertex<T> v1 = {{vTris}, {center.x - shift, center.y - shift}};
-    const Vertex<T> v2 = {{vTris}, {center.x + shift, center.y - shift}};
-    const Vertex<T> v3 = {{vTris}, {center.x, center.y + diag}};
-    vertices.push_back(v1);
-    vertices.push_back(v2);
-    vertices.push_back(v3);
+    const V2d<T> posV1 = {center.x - shift, center.y - shift};
+    const V2d<T> posV2 = {center.x + shift, center.y - shift};
+    const V2d<T> posV3 = {center.x, center.y + diag};
+    vertices.push_back(Vertex<T>::make(posV1, 0));
+    vertices.push_back(Vertex<T>::make(posV2, 0));
+    vertices.push_back(Vertex<T>::make(posV3, 0));
     Triangle superTri;
     for(Index i = 0; i < 3; ++i)
     {
@@ -238,7 +246,8 @@ void Triangulation<T>::insertVertex(const V2d<T>& pos)
         const TriInd iTri = triStack.top();
         triStack.pop();
 
-        const TriInd iTriOpo = opposedTriangle(triangles[iTri], iVert);
+        const Triangle& tri = triangles[iTri];
+        const TriInd iTriOpo = opposedTriangle(tri, iVert);
         if(iTriOpo == noNeighbor)
             continue;
         const Triangle& triOpo = triangles[iTriOpo];
@@ -255,51 +264,52 @@ void Triangulation<T>::insertVertex(const V2d<T>& pos)
     }
 }
 
+/* Insert point into triangle: split into 3 triangles:
+ *  - create 2 new triangles
+ *  - re-use old triangle for the 3rd
+ *
+ *                   v3
+ *                  |
+ *           new2-> | <-new1
+ *                  v
+ *          n3/    / \     \n2
+ *                /   \
+ *               / tri \
+ *             v1_______v2
+ *                 n1
+ */
 template <typename T>
 std::stack<TriInd>
 Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iTri)
 {
     Triangle& tri = triangles[iTri];
-    /*      v3
-     *      |
-     * new2 | new1
-     *      v
-     *     / \
-     *    /tri\
-     *  v1     v2
-     */
-    const std::tr1::array<VertInd, 3> vv = tri.vertices;
-    const std::tr1::array<TriInd, 3> nn = tri.neighbors;
+    const std::tr1::array<VertInd, 3> v = tri.vertices;
+    const std::tr1::array<TriInd, 3> n = tri.neighbors;
     const VertInd iVert = vertices.size();
     const VertInd iNewTri1 = triangles.size();
     const VertInd iNewTri2 = iNewTri1 + 1;
     // make two new triangles
-    const Triangle newTri1 = {{vv[1], vv[2], iVert}, {nn[1], iNewTri2, iTri}};
-    const Triangle newTri2 = {{vv[2], vv[0], iVert}, {nn[2], iTri, iNewTri1}};
+    const Triangle newTri1 = {{v[1], v[2], iVert}, {n[1], iNewTri2, iTri}};
+    const Triangle newTri2 = {{v[2], v[0], iVert}, {n[2], iTri, iNewTri1}};
     // convert current triangle to third new triangle in-place
     tri.neighbors[1] = iNewTri1;
     tri.neighbors[2] = iNewTri2;
     tri.vertices[2] = iVert;
     // make new vertex
-    Vertex<T> newVert;
-    newVert.pos = pos;
-    newVert.triangles.push_back(iTri);
-    newVert.triangles.push_back(iNewTri1);
-    newVert.triangles.push_back(iNewTri2);
+    Vertex<T> newVert = {pos, boost::assign::list_of(iTri)(iNewTri1)(iNewTri2)};
     // add new triangles and vertices to triangulation
     triangles.push_back(newTri1);
     triangles.push_back(newTri2);
     vertices.push_back(newVert);
     // adjust lists of adjacent triangles for v1, v2, v3
-    vertices[vv[0]].triangles.push_back(iNewTri2);
-    vertices[vv[1]].triangles.push_back(iNewTri1);
-    std::vector<TriInd>& v2Tris = vertices[vv[2]].triangles;
-    v2Tris.erase(std::remove(v2Tris.begin(), v2Tris.end(), iTri));
-    v2Tris.push_back(iNewTri1);
-    v2Tris.push_back(iNewTri2);
+    addAdjacentTriangle(v[0],iNewTri2);
+    addAdjacentTriangle(v[1],iNewTri1);
+    removeAdjacentTriangle(v[2], iTri);
+    addAdjacentTriangle(v[2],iNewTri1);
+    addAdjacentTriangle(v[2],iNewTri2);
     // change triangle neighbor's neighbors to new triangles
-    changeNeighbor(nn[1], iTri, iNewTri1);
-    changeNeighbor(nn[2], iTri, iNewTri2);
+    changeNeighbor(n[1], iTri, iNewTri1);
+    changeNeighbor(n[2], iTri, iNewTri2);
     // return newly added triangles
     std::stack<TriInd> newTriangles;
     newTriangles.push(iTri);
@@ -361,16 +371,13 @@ void Triangulation<T>::flipEdge(const TriInd iTri, const TriInd iTriOpo)
     // change vertices and neighbors
     tri = {{v4, v1, v3}, {n3, iTriOpo, n4}};
     triOpo = {{v2, v3, v1}, {n2, iTri, n1}};
-    // adjust neighbors
+    // adjust neighboring triangles and vertices
     changeNeighbor(n1, iTri, iTriOpo);
     changeNeighbor(n4, iTriOpo, iTri);
-    // adjust vertices' triangle lists
-    vertices[v1].triangles.push_back(iTriOpo);
-    vertices[v3].triangles.push_back(iTri);
-    std::vector<TriInd>& vtris = vertices[v2].triangles;
-    vtris.erase(std::remove(vtris.begin(), vtris.end(), iTri));
-    vtris = vertices[v4].triangles;
-    vtris.erase(std::remove(vtris.begin(), vtris.end(), iTriOpo));
+    addAdjacentTriangle(v1, iTriOpo);
+    addAdjacentTriangle(v3, iTri);
+    removeAdjacentTriangle(v2, iTri);
+    removeAdjacentTriangle(v4, iTriOpo);
 }
 
 template <typename T>
@@ -383,6 +390,23 @@ void Triangulation<T>::changeNeighbor(
         return;
     Triangle& tri = triangles[iTri];
     tri.neighbors[neighborInd(tri, oldNeighbor)] = newNeighbor;
+}
+
+template <typename T>
+void Triangulation<T>::addAdjacentTriangle(
+    const VertInd iVertex,
+    const TriInd iTriangle)
+{
+    vertices[iVertex].triangles.push_back(iTriangle);
+}
+
+template <typename T>
+void Triangulation<T>::removeAdjacentTriangle(
+    const VertInd iVertex,
+    const TriInd iTriangle)
+{
+    std::vector<TriInd>& tris = vertices[iVertex].triangles;
+    tris.erase(std::remove(tris.begin(), tris.end(), iTriangle));
 }
 
 template <typename T>
