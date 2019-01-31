@@ -36,7 +36,6 @@ public:
         : QWidget(parent)
     {
         m_cdtWidget = new CDTWidget();
-        m_dir = QDir(QDir::currentPath(), tr("*.txt"));
 
         QHBoxLayout* centralLayout = new QHBoxLayout;
         centralLayout->addWidget(m_cdtWidget);
@@ -47,7 +46,6 @@ public:
     }
 
 private:
-    QDir m_dir;
     CDTWidget* m_cdtWidget;
 };
 

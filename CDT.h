@@ -148,18 +148,18 @@ Index opposedTriangleInd(const Triangle& tri, const VertInd iVert)
     throw std::runtime_error("Could not find opposed triangle index");
 }
 
-Index opposedVertexInd(const Triangle& tri, const TriInd iTriOpo)
+Index opposedVertexInd(const Triangle& tri, const TriInd iTopo)
 {
     for(Index ni = Index(0); ni < Index(3); ++ni)
-        if(iTriOpo == tri.neighbors[ni])
+        if(iTopo == tri.neighbors[ni])
             return opoVrt(ni);
     throw std::runtime_error("Could not find opposed vertex index");
 }
 
-Index neighborInd(const Triangle& tri, const TriInd iTriOpo)
+Index neighborInd(const Triangle& tri, const TriInd iTopo)
 {
     for(Index ni = Index(0); ni < Index(3); ++ni)
-        if(iTriOpo == tri.neighbors[ni])
+        if(iTopo == tri.neighbors[ni])
             return ni;
     throw std::runtime_error("Could not find neighbor triangle index");
 }
@@ -169,9 +169,9 @@ TriInd opposedTriangle(const Triangle& tri, const VertInd iVert)
     return tri.neighbors[opposedTriangleInd(tri, iVert)];
 }
 
-VertInd opposedVertex(const Triangle& tri, const TriInd iTriOpo)
+VertInd opposedVertex(const Triangle& tri, const TriInd iTopo)
 {
-    return tri.vertices[opposedVertexInd(tri, iTriOpo)];
+    return tri.vertices[opposedVertexInd(tri, iTopo)];
 }
 
 template <typename T>
@@ -203,11 +203,11 @@ private:
     void insertVertex(const V2d<T>& pos);
     /// Returns indices of three resulting triangles
     std::stack<TriInd>
-    insertPointInTriangle(const V2d<T>& pos, const TriInd iTri);
+    insertPointInTriangle(const V2d<T>& pos, const TriInd iT);
     TriInd triangleAt(const V2d<T>& pos) const;
-    void flipEdge(const TriInd iTri, const TriInd iTriOpo);
+    void flipEdge(const TriInd iT, const TriInd iTopo);
     void changeNeighbor(
-        const TriInd iTri,
+        const TriInd iT,
         const TriInd oldNeighbor,
         const TriInd newNeighbor);
     void addAdjacentTriangle(const VertInd iVertex, const TriInd iTriangle);
@@ -245,23 +245,23 @@ void Triangulation<T>::insertVertex(const V2d<T>& pos)
     std::stack<TriInd> triStack = insertPointInTriangle(pos, triangleAt(pos));
     while(!triStack.empty())
     {
-        const TriInd iTri = triStack.top();
+        const TriInd iT = triStack.top();
         triStack.pop();
 
-        const Triangle& tri = triangles[iTri];
-        const TriInd iTriOpo = opposedTriangle(tri, iVert);
-        if(iTriOpo == noNeighbor)
+        const Triangle& t = triangles[iT];
+        const TriInd iTopo = opposedTriangle(t, iVert);
+        if(iTopo == noNeighbor)
             continue;
-        const Triangle& triOpo = triangles[iTriOpo];
+        const Triangle& tOpo = triangles[iTopo];
         const std::tr1::array<V2d<T>, 3> triOpoPts = {
-            vertices[triOpo.vertices[0]].pos,
-            vertices[triOpo.vertices[1]].pos,
-            vertices[triOpo.vertices[2]].pos};
+            vertices[tOpo.vertices[0]].pos,
+            vertices[tOpo.vertices[1]].pos,
+            vertices[tOpo.vertices[2]].pos};
         if(isInCircumcircle(pos, triOpoPts))
         {
-            flipEdge(iTri, iTriOpo);
-            triStack.push(iTri);
-            triStack.push(iTriOpo);
+            flipEdge(iT, iTopo);
+            triStack.push(iT);
+            triStack.push(iTopo);
         }
     }
 }
@@ -282,41 +282,41 @@ void Triangulation<T>::insertVertex(const V2d<T>& pos)
  */
 template <typename T>
 std::stack<TriInd>
-Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iTri)
+Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iT)
 {
-    Triangle& tri = triangles[iTri];
+    Triangle& tri = triangles[iT];
     const std::tr1::array<VertInd, 3> v = tri.vertices;
     const std::tr1::array<TriInd, 3> n = tri.neighbors;
     const VertInd iVert(vertices.size());
-    const TriInd iNewTri1(triangles.size());
-    const TriInd iNewTri2(iNewTri1 + 1);
+    const TriInd iNewT1(triangles.size());
+    const TriInd iNewT2(iNewT1 + 1);
     // make two new triangles
-    const Triangle newTri1 = {{v[1], v[2], iVert}, {n[1], iNewTri2, iTri}};
-    const Triangle newTri2 = {{v[2], v[0], iVert}, {n[2], iTri, iNewTri1}};
+    const Triangle newTri1 = {{v[1], v[2], iVert}, {n[1], iNewT2, iT}};
+    const Triangle newTri2 = {{v[2], v[0], iVert}, {n[2], iT, iNewT1}};
     // convert current triangle to third new triangle in-place
-    tri.neighbors[1] = iNewTri1;
-    tri.neighbors[2] = iNewTri2;
+    tri.neighbors[1] = iNewT1;
+    tri.neighbors[2] = iNewT2;
     tri.vertices[2] = iVert;
     // make new vertex
-    Vertex<T> newVert = {pos, boost::assign::list_of(iTri)(iNewTri1)(iNewTri2)};
+    Vertex<T> newVert = {pos, boost::assign::list_of(iT)(iNewT1)(iNewT2)};
     // add new triangles and vertices to triangulation
     triangles.push_back(newTri1);
     triangles.push_back(newTri2);
     vertices.push_back(newVert);
     // adjust lists of adjacent triangles for v1, v2, v3
-    addAdjacentTriangle(v[0], iNewTri2);
-    addAdjacentTriangle(v[1], iNewTri1);
-    removeAdjacentTriangle(v[2], iTri);
-    addAdjacentTriangle(v[2], iNewTri1);
-    addAdjacentTriangle(v[2], iNewTri2);
+    addAdjacentTriangle(v[0], iNewT2);
+    addAdjacentTriangle(v[1], iNewT1);
+    removeAdjacentTriangle(v[2], iT);
+    addAdjacentTriangle(v[2], iNewT1);
+    addAdjacentTriangle(v[2], iNewT2);
     // change triangle neighbor's neighbors to new triangles
-    changeNeighbor(n[1], iTri, iNewTri1);
-    changeNeighbor(n[2], iTri, iNewTri2);
+    changeNeighbor(n[1], iT, iNewT1);
+    changeNeighbor(n[2], iT, iNewT2);
     // return newly added triangles
     std::stack<TriInd> newTriangles;
-    newTriangles.push(iTri);
-    newTriangles.push(iNewTri1);
-    newTriangles.push(iNewTri2);
+    newTriangles.push(iT);
+    newTriangles.push(iNewT1);
+    newTriangles.push(iNewT2);
     return newTriangles;
 }
 
@@ -351,46 +351,45 @@ TriInd Triangulation<T>::triangleAt(const V2d<T>& pos) const
  *                * v3
  */
 template <typename T>
-void Triangulation<T>::flipEdge(const TriInd iTri, const TriInd iTriOpo)
+void Triangulation<T>::flipEdge(const TriInd iT, const TriInd iTopo)
 {
-    Triangle& tri = triangles[iTri];
-    Triangle& triOpo = triangles[iTriOpo];
+    Triangle& tri = triangles[iT];
+    Triangle& triOpo = triangles[iTopo];
     const std::tr1::array<TriInd, 3>& triNs = tri.neighbors;
     const std::tr1::array<TriInd, 3>& triOpoNs = triOpo.neighbors;
     const std::tr1::array<VertInd, 3>& triVs = tri.vertices;
     const std::tr1::array<VertInd, 3>& triOpoVs = triOpo.vertices;
     // find vertices and neighbors
-    Index i = opposedVertexInd(tri, iTriOpo);
+    Index i = opposedVertexInd(tri, iTopo);
     const VertInd v1 = triVs[i];
     const VertInd v2 = triVs[ccw(i)];
     const TriInd n1 = triNs[i];
     const TriInd n3 = triNs[cw(i)];
-    i = opposedVertexInd(triOpo, iTri);
+    i = opposedVertexInd(triOpo, iT);
     const VertInd v3 = triOpoVs[i];
     const VertInd v4 = triOpoVs[ccw(i)];
     const TriInd n4 = triOpoNs[i];
     const TriInd n2 = triOpoNs[cw(i)];
     // change vertices and neighbors
-    tri = {{v4, v1, v3}, {n3, iTriOpo, n4}};
-    triOpo = {{v2, v3, v1}, {n2, iTri, n1}};
+    tri = {{v4, v1, v3}, {n3, iTopo, n4}};
+    triOpo = {{v2, v3, v1}, {n2, iT, n1}};
     // adjust neighboring triangles and vertices
-    changeNeighbor(n1, iTri, iTriOpo);
-    changeNeighbor(n4, iTriOpo, iTri);
-    addAdjacentTriangle(v1, iTriOpo);
-    addAdjacentTriangle(v3, iTri);
-    removeAdjacentTriangle(v2, iTri);
-    removeAdjacentTriangle(v4, iTriOpo);
+    changeNeighbor(n1, iT, iTopo);
+    changeNeighbor(n4, iTopo, iT);
+    addAdjacentTriangle(v1, iTopo);
+    addAdjacentTriangle(v3, iT);
+    removeAdjacentTriangle(v2, iT);
+    removeAdjacentTriangle(v4, iTopo);
 }
 
 template <typename T>
-void Triangulation<T>::changeNeighbor(
-    const TriInd iTri,
+void Triangulation<T>::changeNeighbor(const TriInd iT,
     const TriInd oldNeighbor,
     const TriInd newNeighbor)
 {
-    if(iTri == noNeighbor)
+    if(iT == noNeighbor)
         return;
-    Triangle& tri = triangles[iTri];
+    Triangle& tri = triangles[iT];
     tri.neighbors[neighborInd(tri, oldNeighbor)] = newNeighbor;
 }
 
