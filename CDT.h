@@ -269,16 +269,18 @@ void Triangulation<T>::insertVertex(const V2d<T>& pos)
 /* Insert point into triangle: split into 3 triangles:
  *  - create 2 new triangles
  *  - re-use old triangle for the 3rd
- *
- *                   v3
- *                  |
- *           new2-> | <-new1
- *                  v
- *          n3/    / \     \n2
- *                /   \
- *               / tri \
- *             v1_______v2
- *                 n1
+ *                      v3
+ *                    / | \
+ *                   /  |  \
+ *                  /   |   \
+ *              n3 /    |    \ n2
+ *                /new2 | new1\
+ *               /      v      \
+ *              /    __/ \__    \
+ *             /  __/       \__  \
+ *            / _/     tri     \_ \
+ *           v3 _________________ v2
+ *                     n1
  */
 template <typename T>
 std::stack<TriInd>
@@ -336,19 +338,20 @@ TriInd Triangulation<T>::triangleAt(const V2d<T>& pos) const
 }
 
 /* Flip edge between T and Topo:
- *                * v1
- *               /'\
- *           n1 / ' \ n3
- *             /  '  \
- *         T->/   ' <--T'
- *           /    '    \
- *        v2 *===='====* v4
- *           \    '    /
- *       Topo'--> '   /<-Topo
- *             \  '  /
- *           n2 \ ' / n4
- *               \'/
- *                * v3
+ *
+ *                v4         | - old edge
+ *               /|\         ~ - new edge
+ *              / | \
+ *          n3 /  T' \ n4
+ *            /   |   \
+ *           /    |    \
+ *     T -> v1~~~~~~~~~v3 <- Topo
+ *           \    |    /
+ *            \   |   /
+ *          n1 \Topo'/ n2
+ *              \ | /
+ *               \|/
+ *                v2
  */
 template <typename T>
 void Triangulation<T>::flipEdge(const TriInd iT, const TriInd iTopo)
