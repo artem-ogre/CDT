@@ -11,21 +11,20 @@
 #include <limits>
 #include <stack>
 
+// #define CDT_USE_STRONG_TYPING // strong type checks on indices
+
+#ifdef CDT_USE_STRONG_TYPING
+#define CDT_TYPEDEF(typeWhat, typeAs) BOOST_STRONG_TYPEDEF(typeWhat, typeAs)
+#else
+#define CDT_TYPEDEF(typeWhat, typeAs) typedef typeWhat typeAs;
+#endif
+
 namespace CDT
 {
 
-// #define STRONG_TYPE_INDICES // strong type checks on indices
-
-#ifdef STRONG_TYPE_INDICES
-BOOST_STRONG_TYPEDEF(unsigned char, Index)
-BOOST_STRONG_TYPEDEF(std::size_t, VertInd)
-BOOST_STRONG_TYPEDEF(std::size_t, TriInd)
-#else
-typedef unsigned char Index;
-typedef std::size_t VertInd;
-typedef std::size_t TriInd;
-#endif
-
+CDT_TYPEDEF(unsigned char, Index);
+CDT_TYPEDEF(std::size_t, VertInd);
+CDT_TYPEDEF(std::size_t, TriInd);
 const static std::size_t noNeighbor = std::numeric_limits<std::size_t>::max();
 
 template <typename T>
