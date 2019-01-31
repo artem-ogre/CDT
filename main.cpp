@@ -60,6 +60,13 @@ int main(int argc, char* argv[])
     vertices.push_back(V2d::make(2, 1));
     vertices.push_back(V2d::make(1, 1));
     cdt.insertVertices(vertices);
+    { // Check if on triangle edge case is detected
+        const V2d a = {0, 0};
+        const V2d b = {10, 0};
+        const V2d c = {10, 10};
+        const V2d pt = {5, 5};
+        CDT::PtInsideTri::Enum tmp = CDT::isInsideTriangle(pt, a, b, c);
+    }
 
     QApplication app(argc, argv);
     MainWindow window;
