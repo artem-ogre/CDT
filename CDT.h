@@ -303,8 +303,8 @@ private:
     VertInd findDelaunayPoint(
         const VertInd ia,
         const VertInd ib,
-        const std::vector<VertInd>& points);
-    TriInd pseudopolyOuterTriangle(const VertInd ia, const VertInd ib);
+        const std::vector<VertInd>& points) const;
+    TriInd pseudopolyOuterTriangle(const VertInd ia, const VertInd ib) const;
 };
 
 template <typename T>
@@ -624,7 +624,7 @@ template <typename T>
 VertInd Triangulation<T>::findDelaunayPoint(
     const VertInd ia,
     const VertInd ib,
-    const std::vector<VertInd>& points)
+    const std::vector<VertInd>& points) const
 {
     assert(!points.empty());
     const V2d<T>& a = vertices[ia].pos;
@@ -644,8 +644,9 @@ VertInd Triangulation<T>::findDelaunayPoint(
 }
 
 template <typename T>
-TriInd
-Triangulation<T>::pseudopolyOuterTriangle(const VertInd ia, const VertInd ib)
+TriInd Triangulation<T>::pseudopolyOuterTriangle(
+    const VertInd ia,
+    const VertInd ib) const
 {
     const Vertex<T>& a = vertices[ia];
     const Vertex<T>& b = vertices[ib];
