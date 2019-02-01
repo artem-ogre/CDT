@@ -26,7 +26,8 @@ namespace CDT
 CDT_TYPEDEF(unsigned char, Index);
 CDT_TYPEDEF(std::size_t, VertInd);
 CDT_TYPEDEF(std::size_t, TriInd);
-const static std::size_t noNeighbor = std::numeric_limits<std::size_t>::max();
+const static TriInd noNeighbor =
+    TriInd(std::numeric_limits<std::size_t>::max());
 
 /// 2D vector
 template <typename T>
