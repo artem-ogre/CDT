@@ -626,18 +626,18 @@ VertInd Triangulation<T>::findDelaunayPoint(
     const std::vector<VertInd>& points)
 {
     assert(!points.empty());
-    const Vertex<T>& a = vertices[ia];
-    const Vertex<T>& b = vertices[ib];
+    const V2d<T>& a = vertices[ia].pos;
+    const V2d<T>& b = vertices[ib].pos;
     VertInd ic = points.front();
-    Vertex<T> c = vertices[ic];
+    V2d<T> c = vertices[ic].pos;
     typedef std::vector<VertInd>::const_iterator CIt;
     for(CIt it = points.begin() + 1; it != points.end(); ++it)
     {
-        const Vertex<T> v = vertices[*it];
-        if(!isInCircumcircle(v.pos, a.pos, b.pos, c.pos))
+        const V2d<T> v = vertices[*it].pos;
+        if(!isInCircumcircle(v, a, b, c))
             continue;
         ic = *it;
-        c = vertices[ic];
+        c = vertices[ic].pos;
     }
     return ic;
 }
