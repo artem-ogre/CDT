@@ -251,10 +251,14 @@ VertInd opposedVertex(const Triangle& tri, const TriInd iTopo)
 
 /// Test if point lies in a circumscribed circle of a triangle
 template <typename T>
-bool isInCircumcircle(const V2d<T>& p, const std::tr1::array<V2d<T>, 3>& tri)
+bool isInCircumcircle(
+    const V2d<T>& p,
+    const V2d<T>& v1,
+    const V2d<T>& v2,
+    const V2d<T>& v3)
 {
     using namespace predicates::adaptive;
-    return incircle(tri[0].raw(), tri[1].raw(), tri[2].raw(), p.raw()) > T(0);
+    return incircle(v1.raw(), v2.raw(), v3.raw(), p.raw()) > T(0);
 }
 
 template <typename T>
@@ -291,6 +295,15 @@ private:
         const TriInd newNeighbor);
     void addAdjacentTriangle(const VertInd iVertex, const TriInd iTriangle);
     void removeAdjacentTriangle(const VertInd iVertex, const TriInd iTriangle);
+    TriInd triangulatePseudopolygon(
+        const VertInd ia,
+        const VertInd ib,
+        const std::vector<VertInd>& points);
+    VertInd findDelaunayPoint(
+        const VertInd ia,
+        const VertInd ib,
+        const std::vector<VertInd>& points);
+    TriInd pseudopolyOuterTriangle(const VertInd ia, const VertInd ib);
 };
 
 template <typename T>
@@ -335,11 +348,10 @@ void Triangulation<T>::insertVertex(const V2d<T>& pos)
         if(iTopo == noNeighbor)
             continue;
         const Triangle& tOpo = triangles[iTopo];
-        const std::tr1::array<V2d<T>, 3> triOpoPts = {
-            vertices[tOpo.vertices[0]].pos,
-            vertices[tOpo.vertices[1]].pos,
-            vertices[tOpo.vertices[2]].pos};
-        if(isInCircumcircle(pos, triOpoPts))
+        const V2d<T>& v1 = vertices[tOpo.vertices[0]].pos;
+        const V2d<T>& v2 = vertices[tOpo.vertices[1]].pos;
+        const V2d<T>& v3 = vertices[tOpo.vertices[2]].pos;
+        if(isInCircumcircle(pos, v1, v2, v3))
         {
             flipEdge(iT, iTopo);
             triStack.push(iT);
@@ -565,6 +577,83 @@ void Triangulation<T>::removeAdjacentTriangle(
 {
     std::vector<TriInd>& tris = vertices[iVertex].triangles;
     tris.erase(std::remove(tris.begin(), tris.end(), iTriangle));
+}
+
+std::pair<std::vector<VertInd>, std::vector<VertInd> >
+splitPseudopolygon(const VertInd vi, const std::vector<VertInd>& points)
+{
+    std::pair<std::vector<VertInd>, std::vector<VertInd> > out;
+    std::vector<VertInd>::const_iterator it;
+    for(it = points.begin(); vi != *it; ++it)
+        out.first.push_back(*it);
+    for(it = it + 1; it != points.end(); ++it)
+        out.second.push_back(*it);
+    return out;
+}
+
+template <typename T>
+TriInd Triangulation<T>::triangulatePseudopolygon(
+    const VertInd ia,
+    const VertInd ib,
+    const std::vector<VertInd>& points)
+{
+    if(points.empty())
+        return pseudopolyOuterTriangle(ia, ib);
+    const VertInd ic = findDelaunayPoint(ia, ib, points);
+    const std::pair<std::vector<VertInd>, std::vector<VertInd> > splitted =
+        splitPseudopolygon(ic, points);
+    // triangulate splitted pseudo-polygons
+    TriInd iT2 = triangulatePseudopolygon(ic, ib, splitted.second);
+    TriInd iT1 = triangulatePseudopolygon(ia, ic, splitted.first);
+    // add new triangle
+    const TriInd iT = triangles.size();
+    const Triangle t = {{ia, ib, ic}, {noNeighbor, iT2, iT1}};
+    triangles.push_back(t);
+    // adjust neighboring triangles and vertices
+    triangles[iT1].neighbors[0] = iT;
+    triangles[iT2].neighbors[0] = iT;
+    addAdjacentTriangle(ia, iT);
+    addAdjacentTriangle(ib, iT);
+    addAdjacentTriangle(ic, iT);
+
+    return iT;
+}
+
+template <typename T>
+VertInd Triangulation<T>::findDelaunayPoint(
+    const VertInd ia,
+    const VertInd ib,
+    const std::vector<VertInd>& points)
+{
+    assert(!points.empty());
+    const Vertex<T>& a = vertices[ia];
+    const Vertex<T>& b = vertices[ib];
+    VertInd ic = points.front();
+    Vertex<T> c = vertices[ic];
+    typedef std::vector<VertInd>::const_iterator CIt;
+    for(CIt it = points.begin() + 1; it != points.end(); ++it)
+    {
+        const Vertex<T> v = vertices[*it];
+        if(!isInCircumcircle(v.pos, a.pos, b.pos, c.pos))
+            continue;
+        ic = *it;
+        c = vertices[ic];
+    }
+    return ic;
+}
+
+template <typename T>
+TriInd
+Triangulation<T>::pseudopolyOuterTriangle(const VertInd ia, const VertInd ib)
+{
+    const Vertex<T>& a = vertices[ia];
+    const Vertex<T>& b = vertices[ib];
+    BOOST_FOREACH(const TriInd iTa, a.triangles)
+        BOOST_FOREACH(const TriInd iTb, b.triangles)
+            if(iTa == iTb)
+                return iTa;
+    throw std::runtime_error(
+        "Could not find an outer triangle of the pseudo-polygon edge");
 }
 
 template <typename T>
