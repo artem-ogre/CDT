@@ -99,7 +99,7 @@ struct PtInsideTri
     enum Enum
     {
         Inside,
-        Ourside,
+        Outside,
         OnTheEdge,
     };
 };
@@ -112,7 +112,7 @@ checkTriEdge(const V2d<T>& p, const V2d<T>& v1, const V2d<T>& v2)
     using namespace predicates::adaptive;
     const T orientation = orient2d(v1.raw(), v2.raw(), p.raw());
     if(orientation < T(0))
-        return PtInsideTri::Ourside;
+        return PtInsideTri::Outside;
     else if(orientation == T(0))
         return PtInsideTri::OnTheEdge;
     return PtInsideTri::Inside;
@@ -129,12 +129,19 @@ PtInsideTri::Enum isInsideTriangle(
     using namespace predicates::adaptive;
     PtInsideTri::Enum result;
     result = checkTriEdge(p, v1, v2);
-    if(result != PtInsideTri::Inside)
-        return result;
-    result = checkTriEdge(p, v2, v3);
-    if(result != PtInsideTri::Inside)
-        return result;
-    return checkTriEdge(p, v3, v1);
+    if(result == PtInsideTri::Outside)
+        return PtInsideTri::Outside;
+    PtInsideTri::Enum edgeCheck = checkTriEdge(p, v2, v3);
+    if(edgeCheck == PtInsideTri::Outside)
+        return PtInsideTri::Outside;
+    if(edgeCheck == PtInsideTri::OnTheEdge)
+        result = PtInsideTri::OnTheEdge;
+    edgeCheck = checkTriEdge(p, v3, v1);
+    if(edgeCheck == PtInsideTri::Outside)
+        return PtInsideTri::Outside;
+    if(edgeCheck == PtInsideTri::OnTheEdge)
+        result = PtInsideTri::OnTheEdge;
+    return result;
 }
 
 /// Bounding box of a collection of 2D points
