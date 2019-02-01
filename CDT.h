@@ -94,7 +94,7 @@ Index cw(Index i)
     return Index((i + 2) % 3);
 }
 
-struct PtInsideTri
+struct PtTriLocation
 {
     enum Enum
     {
@@ -106,12 +106,12 @@ struct PtInsideTri
     };
 };
 
-bool isOnEdge(const PtInsideTri::Enum ptInsideTri)
+bool isOnEdge(const PtTriLocation::Enum ptInsideTri)
 {
-    return ptInsideTri > PtInsideTri::Outside;
+    return ptInsideTri > PtTriLocation::Outside;
 }
 
-struct PtLineOrient
+struct PtLineLocation
 {
     enum Enum
     {
@@ -123,43 +123,43 @@ struct PtLineOrient
 
 /// Helper for inside-triangle test, checks one edge of triangle
 template <typename T>
-PtLineOrient::Enum
-checkTriEdge(const V2d<T>& p, const V2d<T>& v1, const V2d<T>& v2)
+PtLineLocation::Enum
+locatePointLine(const V2d<T>& p, const V2d<T>& v1, const V2d<T>& v2)
 {
     using namespace predicates::adaptive;
     const T orientation = orient2d(v1.raw(), v2.raw(), p.raw());
     if(orientation < T(0))
-        return PtLineOrient::Right;
+        return PtLineLocation::Right;
     else if(orientation == T(0))
-        return PtLineOrient::OnLine;
-    return PtLineOrient::Left;
+        return PtLineLocation::OnLine;
+    return PtLineLocation::Left;
 }
 
 /// Check if a point is inside a triangle defined by three points (2D)
 template <typename T>
-PtInsideTri::Enum isInsideTriangle(
+PtTriLocation::Enum locatePointTriangle(
     const V2d<T>& p,
     const V2d<T>& v1,
     const V2d<T>& v2,
     const V2d<T>& v3)
 {
     using namespace predicates::adaptive;
-    PtInsideTri::Enum result = PtInsideTri::Inside;
-    PtLineOrient::Enum edgeCheck = checkTriEdge(p, v1, v2);
-    if(edgeCheck == PtLineOrient::Right)
-        return PtInsideTri::Outside;
-    if(edgeCheck == PtLineOrient::OnLine)
-        result = PtInsideTri::OnEdge1;
-    edgeCheck = checkTriEdge(p, v2, v3);
-    if(edgeCheck == PtLineOrient::Right)
-        return PtInsideTri::Outside;
-    if(edgeCheck == PtLineOrient::OnLine)
-        result = PtInsideTri::OnEdge2;
-    edgeCheck = checkTriEdge(p, v3, v1);
-    if(edgeCheck == PtLineOrient::Right)
-        return PtInsideTri::Outside;
-    if(edgeCheck == PtLineOrient::OnLine)
-        result = PtInsideTri::OnEdge3;
+    PtTriLocation::Enum result = PtTriLocation::Inside;
+    PtLineLocation::Enum edgeCheck = locatePointLine(p, v1, v2);
+    if(edgeCheck == PtLineLocation::Right)
+        return PtTriLocation::Outside;
+    if(edgeCheck == PtLineLocation::OnLine)
+        result = PtTriLocation::OnEdge1;
+    edgeCheck = locatePointLine(p, v2, v3);
+    if(edgeCheck == PtLineLocation::Right)
+        return PtTriLocation::Outside;
+    if(edgeCheck == PtLineLocation::OnLine)
+        result = PtTriLocation::OnEdge2;
+    edgeCheck = locatePointLine(p, v3, v1);
+    if(edgeCheck == PtLineLocation::Right)
+        return PtTriLocation::Outside;
+    if(edgeCheck == PtLineLocation::OnLine)
+        result = PtTriLocation::OnEdge3;
     return result;
 }
 
@@ -259,7 +259,7 @@ public:
 
     std::vector<Vertex<T> > vertices;
     std::vector<Triangle> triangles;
-    std::tr1::unordered_set<Edge, boost::hash<Edge>> fixedEdges;
+    std::tr1::unordered_set<Edge, boost::hash<Edge> > fixedEdges;
 
     /*____ API _____*/
     void insertVertices(const std::vector<V2d<T> >& vertices);
@@ -399,7 +399,7 @@ TriInd Triangulation<T>::triangleAt(const V2d<T>& pos) const
         const V2d<T> v1 = vertices[tri.vertices[0]].pos;
         const V2d<T> v2 = vertices[tri.vertices[1]].pos;
         const V2d<T> v3 = vertices[tri.vertices[2]].pos;
-        if(isInsideTriangle(pos, v1, v2, v3) == PtInsideTri::Inside)
+        if(locatePointTriangle(pos, v1, v2, v3) == PtTriLocation::Inside)
             return i;
     }
     throw std::runtime_error("no triangle was found");
@@ -454,7 +454,8 @@ void Triangulation<T>::flipEdge(const TriInd iT, const TriInd iTopo)
 }
 
 template <typename T>
-void Triangulation<T>::changeNeighbor(const TriInd iT,
+void Triangulation<T>::changeNeighbor(
+    const TriInd iT,
     const TriInd oldNeighbor,
     const TriInd newNeighbor)
 {
