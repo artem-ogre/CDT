@@ -100,22 +100,39 @@ struct PtInsideTri
     {
         Inside,
         Outside,
-        OnTheEdge,
+        OnEdge1,
+        OnEdge2,
+        OnEdge3,
+    };
+};
+
+bool isOnEdge(const PtInsideTri::Enum ptInsideTri)
+{
+    return ptInsideTri > PtInsideTri::Outside;
+}
+
+struct PtLineOrient
+{
+    enum Enum
+    {
+        Left,
+        Right,
+        OnLine,
     };
 };
 
 /// Helper for inside-triangle test, checks one edge of triangle
 template <typename T>
-PtInsideTri::Enum
+PtLineOrient::Enum
 checkTriEdge(const V2d<T>& p, const V2d<T>& v1, const V2d<T>& v2)
 {
     using namespace predicates::adaptive;
     const T orientation = orient2d(v1.raw(), v2.raw(), p.raw());
     if(orientation < T(0))
-        return PtInsideTri::Outside;
+        return PtLineOrient::Right;
     else if(orientation == T(0))
-        return PtInsideTri::OnTheEdge;
-    return PtInsideTri::Inside;
+        return PtLineOrient::OnLine;
+    return PtLineOrient::Left;
 }
 
 /// Check if a point is inside a triangle defined by three points (2D)
@@ -127,20 +144,22 @@ PtInsideTri::Enum isInsideTriangle(
     const V2d<T>& v3)
 {
     using namespace predicates::adaptive;
-    PtInsideTri::Enum result;
-    result = checkTriEdge(p, v1, v2);
-    if(result == PtInsideTri::Outside)
+    PtInsideTri::Enum result = PtInsideTri::Inside;
+    PtLineOrient::Enum edgeCheck = checkTriEdge(p, v1, v2);
+    if(edgeCheck == PtLineOrient::Right)
         return PtInsideTri::Outside;
-    PtInsideTri::Enum edgeCheck = checkTriEdge(p, v2, v3);
-    if(edgeCheck == PtInsideTri::Outside)
+    if(edgeCheck == PtLineOrient::OnLine)
+        result = PtInsideTri::OnEdge1;
+    edgeCheck = checkTriEdge(p, v2, v3);
+    if(edgeCheck == PtLineOrient::Right)
         return PtInsideTri::Outside;
-    if(edgeCheck == PtInsideTri::OnTheEdge)
-        result = PtInsideTri::OnTheEdge;
+    if(edgeCheck == PtLineOrient::OnLine)
+        result = PtInsideTri::OnEdge2;
     edgeCheck = checkTriEdge(p, v3, v1);
-    if(edgeCheck == PtInsideTri::Outside)
+    if(edgeCheck == PtLineOrient::Right)
         return PtInsideTri::Outside;
-    if(edgeCheck == PtInsideTri::OnTheEdge)
-        result = PtInsideTri::OnTheEdge;
+    if(edgeCheck == PtLineOrient::OnLine)
+        result = PtInsideTri::OnEdge3;
     return result;
 }
 
