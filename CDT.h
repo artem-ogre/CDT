@@ -106,9 +106,16 @@ struct PtTriLocation
     };
 };
 
-bool isOnEdge(const PtTriLocation::Enum ptInsideTri)
+bool isOnEdge(const PtTriLocation::Enum location)
 {
-    return ptInsideTri > PtTriLocation::Outside;
+    return location > PtTriLocation::Outside;
+}
+
+// Call only if located on the edge!
+Index edgeNeighbor(const PtTriLocation::Enum location)
+{
+    assert(location >= PtTriLocation::OnEdge1);
+    return static_cast<Index>(location - PtTriLocation::OnEdge1);
 }
 
 struct PtLineLocation
@@ -121,7 +128,7 @@ struct PtLineLocation
     };
 };
 
-/// Helper for inside-triangle test, checks one edge of triangle
+/// Check if point lies to the left of, to the right of, or on a line
 template <typename T>
 PtLineLocation::Enum
 locatePointLine(const V2d<T>& p, const V2d<T>& v1, const V2d<T>& v2)
@@ -135,7 +142,7 @@ locatePointLine(const V2d<T>& p, const V2d<T>& v1, const V2d<T>& v2)
     return PtLineLocation::Left;
 }
 
-/// Check if a point is inside a triangle defined by three points (2D)
+/// Check if point a lies inside of, outside of, or on an edge of a triangle
 template <typename T>
 PtTriLocation::Enum locatePointTriangle(
     const V2d<T>& p,
@@ -273,7 +280,10 @@ private:
     /// Returns indices of three resulting triangles
     std::stack<TriInd>
     insertPointInTriangle(const V2d<T>& pos, const TriInd iT);
-    TriInd triangleAt(const V2d<T>& pos) const;
+    /// Returns indices of four resulting triangles
+    std::stack<TriInd>
+    insertPointOnEdge(const V2d<T>& pos, const TriInd iT1, const TriInd iT2);
+    std::tr1::array<TriInd, 2> trianglesAt(const V2d<T>& pos) const;
     void flipEdge(const TriInd iT, const TriInd iTopo);
     void changeNeighbor(
         const TriInd iT,
@@ -311,7 +321,10 @@ template <typename T>
 void Triangulation<T>::insertVertex(const V2d<T>& pos)
 {
     const VertInd iVert(vertices.size());
-    std::stack<TriInd> triStack = insertPointInTriangle(pos, triangleAt(pos));
+    std::tr1::array<TriInd, 2> trisAt = trianglesAt(pos);
+    std::stack<TriInd> triStack =
+        trisAt[1] == noNeighbor ? insertPointInTriangle(pos, trisAt[0])
+                                : insertPointOnEdge(pos, trisAt[0], trisAt[1]);
     while(!triStack.empty())
     {
         const TriInd iT = triStack.top();
@@ -368,7 +381,7 @@ Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iT)
     const Triangle newTri2 = {{v3, v1, v}, {n3, iT, iNewT1}};
     tri = {{v1, v2, v}, {n1, iNewT1, iNewT2}};
     // make new vertex
-    Vertex<T> newVert = {pos, boost::assign::list_of(iT)(iNewT1)(iNewT2)};
+    const Vertex<T> newVert = {pos, boost::assign::list_of(iT)(iNewT1)(iNewT2)};
     // add new triangles and vertices to triangulation
     triangles.push_back(newTri1);
     triangles.push_back(newTri2);
@@ -390,17 +403,89 @@ Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iT)
     return newTriangles;
 }
 
+/* Inserting a point on the edge between two triangles
+ *    T1 (top)        v1
+ *                   /|\
+ *              n1 /  |  \ n4
+ *               /    |    \
+ *             /  T1' | Tnew1\
+ *           v2-------v- -----v4
+ *             \ Tnew2| T2'  /
+ *               \    |    /
+ *              n2 \  |  / n3
+ *                   \|/
+ *   T2 (bottom)      v3
+ */
 template <typename T>
-TriInd Triangulation<T>::triangleAt(const V2d<T>& pos) const
+std::stack<TriInd> Triangulation<T>::insertPointOnEdge(
+    const V2d<T>& pos,
+    const TriInd iT1,
+    const TriInd iT2)
 {
+    const VertInd v(vertices.size());
+    const TriInd iTnew1(triangles.size());
+    const TriInd iTnew2(iTnew1 + 1);
+
+    Triangle& t1 = triangles[iT1];
+    Triangle& t2 = triangles[iT2];
+    Index i = opposedVertexInd(t1, iT2);
+    const VertInd v1 = t1.vertices[i];
+    const VertInd v2 = t1.vertices[ccw(i)];
+    const TriInd n1 = t1.neighbors[i];
+    const TriInd n4 = t1.neighbors[cw(i)];
+    i = opposedVertexInd(t2, iT1);
+    const VertInd v3 = t2.vertices[i];
+    const VertInd v4 = t2.vertices[ccw(i)];
+    const TriInd n3 = t2.neighbors[i];
+    const TriInd n2 = t2.neighbors[cw(i)];
+    // add new triangles and change existing ones
+    t1 = {{v1, v2, v}, {n1, iTnew2, iTnew1}};
+    t2 = {{v3, v4, v}, {n3, iTnew1, iTnew2}};
+    const Triangle tNew1 = {{v1, v, v4}, {iT1, iT2, n4}};
+    const Triangle tNew2 = {{v3, v, v2}, {iT2, iT1, n2}};
+    // make new vertex
+    const Vertex<T> vNew = {pos,
+                            boost::assign::list_of(iT1)(iTnew2)(iT2)(iTnew1)};
+    // adjust neighboring triangles and vertices
+    changeNeighbor(n4, iT1, iTnew1);
+    changeNeighbor(n2, iT2, iTnew2);
+    addAdjacentTriangle(v1, iTnew1);
+    addAdjacentTriangle(v3, iTnew2);
+    removeAdjacentTriangle(v2, iT2);
+    addAdjacentTriangle(v2, iTnew2);
+    removeAdjacentTriangle(v4, iT1);
+    addAdjacentTriangle(v4, iTnew1);
+    // add new triangles and vertices to triangulation
+    triangles.push_back(tNew1);
+    triangles.push_back(tNew2);
+    vertices.push_back(vNew);
+    // return newly added triangles
+    std::stack<TriInd> newTriangles;
+    newTriangles.push(iT1);
+    newTriangles.push(iTnew2);
+    newTriangles.push(iT2);
+    newTriangles.push(iTnew1);
+    return newTriangles;
+}
+
+template <typename T>
+std::tr1::array<TriInd, 2>
+Triangulation<T>::trianglesAt(const V2d<T>& pos) const
+{
+    std::tr1::array<TriInd, 2> out = {noNeighbor, noNeighbor};
     for(TriInd i = TriInd(0); i < TriInd(triangles.size()); ++i)
     {
         const Triangle& tri = triangles[i];
         const V2d<T> v1 = vertices[tri.vertices[0]].pos;
         const V2d<T> v2 = vertices[tri.vertices[1]].pos;
         const V2d<T> v3 = vertices[tri.vertices[2]].pos;
-        if(locatePointTriangle(pos, v1, v2, v3) == PtTriLocation::Inside)
-            return i;
+        const PtTriLocation::Enum loc = locatePointTriangle(pos, v1, v2, v3);
+        if(loc == PtTriLocation::Outside)
+            continue;
+        out[0] = i;
+        if(isOnEdge(loc))
+            out[1] = tri.neighbors[edgeNeighbor(loc)];
+        return out;
     }
     throw std::runtime_error("no triangle was found");
 }
