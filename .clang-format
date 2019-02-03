@@ -1,0 +1,52 @@
+# ================================
+# Can be used when needed locally:
+# ================================
+ SortIncludes: true
+ SortUsingDeclarations: true
+
+AccessModifierOffset: -4
+AlignAfterOpenBracket: AlwaysBreak
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortBlocksOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakTemplateDeclarations: true
+BinPackArguments: false
+BinPackParameters: false
+BreakConstructorInitializersBeforeComma: true
+ColumnLimit: 80
+ConstructorInitializerIndentWidth: 4
+ContinuationIndentWidth: 4
+DerivePointerAlignment: false
+PointerAlignment: Left
+IndentWidth: 4
+Language: Cpp
+NamespaceIndentation: None
+SpaceBeforeParens: Never
+SpacesBeforeTrailingComments: 1
+Standard: Cpp03
+UseTab: Never
+
+# =====================
+# Clang 5 new features:
+# =====================
+BreakBeforeBraces: Custom
+BraceWrapping: 
+    AfterClass: true
+    AfterControlStatement: true
+    AfterEnum : true
+    AfterFunction : true
+    AfterNamespace : true
+    AfterStruct : true
+    AfterUnion : true
+    BeforeCatch : true
+    BeforeElse : true
+    IndentBraces : false
+    SplitEmptyFunction: false
+    SplitEmptyRecord: false
+    SplitEmptyNamespace: true
+BreakBeforeInheritanceComma: true
+FixNamespaceComments: true
+ReflowComments: true
