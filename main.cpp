@@ -61,6 +61,8 @@ int main(int argc, char* argv[])
         vertices.push_back(V2d::make(2, 1));
         vertices.push_back(V2d::make(1, 1));
         cdt.insertVertices(vertices);
+        const std::vector<Triangulation::Edge> edges(1, std::make_pair(0, 2));
+        cdt.insertEdges(edges);
     }
     { // Check if on triangle edge case is detected
         const V2d a = {0, 0};

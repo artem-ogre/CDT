@@ -8,3 +8,9 @@ SOURCES += \
 HEADERS += \
     predicates.h \
     CDT.h
+
+win32
+{
+    INCLUDEPATH += C:/Data/DevTools/boost_1_64_0
+    LIBS += -LC:/Data/DevTools/boost_1_64_0/lib64-msvc-12.0
+}
