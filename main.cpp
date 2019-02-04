@@ -1,16 +1,17 @@
 #include "CDT.h"
 
 #include <QApplication>
+#include <QCheckBox>
+#include <QColor>
+#include <QDir>
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QListWidget>
 #include <QMessageBox>
+#include <QPainter>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QTextStream>
-#include <QDir>
-#include <QPainter>
-#include <QColor>
 
 typedef double CoordType;
 typedef CDT::Triangulation<CoordType> Triangulation;
@@ -55,6 +56,12 @@ public slots:
     void setEdgeLimit(int limit)
     {
         m_edgeLimit = static_cast<std::size_t>(limit);
+        updateCDT();
+    }
+
+    void hidePoints(int isHidePoints)
+    {
+        m_isHidePoints = (isHidePoints != 0);
         updateCDT();
     }
 
@@ -192,6 +199,8 @@ protected:
             p.drawLine(pt1, pt2);
         }
 
+        if(m_isHidePoints)
+            return;
         // Draw points
         pen.setColor(QColor(50, 50, 200));
         pen.setWidthF(7.0);
@@ -216,6 +225,7 @@ private:
     Triangulation m_cdt;
     std::size_t m_ptLimit;
     std::size_t m_edgeLimit;
+    bool m_isHidePoints;
     std::vector<V2d> m_points;
     std::vector<Triangulation::Edge> m_edges;
 };
@@ -255,6 +265,14 @@ public:
             SLOT(setEdgeLimit(int)));
         edgesSpinbox->setValue(999999);
 
+        QCheckBox* hidePoints = new QCheckBox(QStringLiteral("Hide points"));
+        connect(
+            hidePoints,
+            SIGNAL(stateChanged(int)),
+            m_cdtWidget,
+            SLOT(hidePoints(int)));
+        hidePoints->setChecked(false);
+
         QPushButton* screenshotBtn = new QPushButton(tr("Make Screenshot"));
         connect(screenshotBtn, SIGNAL(clicked()), m_cdtWidget, SLOT(prtScn()));
         screenshotBtn->setMinimumHeight(50);
@@ -268,6 +286,7 @@ public:
         rightLayout->addWidget(filesList, cntr++, 0);
         rightLayout->addWidget(ptsSpinbox, cntr++, 0);
         rightLayout->addWidget(edgesSpinbox, cntr++, 0);
+        rightLayout->addWidget(hidePoints, cntr++, 0);
         rightLayout->addWidget(screenshotBtn, cntr++, 0);
         rightLayout->addWidget(saveBtn, cntr++, 0);
 
