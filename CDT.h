@@ -122,15 +122,6 @@ Index edgeNeighbor(const PtTriLocation::Enum location)
     return static_cast<Index>(location - PtTriLocation::OnEdge1);
 }
 
-struct PseudopolyLocation
-{
-    enum Enum
-    {
-        Left,
-        Right,
-    };
-};
-
 struct PtLineLocation
 {
     enum Enum
@@ -343,8 +334,7 @@ private:
     TriInd triangulatePseudopolygon(
         const VertInd ia,
         const VertInd ib,
-        const std::vector<VertInd>& points,
-        const PseudopolyLocation::Enum location);
+        const std::vector<VertInd>& points);
     VertInd findDelaunayPoint(
         const VertInd ia,
         const VertInd ib,
@@ -439,10 +429,9 @@ void Triangulation<T>::insertEdge(const VertInd iA, const VertInd iB)
     BOOST_FOREACH(const TriInd iTisec, intersected)
         makeDummy(iTisec);
     // Triangulate pseudo-polygons on both sides
-    const TriInd iTleft =
-        triangulatePseudopolygon(iA, iB, ptsLeft, PseudopolyLocation::Left);
-    const TriInd iTright =
-        triangulatePseudopolygon(iA, iB, ptsRight, PseudopolyLocation::Right);
+    const TriInd iTleft = triangulatePseudopolygon(iA, iB, ptsLeft);
+    std::reverse(ptsRight.begin(), ptsRight.end());
+    const TriInd iTright = triangulatePseudopolygon(iB, iA, ptsRight);
     changeNeighbor(iTleft, noNeighbor, iTright);
     changeNeighbor(iTright, noNeighbor, iTleft);
 }
@@ -545,23 +534,23 @@ template <typename T>
 std::stack<TriInd>
 Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iT)
 {
-    Triangle& tri = triangles[iT];
-    const std::tr1::array<VertInd, 3> vv = tri.vertices;
-    const std::tr1::array<TriInd, 3> nn = tri.neighbors;
+    Triangle& t = triangles[iT];
+    const std::tr1::array<VertInd, 3> vv = t.vertices;
+    const std::tr1::array<TriInd, 3> nn = t.neighbors;
     const VertInd v1 = vv[0], v2 = vv[1], v3 = vv[2];
     const TriInd n1 = nn[0], n2 = nn[1], n3 = nn[2];
     const VertInd v(vertices.size());
     const TriInd iNewT1(triangles.size());
     const TriInd iNewT2(iNewT1 + 1);
     // make two new triangles and convert current triangle to 3rd new triangle
-    const Triangle newTri1 = {{v2, v3, v}, {n2, iNewT2, iT}};
-    const Triangle newTri2 = {{v3, v1, v}, {n3, iT, iNewT1}};
-    tri = {{v1, v2, v}, {n1, iNewT1, iNewT2}};
+    const Triangle newT1 = {{v2, v3, v}, {n2, iNewT2, iT}};
+    const Triangle newT2 = {{v3, v1, v}, {n3, iT, iNewT1}};
+    t = {{v1, v2, v}, {n1, iNewT1, iNewT2}};
     // make new vertex
     const Vertex<T> newVert = {pos, boost::assign::list_of(iT)(iNewT1)(iNewT2)};
     // add new triangles and vertices to triangulation
-    addTriangle(newTri1);
-    addTriangle(newTri2);
+    addTriangle(newT1);
+    addTriangle(newT2);
     vertices.push_back(newVert);
     // adjust lists of adjacent triangles for v1, v2, v3
     addAdjacentTriangle(v1, iNewT2);
@@ -652,19 +641,19 @@ Triangulation<T>::trianglesAt(const V2d<T>& pos) const
     std::tr1::array<TriInd, 2> out = {noNeighbor, noNeighbor};
     for(TriInd i = TriInd(0); i < TriInd(triangles.size()); ++i)
     {
-        const Triangle& tri = triangles[i];
-        const V2d<T> v1 = vertices[tri.vertices[0]].pos;
-        const V2d<T> v2 = vertices[tri.vertices[1]].pos;
-        const V2d<T> v3 = vertices[tri.vertices[2]].pos;
+        const Triangle& t = triangles[i];
+        const V2d<T> v1 = vertices[t.vertices[0]].pos;
+        const V2d<T> v2 = vertices[t.vertices[1]].pos;
+        const V2d<T> v3 = vertices[t.vertices[2]].pos;
         const PtTriLocation::Enum loc = locatePointTriangle(pos, v1, v2, v3);
         if(loc == PtTriLocation::Outside)
             continue;
         out[0] = i;
         if(isOnEdge(loc))
-            out[1] = tri.neighbors[edgeNeighbor(loc)];
+            out[1] = t.neighbors[edgeNeighbor(loc)];
         return out;
     }
-    throw std::runtime_error("no triangle was found");
+    throw std::runtime_error("No triangle was found at position");
 }
 
 /* Flip edge between T and Topo:
@@ -686,26 +675,26 @@ Triangulation<T>::trianglesAt(const V2d<T>& pos) const
 template <typename T>
 void Triangulation<T>::flipEdge(const TriInd iT, const TriInd iTopo)
 {
-    Triangle& tri = triangles[iT];
-    Triangle& triOpo = triangles[iTopo];
-    const std::tr1::array<TriInd, 3>& triNs = tri.neighbors;
-    const std::tr1::array<TriInd, 3>& triOpoNs = triOpo.neighbors;
-    const std::tr1::array<VertInd, 3>& triVs = tri.vertices;
-    const std::tr1::array<VertInd, 3>& triOpoVs = triOpo.vertices;
+    Triangle& t = triangles[iT];
+    Triangle& tOpo = triangles[iTopo];
+    const std::tr1::array<TriInd, 3>& triNs = t.neighbors;
+    const std::tr1::array<TriInd, 3>& triOpoNs = tOpo.neighbors;
+    const std::tr1::array<VertInd, 3>& triVs = t.vertices;
+    const std::tr1::array<VertInd, 3>& triOpoVs = tOpo.vertices;
     // find vertices and neighbors
-    Index i = opposedVertexInd(tri, iTopo);
+    Index i = opposedVertexInd(t, iTopo);
     const VertInd v1 = triVs[i];
     const VertInd v2 = triVs[ccw(i)];
     const TriInd n1 = triNs[i];
     const TriInd n3 = triNs[cw(i)];
-    i = opposedVertexInd(triOpo, iT);
+    i = opposedVertexInd(tOpo, iT);
     const VertInd v3 = triOpoVs[i];
     const VertInd v4 = triOpoVs[ccw(i)];
     const TriInd n4 = triOpoNs[i];
     const TriInd n2 = triOpoNs[cw(i)];
     // change vertices and neighbors
-    tri = {{v4, v1, v3}, {n3, iTopo, n4}};
-    triOpo = {{v2, v3, v1}, {n2, iT, n1}};
+    t = {{v4, v1, v3}, {n3, iTopo, n4}};
+    tOpo = {{v2, v3, v1}, {n2, iT, n1}};
     // adjust neighboring triangles and vertices
     changeNeighbor(n1, iT, iTopo);
     changeNeighbor(n4, iTopo, iT);
@@ -723,8 +712,8 @@ void Triangulation<T>::changeNeighbor(
 {
     if(iT == noNeighbor)
         return;
-    Triangle& tri = triangles[iT];
-    tri.neighbors[neighborInd(tri, oldNeighbor)] = newNeighbor;
+    Triangle& t = triangles[iT];
+    t.neighbors[neighborInd(t, oldNeighbor)] = newNeighbor;
 }
 
 template <typename T>
@@ -760,8 +749,7 @@ template <typename T>
 TriInd Triangulation<T>::triangulatePseudopolygon(
     const VertInd ia,
     const VertInd ib,
-    const std::vector<VertInd>& points,
-    const PseudopolyLocation::Enum location)
+    const std::vector<VertInd>& points)
 {
     if(points.empty())
         return pseudopolyOuterTriangle(ia, ib);
@@ -769,14 +757,10 @@ TriInd Triangulation<T>::triangulatePseudopolygon(
     const std::pair<std::vector<VertInd>, std::vector<VertInd> > splitted =
         splitPseudopolygon(ic, points);
     // triangulate splitted pseudo-polygons
-    TriInd iT2 = triangulatePseudopolygon(ic, ib, splitted.second, location);
-    TriInd iT1 = triangulatePseudopolygon(ia, ic, splitted.first, location);
+    TriInd iT2 = triangulatePseudopolygon(ic, ib, splitted.second);
+    TriInd iT1 = triangulatePseudopolygon(ia, ic, splitted.first);
     // add new triangle
-    Triangle t;
-    if(location == PseudopolyLocation::Left)
-        t = {{ia, ib, ic}, {noNeighbor, iT2, iT1}};
-    else
-        t = {{ib, ia, ic}, {noNeighbor, iT1, iT2}};
+    const Triangle t = {{ia, ib, ic}, {noNeighbor, iT2, iT1}};
     const TriInd iT = addTriangle(t);
     // adjust neighboring triangles and vertices
     triangles[iT1].neighbors[0] = iT;
