@@ -19,7 +19,6 @@ typedef CDT::Vertex<CoordType> Vertex;
 typedef CDT::Triangle Triangle;
 typedef CDT::Box2d<CoordType> Box2d;
 typedef CDT::Index Index;
-const int fixedSize = 800;
 
 class CDTWidget : public QWidget
 {
@@ -34,7 +33,7 @@ public:
 
     QSize sizeHint() const
     {
-        return QSize(fixedSize, fixedSize);
+        return QSize(9001, 9001); // over 9000!
     }
 
 public slots:
@@ -133,6 +132,7 @@ protected:
         p.setRenderHints(
             QPainter::Antialiasing | QPainter::HighQualityAntialiasing);
 
+        const CoordType fixedSize(std::min(size().width(), size().height()));
         p.translate(fixedSize / 2.0, fixedSize / 2.0);
         p.scale(1, -1);
 
@@ -229,7 +229,6 @@ public:
         : QWidget(parent)
     {
         m_cdtWidget = new CDTWidget();
-        m_cdtWidget->setFixedSize(QSize(fixedSize,fixedSize));
         // Right pane
         QListWidget* filesList = new QListWidget();
         filesList->connect(
@@ -279,7 +278,6 @@ public:
         setLayout(centralLayout);
 
         setWindowTitle(tr("CDT Visualizer"));
-        layout()->setSizeConstraint(QLayout::SetFixedSize);
 
         // Read files list
         QDir dir = QDir(QDir::currentPath(), tr("*.txt"));
