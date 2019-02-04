@@ -122,7 +122,7 @@ private:
         if(m_edges.empty())
             return;
         const std::vector<Triangulation::Edge> edges =
-            m_edgeLimit < m_points.size()
+            m_edgeLimit < m_edges.size()
                 ? std::vector<Triangulation::Edge>(
                       &m_edges[0], &m_edges[m_edgeLimit])
                 : m_edges;
