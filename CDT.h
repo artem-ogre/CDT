@@ -828,8 +828,7 @@ TriInd Triangulation<T>::pseudopolyOuterTriangle(
         BOOST_FOREACH(const TriInd iTb, b.triangles)
             if(iTa == iTb)
                 return iTa;
-    throw std::runtime_error(
-        "Could not find an outer triangle of the pseudo-polygon edge");
+    return noNeighbor;
 }
 
 template <typename T>
