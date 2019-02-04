@@ -19,7 +19,7 @@ typedef CDT::Vertex<CoordType> Vertex;
 typedef CDT::Triangle Triangle;
 typedef CDT::Box2d<CoordType> Box2d;
 typedef CDT::Index Index;
-const int fixedSize = 600;
+const int fixedSize = 800;
 
 class CDTWidget : public QWidget
 {
@@ -50,6 +50,12 @@ public slots:
     void setPointsLimit(int limit)
     {
         m_ptLimit = static_cast<std::size_t>(limit);
+        updateCDT();
+    }
+
+    void setEdgeLimit(int limit)
+    {
+        m_edgeLimit = static_cast<std::size_t>(limit);
         updateCDT();
     }
 
@@ -94,16 +100,16 @@ private:
     void updateCDT()
     {
         m_cdt = Triangulation();
-        if(m_ptLimit < m_points.size())
-        {
-            std::vector<V2d> pts(&m_points[0], &m_points[m_ptLimit]);
-            m_cdt.insertVertices(pts);
-        }
-        else
-        {
-            m_cdt.insertVertices(m_points);
-            m_cdt.insertEdges(m_edges);
-        }
+        const std::size_t nPts = std::min(m_ptLimit, m_points.size());
+        std::vector<V2d> pts(&m_points[0], &m_points[nPts]);
+        m_cdt.insertVertices(pts);
+
+        if(nPts < m_points.size())
+            return;
+
+        const std::size_t nEdges = std::min(m_edgeLimit, m_edges.size());
+        std::vector<Triangulation::Edge> edges(&m_edges[0], &m_edges[nEdges]);
+        m_cdt.insertEdges(edges);
     }
 
 protected:
@@ -198,6 +204,7 @@ protected:
 private:
     Triangulation m_cdt;
     std::size_t m_ptLimit;
+    std::size_t m_edgeLimit;
     std::vector<V2d> m_points;
     std::vector<Triangulation::Edge> m_edges;
 };
@@ -229,6 +236,15 @@ public:
             SLOT(setPointsLimit(int)));
         ptsSpinbox->setValue(999999);
 
+        QSpinBox* edgesSpinbox = new QSpinBox;
+        edgesSpinbox->setRange(0, 999999);
+        connect(
+            edgesSpinbox,
+            SIGNAL(valueChanged(int)),
+            m_cdtWidget,
+            SLOT(setEdgeLimit(int)));
+        edgesSpinbox->setValue(999999);
+
         QPushButton* screenshotBtn = new QPushButton(tr("Make Screenshot"));
         connect(screenshotBtn, SIGNAL(clicked()), m_cdtWidget, SLOT(prtScn()));
         screenshotBtn->setMinimumHeight(50);
@@ -241,6 +257,7 @@ public:
         int cntr = 0;
         rightLayout->addWidget(filesList, cntr++, 0);
         rightLayout->addWidget(ptsSpinbox, cntr++, 0);
+        rightLayout->addWidget(edgesSpinbox, cntr++, 0);
         rightLayout->addWidget(screenshotBtn, cntr++, 0);
         rightLayout->addWidget(saveBtn, cntr++, 0);
 
