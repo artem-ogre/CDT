@@ -785,8 +785,8 @@ TriInd Triangulation<T>::triangulatePseudopolygon(
     const Triangle t = {{ia, ib, ic}, {noNeighbor, iT2, iT1}};
     const TriInd iT = addTriangle(t);
     // adjust neighboring triangles and vertices
-    triangles[iT1].neighbors[0] = iT;
-    triangles[iT2].neighbors[0] = iT;
+    changeNeighbor(iT1, noNeighbor, iT);
+    changeNeighbor(iT2, noNeighbor, iT);
     addAdjacentTriangle(ia, iT);
     addAdjacentTriangle(ib, iT);
     addAdjacentTriangle(ic, iT);
