@@ -586,7 +586,7 @@ Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iT)
  *              n1 /  |  \ n4
  *               /    |    \
  *             /  T1' | Tnew1\
- *           v2-------v- -----v4
+ *           v2-------v-------v4
  *             \ Tnew2| T2'  /
  *               \    |    /
  *              n2 \  |  / n3
