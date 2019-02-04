@@ -102,7 +102,7 @@ private:
         else
         {
             m_cdt.insertVertices(m_points);
-            //m_cdt.insertEdges(m_edges);
+            m_cdt.insertEdges(m_edges);
         }
     }
 
@@ -171,6 +171,14 @@ protected:
         for(std::size_t i = 3; i < m_cdt.vertices.size(); ++i)
         {
             const Vertex& v = m_cdt.vertices[i];
+            const QPointF pt(scale * (v.pos.x - c.x), scale * (v.pos.y - c.y));
+            p.drawPoint(pt);
+        }
+        // last added point
+        {
+            pen.setWidthF(8.0);
+            p.setPen(pen);
+            const Vertex& v = m_cdt.vertices.back();
             const QPointF pt(scale * (v.pos.x - c.x), scale * (v.pos.y - c.y));
             p.drawPoint(pt);
         }
