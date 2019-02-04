@@ -163,10 +163,21 @@ protected:
             p.drawLine(pt2, pt3);
             p.drawLine(pt3, pt1);
         }
+        // constraint edges
+        pen.setColor(QColor(50, 50, 50));
+        p.setPen(pen);
+        BOOST_FOREACH(const Triangulation::Edge& e, m_cdt.fixedEdges)
+        {
+            const V2d& v1 = m_cdt.vertices[e.first].pos;
+            const V2d& v2 = m_cdt.vertices[e.second].pos;
+            const QPointF pt1(scale * (v1.x - c.x), scale * (v1.y - c.y));
+            const QPointF pt2(scale * (v2.x - c.x), scale * (v2.y - c.y));
+            p.drawLine(pt1, pt2);
+        }
 
         // Draw points
         pen.setColor(QColor(50, 50, 200));
-        pen.setWidthF(5.0);
+        pen.setWidthF(7.0);
         p.setPen(pen);
         for(std::size_t i = 3; i < m_cdt.vertices.size(); ++i)
         {
@@ -176,7 +187,7 @@ protected:
         }
         // last added point
         {
-            pen.setWidthF(8.0);
+            pen.setWidthF(9.0);
             p.setPen(pen);
             const Vertex& v = m_cdt.vertices.back();
             const QPointF pt(scale * (v.pos.x - c.x), scale * (v.pos.y - c.y));
