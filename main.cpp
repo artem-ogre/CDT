@@ -82,12 +82,14 @@ private:
         QTextStream inStream(&data);
         std::size_t nPts, nEdges;
         inStream >> nPts >> nEdges;
+        m_points.clear();
         for(std::size_t i = 0; i < nPts; ++i)
         {
             CoordType x1, y1;
             inStream >> x1 >> y1;
             m_points.push_back(V2d::make(x1, y1));
         }
+        m_edges.clear();
         for(std::size_t i = 0; i < nEdges; ++i)
         {
             CDT::VertInd v1, v2;
@@ -100,15 +102,24 @@ private:
     void updateCDT()
     {
         m_cdt = Triangulation();
-        const std::size_t nPts = std::min(m_ptLimit, m_points.size());
-        std::vector<V2d> pts(&m_points[0], &m_points[nPts]);
+        if(m_points.empty())
+            return;
+        const std::vector<V2d> pts =
+            m_ptLimit < m_points.size()
+                ? std::vector<V2d>(&m_points[0], &m_points[m_ptLimit])
+                : m_points;
         m_cdt.insertVertices(pts);
 
-        if(nPts < m_points.size())
+        if(m_ptLimit < m_points.size())
             return;
 
-        const std::size_t nEdges = std::min(m_edgeLimit, m_edges.size());
-        std::vector<Triangulation::Edge> edges(&m_edges[0], &m_edges[nEdges]);
+        if(m_edges.empty())
+            return;
+        const std::vector<Triangulation::Edge> edges =
+            m_edgeLimit < m_points.size()
+                ? std::vector<Triangulation::Edge>(
+                      &m_edges[0], &m_edges[m_edgeLimit])
+                : m_edges;
         m_cdt.insertEdges(edges);
     }
 
