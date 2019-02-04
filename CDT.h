@@ -384,7 +384,13 @@ template <typename T>
 void Triangulation<T>::insertEdges(const std::vector<Edge>& edges)
 {
     BOOST_FOREACH(const Edge& edge, edges)
-        insertEdge(edge.first + 3, edge.second + 3); // account for super-tri
+    {
+        VertInd ia = edge.first + 3; // +3 to account for super-tri
+        VertInd ib = edge.second + 3;
+        if(ib < ia)
+            std::swap(ia, ib);
+        insertEdge(ia, ib);
+    }
     fixedEdges.insert(edges.begin(), edges.end());
 }
 
@@ -463,8 +469,8 @@ boost::tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
 template <typename T>
 void Triangulation<T>::addSuperTriangle(const Box2d<T>& box)
 {
-    const V2d<T> center = {box.min.x + box.max.x / T(2),
-                           box.min.y + box.max.y / T(2)};
+    const V2d<T> center = {(box.min.x + box.max.x) / T(2),
+                           (box.min.y + box.max.y) / T(2)};
     const T w = box.max.x - box.min.x;
     const T h = box.max.y - box.min.y;
     const T diag = T(4) * std::sqrt(w * w + h * h);
