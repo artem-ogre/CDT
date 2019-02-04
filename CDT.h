@@ -223,6 +223,21 @@ Index opposedTriangleInd(const Triangle& tri, const VertInd iVert)
     throw std::runtime_error("Could not find opposed triangle index");
 }
 
+/// Index of triangle's neighbor opposed to an edge
+Index opposedTriangleInd(
+    const Triangle& tri,
+    const VertInd iVedge1,
+    const VertInd iVedge2)
+{
+    for(Index vi = Index(0); vi < Index(3); ++vi)
+    {
+        const VertInd iVert = tri.vertices[vi];
+        if(iVert != iVedge1 && iVert != iVedge2)
+            return opoNbr(vi);
+    }
+    throw std::runtime_error("Could not find opposed-to-edge triangle index");
+}
+
 /// Index of triangle's vertex opposed to a triangle
 Index opposedVertexInd(const Triangle& tri, const TriInd iTopo)
 {
@@ -294,12 +309,10 @@ Triangle reverseTriangle(const Triangle&t)
 template <typename T>
 bool verticesShareEdge(const Vertex<T>& a, const Vertex<T>& b)
 {
+    const std::vector<TriInd>& bTris = b.triangles;
     BOOST_FOREACH(const TriInd aTri, a.triangles)
-    {
-        if(std::find(b.triangles.begin(), b.triangles.end(), aTri) !=
-           b.triangles.end())
+        if(std::find(bTris.begin(), bTris.end(), aTri) != bTris.end())
             return true;
-    }
     return false;
 }
 
@@ -341,6 +354,11 @@ private:
         const TriInd iT,
         const TriInd oldNeighbor,
         const TriInd newNeighbor);
+    void changeNeighbor(
+        const TriInd iT,
+        const VertInd iVedge1,
+        const VertInd iVedge2,
+        const TriInd newNeighbor);
     void addAdjacentTriangle(const VertInd iVertex, const TriInd iTriangle);
     void removeAdjacentTriangle(const VertInd iVertex, const TriInd iTriangle);
     TriInd triangulatePseudopolygon(
@@ -358,6 +376,17 @@ private:
 
     std::stack<TriInd> m_dummyTris;
 };
+
+template <typename T>
+void Triangulation<T>::changeNeighbor(
+    const TriInd iT,
+    const VertInd iVedge1,
+    const VertInd iVedge2,
+    const TriInd newNeighbor)
+{
+    Triangle& t =  triangles[iT];
+    t.neighbors[opposedTriangleInd(t, iVedge1, iVedge2)] = newNeighbor;
+}
 
 template <typename T>
 TriInd Triangulation<T>::newTriangleIndex() const
@@ -785,8 +814,16 @@ TriInd Triangulation<T>::triangulatePseudopolygon(
     const Triangle t = {{ia, ib, ic}, {noNeighbor, iT2, iT1}};
     const TriInd iT = addTriangle(t);
     // adjust neighboring triangles and vertices
-    changeNeighbor(iT1, noNeighbor, iT);
-    changeNeighbor(iT2, noNeighbor, iT);
+    if(iT1 != noNeighbor)
+    {
+        splitted.first.empty() ? changeNeighbor(iT1, ia, ic, iT)
+                               : triangles[iT1].neighbors[0] = iT;
+    }
+    if(iT2 != noNeighbor)
+    {
+        splitted.second.empty() ? changeNeighbor(iT2, ic, ib, iT)
+                                : triangles[iT2].neighbors[0] = iT;
+    }
     addAdjacentTriangle(ia, iT);
     addAdjacentTriangle(ib, iT);
     addAdjacentTriangle(ic, iT);
@@ -823,11 +860,10 @@ TriInd Triangulation<T>::pseudopolyOuterTriangle(
     const VertInd ib) const
 {
     const Vertex<T>& a = vertices[ia];
-    const Vertex<T>& b = vertices[ib];
+    const std::vector<TriInd>& bTris = vertices[ib].triangles;
     BOOST_FOREACH(const TriInd iTa, a.triangles)
-        BOOST_FOREACH(const TriInd iTb, b.triangles)
-            if(iTa == iTb)
-                return iTa;
+        if(std::find(bTris.begin(), bTris.end(), iTa) != bTris.end())
+            return iTa;
     return noNeighbor;
 }
 
