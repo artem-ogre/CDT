@@ -292,6 +292,18 @@ Triangle reverseTriangle(const Triangle&t)
 }
 
 template <typename T>
+bool verticesShareEdge(const Vertex<T>& a, const Vertex<T>& b)
+{
+    BOOST_FOREACH(const TriInd aTri, a.triangles)
+    {
+        if(std::find(b.triangles.begin(), b.triangles.end(), aTri) !=
+           b.triangles.end())
+            return true;
+    }
+    return false;
+}
+
+template <typename T>
 class Triangulation
 {
 public:
@@ -341,7 +353,6 @@ private:
         const std::vector<VertInd>& points) const;
     TriInd pseudopolyOuterTriangle(const VertInd ia, const VertInd ib) const;
     TriInd addTriangle(const Triangle& t);
-    bool verticesShareEdge(const Vertex<T>& a, const Vertex<T>& b) const;
     void makeDummy(const TriInd iT);
     TriInd newTriangleIndex() const;
 
@@ -381,18 +392,7 @@ TriInd Triangulation<T>::addTriangle(const Triangle& t)
     return nxtDummy;
 }
 
-template <typename T>
-bool Triangulation<T>::verticesShareEdge(const Vertex<T>& a, const Vertex<T>& b)
-    const
-{
-    BOOST_FOREACH(const TriInd aTri, a.triangles)
-    {
-        if(std::find(b.triangles.begin(), b.triangles.end(), aTri) !=
-           b.triangles.end())
-            return true;
-    }
-    return false;
-}
+
 
 template <typename T>
 void Triangulation<T>::insertEdges(const std::vector<Edge>& edges)
@@ -404,8 +404,8 @@ void Triangulation<T>::insertEdges(const std::vector<Edge>& edges)
         if(ib < ia)
             std::swap(ia, ib);
         insertEdge(ia, ib);
+        fixedEdges.insert(std::make_pair(ia, ib));
     }
-    fixedEdges.insert(edges.begin(), edges.end());
 }
 
 template <typename T>
