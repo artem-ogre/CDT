@@ -279,6 +279,17 @@ int main(int argc, char* argv[])
         vertices.push_back(V2d::make(3.0 / 2.0, 1.0 / 2.0));
         cdt.insertVertices(vertices);
     }
+    cdt = Triangulation();
+    {
+        std::vector<V2d> vertices;
+        vertices.push_back(V2d::make(0, 0));
+        vertices.push_back(V2d::make(2, 0));
+        vertices.push_back(V2d::make(1, 3));
+        vertices.push_back(V2d::make(2, 2));
+        cdt.insertVertices(vertices);
+        std::vector<Triangulation::Edge> edges = {std::make_pair(1, 2)};
+        cdt.insertEdges(edges);
+    }
 
     QApplication app(argc, argv);
     MainWindow window;
