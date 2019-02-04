@@ -271,6 +271,7 @@ public:
             SIGNAL(stateChanged(int)),
             m_cdtWidget,
             SLOT(hidePoints(int)));
+        m_cdtWidget->hidePoints(0);
         hidePoints->setChecked(false);
 
         QPushButton* screenshotBtn = new QPushButton(tr("Make Screenshot"));
