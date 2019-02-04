@@ -351,6 +351,7 @@ private:
         const std::vector<VertInd>& points) const;
     TriInd pseudopolyOuterTriangle(const VertInd ia, const VertInd ib) const;
     TriInd addTriangle(const Triangle& t);
+    bool verticesShareEdge(const Vertex<T>& a, const Vertex<T>& b) const;
     void makeDummy(const TriInd iT);
     TriInd newTriangleIndex() const;
 
@@ -391,6 +392,19 @@ TriInd Triangulation<T>::addTriangle(const Triangle& t)
 }
 
 template <typename T>
+bool Triangulation<T>::verticesShareEdge(const Vertex<T>& a, const Vertex<T>& b)
+    const
+{
+    BOOST_FOREACH(const TriInd aTri, a.triangles)
+    {
+        if(std::find(b.triangles.begin(), b.triangles.end(), aTri) !=
+           b.triangles.end())
+            return true;
+    }
+    return false;
+}
+
+template <typename T>
 void Triangulation<T>::insertEdges(const std::vector<Edge>& edges)
 {
     BOOST_FOREACH(const Edge& edge, edges)
@@ -403,6 +417,8 @@ void Triangulation<T>::insertEdge(const VertInd iA, const VertInd iB)
 {
     const Vertex<T>& a = vertices[iA];
     const Vertex<T>& b = vertices[iB];
+    if(verticesShareEdge(a, b))
+        return;
     TriInd iT;
     VertInd iVleft, iVright;
     boost::tie(iT, iVleft, iVright) =
