@@ -1,6 +1,10 @@
 #include "CDT.h"
 #include "VerifyTopology.h"
 
+#include <fstream>
+#include <iostream>
+#include <limits>
+
 #include <QApplication>
 #include <QCheckBox>
 #include <QColor>
@@ -83,7 +87,34 @@ public slots:
     {}
 
     void saveToOff()
-    {}
+    {
+        std::ofstream fout("out.off");
+        fout.precision(std::numeric_limits<CoordType>::digits10 + 1);
+        if(!fout.is_open())
+            throw std::runtime_error("Save can't open file for writing OFF");
+        fout << "OFF\n";
+
+        fout << m_cdt.vertices.size() << ' ' << m_cdt.triangles.size()
+             << " 0\n";
+        // Write vertices
+        const Box2d box = calculateBox(m_points);
+        const CoordType stZ =
+            -std::fmax(box.max.x - box.min.x, box.max.y - box.min.y);
+        std::size_t counter = 0;
+        BOOST_FOREACH(const Vertex& v, m_cdt.vertices)
+        {
+            const CoordType z = counter < 3 ? stZ : 0.0;
+            fout << v.pos.x << ' ' << v.pos.y << ' ' << z << "\n";
+            counter++;
+        }
+        // Write faces
+        BOOST_FOREACH(const Triangle& t, m_cdt.triangles)
+        {
+            fout << "3 " << t.vertices[0] << ' ' << t.vertices[1] << ' '
+                 << t.vertices[2] << "\n";
+        }
+        fout.close();
+    }
 
 private:
     void readData(const QString& file)
