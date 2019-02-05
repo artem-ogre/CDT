@@ -9,10 +9,13 @@
 #include <QHBoxLayout>
 #include <QListWidget>
 #include <QMessageBox>
+#include <QOpenGLWidget>
+#include <QPaintEvent>
 #include <QPainter>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QTextStream>
+#include <QtOpenGL/QGLFormat>
 
 typedef double CoordType;
 typedef CDT::Triangulation<CoordType> Triangulation;
@@ -22,14 +25,20 @@ typedef CDT::Triangle Triangle;
 typedef CDT::Box2d<CoordType> Box2d;
 typedef CDT::Index Index;
 
-class CDTWidget : public QWidget
+class CDTWidget : public QOpenGLWidget
 {
     Q_OBJECT
 
 public:
     explicit CDTWidget(QWidget* parent = NULL)
-        : QWidget(parent)
-    {}
+        : QOpenGLWidget(parent)
+    {
+        QPalette pal = palette();
+        // set black background
+        pal.setColor(QPalette::Background, Qt::white);
+        setAutoFillBackground(true);
+        setPalette(pal);
+    }
 
     QSize sizeHint() const
     {
@@ -137,14 +146,12 @@ private:
 protected:
     void paintEvent(QPaintEvent*)
     {
+        QPainter p(this);
         if(m_cdt.vertices.empty())
             return;
 
-        QPainter p(this);
-        p.setRenderHints(
-            QPainter::Antialiasing | QPainter::HighQualityAntialiasing);
-
         const CoordType fixedSize(std::min(size().width(), size().height()));
+        p.setRenderHints(QPainter::Antialiasing);
         p.translate(fixedSize / 2.0, fixedSize / 2.0);
         p.scale(1, -1);
 
@@ -336,6 +343,10 @@ private:
 
 int main(int argc, char* argv[])
 {
+    QSurfaceFormat fmt;
+    fmt.setSamples(8);
+    QSurfaceFormat::setDefaultFormat(fmt);
+
     QApplication app(argc, argv);
     MainWindow window;
     window.show();
