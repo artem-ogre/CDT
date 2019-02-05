@@ -675,11 +675,9 @@ template <typename T>
 void Triangulation<T>::insertVertex(const V2d<T>& pos)
 {
     const VertInd iVert(vertices.size());
-    //TODO Remove duplicate operations and tests
-    std::tr1::array<TriInd, 2> trisAt = trianglesAt(pos);
-    std::tr1::array<TriInd, 2> trisAt2 = walkingSearchTrianglesAt(pos);
-    const Triangle& test = triangles[trisAt[0]];
-    const Triangle& test2 = triangles[trisAt2[0]];
+    // TODO Remove old trianglesAt
+    //std::tr1::array<TriInd, 2> trisAt2 = trianglesAt(pos);
+    std::tr1::array<TriInd, 2> trisAt = walkingSearchTrianglesAt(pos);
     std::stack<TriInd> triStack =
         trisAt[1] == noNeighbor ? insertPointInTriangle(pos, trisAt[0])
                                 : insertPointOnEdge(pos, trisAt[0], trisAt[1]);
@@ -882,24 +880,29 @@ std::tr1::array<TriInd, 2>
 Triangulation<T>::walkingSearchTrianglesAt(const V2d<T>& pos) const
 {
     std::tr1::array<TriInd, 2> out = {noNeighbor, noNeighbor};
-    // start search at any non-dummy triangle
+    // start search at one of the super-triangles to ensure no dummy
+    // TODO: improve the first guess, pick random vertex close to pos?
     TriInd currTri = TriInd(0);
     bool found = false;
+    std::unordered_set<TriInd> visited;
     while(!found)
     {
-        const Triangle& t_ = triangles[currTri];
+        const Triangle& t = triangles[currTri];
         found = true;
         for(size_t i = 0; i < 3; ++i)
         {
-            const V2d<T> vStart = vertices[t_.vertices[i]].pos;
-            const V2d<T> vEnd = vertices[t_.vertices[(i + 1) % 3]].pos;
+            const V2d<T> vStart = vertices[t.vertices[i]].pos;
+            const V2d<T> vEnd = vertices[t.vertices[(i + 1) % 3]].pos;
             PtLineLocation::Enum edgeCheck = locatePointLine(pos, vStart, vEnd);
             if(edgeCheck == PtLineLocation::Right &&
-               t_.neighbors[i] != noNeighbor)
+               t.neighbors[i] != noNeighbor)
             {
-                found = false;
-                currTri = t_.neighbors[i];
-                break;
+                if(visited.insert(t.neighbors[i]).second)
+                {
+                    found = false;
+                    currTri = t.neighbors[i];
+                    break;
+                }
             }
         }
     }
