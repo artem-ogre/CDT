@@ -19,7 +19,6 @@
 #include <QPushButton>
 #include <QSpinBox>
 #include <QTextStream>
-#include <QtOpenGL/QGLFormat>
 
 typedef double CoordType;
 typedef CDT::Triangulation<CoordType> Triangulation;
@@ -37,11 +36,7 @@ public:
     explicit CDTWidget(QWidget* parent = NULL)
         : QOpenGLWidget(parent)
     {
-        QPalette pal = palette();
-        // set black background
-        pal.setColor(QPalette::Background, Qt::white);
-        setAutoFillBackground(true);
-        setPalette(pal);
+        setAutoFillBackground(false);
     }
 
     QSize sizeHint() const
@@ -178,6 +173,8 @@ protected:
     void paintEvent(QPaintEvent*)
     {
         QPainter p(this);
+        glClearColor(1.f, 1.f, 1.f, 1.f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         if(m_cdt.vertices.empty())
             return;
 
