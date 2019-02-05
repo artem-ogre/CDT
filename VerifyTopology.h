@@ -9,7 +9,7 @@ template <typename T>
 bool verifyTopology(const CDT::Triangulation<T>& cdt)
 {
     // Check if vertices' adjacent triangles contain vertex
-    for(VertInd iV = 0; iV < cdt.vertices.size(); ++iV)
+    for(VertInd iV(0); iV < VertInd(cdt.vertices.size()); ++iV)
     {
         const Vertex<T>& v = cdt.vertices[iV];
         BOOST_FOREACH(const TriInd iT, v.triangles)
@@ -20,7 +20,7 @@ bool verifyTopology(const CDT::Triangulation<T>& cdt)
         }
     }
     // Check if triangle neighbor links are fine
-    for(TriInd iT = 0; iT < cdt.triangles.size(); ++iT)
+    for(TriInd iT(0); iT < TriInd(cdt.triangles.size()); ++iT)
     {
         const Triangle& t = cdt.triangles[iT];
         BOOST_FOREACH(const TriInd iTn, t.neighbors)
@@ -33,7 +33,7 @@ bool verifyTopology(const CDT::Triangulation<T>& cdt)
         }
     }
     // Check if triangle's vertices have triangle as adjacent
-    for(TriInd iT = 0; iT < cdt.triangles.size(); ++iT)
+    for(TriInd iT(0); iT < TriInd(cdt.triangles.size()); ++iT)
     {
         const Triangle& t = cdt.triangles[iT];
         BOOST_FOREACH(const VertInd iV, t.vertices)

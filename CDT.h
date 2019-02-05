@@ -325,7 +325,19 @@ public:
 
     std::vector<Vertex<T> > vertices;
     std::vector<Triangle> triangles;
-    std::tr1::unordered_set<Edge, boost::hash<Edge> > fixedEdges;
+#ifdef CDT_USE_STRONG_TYPING
+    struct hashEdge : std::unary_function<Edge, std::size_t>
+    {
+        std::size_t operator()(const Edge& e) const
+        {
+            const boost::hash<std::pair<std::size_t, std::size_t> > hash;
+            return hash(std::make_pair(e.first.t, e.second.t));
+        }
+    };
+#else
+    typedef boost::hash<Edge> hashEdge;
+#endif
+    std::tr1::unordered_set<Edge, hashEdge> fixedEdges;
 
     /*____ API _____*/
     void insertVertices(const std::vector<V2d<T> >& vertices);
@@ -418,7 +430,7 @@ TriInd Triangulation<T>::addTriangle(const Triangle& t)
     if(m_dummyTris.empty())
     {
         triangles.push_back(t);
-        return triangles.size() - 1;
+        return TriInd(triangles.size() - 1);
     }
     const TriInd nxtDummy = m_dummyTris.top();
     m_dummyTris.pop();
@@ -433,8 +445,8 @@ void Triangulation<T>::insertEdges(const std::vector<Edge>& edges)
 {
     BOOST_FOREACH(const Edge& edge, edges)
     {
-        VertInd ia = edge.first + 3; // +3 to account for super-tri
-        VertInd ib = edge.second + 3;
+        VertInd ia(edge.first + 3); // +3 to account for super-tri
+        VertInd ib(edge.second + 3);
         if(ib < ia)
             std::swap(ia, ib);
         insertEdge(ia, ib);
