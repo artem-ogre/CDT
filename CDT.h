@@ -349,6 +349,11 @@ private:
     std::stack<TriInd>
     insertPointOnEdge(const V2d<T>& pos, const TriInd iT1, const TriInd iT2);
     std::tr1::array<TriInd, 2> trianglesAt(const V2d<T>& pos) const;
+    bool isFlipNeeded(
+        const V2d<T>& pos,
+        const TriInd iT,
+        const TriInd iTopo,
+        const VertInd iVert) const;
     void flipEdge(const TriInd iT, const TriInd iTopo);
     void changeNeighbor(
         const TriInd iT,
@@ -552,17 +557,47 @@ void Triangulation<T>::insertVertex(const V2d<T>& pos)
         const TriInd iTopo = opposedTriangle(t, iVert);
         if(iTopo == noNeighbor)
             continue;
-        const Triangle& tOpo = triangles[iTopo];
-        const V2d<T>& v1 = vertices[tOpo.vertices[0]].pos;
-        const V2d<T>& v2 = vertices[tOpo.vertices[1]].pos;
-        const V2d<T>& v3 = vertices[tOpo.vertices[2]].pos;
-        if(isInCircumcircle(pos, v1, v2, v3))
+        if(isFlipNeeded(pos, iT, iTopo, iVert))
         {
             flipEdge(iT, iTopo);
             triStack.push(iT);
             triStack.push(iTopo);
         }
     }
+}
+
+/*!
+ * Handles super-triangle vertices.
+ * Super-tri points are not infinitely far and influence the input points
+ * Rules:
+ *  - if one of the opposed vertices is super-tri: no flip needed
+ *  - one of the shared vertices is super-tri:
+ *    check if on point is same side of line formed by non-super-tri vertices
+ *    as the non-super-tri shared vertex
+ *  - none of the vertices are super-tri: normal circumcircle test
+ */
+template <typename T>
+bool Triangulation<T>::isFlipNeeded(
+    const V2d<T>& pos,
+    const TriInd iT,
+    const TriInd iTopo,
+    const VertInd iVert) const
+{
+    const Triangle& tOpo = triangles[iTopo];
+    const Index i = opposedVertexInd(tOpo, iT);
+    const VertInd iVopo = tOpo.vertices[i];
+    if(iVert < 3 && iVopo < 3) // opposed vertices belong to super-triangle
+        return false;          // no flip is needed
+    const VertInd iVcw = tOpo.vertices[cw(i)];
+    const VertInd iVccw = tOpo.vertices[ccw(i)];
+    const V2d<T>& v1 = vertices[iVcw].pos;
+    const V2d<T>& v2 = vertices[iVopo].pos;
+    const V2d<T>& v3 = vertices[iVccw].pos;
+    if(iVcw < 3)
+        return locatePointLine(v1, v2, v3) == locatePointLine(pos, v2, v3);
+    if(iVccw < 3)
+        return locatePointLine(v3, v1, v2) == locatePointLine(pos, v1, v2);
+    return isInCircumcircle(pos, v1, v2, v3);
 }
 
 /* Insert point into triangle: split into 3 triangles:
