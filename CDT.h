@@ -816,13 +816,17 @@ TriInd Triangulation<T>::triangulatePseudopolygon(
     // adjust neighboring triangles and vertices
     if(iT1 != noNeighbor)
     {
-        splitted.first.empty() ? changeNeighbor(iT1, ia, ic, iT)
-                               : triangles[iT1].neighbors[0] = iT;
+        if(splitted.first.empty())
+            changeNeighbor(iT1, ia, ic, iT);
+        else
+            triangles[iT1].neighbors[0] = iT;
     }
     if(iT2 != noNeighbor)
     {
-        splitted.second.empty() ? changeNeighbor(iT2, ic, ib, iT)
-                                : triangles[iT2].neighbors[0] = iT;
+        if(splitted.second.empty())
+            changeNeighbor(iT2, ic, ib, iT);
+        else
+            triangles[iT2].neighbors[0] = iT;
     }
     addAdjacentTriangle(ia, iT);
     addAdjacentTriangle(ib, iT);

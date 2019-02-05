@@ -28,9 +28,7 @@ class CDTWidget : public QWidget
 public:
     explicit CDTWidget(QWidget* parent = NULL)
         : QWidget(parent)
-    {
-        startTimer(40);
-    }
+    {}
 
     QSize sizeHint() const
     {
@@ -72,11 +70,6 @@ public slots:
     {}
 
 private:
-    void timerEvent(QTimerEvent* /*e*/)
-    {
-        update();
-    }
-
     void readData(const QString& file)
     {
         QFile data(file);
@@ -108,25 +101,24 @@ private:
     void updateCDT()
     {
         m_cdt = Triangulation();
-        if(m_points.empty())
-            return;
-        const std::vector<V2d> pts =
-            m_ptLimit < m_points.size()
-                ? std::vector<V2d>(&m_points[0], &m_points[m_ptLimit])
-                : m_points;
-        m_cdt.insertVertices(pts);
-
-        if(m_ptLimit < m_points.size())
-            return;
-
-        if(m_edges.empty())
-            return;
-        const std::vector<Triangulation::Edge> edges =
-            m_edgeLimit < m_edges.size()
-                ? std::vector<Triangulation::Edge>(
-                      &m_edges[0], &m_edges[m_edgeLimit])
-                : m_edges;
-        m_cdt.insertEdges(edges);
+        if(!m_points.empty())
+        {
+            const std::vector<V2d> pts =
+                m_ptLimit < m_points.size()
+                    ? std::vector<V2d>(&m_points[0], &m_points[m_ptLimit])
+                    : m_points;
+            m_cdt.insertVertices(pts);
+            if(m_ptLimit >= m_points.size() && !m_edges.empty())
+            {
+                const std::vector<Triangulation::Edge> edges =
+                    m_edgeLimit < m_edges.size()
+                        ? std::vector<Triangulation::Edge>(
+                              &m_edges[0], &m_edges[m_edgeLimit])
+                        : m_edges;
+                m_cdt.insertEdges(edges);
+            }
+        }
+        update();
     }
 
 protected:
