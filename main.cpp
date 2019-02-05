@@ -256,6 +256,7 @@ protected:
         }
         // last added point
         {
+            pen.setColor(QColor(200, 50, 50));
             pen.setWidthF(9.0);
             p.setPen(pen);
             const Vertex& v = m_cdt.vertices.back();
