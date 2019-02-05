@@ -1,4 +1,5 @@
 #include "CDT.h"
+#include "VerifyTopology.h"
 
 #include <QApplication>
 #include <QCheckBox>
@@ -117,6 +118,12 @@ private:
                         : m_edges;
                 m_cdt.insertEdges(edges);
             }
+        }
+        if(!CDT::verifyTopology(m_cdt))
+        {
+            QMessageBox errBox;
+            errBox.setText(QStringLiteral("Triangulation has wrong topology"));
+            errBox.exec();
         }
         update();
     }

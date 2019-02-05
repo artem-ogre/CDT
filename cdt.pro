@@ -7,7 +7,8 @@ SOURCES += \
 
 HEADERS += \
     predicates.h \
-    CDT.h
+    CDT.h \
+    VerifyTopology.h
 
 win32
 {
