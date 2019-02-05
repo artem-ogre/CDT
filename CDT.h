@@ -569,12 +569,12 @@ void Triangulation<T>::insertVertex(const V2d<T>& pos)
 /*!
  * Handles super-triangle vertices.
  * Super-tri points are not infinitely far and influence the input points
- * Rules:
- *  - if one of the opposed vertices is super-tri: no flip needed
- *  - one of the shared vertices is super-tri:
- *    check if on point is same side of line formed by non-super-tri vertices
- *    as the non-super-tri shared vertex
- *  - none of the vertices are super-tri: normal circumcircle test
+ * Three cases are possible:
+ *  1.  If one of the opposed vertices is super-tri: no flip needed
+ *  2.  One of the shared vertices is super-tri:
+ *      check if on point is same side of line formed by non-super-tri vertices
+ *      as the non-super-tri shared vertex
+ *  3.  None of the vertices are super-tri: normal circumcircle test
  */
 template <typename T>
 bool Triangulation<T>::isFlipNeeded(
