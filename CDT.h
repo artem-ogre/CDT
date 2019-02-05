@@ -96,7 +96,7 @@ Index ccw(Index i)
 /// Advance vertex or neighbor index clockwise
 Index cw(Index i)
 {
-    return Index( (i + 2) % 3);
+    return Index((i + 2) % 3);
 }
 
 struct PtTriLocation
@@ -299,7 +299,7 @@ bool isInCircumcircle(
     return incircle(v1.raw(), v2.raw(), v3.raw(), p.raw()) > T(0);
 }
 
-Triangle reverseTriangle(const Triangle&t)
+Triangle reverseTriangle(const Triangle& t)
 {
     Triangle out = t;
     std::reverse(out.neighbors.begin(), out.neighbors.end());
@@ -366,6 +366,8 @@ private:
     std::stack<TriInd>
     insertPointOnEdge(const V2d<T>& pos, const TriInd iT1, const TriInd iT2);
     std::tr1::array<TriInd, 2> trianglesAt(const V2d<T>& pos) const;
+    std::tr1::array<TriInd, 2>
+    walkingSearchTrianglesAt(const V2d<T>& pos) const;
     bool isFlipNeeded(
         const V2d<T>& pos,
         const TriInd iT,
@@ -408,7 +410,7 @@ void Triangulation<T>::changeNeighbor(
     const VertInd iVedge2,
     const TriInd newNeighbor)
 {
-    Triangle& t =  triangles[iT];
+    Triangle& t = triangles[iT];
     t.neighbors[opposedTriangleInd(t, iVedge1, iVedge2)] = newNeighbor;
 }
 
@@ -673,7 +675,11 @@ template <typename T>
 void Triangulation<T>::insertVertex(const V2d<T>& pos)
 {
     const VertInd iVert(vertices.size());
+    //TODO Remove duplicate operations and tests
     std::tr1::array<TriInd, 2> trisAt = trianglesAt(pos);
+    std::tr1::array<TriInd, 2> trisAt2 = walkingSearchTrianglesAt(pos);
+    const Triangle& test = triangles[trisAt[0]];
+    const Triangle& test2 = triangles[trisAt2[0]];
     std::stack<TriInd> triStack =
         trisAt[1] == noNeighbor ? insertPointInTriangle(pos, trisAt[0])
                                 : insertPointOnEdge(pos, trisAt[0], trisAt[1]);
@@ -869,6 +875,46 @@ Triangulation<T>::trianglesAt(const V2d<T>& pos) const
         return out;
     }
     throw std::runtime_error("No triangle was found at position");
+}
+
+template <typename T>
+std::tr1::array<TriInd, 2>
+Triangulation<T>::walkingSearchTrianglesAt(const V2d<T>& pos) const
+{
+    std::tr1::array<TriInd, 2> out = {noNeighbor, noNeighbor};
+    // start search at any non-dummy triangle
+    TriInd currTri = TriInd(0);
+    bool found = false;
+    while(!found)
+    {
+        const Triangle& t_ = triangles[currTri];
+        found = true;
+        for(size_t i = 0; i < 3; ++i)
+        {
+            const V2d<T> vStart = vertices[t_.vertices[i]].pos;
+            const V2d<T> vEnd = vertices[t_.vertices[(i + 1) % 3]].pos;
+            PtLineLocation::Enum edgeCheck = locatePointLine(pos, vStart, vEnd);
+            if(edgeCheck == PtLineLocation::Right &&
+               t_.neighbors[i] != noNeighbor)
+            {
+                found = false;
+                currTri = t_.neighbors[i];
+                break;
+            }
+        }
+    }
+    // Finished walk, locate point in current triangle
+    const Triangle& t = triangles[currTri];
+    const V2d<T> v1 = vertices[t.vertices[0]].pos;
+    const V2d<T> v2 = vertices[t.vertices[1]].pos;
+    const V2d<T> v3 = vertices[t.vertices[2]].pos;
+    const PtTriLocation::Enum loc = locatePointTriangle(pos, v1, v2, v3);
+    if(loc == PtTriLocation::Outside)
+        throw std::runtime_error("No triangle was found at position");
+    out[0] = currTri;
+    if(isOnEdge(loc))
+        out[1] = t.neighbors[edgeNeighbor(loc)];
+    return out;
 }
 
 /* Flip edge between T and Topo:
