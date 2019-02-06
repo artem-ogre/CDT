@@ -15,6 +15,7 @@
 #include <stack>
 #include <utility>
 #include <vector>
+#include <cstdlib>
 
 // #define CDT_USE_STRONG_TYPING // strong type checks on indices
 
