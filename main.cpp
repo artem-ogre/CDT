@@ -204,21 +204,24 @@ protected:
         // Draw triangles
         pen.setWidthF(2.0);
         // outer triangles
-        pen.setColor(QColor(220, 220, 220));
-        p.setPen(pen);
-        BOOST_FOREACH(const Triangle& t, m_cdt.triangles)
+        if(!m_isHideSuperTri && !m_isRemoveOuter)
         {
-            if(t.vertices[0] > 2 && t.vertices[1] > 2 && t.vertices[2] > 2)
-                continue;
-            const V2d& v1 = m_cdt.vertices[t.vertices[0]].pos;
-            const V2d& v2 = m_cdt.vertices[t.vertices[1]].pos;
-            const V2d& v3 = m_cdt.vertices[t.vertices[2]].pos;
-            const QPointF pt1(scale * (v1.x - c.x), scale * (v1.y - c.y));
-            const QPointF pt2(scale * (v2.x - c.x), scale * (v2.y - c.y));
-            const QPointF pt3(scale * (v3.x - c.x), scale * (v3.y - c.y));
-            p.drawLine(pt1, pt2);
-            p.drawLine(pt2, pt3);
-            p.drawLine(pt3, pt1);
+            pen.setColor(QColor(220, 220, 220));
+            p.setPen(pen);
+            BOOST_FOREACH(const Triangle& t, m_cdt.triangles)
+            {
+                if(t.vertices[0] > 2 && t.vertices[1] > 2 && t.vertices[2] > 2)
+                    continue;
+                const V2d& v1 = m_cdt.vertices[t.vertices[0]].pos;
+                const V2d& v2 = m_cdt.vertices[t.vertices[1]].pos;
+                const V2d& v3 = m_cdt.vertices[t.vertices[2]].pos;
+                const QPointF pt1(scale * (v1.x - c.x), scale * (v1.y - c.y));
+                const QPointF pt2(scale * (v2.x - c.x), scale * (v2.y - c.y));
+                const QPointF pt3(scale * (v3.x - c.x), scale * (v3.y - c.y));
+                p.drawLine(pt1, pt2);
+                p.drawLine(pt2, pt3);
+                p.drawLine(pt3, pt1);
+            }
         }
 
         // actual triangles
@@ -226,8 +229,9 @@ protected:
         p.setPen(pen);
         BOOST_FOREACH(const Triangle& t, m_cdt.triangles)
         {
-            if(t.vertices[0] < 3 || t.vertices[1] < 3 || t.vertices[2] < 3)
-                continue;
+            if(!m_isHideSuperTri && !m_isRemoveOuter)
+                if(t.vertices[0] < 3 || t.vertices[1] < 3 || t.vertices[2] < 3)
+                    continue;
             const V2d& v1 = m_cdt.vertices[t.vertices[0]].pos;
             const V2d& v2 = m_cdt.vertices[t.vertices[1]].pos;
             const V2d& v3 = m_cdt.vertices[t.vertices[2]].pos;
@@ -252,11 +256,11 @@ protected:
 
         if(m_isHidePoints)
             return;
-        // Draw points
+        // draw points
         pen.setColor(QColor(50, 50, 200));
         pen.setWidthF(7.0);
         p.setPen(pen);
-        for(std::size_t i = 3; i < m_cdt.vertices.size(); ++i)
+        for(std::size_t i = 0; i < m_cdt.vertices.size(); ++i)
         {
             const Vertex& v = m_cdt.vertices[i];
             const QPointF pt(scale * (v.pos.x - c.x), scale * (v.pos.y - c.y));

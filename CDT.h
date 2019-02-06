@@ -396,6 +396,7 @@ private:
     void makeDummy(const TriInd iT);
     TriInd newTriangleIndex() const;
     void eraseDummies();
+    void eraseSuperTriangleVertices();
 
     std::vector<TriInd> m_dummyTris;
 };
@@ -450,16 +451,30 @@ void Triangulation<T>::eraseDummies()
 }
 
 template <typename T>
+void Triangulation<T>::eraseSuperTriangleVertices()
+{
+    BOOST_FOREACH(Triangle& t, triangles)
+        for(Index i(0); i < Index(3); ++i)
+            t.vertices[i] -= 3;
+    std::tr1::unordered_set<Edge, hashEdge> updatedFixedEdges;
+    BOOST_FOREACH(const Edge& e, fixedEdges)
+        updatedFixedEdges.insert(std::make_pair(e.first - 3, e.second - 3));
+    fixedEdges = updatedFixedEdges;
+    vertices = std::vector<Vertex<T> >(vertices.begin() + 3, vertices.end());
+}
+
+template <typename T>
 void Triangulation<T>::eraseSuperTriangle()
 {
     // make dummy triangles adjacent  to super-triangle's vertices
     for(TriInd iT = 0; iT < triangles.size(); ++iT)
     {
-        const Triangle& t = triangles[iT];
+        Triangle& t = triangles[iT];
         if(t.vertices[0] < 3 || t.vertices[1] < 3 || t.vertices[2] < 3)
             makeDummy(iT);
     }
     eraseDummies();
+    eraseSuperTriangleVertices();
 }
 
 template <typename T>
@@ -488,6 +503,7 @@ void Triangulation<T>::eraseOuterTriangles()
     BOOST_FOREACH(const TriInd iT, traverced)
         makeDummy(iT);
     eraseDummies();
+    eraseSuperTriangleVertices();
 }
 
 template <typename T>
