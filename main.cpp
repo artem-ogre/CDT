@@ -27,6 +27,7 @@ typedef CDT::Vertex<CoordType> Vertex;
 typedef CDT::Triangle Triangle;
 typedef CDT::Box2d<CoordType> Box2d;
 typedef CDT::Index Index;
+typedef CDT::Edge Edge;
 
 class CDTWidget : public QOpenGLWidget
 {
@@ -152,10 +153,9 @@ private:
             m_cdt.insertVertices(pts);
             if(m_ptLimit >= m_points.size() && !m_edges.empty())
             {
-                const std::vector<Triangulation::Edge> edges =
+                const std::vector<Edge> edges =
                     m_edgeLimit < m_edges.size()
-                        ? std::vector<Triangulation::Edge>(
-                              &m_edges[0], &m_edges[m_edgeLimit])
+                        ? std::vector<Edge>(&m_edges[0], &m_edges[m_edgeLimit])
                         : m_edges;
                 m_cdt.insertEdges(edges);
             }
@@ -233,7 +233,7 @@ protected:
         // constraint edges
         pen.setColor(QColor(50, 50, 50));
         p.setPen(pen);
-        BOOST_FOREACH(const Triangulation::Edge& e, m_cdt.fixedEdges)
+        BOOST_FOREACH(const Edge& e, m_cdt.fixedEdges)
         {
             const V2d& v1 = m_cdt.vertices[e.first].pos;
             const V2d& v2 = m_cdt.vertices[e.second].pos;
@@ -255,6 +255,7 @@ protected:
             p.drawPoint(pt);
         }
         // last added point
+        if(m_ptLimit <= m_points.size())
         {
             pen.setColor(QColor(200, 50, 50));
             pen.setWidthF(9.0);
@@ -268,7 +269,7 @@ protected:
 private:
     Triangulation m_cdt;
     std::vector<V2d> m_points;
-    std::vector<Triangulation::Edge> m_edges;
+    std::vector<Edge> m_edges;
     std::size_t m_ptLimit;
     std::size_t m_edgeLimit;
     bool m_isHidePoints;

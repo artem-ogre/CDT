@@ -316,13 +316,16 @@ bool verticesShareEdge(const Vertex<T>& a, const Vertex<T>& b)
     return false;
 }
 
+typedef std::pair<VertInd, VertInd> Edge;
+Edge makeEdge(const VertInd iV1, const VertInd iV2)
+{
+    return iV1 < iV2 ? std::make_pair(iV1, iV2) : std::make_pair(iV2, iV1);
+}
+
 template <typename T>
 class Triangulation
 {
 public:
-    /*____ Data ____*/
-    typedef std::pair<VertInd, VertInd> Edge;
-
     std::vector<Vertex<T> > vertices;
     std::vector<Triangle> triangles;
 #ifdef CDT_USE_STRONG_TYPING
@@ -348,7 +351,7 @@ private:
     /*____ Detail __*/
     void addSuperTriangle(const Box2d<T>& box);
     void insertVertex(const V2d<T>& pos);
-    void insertEdge(const VertInd iA, const VertInd iB);
+    void insertEdge(Edge edge);
     boost::tuple<TriInd, VertInd, VertInd> intersectedTriangle(
         const VertInd iA,
         const std::vector<TriInd>& candidates,
@@ -438,25 +441,23 @@ TriInd Triangulation<T>::addTriangle(const Triangle& t)
     return nxtDummy;
 }
 
-
-
 template <typename T>
 void Triangulation<T>::insertEdges(const std::vector<Edge>& edges)
 {
-    BOOST_FOREACH(const Edge& edge, edges)
+    BOOST_FOREACH(const Edge& e, edges)
     {
-        VertInd ia(edge.first + 3); // +3 to account for super-tri
-        VertInd ib(edge.second + 3);
-        if(ib < ia)
-            std::swap(ia, ib);
-        insertEdge(ia, ib);
-        fixedEdges.insert(std::make_pair(ia, ib));
+        // +3 to account for super-triangle vertices
+        const Edge edge = makeEdge(e.first + 3, e.second + 3);
+        insertEdge(edge);
+        fixedEdges.insert(edge);
     }
 }
 
 template <typename T>
-void Triangulation<T>::insertEdge(const VertInd iA, const VertInd iB)
+void Triangulation<T>::insertEdge(Edge edge)
 {
+    const VertInd iA = edge.first;
+    const VertInd iB = edge.second;
     const Vertex<T>& a = vertices[iA];
     const Vertex<T>& b = vertices[iB];
     if(verticesShareEdge(a, b))
