@@ -7,13 +7,14 @@
 #include <boost/functional/hash.hpp>
 #include <boost/serialization/strong_typedef.hpp>
 #include <boost/tr1/array.hpp>
+#include <boost/tr1/unordered_map.hpp>
 #include <boost/tr1/unordered_set.hpp>
 #include <boost/tuple/tuple.hpp>
 
-#include <vector>
 #include <limits>
 #include <stack>
 #include <utility>
+#include <vector>
 
 // #define CDT_USE_STRONG_TYPING // strong type checks on indices
 
@@ -345,7 +346,8 @@ public:
     /*____ API _____*/
     void insertVertices(const std::vector<V2d<T> >& vertices);
     void insertEdges(const std::vector<Edge>& edges);
-    static Triangulation finalTriangulation();
+    void eraseSuperTriangle();
+    void eraseOuterTriangles();
 
 private:
     /*____ Detail __*/
@@ -393,8 +395,9 @@ private:
     TriInd addTriangle(const Triangle& t);
     void makeDummy(const TriInd iT);
     TriInd newTriangleIndex() const;
+    void eraseDummies();
 
-    std::stack<TriInd> m_dummyTris;
+    std::vector<TriInd> m_dummyTris;
 };
 
 template <typename T>
@@ -413,7 +416,78 @@ TriInd Triangulation<T>::newTriangleIndex() const
 {
     if(m_dummyTris.empty())
         return triangles.size();
-    return m_dummyTris.top();
+    return m_dummyTris.back();
+}
+
+template <typename T>
+void Triangulation<T>::eraseDummies()
+{
+    if(m_dummyTris.empty())
+        return;
+    const std::tr1::unordered_set<TriInd> dummySet(
+        m_dummyTris.begin(), m_dummyTris.end());
+    std::tr1::unordered_map<TriInd, TriInd> triIndMap;
+    triIndMap[noNeighbor] = noNeighbor;
+    for(TriInd iT = 0, iTnew = 0; iT < triangles.size(); ++iT)
+    {
+        if(dummySet.count(iT))
+            continue;
+        triIndMap[iT] = iTnew;
+        triangles[iTnew] = triangles[iT];
+        iTnew++;
+    }
+    triangles.erase(triangles.end() - dummySet.size(), triangles.end());
+    // remap adjacent triangle indices for vertices
+    BOOST_FOREACH(Vertex<T>& v, vertices)
+        BOOST_FOREACH(TriInd& iT, v.triangles)
+            iT = triIndMap[iT];
+    // remap neighbor indices for triangles
+    BOOST_FOREACH(Triangle& t, triangles)
+        BOOST_FOREACH(TriInd& iN, t.neighbors)
+            iN = triIndMap[iN];
+    // clear dummy triangles
+    m_dummyTris = std::vector<TriInd>();
+}
+
+template <typename T>
+void Triangulation<T>::eraseSuperTriangle()
+{
+    // make dummy triangles adjacent  to super-triangle's vertices
+    for(TriInd iT = 0; iT < triangles.size(); ++iT)
+    {
+        const Triangle& t = triangles[iT];
+        if(t.vertices[0] < 3 || t.vertices[1] < 3 || t.vertices[2] < 3)
+            makeDummy(iT);
+    }
+    eraseDummies();
+}
+
+template <typename T>
+void Triangulation<T>::eraseOuterTriangles()
+{
+    // make dummy triangles adjacent  to super-triangle's vertices
+    std::tr1::unordered_set<TriInd> traverced;
+    std::stack<TriInd> toErase;
+    toErase.push(vertices[0].triangles.front());
+    while(!toErase.empty())
+    {
+        const TriInd iT = toErase.top();
+        toErase.pop();
+        traverced.insert(iT);
+        const Triangle& t = triangles[iT];
+        for(Index i(0); i < Index(3); ++i)
+        {
+            const Edge opEdge = makeEdge(t.vertices[ccw(i)], t.vertices[cw(i)]);
+            if(fixedEdges.count(opEdge))
+                continue;
+            const TriInd iN = t.neighbors[opoNbr(i)];
+            if(iN != noNeighbor && traverced.count(iN) == 0)
+                toErase.push(iN);
+        }
+    }
+    BOOST_FOREACH(const TriInd iT, traverced)
+        makeDummy(iT);
+    eraseDummies();
 }
 
 template <typename T>
@@ -424,7 +498,7 @@ void Triangulation<T>::makeDummy(const TriInd iT)
         removeAdjacentTriangle(iV, iT);
     BOOST_FOREACH(const TriInd iTn, t.neighbors)
         changeNeighbor(iTn, iT, noNeighbor);
-    m_dummyTris.push(iT);
+    m_dummyTris.push_back(iT);
 }
 
 template <typename T>
@@ -435,8 +509,8 @@ TriInd Triangulation<T>::addTriangle(const Triangle& t)
         triangles.push_back(t);
         return TriInd(triangles.size() - 1);
     }
-    const TriInd nxtDummy = m_dummyTris.top();
-    m_dummyTris.pop();
+    const TriInd nxtDummy = m_dummyTris.back();
+    m_dummyTris.pop_back();
     triangles[nxtDummy] = t;
     return nxtDummy;
 }
@@ -451,6 +525,7 @@ void Triangulation<T>::insertEdges(const std::vector<Edge>& edges)
         insertEdge(edge);
         fixedEdges.insert(edge);
     }
+    eraseDummies();
 }
 
 template <typename T>
@@ -544,12 +619,7 @@ void Triangulation<T>::addSuperTriangle(const Box2d<T>& box)
     vertices.push_back(Vertex<T>::make(posV1, TriInd(0)));
     vertices.push_back(Vertex<T>::make(posV2, TriInd(0)));
     vertices.push_back(Vertex<T>::make(posV3, TriInd(0)));
-    Triangle superTri;
-    for(Index i = Index(0); i < Index(3); ++i)
-    {
-        superTri.vertices[i] = i;
-        superTri.neighbors[i] = noNeighbor;
-    }
+    const Triangle superTri = {{0, 1, 2}, {noNeighbor, noNeighbor, noNeighbor}};
     addTriangle(superTri);
 }
 

@@ -76,7 +76,13 @@ public slots:
     void hideSuperTriangle(int isHideSuperTri)
     {
         m_isHideSuperTri = (isHideSuperTri != 0);
-        update();
+        updateCDT();
+    }
+
+    void removeOuterTriangles(int isRemoveOuter)
+    {
+        m_isRemoveOuter = (isRemoveOuter != 0);
+        updateCDT();
     }
 
     void prtScn()
@@ -159,6 +165,10 @@ private:
                         : m_edges;
                 m_cdt.insertEdges(edges);
             }
+            if(m_isRemoveOuter)
+                m_cdt.eraseOuterTriangles();
+            else if(m_isHideSuperTri)
+                m_cdt.eraseSuperTriangle();
         }
         if(!CDT::verifyTopology(m_cdt))
         {
@@ -194,25 +204,23 @@ protected:
         // Draw triangles
         pen.setWidthF(2.0);
         // outer triangles
-        if(!m_isHideSuperTri)
+        pen.setColor(QColor(220, 220, 220));
+        p.setPen(pen);
+        BOOST_FOREACH(const Triangle& t, m_cdt.triangles)
         {
-            pen.setColor(QColor(220, 220, 220));
-            p.setPen(pen);
-            BOOST_FOREACH(const Triangle& t, m_cdt.triangles)
-            {
-                if(t.vertices[0] > 2 && t.vertices[1] > 2 && t.vertices[2] > 2)
-                    continue;
-                const V2d& v1 = m_cdt.vertices[t.vertices[0]].pos;
-                const V2d& v2 = m_cdt.vertices[t.vertices[1]].pos;
-                const V2d& v3 = m_cdt.vertices[t.vertices[2]].pos;
-                const QPointF pt1(scale * (v1.x - c.x), scale * (v1.y - c.y));
-                const QPointF pt2(scale * (v2.x - c.x), scale * (v2.y - c.y));
-                const QPointF pt3(scale * (v3.x - c.x), scale * (v3.y - c.y));
-                p.drawLine(pt1, pt2);
-                p.drawLine(pt2, pt3);
-                p.drawLine(pt3, pt1);
-            }
+            if(t.vertices[0] > 2 && t.vertices[1] > 2 && t.vertices[2] > 2)
+                continue;
+            const V2d& v1 = m_cdt.vertices[t.vertices[0]].pos;
+            const V2d& v2 = m_cdt.vertices[t.vertices[1]].pos;
+            const V2d& v3 = m_cdt.vertices[t.vertices[2]].pos;
+            const QPointF pt1(scale * (v1.x - c.x), scale * (v1.y - c.y));
+            const QPointF pt2(scale * (v2.x - c.x), scale * (v2.y - c.y));
+            const QPointF pt3(scale * (v3.x - c.x), scale * (v3.y - c.y));
+            p.drawLine(pt1, pt2);
+            p.drawLine(pt2, pt3);
+            p.drawLine(pt3, pt1);
         }
+
         // actual triangles
         pen.setColor(QColor(150, 150, 150));
         p.setPen(pen);
@@ -274,6 +282,7 @@ private:
     std::size_t m_edgeLimit;
     bool m_isHidePoints;
     bool m_isHideSuperTri;
+    bool m_isRemoveOuter;
 };
 
 class MainWindow : public QWidget
@@ -330,6 +339,16 @@ public:
         m_cdtWidget->hideSuperTriangle(0);
         hideSuperTri->setChecked(false);
 
+        QCheckBox* removeOuter =
+            new QCheckBox(QStringLiteral("Remove outer triangles"));
+        connect(
+            removeOuter,
+            SIGNAL(stateChanged(int)),
+            m_cdtWidget,
+            SLOT(removeOuterTriangles(int)));
+        m_cdtWidget->removeOuterTriangles(0);
+        removeOuter->setChecked(false);
+
         QPushButton* screenshotBtn = new QPushButton(tr("Make Screenshot"));
         connect(screenshotBtn, SIGNAL(clicked()), m_cdtWidget, SLOT(prtScn()));
         screenshotBtn->setMinimumHeight(50);
@@ -344,6 +363,7 @@ public:
         rightLayout->addWidget(ptsSpinbox, cntr++, 0);
         rightLayout->addWidget(edgesSpinbox, cntr++, 0);
         rightLayout->addWidget(hidePoints, cntr++, 0);
+        rightLayout->addWidget(removeOuter, cntr++, 0);
         rightLayout->addWidget(hideSuperTri, cntr++, 0);
         rightLayout->addWidget(screenshotBtn, cntr++, 0);
         rightLayout->addWidget(saveBtn, cntr++, 0);
