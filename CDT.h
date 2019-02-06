@@ -324,6 +324,14 @@ Edge makeEdge(const VertInd iV1, const VertInd iV2)
 }
 
 template <typename T>
+T distance(const V2d<T>& a, const V2d<T>& b)
+{
+    T dx = b.x - a.x;
+    T dy = b.y - a.y;
+    return sqrt(dx * dx + dy * dy);
+}
+
+template <typename T>
 class Triangulation
 {
 public:
@@ -675,8 +683,6 @@ template <typename T>
 void Triangulation<T>::insertVertex(const V2d<T>& pos)
 {
     const VertInd iVert(vertices.size());
-    // TODO Remove old trianglesAt
-    //std::tr1::array<TriInd, 2> trisAt2 = trianglesAt(pos);
     std::tr1::array<TriInd, 2> trisAt = walkingSearchTrianglesAt(pos);
     std::stack<TriInd> triStack =
         trisAt[1] == noNeighbor ? insertPointInTriangle(pos, trisAt[0])
@@ -880,29 +886,43 @@ std::tr1::array<TriInd, 2>
 Triangulation<T>::walkingSearchTrianglesAt(const V2d<T>& pos) const
 {
     std::tr1::array<TriInd, 2> out = {noNeighbor, noNeighbor};
-    // start search at one of the super-triangles to ensure no dummy
-    // TODO: improve the first guess, pick random vertex close to pos?
-    TriInd currTri = TriInd(0);
-    bool found = false;
+    // set seed for rand() to ensure reproducibility
+    srand(9001);
+    // start search at a vertex close to pos based on random sampling
+    VertInd closeVertex = 0;
+    T min_dist = distance(vertices[0].pos, pos);
+    for(size_t sample; sample < 5; ++sample)
+    {
+        VertInd nextVertex = rand() % vertices.size();
+        if(distance(vertices[nextVertex].pos, pos) < min_dist)
+        {
+            min_dist = distance(vertices[nextVertex].pos, pos);
+            closeVertex = nextVertex;
+        }
+    }
+    // begin walk in search of triangle at pos
+    TriInd currTri = vertices[closeVertex].triangles[0];
     std::unordered_set<TriInd> visited;
+    bool found = false;
     while(!found)
     {
         const Triangle& t = triangles[currTri];
         found = true;
-        for(size_t i = 0; i < 3; ++i)
+        // stochastic offset to randomize which edge we check first
+        const size_t offset = rand() % 3;
+        for(size_t i_ = 0; i_ < 3; ++i_)
         {
+            const size_t i = (i_ + offset) % 3;
             const V2d<T> vStart = vertices[t.vertices[i]].pos;
             const V2d<T> vEnd = vertices[t.vertices[(i + 1) % 3]].pos;
             PtLineLocation::Enum edgeCheck = locatePointLine(pos, vStart, vEnd);
             if(edgeCheck == PtLineLocation::Right &&
-               t.neighbors[i] != noNeighbor)
+               t.neighbors[i] != noNeighbor &&
+               visited.insert(t.neighbors[i]).second)
             {
-                if(visited.insert(t.neighbors[i]).second)
-                {
-                    found = false;
-                    currTri = t.neighbors[i];
-                    break;
-                }
+                found = false;
+                currTri = t.neighbors[i];
+                break;
             }
         }
     }
