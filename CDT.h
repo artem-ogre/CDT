@@ -18,7 +18,6 @@
 #include <stack>
 #include <utility>
 #include <vector>
-#include <cstdlib>
 
 // #define CDT_USE_STRONG_TYPING // strong type checks on indices
 
@@ -325,14 +324,6 @@ typedef std::pair<VertInd, VertInd> Edge;
 Edge makeEdge(const VertInd iV1, const VertInd iV2)
 {
     return iV1 < iV2 ? std::make_pair(iV1, iV2) : std::make_pair(iV2, iV1);
-}
-
-template <typename T>
-T distance(const V2d<T>& a, const V2d<T>& b)
-{
-    T dx = b.x - a.x;
-    T dy = b.y - a.y;
-    return sqrt(dx * dx + dy * dy);
 }
 
 template <typename T>
@@ -664,8 +655,8 @@ boost::tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
             if(locP1 == PtLineLocation::OnLine)
                 return boost::make_tuple(noNeighbor, iP1, iP2);
             else if(locP1 == PtLineLocation::Left)
-            return boost::make_tuple(iT, iP1, iP2);
-    }
+                return boost::make_tuple(iT, iP1, iP2);
+        }
     }
     throw std::runtime_error(
         "Could not find vertex triangle intersected by edge");
