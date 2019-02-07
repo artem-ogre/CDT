@@ -5,12 +5,15 @@
 #include <boost/assign/list_of.hpp>
 #include <boost/foreach.hpp>
 #include <boost/functional/hash.hpp>
+#include <boost/geometry/geometries/point_xy.hpp>
+#include <boost/geometry/index/rtree.hpp>
 #include <boost/serialization/strong_typedef.hpp>
 #include <boost/tr1/array.hpp>
 #include <boost/tr1/unordered_map.hpp>
 #include <boost/tr1/unordered_set.hpp>
 #include <boost/tuple/tuple.hpp>
 
+#include <cstdlib>
 #include <limits>
 #include <stack>
 #include <utility>
@@ -335,6 +338,7 @@ T distance(const V2d<T>& a, const V2d<T>& b)
 template <typename T>
 class Triangulation
 {
+
 public:
     std::vector<Vertex<T> > vertices;
     std::vector<Triangle> triangles;
@@ -359,6 +363,12 @@ public:
     void eraseOuterTriangles();
 
 private:
+    /*____ RTree For Vertices __*/
+    typedef boost::geometry::model::d2::point_xy<T> Pos2D;
+    typedef std::pair<Pos2D, VertInd> VertexPos;
+    boost::geometry::index::
+        rtree<VertexPos, boost::geometry::index::linear<16, 4> >
+            vertexRTree;
     /*____ Detail __*/
     void addSuperTriangle(const Box2d<T>& box);
     void insertVertex(const V2d<T>& pos);
@@ -548,9 +558,7 @@ void Triangulation<T>::insertEdges(const std::vector<Edge>& edges)
     BOOST_FOREACH(const Edge& e, edges)
     {
         // +3 to account for super-triangle vertices
-        const Edge edge = makeEdge(e.first + 3, e.second + 3);
-        insertEdge(edge);
-        fixedEdges.insert(edge);
+        insertEdge(makeEdge(e.first + 3, e.second + 3));
     }
     eraseDummies();
 }
@@ -559,15 +567,24 @@ template <typename T>
 void Triangulation<T>::insertEdge(Edge edge)
 {
     const VertInd iA = edge.first;
-    const VertInd iB = edge.second;
+    VertInd iB = edge.second;
     const Vertex<T>& a = vertices[iA];
     const Vertex<T>& b = vertices[iB];
     if(verticesShareEdge(a, b))
+    {
+        fixedEdges.insert(makeEdge(iA, iB));
         return;
+    }
     TriInd iT;
     VertInd iVleft, iVright;
     boost::tie(iT, iVleft, iVright) =
         intersectedTriangle(iA, a.triangles, a.pos, b.pos);
+    // if one of the triangle vertices is on the edge, move edge start
+    if(iT == noNeighbor)
+    {
+        fixedEdges.insert(makeEdge(iA, iVleft));
+        return insertEdge(makeEdge(iVleft, iB));
+    }
     std::vector<TriInd> intersected(1, iT);
     std::vector<VertInd> ptsLeft(1, iVleft);
     std::vector<VertInd> ptsRight(1, iVright);
@@ -579,6 +596,11 @@ void Triangulation<T>::insertEdge(Edge edge)
         const Triangle& tOpo = triangles[iTopo];
         const VertInd iVopo = opposedVertex(tOpo, iT);
         const Vertex<T> vOpo = vertices[iVopo];
+
+        intersected.push_back(iTopo);
+        iT = iTopo;
+        t = triangles[iT];
+
         PtLineLocation::Enum loc = locatePointLine(vOpo.pos, a.pos, b.pos);
         if(loc == PtLineLocation::Left)
         {
@@ -592,9 +614,8 @@ void Triangulation<T>::insertEdge(Edge edge)
             iV = iVright;
             iVright = iVopo;
         }
-        intersected.push_back(iTopo);
-        iT = iTopo;
-        t = triangles[iT];
+        else // encountered point on the edge
+            iB = iVopo;
     }
     // Remove intersected triangles
     BOOST_FOREACH(const TriInd iTisec, intersected)
@@ -605,8 +626,22 @@ void Triangulation<T>::insertEdge(Edge edge)
     const TriInd iTright = triangulatePseudopolygon(iB, iA, ptsRight);
     changeNeighbor(iTleft, noNeighbor, iTright);
     changeNeighbor(iTright, noNeighbor, iTleft);
+    // add fixed edge
+    fixedEdges.insert(makeEdge(iA, iB));
+    if(iB != edge.second) // encountered point on the edge
+        return insertEdge(makeEdge(iB, edge.second));
 }
 
+/*!
+ * Returns:
+ *  - intersected triangle index
+ *  - index of point on the left of the line
+ *  - index of point on the right of the line
+ * If left point is right on the line: no triangle is intersected:
+ *  - use not valid triangle index
+ *  - index of point on the line
+ *  - index of point on the right of the line
+ */
 template <typename T>
 boost::tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
     const VertInd iA,
@@ -624,8 +659,13 @@ boost::tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
             locatePointLine(vertices[iP1].pos, a, b);
         const PtLineLocation::Enum locP2 =
             locatePointLine(vertices[iP2].pos, a, b);
-        if(locP1 == PtLineLocation::Left && locP2 == PtLineLocation::Right)
+        if(locP2 == PtLineLocation::Right)
+        {
+            if(locP1 == PtLineLocation::OnLine)
+                return boost::make_tuple(noNeighbor, iP1, iP2);
+            else if(locP1 == PtLineLocation::Left)
             return boost::make_tuple(iT, iP1, iP2);
+    }
     }
     throw std::runtime_error(
         "Could not find vertex triangle intersected by edge");
@@ -648,6 +688,9 @@ void Triangulation<T>::addSuperTriangle(const Box2d<T>& box)
     vertices.push_back(Vertex<T>::make(posV3, TriInd(0)));
     const Triangle superTri = {{0, 1, 2}, {noNeighbor, noNeighbor, noNeighbor}};
     addTriangle(superTri);
+    vertexRTree.insert(std::make_pair(Pos2D(posV1.x, posV1.y), 0));
+    vertexRTree.insert(std::make_pair(Pos2D(posV2.x, posV2.y), 1));
+    vertexRTree.insert(std::make_pair(Pos2D(posV3.x, posV3.y), 2));
 }
 
 template <typename T>
@@ -674,6 +717,7 @@ void Triangulation<T>::insertVertex(const V2d<T>& pos)
             triStack.push(iTopo);
         }
     }
+    vertexRTree.insert(std::make_pair(Pos2D(pos.x, pos.y), iVert));
 }
 
 /*!
@@ -857,22 +901,16 @@ std::tr1::array<TriInd, 2>
 Triangulation<T>::walkingSearchTrianglesAt(const V2d<T>& pos) const
 {
     std::tr1::array<TriInd, 2> out = {noNeighbor, noNeighbor};
+    // Query RTree for a vertex close to pos, to start the search
+    std::vector<VertexPos> queryResult;
+    Pos2D pos_ = Pos2D(pos.x, pos.y);
+    namespace bgi = boost::geometry::index;
+    vertexRTree.query(bgi::nearest(pos_, 1), std::back_inserter(queryResult));
+    VertInd startVertex = queryResult.front().second;
     // set seed for rand() to ensure reproducibility
     srand(9001);
-    // start search at a vertex close to pos based on random sampling
-    VertInd closeVertex = 0;
-    T min_dist = distance(vertices[0].pos, pos);
-    for(size_t sample; sample < 5; ++sample)
-    {
-        VertInd nextVertex = rand() % vertices.size();
-        if(distance(vertices[nextVertex].pos, pos) < min_dist)
-        {
-            min_dist = distance(vertices[nextVertex].pos, pos);
-            closeVertex = nextVertex;
-        }
-    }
     // begin walk in search of triangle at pos
-    TriInd currTri = vertices[closeVertex].triangles[0];
+    TriInd currTri = vertices[startVertex].triangles[0];
     std::unordered_set<TriInd> visited;
     bool found = false;
     while(!found)
