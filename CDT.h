@@ -5,17 +5,19 @@
 #include <boost/assign/list_of.hpp>
 #include <boost/foreach.hpp>
 #include <boost/functional/hash.hpp>
+#include <boost/geometry/geometries/point_xy.hpp>
+#include <boost/geometry/index/rtree.hpp>
 #include <boost/serialization/strong_typedef.hpp>
 #include <boost/tr1/array.hpp>
 #include <boost/tr1/unordered_map.hpp>
 #include <boost/tr1/unordered_set.hpp>
 #include <boost/tuple/tuple.hpp>
 
+#include <cstdlib>
 #include <limits>
 #include <stack>
 #include <utility>
 #include <vector>
-#include <cstdlib>
 
 // #define CDT_USE_STRONG_TYPING // strong type checks on indices
 
@@ -335,6 +337,7 @@ T distance(const V2d<T>& a, const V2d<T>& b)
 template <typename T>
 class Triangulation
 {
+
 public:
     std::vector<Vertex<T> > vertices;
     std::vector<Triangle> triangles;
@@ -359,6 +362,12 @@ public:
     void eraseOuterTriangles();
 
 private:
+    /*____ RTree For Vertices __*/
+    typedef boost::geometry::model::d2::point_xy<T> Pos2D;
+    typedef std::pair<Pos2D, VertInd> VertexPos;
+    boost::geometry::index::
+        rtree<VertexPos, boost::geometry::index::linear<16, 4> >
+            vertexRTree;
     /*____ Detail __*/
     void addSuperTriangle(const Box2d<T>& box);
     void insertVertex(const V2d<T>& pos);
@@ -678,6 +687,9 @@ void Triangulation<T>::addSuperTriangle(const Box2d<T>& box)
     vertices.push_back(Vertex<T>::make(posV3, TriInd(0)));
     const Triangle superTri = {{0, 1, 2}, {noNeighbor, noNeighbor, noNeighbor}};
     addTriangle(superTri);
+    vertexRTree.insert(std::make_pair(Pos2D(posV1.x, posV1.y), 0));
+    vertexRTree.insert(std::make_pair(Pos2D(posV2.x, posV2.y), 1));
+    vertexRTree.insert(std::make_pair(Pos2D(posV3.x, posV3.y), 2));
 }
 
 template <typename T>
@@ -704,6 +716,7 @@ void Triangulation<T>::insertVertex(const V2d<T>& pos)
             triStack.push(iTopo);
         }
     }
+    vertexRTree.insert(std::make_pair(Pos2D(pos.x, pos.y), iVert));
 }
 
 /*!
@@ -887,22 +900,16 @@ std::tr1::array<TriInd, 2>
 Triangulation<T>::walkingSearchTrianglesAt(const V2d<T>& pos) const
 {
     std::tr1::array<TriInd, 2> out = {noNeighbor, noNeighbor};
+    // Query RTree for a vertex close to pos, to start the search
+    std::vector<VertexPos> queryResult;
+    Pos2D pos_ = Pos2D(pos.x, pos.y);
+    namespace bgi = boost::geometry::index;
+    vertexRTree.query(bgi::nearest(pos_, 1), std::back_inserter(queryResult));
+    VertInd startVertex = queryResult.front().second;
     // set seed for rand() to ensure reproducibility
     srand(9001);
-    // start search at a vertex close to pos based on random sampling
-    VertInd closeVertex = 0;
-    T min_dist = distance(vertices[0].pos, pos);
-    for(size_t sample; sample < 5; ++sample)
-    {
-        VertInd nextVertex = rand() % vertices.size();
-        if(distance(vertices[nextVertex].pos, pos) < min_dist)
-        {
-            min_dist = distance(vertices[nextVertex].pos, pos);
-            closeVertex = nextVertex;
-        }
-    }
     // begin walk in search of triangle at pos
-    TriInd currTri = vertices[closeVertex].triangles[0];
+    TriInd currTri = vertices[startVertex].triangles[0];
     std::unordered_set<TriInd> visited;
     bool found = false;
     while(!found)
