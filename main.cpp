@@ -196,7 +196,9 @@ protected:
         const Box2d box = calculateBox(m_points);
         const V2d c = {(box.min.x + box.max.x) / 2.0,
                             (box.min.y + box.max.y) / 2.0};
-        const double scale = 0.8 * fixedSize / (box.max.x - box.min.x);
+        const double scale =
+            0.8 * fixedSize /
+            (std::fmax(box.max.x - box.min.x, box.max.y - box.min.y));
 
         QPen pen;
         pen.setCapStyle(Qt::RoundCap);

@@ -537,9 +537,7 @@ void Triangulation<T>::insertEdges(const std::vector<Edge>& edges)
     BOOST_FOREACH(const Edge& e, edges)
     {
         // +3 to account for super-triangle vertices
-        const Edge edge = makeEdge(e.first + 3, e.second + 3);
-        insertEdge(edge);
-        fixedEdges.insert(edge);
+        insertEdge(makeEdge(e.first + 3, e.second + 3));
     }
     eraseDummies();
 }
@@ -548,15 +546,24 @@ template <typename T>
 void Triangulation<T>::insertEdge(Edge edge)
 {
     const VertInd iA = edge.first;
-    const VertInd iB = edge.second;
+    VertInd iB = edge.second;
     const Vertex<T>& a = vertices[iA];
     const Vertex<T>& b = vertices[iB];
     if(verticesShareEdge(a, b))
+    {
+        fixedEdges.insert(makeEdge(iA, iB));
         return;
+    }
     TriInd iT;
     VertInd iVleft, iVright;
     boost::tie(iT, iVleft, iVright) =
         intersectedTriangle(iA, a.triangles, a.pos, b.pos);
+    // if one of the triangle vertices is on the edge, move edge start
+    if(iT == noNeighbor)
+    {
+        fixedEdges.insert(makeEdge(iA, iVleft));
+        return insertEdge(makeEdge(iVleft, iB));
+    }
     std::vector<TriInd> intersected(1, iT);
     std::vector<VertInd> ptsLeft(1, iVleft);
     std::vector<VertInd> ptsRight(1, iVright);
@@ -568,6 +575,11 @@ void Triangulation<T>::insertEdge(Edge edge)
         const Triangle& tOpo = triangles[iTopo];
         const VertInd iVopo = opposedVertex(tOpo, iT);
         const Vertex<T> vOpo = vertices[iVopo];
+
+        intersected.push_back(iTopo);
+        iT = iTopo;
+        t = triangles[iT];
+
         PtLineLocation::Enum loc = locatePointLine(vOpo.pos, a.pos, b.pos);
         if(loc == PtLineLocation::Left)
         {
@@ -581,9 +593,8 @@ void Triangulation<T>::insertEdge(Edge edge)
             iV = iVright;
             iVright = iVopo;
         }
-        intersected.push_back(iTopo);
-        iT = iTopo;
-        t = triangles[iT];
+        else // encountered point on the edge
+            iB = iVopo;
     }
     // Remove intersected triangles
     BOOST_FOREACH(const TriInd iTisec, intersected)
@@ -594,8 +605,22 @@ void Triangulation<T>::insertEdge(Edge edge)
     const TriInd iTright = triangulatePseudopolygon(iB, iA, ptsRight);
     changeNeighbor(iTleft, noNeighbor, iTright);
     changeNeighbor(iTright, noNeighbor, iTleft);
+    // add fixed edge
+    fixedEdges.insert(makeEdge(iA, iB));
+    if(iB != edge.second) // encountered point on the edge
+        return insertEdge(makeEdge(iB, edge.second));
 }
 
+/*!
+ * Returns:
+ *  - intersected triangle index
+ *  - index of point on the left of the line
+ *  - index of point on the right of the line
+ * If left point is right on the line: no triangle is intersected:
+ *  - use not valid triangle index
+ *  - index of point on the line
+ *  - index of point on the right of the line
+ */
 template <typename T>
 boost::tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
     const VertInd iA,
@@ -613,8 +638,13 @@ boost::tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
             locatePointLine(vertices[iP1].pos, a, b);
         const PtLineLocation::Enum locP2 =
             locatePointLine(vertices[iP2].pos, a, b);
-        if(locP1 == PtLineLocation::Left && locP2 == PtLineLocation::Right)
-            return boost::make_tuple(iT, iP1, iP2);
+        if(locP2 == PtLineLocation::Right)
+        {
+            if(locP1 == PtLineLocation::OnLine)
+                return boost::make_tuple(noNeighbor, iP1, iP2);
+            else if(locP1 == PtLineLocation::Left)
+                return boost::make_tuple(iT, iP1, iP2);
+        }
     }
     throw std::runtime_error(
         "Could not find vertex triangle intersected by edge");
