@@ -46,6 +46,8 @@ CDT_TYPEDEF(std::size_t, VertInd);
 CDT_TYPEDEF(std::size_t, TriInd);
 const static TriInd noNeighbor =
     TriInd(std::numeric_limits<std::size_t>::max());
+const static VertInd noVertex =
+    VertInd(std::numeric_limits<std::size_t>::max());
 
 /// 2D bounding box
 template <typename T>

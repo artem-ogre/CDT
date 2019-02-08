@@ -93,9 +93,9 @@ private:
         const VertInd ib,
         const std::vector<VertInd>& points) const;
     TriInd pseudopolyOuterTriangle(const VertInd ia, const VertInd ib) const;
-    TriInd addTriangle(const Triangle& t);
+    TriInd addTriangle(const Triangle& t); // note: invalidates iterators!
+    TriInd addTriangle(); // note: invalidates triangle iterators!
     void makeDummy(const TriInd iT);
-    TriInd newTriangleIndex() const;
     void eraseDummies();
     void eraseSuperTriangleVertices();
 
@@ -112,14 +112,6 @@ void Triangulation<T>::changeNeighbor(
 {
     Triangle& t = triangles[iT];
     t.neighbors[opposedTriangleInd(t, iVedge1, iVedge2)] = newNeighbor;
-}
-
-template <typename T>
-TriInd Triangulation<T>::newTriangleIndex() const
-{
-    if(m_dummyTris.empty())
-        return triangles.size();
-    return m_dummyTris.back();
 }
 
 template <typename T>
@@ -230,6 +222,21 @@ TriInd Triangulation<T>::addTriangle(const Triangle& t)
     const TriInd nxtDummy = m_dummyTris.back();
     m_dummyTris.pop_back();
     triangles[nxtDummy] = t;
+    return nxtDummy;
+}
+
+template <typename T>
+TriInd Triangulation<T>::addTriangle()
+{
+    if(m_dummyTris.empty())
+    {
+        const Triangle dummy = {{noVertex, noVertex, noVertex},
+                                {noNeighbor, noNeighbor, noNeighbor}};
+        triangles.push_back(dummy);
+        return TriInd(triangles.size() - 1);
+    }
+    const TriInd nxtDummy = m_dummyTris.back();
+    m_dummyTris.pop_back();
     return nxtDummy;
 }
 
@@ -455,23 +462,22 @@ template <typename T>
 std::stack<TriInd>
 Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iT)
 {
+    const VertInd v(vertices.size());
+    const TriInd iNewT1 = addTriangle();
+    const TriInd iNewT2 = addTriangle();
+
     Triangle& t = triangles[iT];
     const std::tr1::array<VertInd, 3> vv = t.vertices;
     const std::tr1::array<TriInd, 3> nn = t.neighbors;
     const VertInd v1 = vv[0], v2 = vv[1], v3 = vv[2];
     const TriInd n1 = nn[0], n2 = nn[1], n3 = nn[2];
-    const VertInd v(vertices.size());
-    const TriInd iNewT1(triangles.size());
-    const TriInd iNewT2(iNewT1 + 1);
     // make two new triangles and convert current triangle to 3rd new triangle
-    const Triangle newT1 = {{v2, v3, v}, {n2, iNewT2, iT}};
-    const Triangle newT2 = {{v3, v1, v}, {n3, iT, iNewT1}};
+    triangles[iNewT1] = {{v2, v3, v}, {n2, iNewT2, iT}};
+    triangles[iNewT2] = {{v3, v1, v}, {n3, iT, iNewT1}};
     t = {{v1, v2, v}, {n1, iNewT1, iNewT2}};
     // make new vertex
     const Vertex<T> newVert = {pos, boost::assign::list_of(iT)(iNewT1)(iNewT2)};
     // add new triangles and vertices to triangulation
-    addTriangle(newT1);
-    addTriangle(newT2);
     vertices.push_back(newVert);
     // adjust lists of adjacent triangles for v1, v2, v3
     addAdjacentTriangle(v1, iNewT2);
@@ -510,8 +516,8 @@ std::stack<TriInd> Triangulation<T>::insertPointOnEdge(
     const TriInd iT2)
 {
     const VertInd v(vertices.size());
-    const TriInd iTnew1(triangles.size());
-    const TriInd iTnew2(iTnew1 + 1);
+    const TriInd iTnew1 = addTriangle();
+    const TriInd iTnew2 = addTriangle();
 
     Triangle& t1 = triangles[iT1];
     Triangle& t2 = triangles[iT2];
@@ -528,11 +534,12 @@ std::stack<TriInd> Triangulation<T>::insertPointOnEdge(
     // add new triangles and change existing ones
     t1 = {{v1, v2, v}, {n1, iTnew2, iTnew1}};
     t2 = {{v3, v4, v}, {n3, iTnew1, iTnew2}};
-    const Triangle tNew1 = {{v1, v, v4}, {iT1, iT2, n4}};
-    const Triangle tNew2 = {{v3, v, v2}, {iT2, iT1, n2}};
-    // make new vertex
+    triangles[iTnew1] = {{v1, v, v4}, {iT1, iT2, n4}};
+    triangles[iTnew2] = {{v3, v, v2}, {iT2, iT1, n2}};
+    // make and add new vertex
     const Vertex<T> vNew = {pos,
                             boost::assign::list_of(iT1)(iTnew2)(iT2)(iTnew1)};
+    vertices.push_back(vNew);
     // adjust neighboring triangles and vertices
     changeNeighbor(n4, iT1, iTnew1);
     changeNeighbor(n2, iT2, iTnew2);
@@ -542,10 +549,6 @@ std::stack<TriInd> Triangulation<T>::insertPointOnEdge(
     addAdjacentTriangle(v2, iTnew2);
     removeAdjacentTriangle(v4, iT1);
     addAdjacentTriangle(v4, iTnew1);
-    // add new triangles and vertices to triangulation
-    addTriangle(tNew1);
-    addTriangle(tNew2);
-    vertices.push_back(vNew);
     // return newly added triangles
     std::stack<TriInd> newTriangles;
     newTriangles.push(iT1);
