@@ -2,11 +2,13 @@
 
 #include "CDT.h"
 
+#include <boost/foreach.hpp>
+
 namespace CDT
 {
 
 template <typename T>
-bool verifyTopology(const CDT::Triangulation<T>& cdt)
+inline bool verifyTopology(const CDT::Triangulation<T>& cdt)
 {
     // Check if vertices' adjacent triangles contain vertex
     for(VertInd iV(0); iV < VertInd(cdt.vertices.size()); ++iV)

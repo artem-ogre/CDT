@@ -86,13 +86,13 @@ struct Triangle
 };
 
 /// Advance vertex or neighbor index counter-clockwise
-Index ccw(Index i)
+inline Index ccw(Index i)
 {
     return Index((i + 1) % 3);
 }
 
 /// Advance vertex or neighbor index clockwise
-Index cw(Index i)
+inline Index cw(Index i)
 {
     return Index((i + 2) % 3);
 }
@@ -109,13 +109,13 @@ struct PtTriLocation
     };
 };
 
-bool isOnEdge(const PtTriLocation::Enum location)
+inline bool isOnEdge(const PtTriLocation::Enum location)
 {
     return location > PtTriLocation::Outside;
 }
 
 // Call only if located on the edge!
-Index edgeNeighbor(const PtTriLocation::Enum location)
+inline Index edgeNeighbor(const PtTriLocation::Enum location)
 {
     assert(location >= PtTriLocation::OnEdge1);
     return static_cast<Index>(location - PtTriLocation::OnEdge1);
@@ -140,7 +140,7 @@ locatePointLine(const V2d<T>& p, const V2d<T>& v1, const V2d<T>& v2)
     const T orientation = orient2d(v1.raw(), v2.raw(), p.raw());
     if(orientation < T(0))
         return PtLineLocation::Right;
-    else if(orientation == T(0))
+    if(orientation == T(0))
         return PtLineLocation::OnLine;
     return PtLineLocation::Left;
 }
@@ -190,7 +190,7 @@ Box2d<T> calculateBox(const std::vector<V2d<T> >& vertices)
 }
 
 /// Opposed neighbor index from vertex index
-Index opoNbr(const Index vertIndex)
+inline Index opoNbr(const Index vertIndex)
 {
     if(vertIndex == Index(0))
         return Index(1);
@@ -202,7 +202,7 @@ Index opoNbr(const Index vertIndex)
 }
 
 /// Opposed vertex index from neighbor index
-Index opoVrt(const Index neighborIndex)
+inline Index opoVrt(const Index neighborIndex)
 {
     if(neighborIndex == Index(0))
         return Index(2);
@@ -214,7 +214,7 @@ Index opoVrt(const Index neighborIndex)
 }
 
 /// Index of triangle's neighbor opposed to a vertex
-Index opposedTriangleInd(const Triangle& tri, const VertInd iVert)
+inline Index opposedTriangleInd(const Triangle& tri, const VertInd iVert)
 {
     for(Index vi = Index(0); vi < Index(3); ++vi)
         if(iVert == tri.vertices[vi])
@@ -223,7 +223,7 @@ Index opposedTriangleInd(const Triangle& tri, const VertInd iVert)
 }
 
 /// Index of triangle's neighbor opposed to an edge
-Index opposedTriangleInd(
+inline Index opposedTriangleInd(
     const Triangle& tri,
     const VertInd iVedge1,
     const VertInd iVedge2)
@@ -238,7 +238,7 @@ Index opposedTriangleInd(
 }
 
 /// Index of triangle's vertex opposed to a triangle
-Index opposedVertexInd(const Triangle& tri, const TriInd iTopo)
+inline Index opposedVertexInd(const Triangle& tri, const TriInd iTopo)
 {
     for(Index ni = Index(0); ni < Index(3); ++ni)
         if(iTopo == tri.neighbors[ni])
@@ -247,7 +247,7 @@ Index opposedVertexInd(const Triangle& tri, const TriInd iTopo)
 }
 
 /// If triangle has a given neighbor return neighbor-index, throw otherwise
-Index neighborInd(const Triangle& tri, const TriInd iTnbr)
+inline Index neighborInd(const Triangle& tri, const TriInd iTnbr)
 {
     for(Index ni = Index(0); ni < Index(3); ++ni)
         if(iTnbr == tri.neighbors[ni])
@@ -256,7 +256,7 @@ Index neighborInd(const Triangle& tri, const TriInd iTnbr)
 }
 
 /// If triangle has a given vertex return vertex-index, throw otherwise
-Index vertexInd(const Triangle& tri, const VertInd iV)
+inline Index vertexInd(const Triangle& tri, const VertInd iV)
 {
     for(Index i = Index(0); i < Index(3); ++i)
         if(iV == tri.vertices[i])
@@ -265,19 +265,19 @@ Index vertexInd(const Triangle& tri, const VertInd iV)
 }
 
 /// Given triangle and a vertex find opposed triangle
-TriInd opposedTriangle(const Triangle& tri, const VertInd iVert)
+inline TriInd opposedTriangle(const Triangle& tri, const VertInd iVert)
 {
     return tri.neighbors[opposedTriangleInd(tri, iVert)];
 }
 
 /// Given two triangles, return vertex of first triangle opposed to the second
-VertInd opposedVertex(const Triangle& tri, const TriInd iTopo)
+inline VertInd opposedVertex(const Triangle& tri, const TriInd iTopo)
 {
     return tri.vertices[opposedVertexInd(tri, iTopo)];
 }
 
 /// Test if triangle has vertex with a given index
-bool hasVertex(const Triangle& tri, const VertInd iVert)
+inline bool hasVertex(const Triangle& tri, const VertInd iVert)
 {
     BOOST_FOREACH(const VertInd triVert, tri.vertices)
         if(triVert == iVert)
@@ -297,7 +297,7 @@ bool isInCircumcircle(
     return incircle(v1.raw(), v2.raw(), v3.raw(), p.raw()) > T(0);
 }
 
-Triangle reverseTriangle(const Triangle& t)
+inline Triangle reverseTriangle(const Triangle& t)
 {
     Triangle out = t;
     std::reverse(out.neighbors.begin(), out.neighbors.end());
@@ -316,7 +316,7 @@ bool verticesShareEdge(const Vertex<T>& a, const Vertex<T>& b)
 }
 
 typedef std::pair<VertInd, VertInd> Edge;
-Edge makeEdge(const VertInd iV1, const VertInd iV2)
+inline Edge makeEdge(const VertInd iV1, const VertInd iV2)
 {
     return iV1 < iV2 ? std::make_pair(iV1, iV2) : std::make_pair(iV2, iV1);
 }

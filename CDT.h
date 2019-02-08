@@ -351,7 +351,7 @@ boost::tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
         {
             if(locP1 == PtLineLocation::OnLine)
                 return boost::make_tuple(noNeighbor, iP1, iP2);
-            else if(locP1 == PtLineLocation::Left)
+            if(locP1 == PtLineLocation::Left)
                 return boost::make_tuple(iT, iP1, iP2);
         }
     }
@@ -703,10 +703,10 @@ void Triangulation<T>::removeAdjacentTriangle(
     const TriInd iTriangle)
 {
     std::vector<TriInd>& tris = vertices[iVertex].triangles;
-    tris.erase(std::remove(tris.begin(), tris.end(), iTriangle));
+    tris.erase(std::remove(tris.begin(), tris.end(), iTriangle), tris.end());
 }
 
-std::pair<std::vector<VertInd>, std::vector<VertInd> >
+inline std::pair<std::vector<VertInd>, std::vector<VertInd> >
 splitPseudopolygon(const VertInd vi, const std::vector<VertInd>& points)
 {
     std::pair<std::vector<VertInd>, std::vector<VertInd> > out;
