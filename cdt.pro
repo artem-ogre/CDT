@@ -8,7 +8,9 @@ SOURCES += \
 HEADERS += \
     predicates.h \
     CDT.h \
-    VerifyTopology.h
+    VerifyTopology.h \
+    PointRTree.h \
+    CDTUtils.h
 
 win32
 {
