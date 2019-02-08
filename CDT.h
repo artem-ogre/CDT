@@ -11,12 +11,12 @@
 #include <boost/tr1/unordered_set.hpp>
 #include <boost/tuple/tuple.hpp>
 
+#include <cassert>
 #include <cstdlib>
 #include <limits>
 #include <stack>
 #include <utility>
 #include <vector>
-#include <cassert>
 
 namespace CDT
 {

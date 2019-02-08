@@ -10,9 +10,9 @@
 #endif
 #include <boost/tr1/array.hpp>
 
+#include <cassert>
 #include <limits>
 #include <vector>
-#include <cassert>
 
 #ifdef CDT_USE_STRONG_TYPING
 #define CDT_TYPEDEF(typeWhat, typeAs) BOOST_STRONG_TYPEDEF(typeWhat, typeAs)
