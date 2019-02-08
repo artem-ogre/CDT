@@ -16,6 +16,7 @@
 #include <stack>
 #include <utility>
 #include <vector>
+#include <cassert>
 
 namespace CDT
 {
