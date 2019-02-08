@@ -175,14 +175,14 @@ template <typename T>
 void Triangulation<T>::eraseOuterTriangles()
 {
     // make dummy triangles adjacent  to super-triangle's vertices
-    std::tr1::unordered_set<TriInd> traverced;
+    std::tr1::unordered_set<TriInd> traversed;
     std::stack<TriInd> toErase;
     toErase.push(vertices[0].triangles.front());
     while(!toErase.empty())
     {
         const TriInd iT = toErase.top();
         toErase.pop();
-        traverced.insert(iT);
+        traversed.insert(iT);
         const Triangle& t = triangles[iT];
         for(Index i(0); i < Index(3); ++i)
         {
@@ -190,11 +190,11 @@ void Triangulation<T>::eraseOuterTriangles()
             if(fixedEdges.count(opEdge))
                 continue;
             const TriInd iN = t.neighbors[opoNbr(i)];
-            if(iN != noNeighbor && traverced.count(iN) == 0)
+            if(iN != noNeighbor && traversed.count(iN) == 0)
                 toErase.push(iN);
         }
     }
-    BOOST_FOREACH(const TriInd iT, traverced)
+    BOOST_FOREACH(const TriInd iT, traversed)
         makeDummy(iT);
     eraseDummies();
     eraseSuperTriangleVertices();
@@ -603,8 +603,8 @@ Triangulation<T>::walkingSearchTrianglesAt(const V2d<T>& pos) const
         {
             const size_t i = (i_ + offset) % 3;
             const V2d<T> vStart = vertices[t.vertices[i]].pos;
-            const V2d<T> vEnd = vertices[t.vertices[(i + 1) % 3]].pos;
-            PtLineLocation::Enum edgeCheck = locatePointLine(pos, vStart, vEnd);
+            const V2d<T> vEnd = vertices[t.vertices[ccw(i)]].pos;
+            const PtLineLocation::Enum edgeCheck = locatePointLine(pos, vStart, vEnd);
             if(edgeCheck == PtLineLocation::Right &&
                t.neighbors[i] != noNeighbor &&
                visited.insert(t.neighbors[i]).second)
