@@ -5,10 +5,13 @@
 #include "predicates.h"
 
 #include <boost/foreach.hpp>
+#include <boost/functional/hash.hpp>
 #ifdef CDT_USE_STRONG_TYPING
 #include <boost/serialization/strong_typedef.hpp>
 #endif
 #include <boost/tr1/array.hpp>
+#include <boost/tr1/unordered_map.hpp>
+#include <boost/tr1/unordered_set.hpp>
 
 #include <cassert>
 #include <limits>
@@ -70,6 +73,74 @@ struct Vertex
         return out;
     }
 };
+
+struct Edge
+{
+    Edge(VertInd iV1, VertInd iV2)
+        : m_vertices(
+              iV1 < iV2 ? std::make_pair(iV1, iV2) : std::make_pair(iV2, iV1))
+    {}
+    bool operator==(const Edge& other) const
+    {
+        return m_vertices == other.m_vertices;
+    }
+    VertInd v1() const
+    {
+        return m_vertices.first;
+    }
+    VertInd v2() const
+    {
+        return m_vertices.second;
+    }
+    const std::pair<VertInd, VertInd>& pair() const
+    {
+        return m_vertices;
+    }
+
+private:
+    std::pair<VertInd, VertInd> m_vertices;
+};
+
+// Hash functions
+#ifdef CDT_USE_STRONG_TYPING
+struct HashEdge : std::unary_function<Edge, std::size_t>
+{
+    std::size_t operator()(const Edge& e) const
+    {
+        const boost::hash<std::pair<std::size_t, std::size_t> > hash;
+        return hash(std::make_pair(e.v1().t, e.v2().t));
+    }
+};
+struct HashVertInd : std::unary_function<VertInd, std::size_t>
+{
+    std::size_t operator()(const VertInd& vi) const
+    {
+        return vi.t;
+    }
+};
+struct HashTriInd : std::unary_function<TriInd, std::size_t>
+{
+    std::size_t operator()(const TriInd& vi) const
+    {
+        return vi.t;
+    }
+};
+#else
+struct HashEdge : std::unary_function<Edge, std::size_t>
+{
+    std::size_t operator()(Edge e) const
+    {
+        const boost::hash<std::pair<std::size_t, std::size_t> > hash;
+        return hash(e.pair());
+    }
+};
+typedef boost::hash<std::size_t> HashVertInd;
+typedef boost::hash<std::size_t> HashTriInd;
+#endif
+
+typedef std::tr1::unordered_set<Edge, HashEdge> EdgeUSet;
+typedef std::tr1::unordered_set<TriInd, HashTriInd> TriIndUSet;
+typedef std::tr1::unordered_map<TriInd, TriInd, HashTriInd> TriIndUMap;
 
 /// Triangulation triangle
 /* Counter-clockwise winding:
@@ -313,12 +384,6 @@ bool verticesShareEdge(const Vertex<T>& a, const Vertex<T>& b)
         if(std::find(bTris.begin(), bTris.end(), aTri) != bTris.end())
             return true;
     return false;
-}
-
-typedef std::pair<VertInd, VertInd> Edge;
-inline Edge makeEdge(const VertInd iV1, const VertInd iV2)
-{
-    return iV1 < iV2 ? std::make_pair(iV1, iV2) : std::make_pair(iV2, iV1);
 }
 
 } // namespace CDT

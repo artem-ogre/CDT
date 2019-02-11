@@ -5,10 +5,7 @@
 
 #include <boost/assign/list_of.hpp>
 #include <boost/foreach.hpp>
-#include <boost/functional/hash.hpp>
 #include <boost/tr1/array.hpp>
-#include <boost/tr1/unordered_map.hpp>
-#include <boost/tr1/unordered_set.hpp>
 #include <boost/tuple/tuple.hpp>
 
 #include <cassert>
@@ -28,19 +25,7 @@ class Triangulation
 public:
     std::vector<Vertex<T> > vertices;
     std::vector<Triangle> triangles;
-#ifdef CDT_USE_STRONG_TYPING
-    struct hashEdge : std::unary_function<Edge, std::size_t>
-    {
-        std::size_t operator()(const Edge& e) const
-        {
-            const boost::hash<std::pair<std::size_t, std::size_t> > hash;
-            return hash(std::make_pair(e.first.t, e.second.t));
-        }
-    };
-#else
-    typedef boost::hash<Edge> hashEdge;
-#endif
-    std::tr1::unordered_set<Edge, hashEdge> fixedEdges;
+    EdgeUSet fixedEdges;
 
     /*____ API _____*/
     void insertVertices(const std::vector<V2d<T> >& vertices);
@@ -119,11 +104,10 @@ void Triangulation<T>::eraseDummies()
 {
     if(m_dummyTris.empty())
         return;
-    const std::tr1::unordered_set<TriInd> dummySet(
-        m_dummyTris.begin(), m_dummyTris.end());
-    std::tr1::unordered_map<TriInd, TriInd> triIndMap;
+    const TriIndUSet dummySet(m_dummyTris.begin(), m_dummyTris.end());
+    TriIndUMap triIndMap;
     triIndMap[noNeighbor] = noNeighbor;
-    for(TriInd iT = 0, iTnew = 0; iT < triangles.size(); ++iT)
+    for(TriInd iT(0), iTnew(0); iT < TriInd(triangles.size()); ++iT)
     {
         if(dummySet.count(iT))
             continue;
@@ -150,9 +134,10 @@ void Triangulation<T>::eraseSuperTriangleVertices()
     BOOST_FOREACH(Triangle& t, triangles)
         for(Index i(0); i < Index(3); ++i)
             t.vertices[i] -= 3;
-    std::tr1::unordered_set<Edge, hashEdge> updatedFixedEdges;
+    EdgeUSet updatedFixedEdges;
     BOOST_FOREACH(const Edge& e, fixedEdges)
-        updatedFixedEdges.insert(std::make_pair(e.first - 3, e.second - 3));
+        updatedFixedEdges.insert(
+            Edge(VertInd(e.v1() - 3), VertInd(e.v2() - 3)));
     fixedEdges = updatedFixedEdges;
     vertices = std::vector<Vertex<T> >(vertices.begin() + 3, vertices.end());
 }
@@ -161,7 +146,7 @@ template <typename T>
 void Triangulation<T>::eraseSuperTriangle()
 {
     // make dummy triangles adjacent  to super-triangle's vertices
-    for(TriInd iT = 0; iT < triangles.size(); ++iT)
+    for(TriInd iT(0); iT < TriInd(triangles.size()); ++iT)
     {
         Triangle& t = triangles[iT];
         if(t.vertices[0] < 3 || t.vertices[1] < 3 || t.vertices[2] < 3)
@@ -175,7 +160,7 @@ template <typename T>
 void Triangulation<T>::eraseOuterTriangles()
 {
     // make dummy triangles adjacent  to super-triangle's vertices
-    std::tr1::unordered_set<TriInd> traversed;
+    TriIndUSet traversed;
     std::stack<TriInd> toErase;
     toErase.push(vertices[0].triangles.front());
     while(!toErase.empty())
@@ -186,7 +171,7 @@ void Triangulation<T>::eraseOuterTriangles()
         const Triangle& t = triangles[iT];
         for(Index i(0); i < Index(3); ++i)
         {
-            const Edge opEdge = makeEdge(t.vertices[ccw(i)], t.vertices[cw(i)]);
+            const Edge opEdge(t.vertices[ccw(i)], t.vertices[cw(i)]);
             if(fixedEdges.count(opEdge))
                 continue;
             const TriInd iN = t.neighbors[opoNbr(i)];
@@ -246,7 +231,7 @@ void Triangulation<T>::insertEdges(const std::vector<Edge>& edges)
     BOOST_FOREACH(const Edge& e, edges)
     {
         // +3 to account for super-triangle vertices
-        insertEdge(makeEdge(e.first + 3, e.second + 3));
+        insertEdge(Edge(VertInd(e.v1() + 3), VertInd(e.v2() + 3)));
     }
     eraseDummies();
 }
@@ -254,13 +239,13 @@ void Triangulation<T>::insertEdges(const std::vector<Edge>& edges)
 template <typename T>
 void Triangulation<T>::insertEdge(Edge edge)
 {
-    const VertInd iA = edge.first;
-    VertInd iB = edge.second;
+    const VertInd iA = edge.v1();
+    VertInd iB = edge.v2();
     const Vertex<T>& a = vertices[iA];
     const Vertex<T>& b = vertices[iB];
     if(verticesShareEdge(a, b))
     {
-        fixedEdges.insert(makeEdge(iA, iB));
+        fixedEdges.insert(Edge(iA, iB));
         return;
     }
     TriInd iT;
@@ -270,8 +255,8 @@ void Triangulation<T>::insertEdge(Edge edge)
     // if one of the triangle vertices is on the edge, move edge start
     if(iT == noNeighbor)
     {
-        fixedEdges.insert(makeEdge(iA, iVleft));
-        return insertEdge(makeEdge(iVleft, iB));
+        fixedEdges.insert(Edge(iA, iVleft));
+        return insertEdge(Edge(iVleft, iB));
     }
     std::vector<TriInd> intersected(1, iT);
     std::vector<VertInd> ptsLeft(1, iVleft);
@@ -315,9 +300,9 @@ void Triangulation<T>::insertEdge(Edge edge)
     changeNeighbor(iTleft, noNeighbor, iTright);
     changeNeighbor(iTright, noNeighbor, iTleft);
     // add fixed edge
-    fixedEdges.insert(makeEdge(iA, iB));
-    if(iB != edge.second) // encountered point on the edge
-        return insertEdge(makeEdge(iB, edge.second));
+    fixedEdges.insert(Edge(iA, iB));
+    if(iB != edge.v2()) // encountered point on the edge
+        return insertEdge(Edge(iB, edge.v2()));
 }
 
 /*!
@@ -374,11 +359,12 @@ void Triangulation<T>::addSuperTriangle(const Box2d<T>& box)
     vertices.push_back(Vertex<T>::make(posV1, TriInd(0)));
     vertices.push_back(Vertex<T>::make(posV2, TriInd(0)));
     vertices.push_back(Vertex<T>::make(posV3, TriInd(0)));
-    const Triangle superTri = {{0, 1, 2}, {noNeighbor, noNeighbor, noNeighbor}};
+    const Triangle superTri = {{VertInd(0), VertInd(1), VertInd(2)},
+                               {noNeighbor, noNeighbor, noNeighbor}};
     addTriangle(superTri);
-    m_rtree.addPoint(posV1, 0);
-    m_rtree.addPoint(posV2, 1);
-    m_rtree.addPoint(posV3, 2);
+    m_rtree.addPoint(posV1, VertInd(0));
+    m_rtree.addPoint(posV2, VertInd(1));
+    m_rtree.addPoint(posV3, VertInd(2));
 }
 
 template <typename T>
@@ -591,7 +577,7 @@ Triangulation<T>::walkingSearchTrianglesAt(const V2d<T>& pos) const
     srand(9001);
     // begin walk in search of triangle at pos
     TriInd currTri = vertices[startVertex].triangles[0];
-    std::tr1::unordered_set<TriInd> visited;
+    TriIndUSet visited;
     bool found = false;
     while(!found)
     {

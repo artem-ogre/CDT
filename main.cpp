@@ -105,7 +105,9 @@ public slots:
         std::size_t counter = 0;
         BOOST_FOREACH(const Vertex& v, m_cdt.vertices)
         {
-            const CoordType z = counter < 3 ? stZ : 0.0;
+            const CoordType z =
+                !m_isRemoveOuter && !m_isHideSuperTri && counter < 3 ? stZ
+                                                                     : 0.0;
             fout << v.pos.x << ' ' << v.pos.y << ' ' << z << "\n";
             counter++;
         }
@@ -142,7 +144,7 @@ private:
         {
             CDT::VertInd v1, v2;
             inStream >> v1 >> v2;
-            m_edges.push_back(std::make_pair(v1, v2));
+            m_edges.push_back(Edge(v1, v2));
         }
         inStream.skipWhiteSpace();
     }
@@ -249,8 +251,8 @@ protected:
         p.setPen(pen);
         BOOST_FOREACH(const Edge& e, m_cdt.fixedEdges)
         {
-            const V2d& v1 = m_cdt.vertices[e.first].pos;
-            const V2d& v2 = m_cdt.vertices[e.second].pos;
+            const V2d& v1 = m_cdt.vertices[e.v1()].pos;
+            const V2d& v2 = m_cdt.vertices[e.v2()].pos;
             const QPointF pt1(scale * (v1.x - c.x), scale * (v1.y - c.y));
             const QPointF pt2(scale * (v2.x - c.x), scale * (v2.y - c.y));
             p.drawLine(pt1, pt2);
