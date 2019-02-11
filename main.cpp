@@ -36,6 +36,11 @@ class CDTWidget : public QOpenGLWidget
 public:
     explicit CDTWidget(QWidget* parent = NULL)
         : QOpenGLWidget(parent)
+        , m_ptLimit(9999999)
+        , m_edgeLimit(9999999)
+        , m_isHidePoints(false)
+        , m_isHideSuperTri(false)
+        , m_isRemoveOuter(false)
     {
         setAutoFillBackground(false);
     }
@@ -304,7 +309,7 @@ public:
         m_cdtWidget = new CDTWidget();
         // Right pane
         QListWidget* filesList = new QListWidget();
-        filesList->connect(
+        connect(
             filesList,
             SIGNAL(itemDoubleClicked(QListWidgetItem*)),
             m_cdtWidget,
@@ -408,7 +413,7 @@ int main(int argc, char* argv[])
     QApplication app(argc, argv);
     MainWindow window;
     window.show();
-    return app.exec();
+    return QApplication::exec();
 }
 
 #include "main.moc"
