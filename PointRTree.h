@@ -4,7 +4,7 @@
 
 #include <boost/geometry/index/rtree.hpp>
 
-// Specialize point traits for CDT's 2D vector type
+// Specialize boost::geometry point traits for CDT's 2D vector type
 namespace boost
 {
 namespace geometry

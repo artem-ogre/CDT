@@ -2,7 +2,7 @@
 
 // #define CDT_USE_STRONG_TYPING // strong type checks on indices
 
-#include "predicates.h"
+#include <predicates.h> // robust predicates: orient, in-circle
 
 #include <boost/foreach.hpp>
 #include <boost/functional/hash.hpp>
@@ -74,6 +74,7 @@ struct Vertex
     }
 };
 
+/// Edge connecting two vertices: vertex with smaller index is always first
 struct Edge
 {
     Edge(VertInd iV1, VertInd iV2)
@@ -168,6 +169,7 @@ inline Index cw(Index i)
     return Index((i + 2) % 3);
 }
 
+/// Location of point on a triangle
 struct PtTriLocation
 {
     enum Enum
@@ -185,13 +187,15 @@ inline bool isOnEdge(const PtTriLocation::Enum location)
     return location > PtTriLocation::Outside;
 }
 
-// Call only if located on the edge!
+/// Neighbor index from a on-edge location
+/// \note Call only if located on the edge!
 inline Index edgeNeighbor(const PtTriLocation::Enum location)
 {
     assert(location >= PtTriLocation::OnEdge1);
     return static_cast<Index>(location - PtTriLocation::OnEdge1);
 }
 
+/// Relative location of point to a line
 struct PtLineLocation
 {
     enum Enum
@@ -368,14 +372,7 @@ bool isInCircumcircle(
     return incircle(v1.raw(), v2.raw(), v3.raw(), p.raw()) > T(0);
 }
 
-inline Triangle reverseTriangle(const Triangle& t)
-{
-    Triangle out = t;
-    std::reverse(out.neighbors.begin(), out.neighbors.end());
-    std::reverse(out.vertices.begin(), out.vertices.end());
-    return out;
-}
-
+/// Test if two vertices share at least one common triangle
 template <typename T>
 bool verticesShareEdge(const Vertex<T>& a, const Vertex<T>& b)
 {

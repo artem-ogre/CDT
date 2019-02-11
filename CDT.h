@@ -145,7 +145,7 @@ void Triangulation<T>::eraseSuperTriangleVertices()
 template <typename T>
 void Triangulation<T>::eraseSuperTriangle()
 {
-    // make dummy triangles adjacent  to super-triangle's vertices
+    // make dummy triangles adjacent to super-triangle's vertices
     for(TriInd iT(0); iT < TriInd(triangles.size()); ++iT)
     {
         Triangle& t = triangles[iT];
@@ -159,7 +159,7 @@ void Triangulation<T>::eraseSuperTriangle()
 template <typename T>
 void Triangulation<T>::eraseOuterTriangles()
 {
-    // make dummy triangles adjacent  to super-triangle's vertices
+    // make dummy triangles adjacent to super-triangle's vertices
     TriIndUSet traversed;
     std::stack<TriInd> toErase;
     toErase.push(vertices[0].triangles.front());
@@ -311,7 +311,7 @@ void Triangulation<T>::insertEdge(Edge edge)
  *  - index of point on the left of the line
  *  - index of point on the right of the line
  * If left point is right on the line: no triangle is intersected:
- *  - use not valid triangle index
+ *  - triangle index is no-neighbor (invalid)
  *  - index of point on the line
  *  - index of point on the right of the line
  */
@@ -433,14 +433,14 @@ bool Triangulation<T>::isFlipNeeded(
  *  - re-use old triangle for the 3rd
  *                      v3
  *                    / | \
- *                   /  |  \
+ *                   /  |  \ <-- original triangle (t)
  *                  /   |   \
  *              n3 /    |    \ n2
- *                /new2 | new1\
+ *                /newT2|newT1\
  *               /      v      \
  *              /    __/ \__    \
  *             /  __/       \__  \
- *            / _/     tri     \_ \
+ *            / _/      t'     \_ \
  *          v1 ___________________ v2
  *                     n1
  */
