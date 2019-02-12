@@ -3,7 +3,7 @@
 
 // #define CDT_USE_STRONG_TYPING // strong type checks on indices
 
-#include <predicates.h> // robust predicates: orient, in-circle
+#include "predicates.h" // robust predicates: orient, in-circle
 
 #include <boost/foreach.hpp>
 #include <boost/functional/hash.hpp>
