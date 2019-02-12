@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CDT_obwOaxOTdAWcLNTlNnaq
+#define CDT_obwOaxOTdAWcLNTlNnaq
 
 // #define CDT_USE_STRONG_TYPING // strong type checks on indices
 
@@ -384,3 +385,5 @@ bool verticesShareEdge(const Vertex<T>& a, const Vertex<T>& b)
 }
 
 } // namespace CDT
+
+#endif

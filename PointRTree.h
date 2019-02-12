@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CDT_o2ROLeC4NKchgja4Awtg
+#define CDT_o2ROLeC4NKchgja4Awtg
 
 #include "CDTUtils.h"
 
@@ -96,3 +97,5 @@ private:
 };
 
 } // namespace CDT
+
+#endif

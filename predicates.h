@@ -30,7 +30,8 @@
  *                                                                                 *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-#pragma once
+#ifndef _PREDICATES_H_
+#define _PREDICATES_H_
 
 #include <array>
 #include <cmath>//abs, fma, exp2, signbit
@@ -666,3 +667,5 @@ namespace  predicates {
 		}
 	}
 }
+
+#endif

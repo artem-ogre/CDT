@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CDT_lNrmUayWQaIR5fxnsg9B
+#define CDT_lNrmUayWQaIR5fxnsg9B
 
 #include "CDTUtils.h"
 #include "PointRTree.h"
@@ -790,3 +791,5 @@ void Triangulation<T>::insertVertices(const std::vector<V2d<T> >& newVertices)
 }
 
 } // namespace CDT
+
+#endif

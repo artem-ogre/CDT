@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CDT_Zahj4kpHLwFgkKtcOI1i
+#define CDT_Zahj4kpHLwFgkKtcOI1i
 
 #include "CDT.h"
 
@@ -49,3 +50,5 @@ inline bool verifyTopology(const CDT::Triangulation<T>& cdt)
 }
 
 } // namespace CDT
+
+#endif
