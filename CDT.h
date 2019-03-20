@@ -6,8 +6,28 @@
 
 #include <boost/assign/list_of.hpp>
 #include <boost/foreach.hpp>
-#include <boost/tr1/array.hpp>
+
+#include <boost/config.hpp>
+#ifndef BOOST_NO_CXX11_HDR_ARRAY
+#include <array>
+#else
+#include <boost/array.hpp>
+namespace std
+{
+    using boost::array;
+}
+#endif
+#ifndef BOOST_NO_CXX11_HDR_TUPLE
+#include <tuple>
+#else
 #include <boost/tuple/tuple.hpp>
+namespace std
+{
+    using std::tuple;
+    using boost::make_tuple;
+    using boost::tie;
+}
+#endif
 
 #include <cassert>
 #include <cstdlib>
@@ -39,7 +59,7 @@ private:
     void addSuperTriangle(const Box2d<T>& box);
     void insertVertex(const V2d<T>& pos);
     void insertEdge(Edge edge);
-    boost::tuple<TriInd, VertInd, VertInd> intersectedTriangle(
+    std::tuple<TriInd, VertInd, VertInd> intersectedTriangle(
         const VertInd iA,
         const std::vector<TriInd>& candidates,
         const V2d<T>& a,
@@ -50,8 +70,8 @@ private:
     /// Returns indices of four resulting triangles
     std::stack<TriInd>
     insertPointOnEdge(const V2d<T>& pos, const TriInd iT1, const TriInd iT2);
-    std::tr1::array<TriInd, 2> trianglesAt(const V2d<T>& pos) const;
-    std::tr1::array<TriInd, 2>
+    std::array<TriInd, 2> trianglesAt(const V2d<T>& pos) const;
+    std::array<TriInd, 2>
     walkingSearchTrianglesAt(const V2d<T>& pos) const;
     bool isFlipNeeded(
         const V2d<T>& pos,
@@ -251,7 +271,7 @@ void Triangulation<T>::insertEdge(Edge edge)
     }
     TriInd iT;
     VertInd iVleft, iVright;
-    boost::tie(iT, iVleft, iVright) =
+    std::tie(iT, iVleft, iVright) =
         intersectedTriangle(iA, a.triangles, a.pos, b.pos);
     // if one of the triangle vertices is on the edge, move edge start
     if(iT == noNeighbor)
@@ -317,7 +337,7 @@ void Triangulation<T>::insertEdge(Edge edge)
  *  - index of point on the right of the line
  */
 template <typename T>
-boost::tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
+std::tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
     const VertInd iA,
     const std::vector<TriInd>& candidates,
     const V2d<T>& a,
@@ -336,9 +356,9 @@ boost::tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
         if(locP2 == PtLineLocation::Right)
         {
             if(locP1 == PtLineLocation::OnLine)
-                return boost::make_tuple(noNeighbor, iP1, iP2);
+                return std::make_tuple(noNeighbor, iP1, iP2);
             if(locP1 == PtLineLocation::Left)
-                return boost::make_tuple(iT, iP1, iP2);
+                return std::make_tuple(iT, iP1, iP2);
         }
     }
     throw std::runtime_error(
@@ -372,7 +392,7 @@ template <typename T>
 void Triangulation<T>::insertVertex(const V2d<T>& pos)
 {
     const VertInd iVert(vertices.size());
-    std::tr1::array<TriInd, 2> trisAt = walkingSearchTrianglesAt(pos);
+    std::array<TriInd, 2> trisAt = walkingSearchTrianglesAt(pos);
     std::stack<TriInd> triStack =
         trisAt[1] == noNeighbor ? insertPointInTriangle(pos, trisAt[0])
                                 : insertPointOnEdge(pos, trisAt[0], trisAt[1]);
@@ -454,8 +474,8 @@ Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iT)
     const TriInd iNewT2 = addTriangle();
 
     Triangle& t = triangles[iT];
-    const std::tr1::array<VertInd, 3> vv = t.vertices;
-    const std::tr1::array<TriInd, 3> nn = t.neighbors;
+    const std::array<VertInd, 3> vv = t.vertices;
+    const std::array<TriInd, 3> nn = t.neighbors;
     const VertInd v1 = vv[0], v2 = vv[1], v3 = vv[2];
     const TriInd n1 = nn[0], n2 = nn[1], n3 = nn[2];
     // make two new triangles and convert current triangle to 3rd new triangle
@@ -546,10 +566,10 @@ std::stack<TriInd> Triangulation<T>::insertPointOnEdge(
 }
 
 template <typename T>
-std::tr1::array<TriInd, 2>
+std::array<TriInd, 2>
 Triangulation<T>::trianglesAt(const V2d<T>& pos) const
 {
-    std::tr1::array<TriInd, 2> out = {noNeighbor, noNeighbor};
+    std::array<TriInd, 2> out = {noNeighbor, noNeighbor};
     for(TriInd i = TriInd(0); i < TriInd(triangles.size()); ++i)
     {
         const Triangle& t = triangles[i];
@@ -568,10 +588,10 @@ Triangulation<T>::trianglesAt(const V2d<T>& pos) const
 }
 
 template <typename T>
-std::tr1::array<TriInd, 2>
+std::array<TriInd, 2>
 Triangulation<T>::walkingSearchTrianglesAt(const V2d<T>& pos) const
 {
-    std::tr1::array<TriInd, 2> out = {noNeighbor, noNeighbor};
+    std::array<TriInd, 2> out = {noNeighbor, noNeighbor};
     // Query RTree for a vertex close to pos, to start the search
     const VertInd startVertex = m_rtree.nearestPoint(pos);
     // set seed for rand() to ensure reproducibility
@@ -637,10 +657,10 @@ void Triangulation<T>::flipEdge(const TriInd iT, const TriInd iTopo)
 {
     Triangle& t = triangles[iT];
     Triangle& tOpo = triangles[iTopo];
-    const std::tr1::array<TriInd, 3>& triNs = t.neighbors;
-    const std::tr1::array<TriInd, 3>& triOpoNs = tOpo.neighbors;
-    const std::tr1::array<VertInd, 3>& triVs = t.vertices;
-    const std::tr1::array<VertInd, 3>& triOpoVs = tOpo.vertices;
+    const std::array<TriInd, 3>& triNs = t.neighbors;
+    const std::array<TriInd, 3>& triOpoNs = tOpo.neighbors;
+    const std::array<VertInd, 3>& triVs = t.vertices;
+    const std::array<VertInd, 3>& triOpoVs = tOpo.vertices;
     // find vertices and neighbors
     Index i = opposedVertexInd(t, iTopo);
     const VertInd v1 = triVs[i];

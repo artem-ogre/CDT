@@ -3,6 +3,7 @@
 
 #include "CDTUtils.h"
 
+#include <boost/geometry/geometry.hpp>
 #include <boost/geometry/index/rtree.hpp>
 
 // Specialize boost::geometry point traits for CDT's 2D vector type

@@ -7,12 +7,39 @@
 
 #include <boost/foreach.hpp>
 #include <boost/functional/hash.hpp>
+
 #ifdef CDT_USE_STRONG_TYPING
 #include <boost/serialization/strong_typedef.hpp>
 #endif
-#include <boost/tr1/array.hpp>
-#include <boost/tr1/unordered_map.hpp>
-#include <boost/tr1/unordered_set.hpp>
+
+#include <boost/config.hpp>
+#ifndef BOOST_NO_CXX11_HDR_ARRAY
+#include <array>
+#else
+#include <boost/array.hpp>
+namespace std
+{
+    using boost::array;
+}
+#endif
+#ifndef BOOST_NO_CXX11_HDR_UNORDERED_MAP
+#include <unordered_map>
+#else
+#include <boost/unordered_map.hpp>
+namespace std
+{
+    using boost::unordered_map;
+}
+#endif
+#ifndef BOOST_NO_CXX11_HDR_UNORDERED_SET
+#include <unordered_set>
+#else
+#include <boost/unordered_set.hpp>
+namespace std
+{
+    using boost::unordered_set;
+}
+#endif
 
 #include <cassert>
 #include <limits>
@@ -140,9 +167,9 @@ typedef boost::hash<std::size_t> HashVertInd;
 typedef boost::hash<std::size_t> HashTriInd;
 #endif
 
-typedef std::tr1::unordered_set<Edge, HashEdge> EdgeUSet;
-typedef std::tr1::unordered_set<TriInd, HashTriInd> TriIndUSet;
-typedef std::tr1::unordered_map<TriInd, TriInd, HashTriInd> TriIndUMap;
+typedef std::unordered_set<Edge, HashEdge> EdgeUSet;
+typedef std::unordered_set<TriInd, HashTriInd> TriIndUSet;
+typedef std::unordered_map<TriInd, TriInd, HashTriInd> TriIndUMap;
 
 /// Triangulation triangle
 /* Counter-clockwise winding:
@@ -154,8 +181,8 @@ typedef std::tr1::unordered_map<TriInd, TriInd, HashTriInd> TriIndUMap;
 */
 struct Triangle
 {
-    std::tr1::array<VertInd, 3> vertices;
-    std::tr1::array<TriInd, 3> neighbors;
+    std::array<VertInd, 3> vertices;
+    std::array<TriInd, 3> neighbors;
 };
 
 /// Advance vertex or neighbor index counter-clockwise

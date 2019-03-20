@@ -17,7 +17,7 @@ inline bool verifyTopology(const CDT::Triangulation<T>& cdt)
         const Vertex<T>& v = cdt.vertices[iV];
         BOOST_FOREACH(const TriInd iT, v.triangles)
         {
-            const std::tr1::array<VertInd, 3>& vv = cdt.triangles[iT].vertices;
+            const std::array<VertInd, 3>& vv = cdt.triangles[iT].vertices;
             if(std::find(vv.begin(), vv.end(), iV) == vv.end())
                 return false;
         }
@@ -30,7 +30,7 @@ inline bool verifyTopology(const CDT::Triangulation<T>& cdt)
         {
             if(iTn == noNeighbor)
                 continue;
-            const std::tr1::array<TriInd, 3>& nn = cdt.triangles[iTn].neighbors;
+            const std::array<TriInd, 3>& nn = cdt.triangles[iTn].neighbors;
             if(std::find(nn.begin(), nn.end(), iT) == nn.end())
                 return false;
         }
