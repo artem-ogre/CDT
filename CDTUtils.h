@@ -132,7 +132,7 @@ private:
 
 // Hash functions
 #ifdef CDT_USE_STRONG_TYPING
-struct HashEdge : std::unary_function<Edge, std::size_t>
+struct EdgeHasher
 {
     std::size_t operator()(const Edge& e) const
     {
@@ -140,14 +140,14 @@ struct HashEdge : std::unary_function<Edge, std::size_t>
         return hash(std::make_pair(e.v1().t, e.v2().t));
     }
 };
-struct HashVertInd : std::unary_function<VertInd, std::size_t>
+struct VertIndHasher
 {
     std::size_t operator()(const VertInd& vi) const
     {
         return vi.t;
     }
 };
-struct HashTriInd : std::unary_function<TriInd, std::size_t>
+struct TriIndHasher
 {
     std::size_t operator()(const TriInd& vi) const
     {
@@ -155,7 +155,7 @@ struct HashTriInd : std::unary_function<TriInd, std::size_t>
     }
 };
 #else
-struct HashEdge : std::unary_function<Edge, std::size_t>
+struct EdgeHasher
 {
     std::size_t operator()(Edge e) const
     {
@@ -163,13 +163,13 @@ struct HashEdge : std::unary_function<Edge, std::size_t>
         return hash(e.pair());
     }
 };
-typedef boost::hash<std::size_t> HashVertInd;
-typedef boost::hash<std::size_t> HashTriInd;
+typedef boost::hash<std::size_t> VertIndHasher;
+typedef boost::hash<std::size_t> TriIndHasher;
 #endif
 
-typedef std::unordered_set<Edge, HashEdge> EdgeUSet;
-typedef std::unordered_set<TriInd, HashTriInd> TriIndUSet;
-typedef std::unordered_map<TriInd, TriInd, HashTriInd> TriIndUMap;
+typedef std::unordered_set<Edge, EdgeHasher> EdgeUSet;
+typedef std::unordered_set<TriInd, TriIndHasher> TriIndUSet;
+typedef std::unordered_map<TriInd, TriInd, TriIndHasher> TriIndUMap;
 
 /// Triangulation triangle
 /* Counter-clockwise winding:
