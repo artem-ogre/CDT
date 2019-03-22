@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+
 #include "CDT.h"
 #include "VerifyTopology.h"
 
@@ -20,7 +24,7 @@
 #include <QSpinBox>
 #include <QTextStream>
 
-typedef double CoordType;
+typedef float CoordType;
 typedef CDT::Triangulation<CoordType> Triangulation;
 typedef CDT::V2d<CoordType> V2d;
 typedef CDT::Vertex<CoordType> Vertex;
@@ -54,7 +58,7 @@ public slots:
     void buildCDT(QListWidgetItem* item)
     {
         QDir dir = QDir(QDir::currentPath(), tr("*.txt"));
-        dir.setPath(QStringLiteral("../test files"));
+        dir.setPath(QStringLiteral("test files"));
         const QString fileName = dir.filePath(item->text());
         readData(fileName);
         updateCDT();
@@ -391,7 +395,7 @@ public:
 
         // Read files list
         QDir dir = QDir(QDir::currentPath(), tr("*.txt"));
-        dir.setPath(QStringLiteral("../test files"));
+        dir.setPath(QStringLiteral("test files"));
         QFileInfoList list = dir.entryInfoList();
         filesList->clear();
         QFileInfoList::iterator it;
