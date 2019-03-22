@@ -205,8 +205,8 @@ protected:
         p.scale(1, -1);
 
         const Box2d box = calculateBox(m_points);
-        const V2d c = {(box.min.x + box.max.x) / 2.0,
-                            (box.min.y + box.max.y) / 2.0};
+        const V2d c = {(box.min.x + box.max.x) / CoordType(2),
+                       (box.min.y + box.max.y) / CoordType(2)};
         const double scale =
             0.8 * fixedSize /
             (std::fmax(box.max.x - box.min.x, box.max.y - box.min.y));

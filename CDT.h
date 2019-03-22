@@ -77,6 +77,9 @@ private:
     std::array<TriInd, 2> trianglesAt(const V2d<T>& pos) const;
     std::array<TriInd, 2>
     walkingSearchTrianglesAt(const V2d<T>& pos) const;
+    VertInd
+    nearestVertexRand(const V2d<T>& pos, const std::size_t nSamples) const;
+    VertInd nearestVertexRtree(const V2d<T>& pos) const;
     bool isFlipNeeded(
         const V2d<T>& pos,
         const TriInd iT,
@@ -597,7 +600,7 @@ Triangulation<T>::walkingSearchTrianglesAt(const V2d<T>& pos) const
 {
     std::array<TriInd, 2> out = {noNeighbor, noNeighbor};
     // Query RTree for a vertex close to pos, to start the search
-    const VertInd startVertex = m_rtree.nearestPoint(pos);
+    const VertInd startVertex = nearestVertexRtree(pos);
     // set seed for rand() to ensure reproducibility
     srand(9001);
     // begin walk in search of triangle at pos
@@ -637,6 +640,33 @@ Triangulation<T>::walkingSearchTrianglesAt(const V2d<T>& pos) const
     out[0] = currTri;
     if(isOnEdge(loc))
         out[1] = t.neighbors[edgeNeighbor(loc)];
+    return out;
+}
+
+template <typename T>
+VertInd Triangulation<T>::nearestVertexRtree(const V2d<T>& pos) const
+{
+    return m_rtree.nearestPoint(pos);
+}
+
+template <typename T>
+VertInd Triangulation<T>::nearestVertexRand(
+    const V2d<T>& pos,
+    const std::size_t nSamples) const
+{
+    // start search at a vertex close to pos based on random sampling
+    VertInd out = std::rand() % vertices.size();
+    T minDist = distance(vertices[out].pos, pos);
+    for(std::size_t iSample = 0; iSample < nSamples; ++iSample)
+    {
+        VertInd candidate = std::rand() % vertices.size();
+        const T candidateDist = distance(vertices[candidate].pos, pos);
+        if(candidateDist < minDist)
+        {
+            minDist = candidateDist;
+            out = candidate;
+        }
+    }
     return out;
 }
 

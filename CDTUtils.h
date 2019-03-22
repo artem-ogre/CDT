@@ -46,6 +46,7 @@ namespace std
 #endif
 
 #include <cassert>
+#include <cmath>
 #include <limits>
 #include <vector>
 
@@ -413,6 +414,15 @@ bool verticesShareEdge(const Vertex<T>& a, const Vertex<T>& b)
         if(std::find(bTris.begin(), bTris.end(), aTri) != bTris.end())
             return true;
     return false;
+}
+
+/// Distance between two 2D points
+template <typename T>
+T distance(const V2d<T>& a, const V2d<T>& b)
+{
+    const T dx = b.x - a.x;
+    const T dy = b.y - a.y;
+    return std::sqrt(dx * dx + dy * dy);
 }
 
 } // namespace CDT

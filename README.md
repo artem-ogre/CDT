@@ -6,7 +6,7 @@ Header-only, permissively-licensed, and robust implementation of constrained Del
 
 - Robust implementations of orientation and in-circle geometric predicates by William C. Lenthe are used (https://github.com/wlenthe/GeometricPredicates).
 
-- Depends on Boost for rtree implementation (finding closest point) and fall back for some std types on pre-C++11 compilers. Boost dependency can be easily be removed manually: just replace `walkingSearchTrianglesAt` with `trianglesAt`.
+- Depends on Boost for rtree implementation (finding closest point) and fall back for some std types on pre-C++11 compilers. Boost dependency can be easily be removed manually: just replace `nearestVertexRtree` with `nearestVertexRand`.
 
 - Most of the code is c++03-compatible but robust predicates require c++11 support.
 
