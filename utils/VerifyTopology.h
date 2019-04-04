@@ -6,7 +6,6 @@
 #define CDT_Zahj4kpHLwFgkKtcOI1i
 
 #include "CDT.h"
-
 #include <boost/foreach.hpp>
 
 namespace CDT
