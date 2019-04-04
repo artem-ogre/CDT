@@ -1,10 +1,14 @@
-# CDT: header-only C++ library for constrained Delaunay triangulation
+# CDT: Constrained Delaunay Triangulation
 
-Header-only, permissively-licensed, and robust implementation of constrained Delaunay triangulation (CDT).
+C++ implementation of constrained Delaunay triangulation (CDT)
+- numerically robust (uses robust geometric predicates)
+- header-only
+- permissively-licensed (MPL-2.0)
+
 
 ## Description
 
-- Robust implementations of orientation and in-circle geometric predicates by William C. Lenthe are used (https://github.com/wlenthe/GeometricPredicates).
+- Uses William C. Lenthe's implementation of robust orientation and in-circle geometric predicates: https://github.com/wlenthe/GeometricPredicates.
 
 - Depends on Boost for rtree implementation (finding closest point) and fall back for some std types on pre-C++11 compilers. Boost dependency can be easily be removed manually: just replace `nearestVertexRtree` with `nearestVertexRand`.
 
@@ -71,17 +75,19 @@ cdt.eraseOuterTriangles();
 /* ... */ = cdt.vertices;
 /* ... */ = cdt.edges;
 ```
+## Contributors
+Karl Åkerblom: algorithm implementation, triangle walking
 ## Contributing
 Any feedback and contributions are welcome.
 ## License
 [Mozilla Public License,  v. 2.0](https://www.mozilla.org/en-US/MPL/2.0/FAQ/)
 
 ## Examples
-<img src="./readme_images/A.png" alt="A" height="300"/>
-<img src="./readme_images/Bean.png" alt="Bean" height="300"/>
-<img src="./readme_images/Guitar.png" alt="Guitar" height="300"/>
-<img src="./readme_images/LakeSuperior.png" alt="Lake Superior" height="300"/>
-<img src="./readme_images/Sweden.png" alt="Sweden" height="300"/>
+<img src="./readme_images/A.png" alt="A" height="200"/>
+<img src="./readme_images/Bean.png" alt="Bean" height="200"/>
+<img src="./readme_images/Guitar.png" alt="Guitar" height="200"/>
+<img src="./readme_images/LakeSuperior.png" alt="Lake Superior" height="200"/>
+<img src="./readme_images/Sweden.png" alt="Sweden" height="200"/>
 
 
 ## Bibliography
