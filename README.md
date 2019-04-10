@@ -4,6 +4,8 @@ C++ implementation of constrained Delaunay triangulation (CDT)
 - numerically robust (uses robust geometric predicates)
 - header-only
 - permissively-licensed (MPL-2.0)
+- compatible with C++03
+- cross-platform: tested on Windows and Linux
 
 ### Table of Contents  
 - [Description](#description)
@@ -20,12 +22,10 @@ C++ implementation of constrained Delaunay triangulation (CDT)
 
 - Uses William C. Lenthe's implementation of robust orientation and in-circle geometric predicates: https://github.com/wlenthe/GeometricPredicates.
 
-- Compatible with C++03
-- Cross-platform: tested on Windows and Linux
 - Optionally depends on Boost for rtree 
 implementation (finding closest point) and fall back for some std types on pre-C++11 compilers. Boost dependency can be easily be removed via defining `CDT_DONT_USE_BOOST_RTREE`. This replaces `nearestVertexRtree` with slower `nearestVertexRand`.
 
-A demonstrator tool is included: requires Qt for GUI.
+- A demonstrator tool is included: requires Qt for GUI.
 
 ## Algorithm
 Implementation closely follows incremental construction algorithm by Anglada [[1](#1)]. During the legalization, the cases
