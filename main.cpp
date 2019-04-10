@@ -1,8 +1,6 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
-
-#define CDT_DONT_USE_BOOST_RTREE
 #include "CDT.h"
 #include "VerifyTopology.h"
 
@@ -114,7 +112,7 @@ public slots:
         fout << m_cdt.vertices.size() << ' ' << m_cdt.triangles.size()
              << " 0\n";
         // Write vertices
-        const Box2d box = calculateBox(m_points);
+        const Box2d box = Box2d::envelop(m_points);
         const CoordType stZ =
             -std::fmax(box.max.x - box.min.x, box.max.y - box.min.y);
         std::size_t counter = 0;
@@ -216,7 +214,7 @@ protected:
         p.translate(fixedSize / 2.0, fixedSize / 2.0);
         p.scale(1, -1);
 
-        const Box2d box = calculateBox(m_points);
+        const Box2d box = Box2d::envelop(m_points);
         const V2d c = {(box.min.x + box.max.x) / CoordType(2),
                        (box.min.y + box.max.y) / CoordType(2)};
         const double scale =

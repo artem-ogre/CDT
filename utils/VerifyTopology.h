@@ -7,6 +7,8 @@
 
 #include "CDT.h"
 
+#include <algorithm>
+
 namespace CDT
 {
 
