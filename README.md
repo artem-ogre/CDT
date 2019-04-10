@@ -5,6 +5,16 @@ C++ implementation of constrained Delaunay triangulation (CDT)
 - header-only
 - permissively-licensed (MPL-2.0)
 
+### Table of Contents  
+- [Description](#description)
+- [Algorithm](#algorithm)
+- [Installing](#installing)
+- [Using](#using)
+- [Contributors](#contributors)
+- [Contributing](#contributing)
+- [Examples](#examples)
+- [Bibliography](#bibliography)
+
 
 ## Description
 
