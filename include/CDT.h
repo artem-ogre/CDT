@@ -6,31 +6,8 @@
 #define CDT_lNrmUayWQaIR5fxnsg9B
 
 #include "CDTUtils.h"
+#ifndef CDT_DONT_USE_BOOST_RTREE
 #include "PointRTree.h"
-
-#include <boost/assign/list_of.hpp>
-#include <boost/foreach.hpp>
-
-#include <boost/config.hpp>
-#ifndef BOOST_NO_CXX11_HDR_ARRAY
-#include <array>
-#else
-#include <boost/array.hpp>
-namespace std
-{
-    using boost::array;
-}
-#endif
-#ifndef BOOST_NO_CXX11_HDR_TUPLE
-#include <tuple>
-#else
-#include <boost/tuple/tuple.hpp>
-namespace std
-{
-    using boost::tuple;
-    using boost::make_tuple;
-    using boost::tie;
-}
 #endif
 
 #include <cassert>
@@ -43,16 +20,33 @@ namespace std
 namespace CDT
 {
 
+struct FindingClosestPoint
+{
+    enum Enum
+    {
+#ifndef CDT_DONT_USE_BOOST_RTREE
+        BoostRTree,
+#endif
+        ClosestRandom,
+    };
+};
+
 template <typename T>
 class Triangulation
 {
-
 public:
-    std::vector<Vertex<T> > vertices;
-    std::vector<Triangle> triangles;
+    typedef std::vector<Vertex<T> > VertexVec;
+    VertexVec vertices;
+    TriangleVec triangles;
     EdgeUSet fixedEdges;
 
     /*____ API _____*/
+    Triangulation(
+        const FindingClosestPoint::Enum closestPtMode,
+        const size_t nRandSamples = 10)
+        : m_nRandSamples(nRandSamples)
+        , m_closestPtMode(closestPtMode)
+    {}
     void insertVertices(const std::vector<V2d<T> >& vertices);
     void insertEdges(const std::vector<Edge>& edges);
     void eraseSuperTriangle();
@@ -79,7 +73,9 @@ private:
     walkingSearchTrianglesAt(const V2d<T>& pos) const;
     VertInd
     nearestVertexRand(const V2d<T>& pos, const std::size_t nSamples) const;
+#ifndef CDT_DONT_USE_BOOST_RTREE
     VertInd nearestVertexRtree(const V2d<T>& pos) const;
+#endif
     bool isFlipNeeded(
         const V2d<T>& pos,
         const TriInd iT,
@@ -113,7 +109,11 @@ private:
     void eraseSuperTriangleVertices();
 
     std::vector<TriInd> m_dummyTris;
+#ifndef CDT_DONT_USE_BOOST_RTREE
     PointRTree<T> m_rtree;
+#endif
+    std::size_t m_nRandSamples;
+    FindingClosestPoint::Enum m_closestPtMode;
 };
 
 template <typename T>
@@ -144,14 +144,22 @@ void Triangulation<T>::eraseDummies()
         iTnew++;
     }
     triangles.erase(triangles.end() - dummySet.size(), triangles.end());
+
     // remap adjacent triangle indices for vertices
-    BOOST_FOREACH(Vertex<T>& v, vertices)
-        BOOST_FOREACH(TriInd& iT, v.triangles)
-            iT = triIndMap[iT];
+    typedef typename VertexVec::iterator VertIt;
+    for(VertIt v = vertices.begin(); v != vertices.end(); ++v)
+    {
+        TriIndVec& vTris = v->triangles;
+        for(TriIndVec::iterator iT = vTris.begin(); iT != vTris.end(); ++iT)
+            *iT = triIndMap[*iT];
+    }
     // remap neighbor indices for triangles
-    BOOST_FOREACH(Triangle& t, triangles)
-        BOOST_FOREACH(TriInd& iN, t.neighbors)
-            iN = triIndMap[iN];
+    for(TriangleVec::iterator t = triangles.begin(); t != triangles.end(); ++t)
+    {
+        NeighborsArr3& nn = t->neighbors;
+        for(NeighborsArr3::iterator iN = nn.begin(); iN != nn.end(); ++iN)
+            *iN = triIndMap[*iN];
+    }
     // clear dummy triangles
     m_dummyTris = std::vector<TriInd>();
 }
@@ -159,14 +167,19 @@ void Triangulation<T>::eraseDummies()
 template <typename T>
 void Triangulation<T>::eraseSuperTriangleVertices()
 {
-    BOOST_FOREACH(Triangle& t, triangles)
+    for(TriangleVec::iterator t = triangles.begin(); t != triangles.end(); ++t)
         for(Index i(0); i < Index(3); ++i)
-            t.vertices[i] -= 3;
+            t->vertices[i] -= 3;
+
     EdgeUSet updatedFixedEdges;
-    BOOST_FOREACH(const Edge& e, fixedEdges)
+    typedef EdgeUSet::const_iterator EdgeCit;
+    for(EdgeCit e = fixedEdges.begin(); e != fixedEdges.end(); ++e)
+    {
         updatedFixedEdges.insert(
-            Edge(VertInd(e.v1() - 3), VertInd(e.v2() - 3)));
+            Edge(VertInd(e->v1() - 3), VertInd(e->v2() - 3)));
+    }
     fixedEdges = updatedFixedEdges;
+
     vertices = std::vector<Vertex<T> >(vertices.begin() + 3, vertices.end());
 }
 
@@ -207,8 +220,9 @@ void Triangulation<T>::eraseOuterTriangles()
                 toErase.push(iN);
         }
     }
-    BOOST_FOREACH(const TriInd iT, traversed)
-        makeDummy(iT);
+    typedef TriIndUSet::const_iterator TriIndCit;
+    for(TriIndCit it = traversed.begin(); it!=traversed.end(); ++it)
+        makeDummy(*it);
     eraseDummies();
     eraseSuperTriangleVertices();
 }
@@ -217,10 +231,15 @@ template <typename T>
 void Triangulation<T>::makeDummy(const TriInd iT)
 {
     const Triangle& t = triangles[iT];
-    BOOST_FOREACH(const VertInd iV, t.vertices)
-        removeAdjacentTriangle(iV, iT);
-    BOOST_FOREACH(const TriInd iTn, t.neighbors)
-        changeNeighbor(iTn, iT, noNeighbor);
+
+    typedef VerticesArr3::const_iterator VCit;
+    for(VCit iV = t.vertices.begin(); iV != t.vertices.end(); ++iV)
+        removeAdjacentTriangle(*iV, iT);
+
+    typedef NeighborsArr3::const_iterator NCit;
+    for(NCit iTn = t.neighbors.begin(); iTn != t.neighbors.end(); ++iTn)
+        changeNeighbor(*iTn, iT, noNeighbor);
+
     m_dummyTris.push_back(iT);
 }
 
@@ -256,10 +275,11 @@ TriInd Triangulation<T>::addTriangle()
 template <typename T>
 void Triangulation<T>::insertEdges(const std::vector<Edge>& edges)
 {
-    BOOST_FOREACH(const Edge& e, edges)
+    typedef std::vector<Edge>::const_iterator ECit;
+    for(ECit e = edges.begin(); e != edges.end(); ++e)
     {
         // +3 to account for super-triangle vertices
-        insertEdge(Edge(VertInd(e.v1() + 3), VertInd(e.v2() + 3)));
+        insertEdge(Edge(VertInd(e->v1() + 3), VertInd(e->v2() + 3)));
     }
     eraseDummies();
 }
@@ -291,7 +311,8 @@ void Triangulation<T>::insertEdge(Edge edge)
     std::vector<VertInd> ptsRight(1, iVright);
     VertInd iV = iA;
     Triangle t = triangles[iT];
-    while(!hasVertex(t, iB))
+    const VerticesArr3& tverts = t.vertices;
+    while(std::find(tverts.begin(), tverts.end(), iB) == tverts.end())
     {
         const TriInd iTopo = opposedTriangle(t, iV);
         const Triangle& tOpo = triangles[iTopo];
@@ -319,8 +340,9 @@ void Triangulation<T>::insertEdge(Edge edge)
             iB = iVopo;
     }
     // Remove intersected triangles
-    BOOST_FOREACH(const TriInd iTisec, intersected)
-        makeDummy(iTisec);
+    typedef std::vector<TriInd>::const_iterator TriIndCit;
+    for(TriIndCit it = intersected.begin(); it != intersected.end(); ++it)
+        makeDummy(*it);
     // Triangulate pseudo-polygons on both sides
     const TriInd iTleft = triangulatePseudopolygon(iA, iB, ptsLeft);
     std::reverse(ptsRight.begin(), ptsRight.end());
@@ -350,8 +372,10 @@ std::tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
     const V2d<T>& a,
     const V2d<T>& b) const
 {
-    BOOST_FOREACH(const TriInd iT, candidates)
+    typedef std::vector<TriInd>::const_iterator TriIndCit;
+    for(TriIndCit it = candidates.begin(); it != candidates.end(); ++it)
     {
+        const TriInd iT = *it;
         const Triangle t = triangles[iT];
         const Index i = vertexInd(t, iA);
         const VertInd iP1 = t.vertices[cw(i)];
@@ -390,9 +414,11 @@ void Triangulation<T>::addSuperTriangle(const Box2d<T>& box)
     const Triangle superTri = {{VertInd(0), VertInd(1), VertInd(2)},
                                {noNeighbor, noNeighbor, noNeighbor}};
     addTriangle(superTri);
+#ifndef CDT_DONT_USE_BOOST_RTREE
     m_rtree.addPoint(posV1, VertInd(0));
     m_rtree.addPoint(posV2, VertInd(1));
     m_rtree.addPoint(posV3, VertInd(2));
+#endif
 }
 
 template <typename T>
@@ -419,7 +445,9 @@ void Triangulation<T>::insertVertex(const V2d<T>& pos)
             triStack.push(iTopo);
         }
     }
+#ifndef CDT_DONT_USE_BOOST_RTREE
     m_rtree.addPoint(pos, iVert);
+#endif
 }
 
 /*!
@@ -489,10 +517,8 @@ Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iT)
     triangles[iNewT1] = {{v2, v3, v}, {n2, iNewT2, iT}};
     triangles[iNewT2] = {{v3, v1, v}, {n3, iT, iNewT1}};
     t = {{v1, v2, v}, {n1, iNewT1, iNewT2}};
-    // make new vertex
-    const Vertex<T> newVert = {pos, boost::assign::list_of(iT)(iNewT1)(iNewT2)};
-    // add new triangles and vertices to triangulation
-    vertices.push_back(newVert);
+    // make and add a new vertex
+    vertices.push_back(Vertex<T>::makeInTriangle(pos, iT, iNewT1, iNewT2));
     // adjust lists of adjacent triangles for v1, v2, v3
     addAdjacentTriangle(v1, iNewT2);
     addAdjacentTriangle(v2, iNewT1);
@@ -551,9 +577,7 @@ std::stack<TriInd> Triangulation<T>::insertPointOnEdge(
     triangles[iTnew1] = {{v1, v, v4}, {iT1, iT2, n4}};
     triangles[iTnew2] = {{v3, v, v2}, {iT2, iT1, n2}};
     // make and add new vertex
-    const Vertex<T> vNew = {pos,
-                            boost::assign::list_of(iT1)(iTnew2)(iT2)(iTnew1)};
-    vertices.push_back(vNew);
+    vertices.push_back(Vertex<T>::makeOnEdge(pos, iT1, iTnew2, iT2, iTnew1));
     // adjust neighboring triangles and vertices
     changeNeighbor(n4, iT1, iTnew1);
     changeNeighbor(n2, iT2, iTnew2);
@@ -600,7 +624,14 @@ Triangulation<T>::walkingSearchTrianglesAt(const V2d<T>& pos) const
 {
     std::array<TriInd, 2> out = {noNeighbor, noNeighbor};
     // Query RTree for a vertex close to pos, to start the search
-    const VertInd startVertex = nearestVertexRtree(pos);
+#ifndef CDT_DONT_USE_BOOST_RTREE
+    const VertInd startVertex =
+        m_closestPtMode == FindingClosestPoint::BoostRTree
+            ? nearestVertexRtree(pos)
+            : nearestVertexRand(pos, m_nRandSamples);
+#else
+    const VertInd startVertex = nearestVertexRand(pos, m_nRandSamples);
+#endif
     // set seed for rand() to ensure reproducibility
     srand(9001);
     // begin walk in search of triangle at pos
@@ -643,11 +674,13 @@ Triangulation<T>::walkingSearchTrianglesAt(const V2d<T>& pos) const
     return out;
 }
 
+#ifndef CDT_DONT_USE_BOOST_RTREE
 template <typename T>
 VertInd Triangulation<T>::nearestVertexRtree(const V2d<T>& pos) const
 {
     return m_rtree.nearestPoint(pos);
 }
+#endif
 
 template <typename T>
 VertInd Triangulation<T>::nearestVertexRand(
@@ -826,11 +859,12 @@ TriInd Triangulation<T>::pseudopolyOuterTriangle(
     const VertInd ia,
     const VertInd ib) const
 {
-    const Vertex<T>& a = vertices[ia];
+    const std::vector<TriInd>& aTris = vertices[ia].triangles;
     const std::vector<TriInd>& bTris = vertices[ib].triangles;
-    BOOST_FOREACH(const TriInd iTa, a.triangles)
-        if(std::find(bTris.begin(), bTris.end(), iTa) != bTris.end())
-            return iTa;
+    typedef std::vector<TriInd>::const_iterator TriIndCit;
+    for(TriIndCit it = aTris.begin(); it != aTris.end(); ++it)
+        if(std::find(bTris.begin(), bTris.end(), *it) != bTris.end())
+            return *it;
     return noNeighbor;
 }
 
@@ -840,8 +874,9 @@ void Triangulation<T>::insertVertices(const std::vector<V2d<T> >& newVertices)
     if(vertices.empty())
         addSuperTriangle(calculateBox(newVertices));
     vertices.reserve(vertices.size() + newVertices.size());
-    BOOST_FOREACH(const V2d<T>& v, newVertices)
-        insertVertex(v);
+    typedef typename std::vector<V2d<T> >::const_iterator Cit;
+    for(Cit it = newVertices.begin(); it != newVertices.end(); ++it)
+        insertVertex(*it);
 }
 
 } // namespace CDT

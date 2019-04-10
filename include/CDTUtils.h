@@ -9,40 +9,11 @@
 
 #include "predicates.h" // robust predicates: orient, in-circle
 
-#include <boost/foreach.hpp>
-#include <boost/functional/hash.hpp>
-
-#ifdef CDT_USE_STRONG_TYPING
-#include <boost/serialization/strong_typedef.hpp>
-#endif
-
-#include <boost/config.hpp>
-#ifndef BOOST_NO_CXX11_HDR_ARRAY
-#include <array>
-#else
-#include <boost/array.hpp>
-namespace std
-{
-    using boost::array;
-}
-#endif
-#ifndef BOOST_NO_CXX11_HDR_UNORDERED_MAP
-#include <unordered_map>
-#else
-#include <boost/unordered_map.hpp>
-namespace std
-{
-    using boost::unordered_map;
-}
-#endif
-#ifndef BOOST_NO_CXX11_HDR_UNORDERED_SET
-#include <unordered_set>
-#else
-#include <boost/unordered_set.hpp>
-namespace std
-{
-    using boost::unordered_set;
-}
+// check if c++11 is supported
+#if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
+#define CDT_CXX11_IS_SUPPORTED
+#elif !defined(__cplusplus) && !defined(_MSC_VER)
+typedef char couldnt_parse_cxx_standard[-1];
 #endif
 
 #include <cassert>
@@ -50,7 +21,28 @@ namespace std
 #include <limits>
 #include <vector>
 
+// use fall-backs for c++11 features
+#ifdef CDT_CXX11_IS_SUPPORTED
+#include <array>
+#include <unordered_map>
+#include <unordered_set>
+#include <functional>
+#else
+#include <boost/array.hpp>
+#include <boost/unordered_map.hpp>
+#include <boost/unordered_set.hpp>
+#include <boost/functional/hash.hpp>
+namespace std
+{
+    using boost::array;
+    using boost::unordered_map;
+    using boost::unordered_set;
+    using boost::hash;
+}
+#endif
+
 #ifdef CDT_USE_STRONG_TYPING
+#include <boost/serialization/strong_typedef.hpp>
 #define CDT_TYPEDEF(typeWhat, typeAs) BOOST_STRONG_TYPEDEF(typeWhat, typeAs)
 #else
 #define CDT_TYPEDEF(typeWhat, typeAs) typedef typeWhat typeAs;
@@ -93,16 +85,52 @@ struct Box2d
     V2d<T> max; /// max box corner
 };
 
+typedef std::vector<TriInd> TriIndVec;
+typedef std::array<VertInd, 3> VerticesArr3;
+typedef std::array<TriInd, 3> NeighborsArr3;
+
 /// Triangulation vertex
 template <typename T>
 struct Vertex
 {
     V2d<T> pos;
-    std::vector<TriInd> triangles;
+    TriIndVec triangles;
 
     static Vertex make(const V2d<T>& pos, const TriInd iTriangle)
     {
         Vertex out = {pos, std::vector<TriInd>(1, iTriangle)};
+        return out;
+    }
+    static Vertex makeInTriangle(
+        const V2d<T>& pos,
+        const TriInd iT1,
+        const TriInd iT2,
+        const TriInd iT3)
+    {
+        Vertex out;
+        out.pos = pos;
+        TriIndVec& vTris = out.triangles;
+        vTris.reserve(3);
+        vTris.push_back(iT1);
+        vTris.push_back(iT2);
+        vTris.push_back(iT3);
+        return out;
+    }
+    static Vertex makeOnEdge(
+        const V2d<T>& pos,
+        const TriInd iT1,
+        const TriInd iT2,
+        const TriInd iT3,
+        const TriInd iT4)
+    {
+        Vertex out;
+        out.pos = pos;
+        TriIndVec& vTris = out.triangles;
+        vTris.reserve(4);
+        vTris.push_back(iT1);
+        vTris.push_back(iT2);
+        vTris.push_back(iT3);
+        vTris.push_back(iT4);
         return out;
     }
 };
@@ -160,16 +188,39 @@ struct TriIndHasher
     }
 };
 #else
+
 struct EdgeHasher
 {
     std::size_t operator()(Edge e) const
     {
-        const boost::hash<std::pair<std::size_t, std::size_t> > hash;
-        return hash(e.pair());
+        const HashPair<std::size_t, std::size_t> hp;
+        return hp(e.pair());
     }
+private:
+    // implementation of hash for a pair as implemented in boost::hash
+    template <typename T1, typename T2>
+    struct HashPair
+    {
+        template <typename T>
+        static void hashCombine(std::size_t& seed, T const& key)
+        {
+            std::hash<T> hasher;
+            seed ^= hasher(key) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        }
+        std::size_t operator()(std::pair<T1, T2> const& p) const
+        {
+            std::size_t seed1(0);
+            hashCombine(seed1, p.first);
+            hashCombine(seed1, p.second);
+            std::size_t seed2(0);
+            hashCombine(seed2, p.second);
+            hashCombine(seed2, p.first);
+            return std::min(seed1, seed2);
+        }
+    };
 };
-typedef boost::hash<std::size_t> VertIndHasher;
-typedef boost::hash<std::size_t> TriIndHasher;
+typedef std::hash<std::size_t> VertIndHasher;
+typedef std::hash<std::size_t> TriIndHasher;
 #endif
 
 typedef std::unordered_set<Edge, EdgeHasher> EdgeUSet;
@@ -186,9 +237,11 @@ typedef std::unordered_map<TriInd, TriInd, TriIndHasher> TriIndUMap;
 */
 struct Triangle
 {
-    std::array<VertInd, 3> vertices;
-    std::array<TriInd, 3> neighbors;
+    VerticesArr3 vertices;
+    NeighborsArr3 neighbors;
 };
+
+typedef std::vector<Triangle> TriangleVec;
 
 /// Advance vertex or neighbor index counter-clockwise
 inline Index ccw(Index i)
@@ -287,8 +340,10 @@ Box2d<T> calculateBox(const std::vector<V2d<T> >& vertices)
 {
     const T max = std::numeric_limits<T>::max();
     Box2d<T> box = {{max, max}, {-max, -max}};
-    BOOST_FOREACH(const V2d<T>& v, vertices)
+    typedef typename std::vector<V2d<T> >::const_iterator Cit;
+    for(Cit it = vertices.begin(); it != vertices.end(); ++it)
     {
+        const V2d<T>& v = *it;
         box.min.x = std::min(v.x, box.min.x);
         box.max.x = std::max(v.x, box.max.x);
         box.min.y = std::min(v.y, box.min.y);
@@ -384,15 +439,6 @@ inline VertInd opposedVertex(const Triangle& tri, const TriInd iTopo)
     return tri.vertices[opposedVertexInd(tri, iTopo)];
 }
 
-/// Test if triangle has vertex with a given index
-inline bool hasVertex(const Triangle& tri, const VertInd iVert)
-{
-    BOOST_FOREACH(const VertInd triVert, tri.vertices)
-        if(triVert == iVert)
-            return true;
-    return false;
-}
-
 /// Test if point lies in a circumscribed circle of a triangle
 template <typename T>
 bool isInCircumcircle(
@@ -409,9 +455,10 @@ bool isInCircumcircle(
 template <typename T>
 bool verticesShareEdge(const Vertex<T>& a, const Vertex<T>& b)
 {
+    const std::vector<TriInd>& aTris = a.triangles;
     const std::vector<TriInd>& bTris = b.triangles;
-    BOOST_FOREACH(const TriInd aTri, a.triangles)
-        if(std::find(bTris.begin(), bTris.end(), aTri) != bTris.end())
+    for(TriIndVec::const_iterator it = aTris.begin(); it != aTris.end(); ++it)
+        if(std::find(bTris.begin(), bTris.end(), *it) != bTris.end())
             return true;
     return false;
 }

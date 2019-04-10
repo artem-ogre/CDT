@@ -6,7 +6,6 @@
 #define CDT_Zahj4kpHLwFgkKtcOI1i
 
 #include "CDT.h"
-#include <boost/foreach.hpp>
 
 namespace CDT
 {
@@ -18,9 +17,10 @@ inline bool verifyTopology(const CDT::Triangulation<T>& cdt)
     for(VertInd iV(0); iV < VertInd(cdt.vertices.size()); ++iV)
     {
         const Vertex<T>& v = cdt.vertices[iV];
-        BOOST_FOREACH(const TriInd iT, v.triangles)
+        typedef TriIndVec::const_iterator TriIndCit;
+        for(TriIndCit it = v.triangles.begin(); it != v.triangles.end(); ++it)
         {
-            const std::array<VertInd, 3>& vv = cdt.triangles[iT].vertices;
+            const std::array<VertInd, 3>& vv = cdt.triangles[*it].vertices;
             if(std::find(vv.begin(), vv.end(), iV) == vv.end())
                 return false;
         }
@@ -29,11 +29,12 @@ inline bool verifyTopology(const CDT::Triangulation<T>& cdt)
     for(TriInd iT(0); iT < TriInd(cdt.triangles.size()); ++iT)
     {
         const Triangle& t = cdt.triangles[iT];
-        BOOST_FOREACH(const TriInd iTn, t.neighbors)
+        typedef NeighborsArr3::const_iterator NCit;
+        for(NCit it = t.neighbors.begin(); it != t.neighbors.end(); ++it)
         {
-            if(iTn == noNeighbor)
+            if(*it == noNeighbor)
                 continue;
-            const std::array<TriInd, 3>& nn = cdt.triangles[iTn].neighbors;
+            const std::array<TriInd, 3>& nn = cdt.triangles[*it].neighbors;
             if(std::find(nn.begin(), nn.end(), iT) == nn.end())
                 return false;
         }
@@ -42,9 +43,10 @@ inline bool verifyTopology(const CDT::Triangulation<T>& cdt)
     for(TriInd iT(0); iT < TriInd(cdt.triangles.size()); ++iT)
     {
         const Triangle& t = cdt.triangles[iT];
-        BOOST_FOREACH(const VertInd iV, t.vertices)
+        typedef VerticesArr3::const_iterator VCit;
+        for(VCit it = t.vertices.begin(); it != t.vertices.end(); ++it)
         {
-            const std::vector<TriInd>& tt = cdt.vertices[iV].triangles;
+            const std::vector<TriInd>& tt = cdt.vertices[*it].triangles;
             if(std::find(tt.begin(), tt.end(), iT) == tt.end())
                 return false;
         }

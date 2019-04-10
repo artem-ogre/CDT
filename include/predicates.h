@@ -1,3 +1,4 @@
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                                                                 *
  * Copyright (c) 2019, William C. Lenthe                                           *
@@ -129,7 +130,7 @@ namespace  predicates {
 
 // check if c++11 is supported
 #if !defined(__cplusplus) && !defined(_MSC_VER)
-	PORTABLE_STATIC_ASSERT(false, couldnt_parse_cxx_standard)
+	PREDICATES_PORTABLE_STATIC_ASSERT(false, couldnt_parse_cxx_standard)
 #endif
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
 	#define PREDICATES_CXX11_IS_SUPPORTED

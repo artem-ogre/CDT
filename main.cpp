@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+#define CDT_DONT_USE_BOOST_RTREE
 #include "CDT.h"
 #include "VerifyTopology.h"
 
@@ -40,6 +41,11 @@ class CDTWidget : public QOpenGLWidget
 public:
     explicit CDTWidget(QWidget* parent = NULL)
         : QOpenGLWidget(parent)
+#ifndef CDT_DONT_USE_BOOST_RTREE
+        , m_cdt(CDT::FindingClosestPoint::BoostRTree)
+#else
+        , m_cdt(CDT::FindingClosestPoint::ClosestRandom, 10)
+#endif
         , m_ptLimit(9999999)
         , m_edgeLimit(9999999)
         , m_isHidePoints(false)
@@ -112,19 +118,21 @@ public slots:
         const CoordType stZ =
             -std::fmax(box.max.x - box.min.x, box.max.y - box.min.y);
         std::size_t counter = 0;
-        BOOST_FOREACH(const Vertex& v, m_cdt.vertices)
+        typedef Triangulation::VertexVec::const_iterator VCit;
+        for(VCit v = m_cdt.vertices.begin(); v != m_cdt.vertices.end(); ++v)
         {
             const CoordType z =
                 !m_isRemoveOuter && !m_isHideSuperTri && counter < 3 ? stZ
                                                                      : 0.0;
-            fout << v.pos.x << ' ' << v.pos.y << ' ' << z << "\n";
+            fout << v->pos.x << ' ' << v->pos.y << ' ' << z << "\n";
             counter++;
         }
         // Write faces
-        BOOST_FOREACH(const Triangle& t, m_cdt.triangles)
+        typedef CDT::TriangleVec::const_iterator TCit;
+        for(TCit t = m_cdt.triangles.begin(); t != m_cdt.triangles.end(); ++t)
         {
-            fout << "3 " << t.vertices[0] << ' ' << t.vertices[1] << ' '
-                 << t.vertices[2] << "\n";
+            fout << "3 " << t->vertices[0] << ' ' << t->vertices[1] << ' '
+                 << t->vertices[2] << "\n";
         }
         fout.close();
     }
@@ -160,7 +168,11 @@ private:
 
     void updateCDT()
     {
-        m_cdt = Triangulation();
+#ifndef CDT_DONT_USE_BOOST_RTREE
+        m_cdt = Triangulation(CDT::FindingClosestPoint::BoostRTree);
+#else
+        m_cdt = Triangulation(CDT::FindingClosestPoint::ClosestRandom, 10);
+#endif
         if(!m_points.empty())
         {
             const std::vector<V2d> pts =
@@ -221,13 +233,16 @@ protected:
         {
             pen.setColor(QColor(220, 220, 220));
             p.setPen(pen);
-            BOOST_FOREACH(const Triangle& t, m_cdt.triangles)
+            typedef CDT::TriangleVec::const_iterator TCit;
+            for(TCit t = m_cdt.triangles.begin(); t != m_cdt.triangles.end();
+                ++t)
             {
-                if(t.vertices[0] > 2 && t.vertices[1] > 2 && t.vertices[2] > 2)
+                if(t->vertices[0] > 2 && t->vertices[1] > 2 &&
+                   t->vertices[2] > 2)
                     continue;
-                const V2d& v1 = m_cdt.vertices[t.vertices[0]].pos;
-                const V2d& v2 = m_cdt.vertices[t.vertices[1]].pos;
-                const V2d& v3 = m_cdt.vertices[t.vertices[2]].pos;
+                const V2d& v1 = m_cdt.vertices[t->vertices[0]].pos;
+                const V2d& v2 = m_cdt.vertices[t->vertices[1]].pos;
+                const V2d& v3 = m_cdt.vertices[t->vertices[2]].pos;
                 const QPointF pt1(scale * (v1.x - c.x), scale * (v1.y - c.y));
                 const QPointF pt2(scale * (v2.x - c.x), scale * (v2.y - c.y));
                 const QPointF pt3(scale * (v3.x - c.x), scale * (v3.y - c.y));
@@ -240,14 +255,15 @@ protected:
         // actual triangles
         pen.setColor(QColor(150, 150, 150));
         p.setPen(pen);
-        BOOST_FOREACH(const Triangle& t, m_cdt.triangles)
+        typedef CDT::TriangleVec::const_iterator TCit;
+        for(TCit t = m_cdt.triangles.begin(); t != m_cdt.triangles.end(); ++t)
         {
             if(!m_isHideSuperTri && !m_isRemoveOuter)
-                if(t.vertices[0] < 3 || t.vertices[1] < 3 || t.vertices[2] < 3)
+                if(t->vertices[0] < 3 || t->vertices[1] < 3 || t->vertices[2] < 3)
                     continue;
-            const V2d& v1 = m_cdt.vertices[t.vertices[0]].pos;
-            const V2d& v2 = m_cdt.vertices[t.vertices[1]].pos;
-            const V2d& v3 = m_cdt.vertices[t.vertices[2]].pos;
+            const V2d& v1 = m_cdt.vertices[t->vertices[0]].pos;
+            const V2d& v2 = m_cdt.vertices[t->vertices[1]].pos;
+            const V2d& v3 = m_cdt.vertices[t->vertices[2]].pos;
             const QPointF pt1(scale * (v1.x - c.x), scale * (v1.y - c.y));
             const QPointF pt2(scale * (v2.x - c.x), scale * (v2.y - c.y));
             const QPointF pt3(scale * (v3.x - c.x), scale * (v3.y - c.y));
@@ -258,10 +274,11 @@ protected:
         // constraint edges
         pen.setColor(QColor(50, 50, 50));
         p.setPen(pen);
-        BOOST_FOREACH(const Edge& e, m_cdt.fixedEdges)
+        typedef CDT::EdgeUSet::const_iterator ECit;
+        for(ECit e = m_cdt.fixedEdges.begin(); e != m_cdt.fixedEdges.end(); ++e)
         {
-            const V2d& v1 = m_cdt.vertices[e.v1()].pos;
-            const V2d& v2 = m_cdt.vertices[e.v2()].pos;
+            const V2d& v1 = m_cdt.vertices[e->v1()].pos;
+            const V2d& v2 = m_cdt.vertices[e->v2()].pos;
             const QPointF pt1(scale * (v1.x - c.x), scale * (v1.y - c.y));
             const QPointF pt2(scale * (v2.x - c.x), scale * (v2.y - c.y));
             p.drawLine(pt1, pt2);
