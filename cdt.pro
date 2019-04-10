@@ -2,16 +2,15 @@ QT += core gui widgets opengl
 
 TEMPLATE = app
 
+# Uncomment to not use boost::rtree
+DEFINES += CDT_DONT_USE_BOOST_RTREE
 
 SOURCES += \
     main.cpp \
 
-# Uncomment to not use boost::rtree
-DEFINES += CDT_DONT_USE_BOOST_RTREE
-
 # Uncomment to use as compiled library
 DEFINES += CDT_USE_AS_COMPILED_LIBRARY
-SOURCES += include/CDT.cpp
+SOURCES += CDT.cpp
 
 INCLUDEPATH += \
     include \
