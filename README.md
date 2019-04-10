@@ -38,7 +38,10 @@ For efficient search of a triangle that contains inserted point randomized walki
 - No two constraint edges intersect each other
 
 ## Installing
-Header-only, no installation is needed. For the demonstrator tool qmake project file is used. It could either be opened in QtCreator directly, or qmake can be used to generate project files (e.g., makefiles or MSVC-project)
+### As header-only
+No installation is needed. For the demonstrator tool qmake project file is used. It could either be opened in QtCreator directly, or qmake can be used to generate project files (e.g., makefiles or MSVC-project)
+### As compiled library
+Define `CDT_USE_AS_COMPILED_LIBRARY` and add compile `CDT.cpp`
 
 ## Using
 ### Synopsis
