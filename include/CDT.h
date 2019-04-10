@@ -27,7 +27,7 @@ namespace std
 #include <boost/tuple/tuple.hpp>
 namespace std
 {
-    using std::tuple;
+    using boost::tuple;
     using boost::make_tuple;
     using boost::tie;
 }
