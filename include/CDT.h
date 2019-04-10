@@ -688,11 +688,11 @@ VertInd Triangulation<T>::nearestVertexRand(
     const std::size_t nSamples) const
 {
     // start search at a vertex close to pos based on random sampling
-    VertInd out = std::rand() % vertices.size();
+    VertInd out(std::rand() % vertices.size());
     T minDist = distance(vertices[out].pos, pos);
     for(std::size_t iSample = 0; iSample < nSamples; ++iSample)
     {
-        VertInd candidate = std::rand() % vertices.size();
+        const VertInd candidate(std::rand() % vertices.size());
         const T candidateDist = distance(vertices[candidate].pos, pos);
         if(candidateDist < minDist)
         {

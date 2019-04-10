@@ -24,26 +24,32 @@ typedef char couldnt_parse_cxx_standard[-1];
 // use fall-backs for c++11 features
 #ifdef CDT_CXX11_IS_SUPPORTED
 #include <array>
+#include <functional>
+#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
-#include <functional>
 #else
 #include <boost/array.hpp>
+#include <boost/functional/hash.hpp>
+#include <boost/tuple/tuple.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
-#include <boost/functional/hash.hpp>
 namespace std
 {
-    using boost::array;
-    using boost::unordered_map;
-    using boost::unordered_set;
-    using boost::hash;
-}
+using boost::array;
+using boost::hash;
+using boost::tie;
+using boost::tuple;
+using boost::make_tuple;
+using boost::unordered_map;
+using boost::unordered_set;
+} // namespace std
 #endif
 
 #ifdef CDT_USE_STRONG_TYPING
 #include <boost/serialization/strong_typedef.hpp>
 #define CDT_TYPEDEF(typeWhat, typeAs) BOOST_STRONG_TYPEDEF(typeWhat, typeAs)
+// note: hashes for strong-typedefs are specialized at the bottom
 #else
 #define CDT_TYPEDEF(typeWhat, typeAs) typedef typeWhat typeAs;
 #endif
@@ -136,6 +142,7 @@ struct Vertex
 };
 
 /// Edge connecting two vertices: vertex with smaller index is always first
+/// \note: hash Edge is specialized at the bottom
 struct Edge
 {
     Edge(VertInd iV1, VertInd iV2)
@@ -154,7 +161,7 @@ struct Edge
     {
         return m_vertices.second;
     }
-    const std::pair<VertInd, VertInd>& pair() const
+    const std::pair<VertInd, VertInd>& verts() const
     {
         return m_vertices;
     }
@@ -163,69 +170,9 @@ private:
     std::pair<VertInd, VertInd> m_vertices;
 };
 
-// Hash functions
-#ifdef CDT_USE_STRONG_TYPING
-struct EdgeHasher
-{
-    std::size_t operator()(const Edge& e) const
-    {
-        const boost::hash<std::pair<std::size_t, std::size_t> > hash;
-        return hash(std::make_pair(e.v1().t, e.v2().t));
-    }
-};
-struct VertIndHasher
-{
-    std::size_t operator()(const VertInd& vi) const
-    {
-        return vi.t;
-    }
-};
-struct TriIndHasher
-{
-    std::size_t operator()(const TriInd& vi) const
-    {
-        return vi.t;
-    }
-};
-#else
-
-struct EdgeHasher
-{
-    std::size_t operator()(Edge e) const
-    {
-        const HashPair<std::size_t, std::size_t> hp;
-        return hp(e.pair());
-    }
-private:
-    // implementation of hash for a pair as implemented in boost::hash
-    template <typename T1, typename T2>
-    struct HashPair
-    {
-        template <typename T>
-        static void hashCombine(std::size_t& seed, T const& key)
-        {
-            std::hash<T> hasher;
-            seed ^= hasher(key) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        }
-        std::size_t operator()(std::pair<T1, T2> const& p) const
-        {
-            std::size_t seed1(0);
-            hashCombine(seed1, p.first);
-            hashCombine(seed1, p.second);
-            std::size_t seed2(0);
-            hashCombine(seed2, p.second);
-            hashCombine(seed2, p.first);
-            return std::min(seed1, seed2);
-        }
-    };
-};
-typedef std::hash<std::size_t> VertIndHasher;
-typedef std::hash<std::size_t> TriIndHasher;
-#endif
-
-typedef std::unordered_set<Edge, EdgeHasher> EdgeUSet;
-typedef std::unordered_set<TriInd, TriIndHasher> TriIndUSet;
-typedef std::unordered_map<TriInd, TriInd, TriIndHasher> TriIndUMap;
+typedef std::unordered_set<Edge> EdgeUSet;
+typedef std::unordered_set<TriInd> TriIndUSet;
+typedef std::unordered_map<TriInd, TriInd> TriIndUMap;
 
 /// Triangulation triangle
 /* Counter-clockwise winding:
@@ -474,4 +421,64 @@ T distance(const V2d<T>& a, const V2d<T>& b)
 
 } // namespace CDT
 
+//*****************************************************************************
+// Specialize hash functions
+//*****************************************************************************
+#ifdef CDT_CXX11_IS_SUPPORTED
+namespace std
+#else
+namespace boost
 #endif
+{
+
+#ifdef CDT_USE_STRONG_TYPING
+
+template <>
+struct hash<CDT::VertInd>
+{
+    std::size_t operator()(const CDT::VertInd& vi) const
+    {
+        return std::hash<std::size_t>()(vi.t);
+    }
+};
+
+template <>
+struct hash<CDT::TriInd>
+{
+    std::size_t operator()(const CDT::TriInd& vi) const
+    {
+        return std::hash<std::size_t>()(vi.t);
+    }
+};
+
+#endif // CDT_USE_STRONG_TYPING
+
+template <>
+struct hash<CDT::Edge>
+{
+    std::size_t operator()(const CDT::Edge& e) const
+    {
+        return hashEdge(e);
+    }
+
+private:
+    static void hashCombine(std::size_t& seed, const CDT::VertInd& key)
+    {
+        std::hash<CDT::VertInd> hasher;
+        seed ^= hasher(key) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    }
+    static std::size_t hashEdge(const CDT::Edge& e)
+    {
+        const std::pair<CDT::VertInd, CDT::VertInd>& vv = e.verts();
+        std::size_t seed1(0);
+        hashCombine(seed1, vv.first);
+        hashCombine(seed1, vv.second);
+        std::size_t seed2(0);
+        hashCombine(seed2, vv.second);
+        hashCombine(seed2, vv.first);
+        return std::min(seed1, seed2);
+    }
+};
+} // namespace std/boost
+
+#endif // header guard
