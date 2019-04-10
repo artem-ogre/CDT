@@ -41,7 +41,7 @@ For efficient search of a triangle that contains inserted point randomized walki
 ### As header-only
 No installation is needed. For the demonstrator tool qmake project file is used. It could either be opened in QtCreator directly, or qmake can be used to generate project files (e.g., makefiles or MSVC-project)
 ### As compiled library
-Define `CDT_USE_AS_COMPILED_LIBRARY` and add compile `CDT.cpp`
+Define `CDT_USE_AS_COMPILED_LIBRARY` and compile `CDT.cpp`
 
 ## Using
 ### Synopsis
