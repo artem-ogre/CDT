@@ -20,11 +20,10 @@ C++ implementation of constrained Delaunay triangulation (CDT)
 
 - Uses William C. Lenthe's implementation of robust orientation and in-circle geometric predicates: https://github.com/wlenthe/GeometricPredicates.
 
-- Depends on Boost for rtree implementation (finding closest point) and fall back for some std types on pre-C++11 compilers. Boost dependency can be easily be removed manually: just replace `nearestVertexRtree` with `nearestVertexRand`.
-
-- Most of the code is c++03-compatible but robust predicates require c++11 support.
-
+- Compatible with C++03
 - Cross-platform: tested on Windows and Linux
+- Optionally depends on Boost for rtree 
+implementation (finding closest point) and fall back for some std types on pre-C++11 compilers. Boost dependency can be easily be removed via defining `CDT_DONT_USE_BOOST_RTREE`. This replaces `nearestVertexRtree` with slower `nearestVertexRand`.
 
 A demonstrator tool is included: requires Qt for GUI.
 
@@ -46,6 +45,17 @@ Header-only, no installation is needed. For the demonstrator tool qmake project 
 namespace CDT
 {
 
+struct FindingClosestPoint
+{
+    enum Enum
+    {
+#ifndef CDT_DONT_USE_BOOST_RTREE
+        BoostRTree,
+#endif
+        ClosestRandom,
+    };
+};
+
 template <typename T>
 class Triangulation
 {
@@ -55,6 +65,9 @@ public:
     std::vector<Triangle> triangles;
     EdgeUSet fixedEdges;
     /*____ API _____*/
+    Triangulation(
+        const FindingClosestPoint::Enum closestPtMode,
+        const size_t nRandSamples = 10);
     void insertVertices(const std::vector<V2d<T> >& vertices);
     void insertEdges(const std::vector<Edge>& edges);
     void eraseSuperTriangle();
@@ -70,7 +83,12 @@ public:
 #include "CDT.h"
 using Triangulation = CDT::Triangulation<float>;
 
-Triangulation cdt;
+Triangulation cdt = 
+    Triangulation(CDT::FindingClosestPoint::BoostRTree);
+/* 
+  // Without boost::rtree:
+  Triangulation(CDT::FindingClosestPoint::ClosestRandom, 10);
+*/
 cdt.insertVertices(/* points */);
 cdt.eraseSuperTriangle();
 /* ... */ = cdt.vertices;
