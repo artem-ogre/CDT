@@ -1,4 +1,3 @@
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                                                                 *
  * Copyright (c) 2019, William C. Lenthe                                           *
@@ -423,11 +422,13 @@ namespace detail {
 			static inline Expansion<T, 4> ThreeProd(const T a, const T b, const T c) {return (T(0) == a || T(0) == b || T(0) == c) ? Expansion<T, 4>() : Mult(a, b) * c;}
 	};
 
+	template <typename T> const T ExpansionBase<T>::Splitter = static_cast<T>(
 #ifdef PREDICATES_CXX11_IS_SUPPORTED
-	template <typename T> const T ExpansionBase<T>::Splitter = std::exp2((std::numeric_limits<T>::digits + std::numeric_limits<T>::digits%2)/2 + 1);
+		std::exp2((std::numeric_limits<T>::digits + std::numeric_limits<T>::digits%2)/2 + 1)
 #else
-	template <typename T> const T ExpansionBase<T>::Splitter = std::ldexp(T(1), (std::numeric_limits<T>::digits + std::numeric_limits<T>::digits%2)/2 + 1);
+		std::ldexp(T(1), (std::numeric_limits<T>::digits + std::numeric_limits<T>::digits%2)/2 + 1)
 #endif
+	);
 }
 
 namespace  predicates {
@@ -561,11 +562,15 @@ namespace  predicates {
 			static const T iccerrboundA, iccerrboundB, iccerrboundC;
 			static const T isperrboundA, isperrboundB, isperrboundC;
 	};
+
+	template <typename T> const T Constants<T>::epsilon = static_cast<T>(
 #ifdef PREDICATES_CXX11_IS_SUPPORTED
-	template <typename T> const T Constants<T>::epsilon        = std::exp2(-std::numeric_limits<T>::digits);
+		std::exp2(-std::numeric_limits<T>::digits)
 #else
-	template <typename T> const T Constants<T>::epsilon        = std::ldexp(T(1), -std::numeric_limits<T>::digits);
+		std::ldexp(T(1), -std::numeric_limits<T>::digits)
 #endif
+	);
+
 	template <typename T> const T Constants<T>::resulterrbound = (T( 3) + T(   8) * Constants<T>::epsilon) * Constants<T>::epsilon;
 	template <typename T> const T Constants<T>::ccwerrboundA   = (T( 3) + T(  16) * Constants<T>::epsilon) * Constants<T>::epsilon;
 	template <typename T> const T Constants<T>::ccwerrboundB   = (T( 2) + T(  12) * Constants<T>::epsilon) * Constants<T>::epsilon;
