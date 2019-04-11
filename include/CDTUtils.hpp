@@ -25,6 +25,26 @@ V2d<T> V2d<T>::make(const T x, const T y)
 }
 
 //*****************************************************************************
+// Box2d
+//*****************************************************************************
+template <typename T>
+Box2d<T> Box2d<T>::envelop(const std::vector<V2d<T> >& vertices)
+{
+    const T max = std::numeric_limits<T>::max();
+    Box2d<T> box = {{max, max}, {-max, -max}};
+    typedef typename std::vector<V2d<T> >::const_iterator Cit;
+    for(Cit it = vertices.begin(); it != vertices.end(); ++it)
+    {
+        const V2d<T>& v = *it;
+        box.min.x = std::min(v.x, box.min.x);
+        box.max.x = std::max(v.x, box.max.x);
+        box.min.y = std::min(v.y, box.min.y);
+        box.max.y = std::max(v.y, box.max.y);
+    }
+    return box;
+}
+
+//*****************************************************************************
 // Vertex
 //*****************************************************************************
 template <typename T>
@@ -101,7 +121,6 @@ const std::pair<VertInd, VertInd>& Edge::verts() const
 //*****************************************************************************
 // Utility functions
 //*****************************************************************************
-
 inline Index ccw(Index i)
 {
     return Index((i + 1) % 3);
@@ -165,25 +184,6 @@ PtTriLocation::Enum locatePointTriangle(
     return result;
 }
 
-/// Bounding box of a collection of 2D points
-template <typename T>
-Box2d<T> Box2d<T>::envelop(const std::vector<V2d<T> >& vertices)
-{
-    const T max = std::numeric_limits<T>::max();
-    Box2d<T> box = {{max, max}, {-max, -max}};
-    typedef typename std::vector<V2d<T> >::const_iterator Cit;
-    for(Cit it = vertices.begin(); it != vertices.end(); ++it)
-    {
-        const V2d<T>& v = *it;
-        box.min.x = std::min(v.x, box.min.x);
-        box.max.x = std::max(v.x, box.max.x);
-        box.min.y = std::min(v.y, box.min.y);
-        box.max.y = std::max(v.y, box.max.y);
-    }
-    return box;
-}
-
-/// Opposed neighbor index from vertex index
 inline Index opoNbr(const Index vertIndex)
 {
     if(vertIndex == Index(0))
@@ -195,7 +195,6 @@ inline Index opoNbr(const Index vertIndex)
     throw std::runtime_error("Invalid vertex index");
 }
 
-/// Opposed vertex index from neighbor index
 inline Index opoVrt(const Index neighborIndex)
 {
     if(neighborIndex == Index(0))
@@ -207,7 +206,6 @@ inline Index opoVrt(const Index neighborIndex)
     throw std::runtime_error("Invalid neighbor index");
 }
 
-/// Index of triangle's neighbor opposed to a vertex
 inline Index opposedTriangleInd(const Triangle& tri, const VertInd iVert)
 {
     for(Index vi = Index(0); vi < Index(3); ++vi)
@@ -216,7 +214,6 @@ inline Index opposedTriangleInd(const Triangle& tri, const VertInd iVert)
     throw std::runtime_error("Could not find opposed triangle index");
 }
 
-/// Index of triangle's neighbor opposed to an edge
 inline Index opposedTriangleInd(
     const Triangle& tri,
     const VertInd iVedge1,
@@ -231,7 +228,6 @@ inline Index opposedTriangleInd(
     throw std::runtime_error("Could not find opposed-to-edge triangle index");
 }
 
-/// Index of triangle's vertex opposed to a triangle
 inline Index opposedVertexInd(const Triangle& tri, const TriInd iTopo)
 {
     for(Index ni = Index(0); ni < Index(3); ++ni)
@@ -240,7 +236,6 @@ inline Index opposedVertexInd(const Triangle& tri, const TriInd iTopo)
     throw std::runtime_error("Could not find opposed vertex index");
 }
 
-/// If triangle has a given neighbor return neighbor-index, throw otherwise
 inline Index neighborInd(const Triangle& tri, const TriInd iTnbr)
 {
     for(Index ni = Index(0); ni < Index(3); ++ni)
@@ -249,7 +244,6 @@ inline Index neighborInd(const Triangle& tri, const TriInd iTnbr)
     throw std::runtime_error("Could not find neighbor triangle index");
 }
 
-/// If triangle has a given vertex return vertex-index, throw otherwise
 inline Index vertexInd(const Triangle& tri, const VertInd iV)
 {
     for(Index i = Index(0); i < Index(3); ++i)
@@ -258,19 +252,16 @@ inline Index vertexInd(const Triangle& tri, const VertInd iV)
     throw std::runtime_error("Could not find vertex index in triangle");
 }
 
-/// Given triangle and a vertex find opposed triangle
 inline TriInd opposedTriangle(const Triangle& tri, const VertInd iVert)
 {
     return tri.neighbors[opposedTriangleInd(tri, iVert)];
 }
 
-/// Given two triangles, return vertex of first triangle opposed to the second
 inline VertInd opposedVertex(const Triangle& tri, const TriInd iTopo)
 {
     return tri.vertices[opposedVertexInd(tri, iTopo)];
 }
 
-/// Test if point lies in a circumscribed circle of a triangle
 template <typename T>
 bool isInCircumcircle(
     const V2d<T>& p,
@@ -282,7 +273,6 @@ bool isInCircumcircle(
     return incircle(v1.raw(), v2.raw(), v3.raw(), p.raw()) > T(0);
 }
 
-/// Test if two vertices share at least one common triangle
 template <typename T>
 bool verticesShareEdge(const Vertex<T>& a, const Vertex<T>& b)
 {
@@ -294,7 +284,6 @@ bool verticesShareEdge(const Vertex<T>& a, const Vertex<T>& b)
     return false;
 }
 
-/// Distance between two 2D points
 template <typename T>
 T distance(const V2d<T>& a, const V2d<T>& b)
 {
