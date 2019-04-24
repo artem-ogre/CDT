@@ -30,8 +30,8 @@ implementation (finding closest point) and fall back for some std types on pre-C
 
 ## Algorithm
 Implementation closely follows incremental construction algorithm by Anglada [[1](#1)]. During the legalization, the cases
-when at least one vertex belongs to super-triangle are resolved using an approach in by Žalik et. al [[2](#2)].
-For efficient search of a triangle that contains inserted point randomized walking search is applied [[3](#3)]. To find the starting triangle we first find the nearest point using boost::rtree.
+when at least one vertex belongs to super-triangle are resolved using an approach as described in Žalik et. al [[2](#2)].
+For efficient search of a triangle that contains inserted point randomized walking search is applied [[3](#3)]. To find the starting triangle we first find the nearest point using boost::rtree or using a closest random point.
 
 ### Input pre-conditions:
 - No duplicated points
