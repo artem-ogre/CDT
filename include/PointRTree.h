@@ -19,50 +19,58 @@ namespace traits
 {
 
 // point traits
+/// Point tag
 template <typename T>
 struct tag<CDT::V2d<T> >
 {
-    typedef point_tag type;
+    typedef point_tag type; ///< point tag
 };
 
+/// Dimension (2d)
 template <typename T>
 struct dimension<CDT::V2d<T> > : boost::mpl::int_<2>
 {};
 
+/// Coordinate type
 template <typename T>
 struct coordinate_type<CDT::V2d<T> >
 {
-    typedef T type;
+    typedef T type; ///< type
 };
 
+/// Cartesian coordinate system
 template <typename T>
 struct coordinate_system<CDT::V2d<T> >
 {
-    typedef cs::cartesian type;
+    typedef cs::cartesian type; ///< cartesian
 };
 
 // point access
-// X
+/// X
 template <typename T>
 struct access<CDT::V2d<T>, 0>
 {
+    /// X-getter
     static inline T get(CDT::V2d<T> const& p)
     {
         return p.x;
     }
+    /// X-setter
     static inline void set(CDT::V2d<T>& p, T const& value)
     {
         p.x = value;
     }
 };
-// Y
+/// Y
 template <typename T>
 struct access<CDT::V2d<T>, 1>
 {
+    /// Y-getter
     static inline T get(CDT::V2d<T> const& p)
     {
         return p.y;
     }
+    /// Y-setter
     static inline void set(CDT::V2d<T>& p, T const& value)
     {
         p.y = value;
@@ -76,15 +84,17 @@ struct access<CDT::V2d<T>, 1>
 namespace CDT
 {
 
+/// R-tree holding points
 template <typename T>
 class PointRTree
 {
 public:
+    /// Add point to R-tree
     void addPoint(const V2d<T>& pos, const VertInd iV)
     {
         m_rtree.insert(std::make_pair(pos, iV));
     }
-
+    /// Find nearest point using R-tree
     VertInd nearestPoint(const V2d<T>& pos) const
     {
         std::vector<VertexPos> query;

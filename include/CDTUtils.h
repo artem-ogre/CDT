@@ -59,26 +59,28 @@ namespace CDT
 template <typename T>
 struct V2d
 {
-    T x;
-    T y;
+    T x; ///< X-coordinate
+    T y; ///< Y-coordinate
 
+    /// Raw address getter to use as plain array T[3]
     const T* raw() const;
+    /// Create vector from X and Y coordinates
     static V2d make(const T x, const T y);
 };
 
-CDT_TYPEDEF(unsigned char, Index);
-CDT_TYPEDEF(std::size_t, VertInd);
-CDT_TYPEDEF(std::size_t, TriInd);
-typedef std::vector<TriInd> TriIndVec;
-typedef std::array<VertInd, 3> VerticesArr3;
-typedef std::array<TriInd, 3> NeighborsArr3;
+CDT_TYPEDEF(unsigned char, Index);           ///< Index in triangle
+CDT_TYPEDEF(std::size_t, VertInd);           ///< Vertex index
+CDT_TYPEDEF(std::size_t, TriInd);            ///< Triangle index
+typedef std::vector<TriInd> TriIndVec;       ///< Vector of triangle indices
+typedef std::array<VertInd, 3> VerticesArr3; ///< array of three vertex indices
+typedef std::array<TriInd, 3> NeighborsArr3; ///< array of three neighbors
 
 /// 2D bounding box
 template <typename T>
 struct Box2d
 {
-    V2d<T> min; /// min box corner
-    V2d<T> max; /// max box corner
+    V2d<T> min; ///< min box corner
+    V2d<T> max; ///< max box corner
 
     /// Bounding box of a collection of 2D points
     static Box2d envelop(const std::vector<V2d<T> >& vertices);
@@ -88,15 +90,18 @@ struct Box2d
 template <typename T>
 struct Vertex
 {
-    V2d<T> pos;
-    TriIndVec triangles;
+    V2d<T> pos;          ///< vertex position
+    TriIndVec triangles; ///< adjacent triangles
 
+    /// Create vertex
     static Vertex make(const V2d<T>& pos, const TriInd iTriangle);
+    /// Create vertex in a triangle
     static Vertex makeInTriangle(
         const V2d<T>& pos,
         const TriInd iT1,
         const TriInd iT2,
         const TriInd iT3);
+    /// Create vertex on an edge
     static Vertex makeOnEdge(
         const V2d<T>& pos,
         const TriInd iT1,
@@ -109,21 +114,26 @@ struct Vertex
 /// \note: hash Edge is specialized at the bottom
 struct Edge
 {
+    /// Constructor
     Edge(VertInd iV1, VertInd iV2);
+    /// Assignment operator
     bool operator==(const Edge& other) const;
+    /// V1 getter
     VertInd v1() const;
+    /// V2 getter
     VertInd v2() const;
+    /// Edges' vertices
     const std::pair<VertInd, VertInd>& verts() const;
 
 private:
     std::pair<VertInd, VertInd> m_vertices;
 };
 
-typedef std::unordered_set<Edge> EdgeUSet;
-typedef std::unordered_set<TriInd> TriIndUSet;
-typedef std::unordered_map<TriInd, TriInd> TriIndUMap;
+typedef std::unordered_set<Edge> EdgeUSet;     ///< Hash table of edges
+typedef std::unordered_set<TriInd> TriIndUSet; ///< Hash table of triangles
+typedef std::unordered_map<TriInd, TriInd> TriIndUMap; ///< Triangle hash map
 
-/// Triangulation triangle
+/// Triangulation triangle (CCW winding)
 /* Counter-clockwise winding:
        v3
        /\
@@ -132,11 +142,11 @@ typedef std::unordered_map<TriInd, TriInd> TriIndUMap;
    v1  n1  v2                 */
 struct Triangle
 {
-    VerticesArr3 vertices;
-    NeighborsArr3 neighbors;
+    VerticesArr3 vertices;   ///< triangle's three vertices
+    NeighborsArr3 neighbors; ///< triangle's three neighbors
 };
 
-typedef std::vector<Triangle> TriangleVec;
+typedef std::vector<Triangle> TriangleVec; ///< Vector of triangles
 
 /// Advance vertex or neighbor index counter-clockwise
 Index ccw(Index i);
@@ -147,6 +157,7 @@ Index cw(Index i);
 /// Location of point on a triangle
 struct PtTriLocation
 {
+    /// Enum
     enum Enum
     {
         Inside,
@@ -167,6 +178,7 @@ Index edgeNeighbor(const PtTriLocation::Enum location);
 /// Relative location of point to a line
 struct PtLineLocation
 {
+    /// Enum
     enum Enum
     {
         Left,
@@ -252,18 +264,22 @@ namespace boost
 
 #ifdef CDT_USE_STRONG_TYPING
 
+/// Vertex index hasher
 template <>
 struct hash<CDT::VertInd>
 {
+    /// Hash operator
     std::size_t operator()(const CDT::VertInd& vi) const
     {
         return std::hash<std::size_t>()(vi.t);
     }
 };
 
+/// Triangle index hasher
 template <>
 struct hash<CDT::TriInd>
 {
+    /// Hash operator
     std::size_t operator()(const CDT::TriInd& vi) const
     {
         return std::hash<std::size_t>()(vi.t);
@@ -272,9 +288,11 @@ struct hash<CDT::TriInd>
 
 #endif // CDT_USE_STRONG_TYPING
 
+/// Edge hasher
 template <>
 struct hash<CDT::Edge>
 {
+    /// Hash operator
     std::size_t operator()(const CDT::Edge& e) const
     {
         return hashEdge(e);

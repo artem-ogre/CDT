@@ -31,22 +31,28 @@ struct FindingClosestPoint
     };
 };
 
+/// Data structure representing a 2D triangulation
 template <typename T>
 class Triangulation
 {
 public:
-    typedef std::vector<Vertex<T> > VertexVec;
-    VertexVec vertices;
-    TriangleVec triangles;
-    EdgeUSet fixedEdges;
+    typedef std::vector<Vertex<T> > VertexVec; ///< Vertices vector
+    VertexVec vertices;                        ///< triangulation's vertices
+    TriangleVec triangles;                     ///< triangulation's triangles
+    EdgeUSet fixedEdges; ///<  triangulation's constraints (fixed edges)
 
     /*____ API _____*/
+    /// Constructor
     Triangulation(
         const FindingClosestPoint::Enum closestPtMode,
         const size_t nRandSamples = 10);
+    /// Add vertices to triangulation
     void insertVertices(const std::vector<V2d<T> >& vertices);
+    /// Add constraints (fixed edges) to triangulation
     void insertEdges(const std::vector<Edge>& edges);
+    /// Erase triangles adjacent to super triangle
     void eraseSuperTriangle();
+    /// Erase triangles outside of constrained boundary using growing
     void eraseOuterTriangles();
 
 private:
@@ -112,8 +118,10 @@ private:
     FindingClosestPoint::Enum m_closestPtMode;
 };
 
+/// Constant representing no valid neighbor for a triangle
 const static TriInd noNeighbor =
     TriInd(std::numeric_limits<std::size_t>::max());
+/// Constant representing no valid vertex for a triangle
 const static VertInd noVertex =
     VertInd(std::numeric_limits<std::size_t>::max());
 

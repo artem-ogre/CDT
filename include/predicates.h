@@ -135,6 +135,7 @@ namespace  predicates {
 	#define PREDICATES_CXX11_IS_SUPPORTED
 #endif
 
+namespace  predicates {
 // choose to use c++11 features or their backports
 #ifdef PREDICATES_CXX11_IS_SUPPORTED
 #include <array>
@@ -431,7 +432,6 @@ namespace detail {
 	);
 }
 
-namespace  predicates {
 	namespace exact {
 		//@brief   : determine if the 2d point c is above, on, or below the line defined by a and b
 		//@param pa: pointer to a as {x, y}
