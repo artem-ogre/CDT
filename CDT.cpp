@@ -1,7 +1,7 @@
 #ifdef CDT_USE_AS_COMPILED_LIBRARY
 
-#include "CDT.hpp"
-#include "CDTUtils.hpp"
+#include "include/CDT.hpp"
+#include "include/CDTUtils.hpp"
 
 template class CDT::Triangulation<float>;
 template class CDT::Triangulation<double>;
