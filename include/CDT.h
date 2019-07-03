@@ -73,6 +73,7 @@ private:
     insertPointOnEdge(const V2d<T>& pos, const TriInd iT1, const TriInd iT2);
     std::array<TriInd, 2> trianglesAt(const V2d<T>& pos) const;
     std::array<TriInd, 2> walkingSearchTrianglesAt(const V2d<T>& pos) const;
+    TriInd walkTriangles(const VertInd startVertex, const V2d<T>& pos) const;
     VertInd
     nearestVertexRand(const V2d<T>& pos, const std::size_t nSamples) const;
 #ifndef CDT_DONT_USE_BOOST_RTREE

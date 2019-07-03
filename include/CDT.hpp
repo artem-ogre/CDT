@@ -8,6 +8,11 @@
 namespace CDT
 {
 
+namespace detail
+{
+static std::mt19937 randGen(9001);
+}
+
 template <typename T>
 Triangulation<T>::Triangulation(
     const FindingClosestPoint::Enum closestPtMode,
@@ -315,9 +320,12 @@ void Triangulation<T>::addSuperTriangle(const Box2d<T>& box)
                                {noNeighbor, noNeighbor, noNeighbor}};
     addTriangle(superTri);
 #ifndef CDT_DONT_USE_BOOST_RTREE
-    m_rtree.addPoint(posV1, VertInd(0));
-    m_rtree.addPoint(posV2, VertInd(1));
-    m_rtree.addPoint(posV3, VertInd(2));
+    if(m_closestPtMode == FindingClosestPoint::BoostRTree)
+    {
+        m_rtree.addPoint(posV1, VertInd(0));
+        m_rtree.addPoint(posV2, VertInd(1));
+        m_rtree.addPoint(posV3, VertInd(2));
+    }
 #endif
 }
 
@@ -346,7 +354,8 @@ void Triangulation<T>::insertVertex(const V2d<T>& pos)
         }
     }
 #ifndef CDT_DONT_USE_BOOST_RTREE
-    m_rtree.addPoint(pos, iVert);
+    if(m_closestPtMode == FindingClosestPoint::BoostRTree)
+        m_rtree.addPoint(pos, iVert);
 #endif
 }
 
@@ -518,21 +527,10 @@ std::array<TriInd, 2> Triangulation<T>::trianglesAt(const V2d<T>& pos) const
 }
 
 template <typename T>
-std::array<TriInd, 2>
-Triangulation<T>::walkingSearchTrianglesAt(const V2d<T>& pos) const
+TriInd Triangulation<T>::walkTriangles(
+    const VertInd startVertex,
+    const V2d<T>& pos) const
 {
-    std::array<TriInd, 2> out = {noNeighbor, noNeighbor};
-    // Query RTree for a vertex close to pos, to start the search
-#ifndef CDT_DONT_USE_BOOST_RTREE
-    const VertInd startVertex =
-        m_closestPtMode == FindingClosestPoint::BoostRTree
-            ? nearestVertexRtree(pos)
-            : nearestVertexRand(pos, m_nRandSamples);
-#else
-    const VertInd startVertex = nearestVertexRand(pos, m_nRandSamples);
-#endif
-    // set seed for rand() to ensure reproducibility
-    srand(9001);
     // begin walk in search of triangle at pos
     TriInd currTri = vertices[startVertex].triangles[0];
     TriIndUSet visited;
@@ -542,7 +540,7 @@ Triangulation<T>::walkingSearchTrianglesAt(const V2d<T>& pos) const
         const Triangle& t = triangles[currTri];
         found = true;
         // stochastic offset to randomize which edge we check first
-        const Index offset(rand() % 3);
+        const Index offset(detail::randGen() % 3);
         for(Index i_(0); i_ < Index(3); ++i_)
         {
             const Index i((i_ + offset) % 3);
@@ -560,15 +558,33 @@ Triangulation<T>::walkingSearchTrianglesAt(const V2d<T>& pos) const
             }
         }
     }
+    return currTri;
+}
+
+template <typename T>
+std::array<TriInd, 2>
+Triangulation<T>::walkingSearchTrianglesAt(const V2d<T>& pos) const
+{
+    std::array<TriInd, 2> out = {noNeighbor, noNeighbor};
+    // Query RTree for a vertex close to pos, to start the search
+#ifndef CDT_DONT_USE_BOOST_RTREE
+    const VertInd startVertex =
+        m_closestPtMode == FindingClosestPoint::BoostRTree
+            ? nearestVertexRtree(pos)
+            : nearestVertexRand(pos, m_nRandSamples);
+#else
+    const VertInd startVertex = nearestVertexRand(pos, m_nRandSamples);
+#endif
+    const TriInd iT = walkTriangles(startVertex, pos);
     // Finished walk, locate point in current triangle
-    const Triangle& t = triangles[currTri];
+    const Triangle& t = triangles[iT];
     const V2d<T> v1 = vertices[t.vertices[0]].pos;
     const V2d<T> v2 = vertices[t.vertices[1]].pos;
     const V2d<T> v3 = vertices[t.vertices[2]].pos;
     const PtTriLocation::Enum loc = locatePointTriangle(pos, v1, v2, v3);
     if(loc == PtTriLocation::Outside)
         throw std::runtime_error("No triangle was found at position");
-    out[0] = currTri;
+    out[0] = iT;
     if(isOnEdge(loc))
         out[1] = t.neighbors[edgeNeighbor(loc)];
     return out;
@@ -588,11 +604,11 @@ VertInd Triangulation<T>::nearestVertexRand(
     const std::size_t nSamples) const
 {
     // start search at a vertex close to pos based on random sampling
-    VertInd out(std::rand() % vertices.size());
+    VertInd out(detail::randGen() % vertices.size());
     T minDist = distance(vertices[out].pos, pos);
     for(std::size_t iSample = 0; iSample < nSamples; ++iSample)
     {
-        const VertInd candidate(std::rand() % vertices.size());
+        const VertInd candidate(detail::randGen() % vertices.size());
         const T candidateDist = distance(vertices[candidate].pos, pos);
         if(candidateDist < minDist)
         {

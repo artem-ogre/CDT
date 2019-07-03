@@ -26,12 +26,14 @@ typedef char couldnt_parse_cxx_standard[-1];
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
+#include <random>
 #else
 #include <boost/array.hpp>
 #include <boost/functional/hash.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
+#include <boost/random.hpp>
 namespace std
 {
 using boost::array;
@@ -41,6 +43,7 @@ using boost::tie;
 using boost::tuple;
 using boost::unordered_map;
 using boost::unordered_set;
+using boost::random::mt19937;
 } // namespace std
 #endif
 

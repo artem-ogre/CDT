@@ -554,6 +554,18 @@ namespace detail {
 	}
 
 	template <typename T>
+	const T& Epsilon()
+	{
+		static const T epsilon = 
+#ifdef PREDICATES_CXX11_IS_SUPPORTED
+			std::exp2(-std::numeric_limits<T>::digits);
+#else
+			std::ldexp(T(1), -std::numeric_limits<T>::digits);
+#endif
+		return epsilon;
+	}
+
+	template <typename T>
 	class Constants {
 		public:
 			static const T epsilon, resulterrbound;
@@ -563,27 +575,20 @@ namespace detail {
 			static const T isperrboundA, isperrboundB, isperrboundC;
 	};
 
-	template <typename T> const T Constants<T>::epsilon = static_cast<T>(
-#ifdef PREDICATES_CXX11_IS_SUPPORTED
-		std::exp2(-std::numeric_limits<T>::digits)
-#else
-		std::ldexp(T(1), -std::numeric_limits<T>::digits)
-#endif
-	);
-
-	template <typename T> const T Constants<T>::resulterrbound = (T( 3) + T(   8) * Constants<T>::epsilon) * Constants<T>::epsilon;
-	template <typename T> const T Constants<T>::ccwerrboundA   = (T( 3) + T(  16) * Constants<T>::epsilon) * Constants<T>::epsilon;
-	template <typename T> const T Constants<T>::ccwerrboundB   = (T( 2) + T(  12) * Constants<T>::epsilon) * Constants<T>::epsilon;
-	template <typename T> const T Constants<T>::ccwerrboundC   = (T( 9) + T(  64) * Constants<T>::epsilon) * Constants<T>::epsilon * Constants<T>::epsilon;
-	template <typename T> const T Constants<T>::o3derrboundA   = (T( 7) + T(  56) * Constants<T>::epsilon) * Constants<T>::epsilon;
-	template <typename T> const T Constants<T>::o3derrboundB   = (T( 3) + T(  28) * Constants<T>::epsilon) * Constants<T>::epsilon;
-	template <typename T> const T Constants<T>::o3derrboundC   = (T(26) + T( 288) * Constants<T>::epsilon) * Constants<T>::epsilon * Constants<T>::epsilon;
-	template <typename T> const T Constants<T>::iccerrboundA   = (T(10) + T(  96) * Constants<T>::epsilon) * Constants<T>::epsilon;
-	template <typename T> const T Constants<T>::iccerrboundB   = (T( 4) + T(  48) * Constants<T>::epsilon) * Constants<T>::epsilon;
-	template <typename T> const T Constants<T>::iccerrboundC   = (T(44) + T( 576) * Constants<T>::epsilon) * Constants<T>::epsilon * Constants<T>::epsilon;
-	template <typename T> const T Constants<T>::isperrboundA   = (T(16) + T( 224) * Constants<T>::epsilon) * Constants<T>::epsilon;
-	template <typename T> const T Constants<T>::isperrboundB   = (T( 5) + T(  72) * Constants<T>::epsilon) * Constants<T>::epsilon;
-	template <typename T> const T Constants<T>::isperrboundC   = (T(71) + T(1408) * Constants<T>::epsilon) * Constants<T>::epsilon * Constants<T>::epsilon;
+	template <typename T> const T Constants<T>::epsilon = Epsilon<T>();
+	template <typename T> const T Constants<T>::resulterrbound = (T( 3) + T(   8) * Epsilon<T>()) * Epsilon<T>();
+	template <typename T> const T Constants<T>::ccwerrboundA   = (T( 3) + T(  16) * Epsilon<T>()) * Epsilon<T>();
+	template <typename T> const T Constants<T>::ccwerrboundB   = (T( 2) + T(  12) * Epsilon<T>()) * Epsilon<T>();
+	template <typename T> const T Constants<T>::ccwerrboundC   = (T( 9) + T(  64) * Epsilon<T>()) * Epsilon<T>() * Epsilon<T>();
+	template <typename T> const T Constants<T>::o3derrboundA   = (T( 7) + T(  56) * Epsilon<T>()) * Epsilon<T>();
+	template <typename T> const T Constants<T>::o3derrboundB   = (T( 3) + T(  28) * Epsilon<T>()) * Epsilon<T>();
+	template <typename T> const T Constants<T>::o3derrboundC   = (T(26) + T( 288) * Epsilon<T>()) * Epsilon<T>() * Epsilon<T>();
+	template <typename T> const T Constants<T>::iccerrboundA   = (T(10) + T(  96) * Epsilon<T>()) * Epsilon<T>();
+	template <typename T> const T Constants<T>::iccerrboundB   = (T( 4) + T(  48) * Epsilon<T>()) * Epsilon<T>();
+	template <typename T> const T Constants<T>::iccerrboundC   = (T(44) + T( 576) * Epsilon<T>()) * Epsilon<T>() * Epsilon<T>();
+	template <typename T> const T Constants<T>::isperrboundA   = (T(16) + T( 224) * Epsilon<T>()) * Epsilon<T>();
+	template <typename T> const T Constants<T>::isperrboundB   = (T( 5) + T(  72) * Epsilon<T>()) * Epsilon<T>();
+	template <typename T> const T Constants<T>::isperrboundC   = (T(71) + T(1408) * Epsilon<T>()) * Epsilon<T>() * Epsilon<T>();
 
 	namespace adaptive {
 		//@brief   : determine if the 2d point c is above, on, or below the line defined by a and b
