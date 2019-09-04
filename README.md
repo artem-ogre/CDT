@@ -1,5 +1,7 @@
 # CDT: Constrained Delaunay Triangulation
 
+### Please ★ this repository if it helped. This means a lot to the authors :)
+
 C++ implementation of constrained Delaunay triangulation (CDT)
 - numerically robust (uses robust geometric predicates)
 - header-only (default)
