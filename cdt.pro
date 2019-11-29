@@ -1,4 +1,4 @@
-QT += core gui widgets opengl
+QT += core gui widgets
 
 TEMPLATE = app
 
@@ -24,5 +24,3 @@ HEADERS += \
     include/PointRTree.h \
     include/CDTUtils.h \
     include/CDTUtils.hpp \
-
-win32: LIBS += opengl32.lib
