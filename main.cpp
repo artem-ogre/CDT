@@ -16,7 +16,6 @@
 #include <QHBoxLayout>
 #include <QListWidget>
 #include <QMessageBox>
-#include <QOpenGLWidget>
 #include <QPaintEvent>
 #include <QPainter>
 #include <QPushButton>
@@ -32,13 +31,13 @@ typedef CDT::Box2d<CoordType> Box2d;
 typedef CDT::Index Index;
 typedef CDT::Edge Edge;
 
-class CDTWidget : public QOpenGLWidget
+class CDTWidget : public QWidget
 {
     Q_OBJECT
 
 public:
     explicit CDTWidget(QWidget* parent = NULL)
-        : QOpenGLWidget(parent)
+        : QWidget(parent)
 #ifndef CDT_DONT_USE_BOOST_RTREE
         , m_cdt(CDT::FindingClosestPoint::BoostRTree)
 #else
@@ -204,8 +203,6 @@ protected:
     void paintEvent(QPaintEvent*)
     {
         QPainter p(this);
-        glClearColor(1.f, 1.f, 1.f, 1.f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         if(m_cdt.vertices.empty())
             return;
 
@@ -425,10 +422,6 @@ private:
 
 int main(int argc, char* argv[])
 {
-    QSurfaceFormat fmt;
-    fmt.setSamples(8);
-    QSurfaceFormat::setDefaultFormat(fmt);
-
     QApplication app(argc, argv);
     MainWindow window;
     window.show();
