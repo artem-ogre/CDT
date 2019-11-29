@@ -28,7 +28,7 @@ C++ implementation of constrained Delaunay triangulation (CDT)
 - Optionally depends on Boost for rtree 
 implementation (finding closest point) and fall back for some std types on pre-C++11 compilers. Boost dependency can be easily be removed via defining `CDT_DONT_USE_BOOST_RTREE`. This replaces `nearestVertexRtree` with slower `nearestVertexRand`.
 
-- A demonstrator tool is included: requires Qt for GUI.
+- A demonstrator tool is included: requires Qt for GUI. When running demo-tool **make sure** that working directory contains folder `test files`.
 
 ## Algorithm
 Implementation closely follows incremental construction algorithm by Anglada [[1](#1)]. During the legalization, the cases
