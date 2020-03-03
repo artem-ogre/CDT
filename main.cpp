@@ -234,7 +234,7 @@ protected:
         // Draw triangles
         pen.setWidthF(2.0);
         // outer triangles
-        if(!m_isHideSuperTri && !m_isRemoveOuter)
+        if(!m_isHideSuperTri && !m_isRemoveOuter && !m_isRemoveOuterAndHoles)
         {
             pen.setColor(QColor(220, 220, 220));
             p.setPen(pen);
@@ -263,10 +263,15 @@ protected:
         typedef CDT::TriangleVec::const_iterator TCit;
         for(TCit t = m_cdt.triangles.begin(); t != m_cdt.triangles.end(); ++t)
         {
-            if(!m_isHideSuperTri && !m_isRemoveOuter)
+            if(!m_isHideSuperTri && !m_isRemoveOuter &&
+               !m_isRemoveOuterAndHoles)
+            {
                 if(t->vertices[0] < 3 || t->vertices[1] < 3 ||
                    t->vertices[2] < 3)
+                {
                     continue;
+                }
+            }
             const V2d& v1 = m_cdt.vertices[t->vertices[0]].pos;
             const V2d& v2 = m_cdt.vertices[t->vertices[1]].pos;
             const V2d& v3 = m_cdt.vertices[t->vertices[2]].pos;
