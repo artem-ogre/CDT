@@ -23,6 +23,11 @@ C++ implementation of constrained Delaunay triangulation (CDT)
 
 ## Description
 
+- Performs constraint Delaunay triangulation
+- Supports three ways of removing outer triangles: 
+    - `eraseSuperTriangle`: produce a convex-hull  
+    - `eraseOuterTriangles`: remove all outer triangles until a boundary defined by constraint edges
+    - `eraseOuterTrianglesAndHoles`: remove triangles outside outer-most boundary, then continue growing until next boundary, triangles after the second boundary are holes. The process continues untill all triangles are processed. Handles recursive 'island-in-a-hole' topologies.
 - Uses William C. Lenthe's implementation of robust orientation and in-circle geometric predicates: https://github.com/wlenthe/GeometricPredicates.
 
 - Optionally depends on Boost for rtree 

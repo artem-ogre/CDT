@@ -106,13 +106,56 @@ template <typename T>
 void Triangulation<T>::eraseOuterTriangles()
 {
     // make dummy triangles adjacent to super-triangle's vertices
+    const std::stack<TriInd> seed(
+        std::deque<TriInd>(1, vertices[0].triangles.front()));
+    const TriIndUSet toErase = growToBoundary(seed);
+    eraseTrianglesAtIndices(toErase.begin(), toErase.end());
+    eraseSuperTriangleVertices();
+}
+
+template <typename T>
+void Triangulation<T>::eraseOuterTrianglesAndHoles()
+{
+    std::stack<TriInd> seeds;
+    seeds.push(vertices[0].triangles.front());
+    std::pair<TriIndUSet, TriIndUSet> growResult;
+    TriIndVec toErase;
     TriIndUSet traversed;
-    std::stack<TriInd> toErase;
-    toErase.push(vertices[0].triangles.front());
-    while(!toErase.empty())
+    bool isOuterRegion = true;
+    do
     {
-        const TriInd iT = toErase.top();
-        toErase.pop();
+        growResult = growToBoundaryExt(seeds, traversed);
+        const TriIndUSet& region = growResult.first;
+        const TriIndUSet& newSeeds = growResult.second;
+        if(isOuterRegion)
+            toErase.insert(toErase.end(), region.begin(), region.end());
+        isOuterRegion = !isOuterRegion;
+        seeds = std::stack<TriInd>(
+            std::deque<TriInd>(newSeeds.begin(), newSeeds.end()));
+    } while(!seeds.empty());
+    eraseTrianglesAtIndices(toErase.begin(), toErase.end());
+    eraseSuperTriangleVertices();
+}
+
+template <typename T>
+template <typename TriIndexIter>
+void Triangulation<T>::eraseTrianglesAtIndices(
+    TriIndexIter first,
+    TriIndexIter last)
+{
+    for(; first != last; ++first)
+        makeDummy(*first);
+    eraseDummies();
+}
+
+template <typename T>
+TriIndUSet Triangulation<T>::growToBoundary(std::stack<TriInd> seeds) const
+{
+    TriIndUSet traversed;
+    while(!seeds.empty())
+    {
+        const TriInd iT = seeds.top();
+        seeds.pop();
         traversed.insert(iT);
         const Triangle& t = triangles[iT];
         for(Index i(0); i < Index(3); ++i)
@@ -122,14 +165,42 @@ void Triangulation<T>::eraseOuterTriangles()
                 continue;
             const TriInd iN = t.neighbors[opoNbr(i)];
             if(iN != noNeighbor && traversed.count(iN) == 0)
-                toErase.push(iN);
+                seeds.push(iN);
         }
     }
-    typedef TriIndUSet::const_iterator TriIndCit;
-    for(TriIndCit it = traversed.begin(); it != traversed.end(); ++it)
-        makeDummy(*it);
-    eraseDummies();
-    eraseSuperTriangleVertices();
+    return traversed;
+}
+
+template <typename T>
+std::pair<TriIndUSet, TriIndUSet> Triangulation<T>::growToBoundaryExt(
+    std::stack<TriInd> seeds,
+    TriIndUSet& traversed) const
+{
+    TriIndUSet newTraversed;
+    TriIndUSet behindBoundary;
+    while(!seeds.empty())
+    {
+        const TriInd iT = seeds.top();
+        seeds.pop();
+        traversed.insert(iT);
+        newTraversed.insert(iT);
+        behindBoundary.erase(iT);
+        const Triangle& t = triangles[iT];
+        for(Index i(0); i < Index(3); ++i)
+        {
+            const Edge opEdge(t.vertices[ccw(i)], t.vertices[cw(i)]);
+            const TriInd iN = t.neighbors[opoNbr(i)];
+            if(iN == noNeighbor || traversed.count(iN))
+                continue;
+            if(fixedEdges.count(opEdge))
+            {
+                behindBoundary.insert(iN);
+                continue;
+            }
+            seeds.push(iN);
+        }
+    }
+    return std::make_pair(newTraversed, behindBoundary);
 }
 
 template <typename T>

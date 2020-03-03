@@ -48,6 +48,7 @@ public:
         , m_isHidePoints(false)
         , m_isHideSuperTri(false)
         , m_isRemoveOuter(false)
+        , m_isRemoveOuterAndHoles(false)
     {
         setAutoFillBackground(false);
     }
@@ -97,6 +98,12 @@ public slots:
         updateCDT();
     }
 
+    void removeOuterTrianglesAndHoles(int isRemoveOuterAndHoles)
+    {
+        m_isRemoveOuterAndHoles = (isRemoveOuterAndHoles != 0);
+        updateCDT();
+    }
+
     void prtScn()
     {}
 
@@ -118,9 +125,10 @@ public slots:
         typedef Triangulation::VertexVec::const_iterator VCit;
         for(VCit v = m_cdt.vertices.begin(); v != m_cdt.vertices.end(); ++v)
         {
-            const CoordType z =
-                !m_isRemoveOuter && !m_isHideSuperTri && counter < 3 ? stZ
-                                                                     : 0.0;
+            const CoordType z = !m_isRemoveOuterAndHoles && !m_isRemoveOuter &&
+                                        !m_isHideSuperTri && counter < 3
+                                    ? stZ
+                                    : 0.0;
             fout << v->pos.x << ' ' << v->pos.y << ' ' << z << "\n";
             counter++;
         }
@@ -185,7 +193,9 @@ private:
                         : m_edges;
                 m_cdt.insertEdges(edges);
             }
-            if(m_isRemoveOuter)
+            if(m_isRemoveOuterAndHoles)
+                m_cdt.eraseOuterTrianglesAndHoles();
+            else if(m_isRemoveOuter)
                 m_cdt.eraseOuterTriangles();
             else if(m_isHideSuperTri)
                 m_cdt.eraseSuperTriangle();
@@ -254,7 +264,8 @@ protected:
         for(TCit t = m_cdt.triangles.begin(); t != m_cdt.triangles.end(); ++t)
         {
             if(!m_isHideSuperTri && !m_isRemoveOuter)
-                if(t->vertices[0] < 3 || t->vertices[1] < 3 || t->vertices[2] < 3)
+                if(t->vertices[0] < 3 || t->vertices[1] < 3 ||
+                   t->vertices[2] < 3)
                     continue;
             const V2d& v1 = m_cdt.vertices[t->vertices[0]].pos;
             const V2d& v2 = m_cdt.vertices[t->vertices[1]].pos;
@@ -312,6 +323,7 @@ private:
     bool m_isHidePoints;
     bool m_isHideSuperTri;
     bool m_isRemoveOuter;
+    bool m_isRemoveOuterAndHoles;
 };
 
 class MainWindow : public QWidget
@@ -378,6 +390,16 @@ public:
         m_cdtWidget->removeOuterTriangles(0);
         removeOuter->setChecked(false);
 
+        QCheckBox* removeOuterHoles = new QCheckBox(
+            QStringLiteral("Remove outer triangles, auto-detect holes"));
+        connect(
+            removeOuterHoles,
+            SIGNAL(stateChanged(int)),
+            m_cdtWidget,
+            SLOT(removeOuterTrianglesAndHoles(int)));
+        m_cdtWidget->removeOuterTrianglesAndHoles(0);
+        removeOuterHoles->setChecked(false);
+
         QPushButton* screenshotBtn = new QPushButton(tr("Make Screenshot"));
         connect(screenshotBtn, SIGNAL(clicked()), m_cdtWidget, SLOT(prtScn()));
         screenshotBtn->setMinimumHeight(50);
@@ -393,6 +415,7 @@ public:
         rightLayout->addWidget(edgesSpinbox, cntr++, 0);
         rightLayout->addWidget(hidePoints, cntr++, 0);
         rightLayout->addWidget(removeOuter, cntr++, 0);
+        rightLayout->addWidget(removeOuterHoles, cntr++, 0);
         rightLayout->addWidget(hideSuperTri, cntr++, 0);
         rightLayout->addWidget(screenshotBtn, cntr++, 0);
         rightLayout->addWidget(saveBtn, cntr++, 0);

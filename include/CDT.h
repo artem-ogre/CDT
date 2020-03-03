@@ -54,6 +54,9 @@ public:
     void eraseSuperTriangle();
     /// Erase triangles outside of constrained boundary using growing
     void eraseOuterTriangles();
+    /// Erase triangles outside of constrained boundary
+    /// and automatically detected holes using growing
+    void eraseOuterTrianglesAndHoles();
 
 private:
     /*____ Detail __*/
@@ -110,6 +113,12 @@ private:
     void makeDummy(const TriInd iT);
     void eraseDummies();
     void eraseSuperTriangleVertices();
+    template <typename TriIndexIter>
+    void eraseTrianglesAtIndices(TriIndexIter first, TriIndexIter last);
+    TriIndUSet growToBoundary(std::stack<TriInd> seeds) const;
+    // return triangles behind boundary as second out parameter
+    std::pair<TriIndUSet, TriIndUSet>
+    growToBoundaryExt(std::stack<TriInd> seeds, TriIndUSet& traversed) const;
 
     std::vector<TriInd> m_dummyTris;
 #ifndef CDT_DONT_USE_BOOST_RTREE
