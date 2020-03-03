@@ -122,7 +122,7 @@ Any feedback and contributions are welcome.
 [Mozilla Public License,  v. 2.0](https://www.mozilla.org/en-US/MPL/2.0/FAQ/)
 
 ## Examples
-<img src="./readme_images/A.png" alt="A" height="200"/> <img src="./readme_images/Bean.png" alt="Bean" height="200"/> <img src="./readme_images/Guitar.png" alt="Guitar" height="200"/> <img src="./readme_images/LakeSuperior.png" alt="Lake Superior" height="200"/> <img src="./readme_images/Sweden.png" alt="Sweden" height="200"/>
+<img src="./readme_images/A.png" alt="A" height="200"/> <img src="./readme_images/Bean.png" alt="Bean" height="200"/> <img src="./readme_images/Guitar.png" alt="Guitar" height="200"/> <img src="./readme_images/Guitar_no_holes.png" alt="Guitar with holes" height="200"/> <img src="./readme_images/LakeSuperior.png" alt="Lake Superior" height="200"/> <img src="./readme_images/Sweden.png" alt="Sweden" height="200"/>
 
 
 ## Bibliography
