@@ -1,7 +1,7 @@
 # CDT: Constrained Delaunay Triangulation
 
 Numerically robust C++ implementation of constrained Delaunay triangulation (CDT)
-- numerically robust: uses robust geometric predicates
+- uses robust geometric predicates for numerical robustness
 - can be consumed as header-only (default) or compiled (if `CDT_USE_AS_COMPILED_LIBRARY` is defined)
 - permissively-licensed (MPL-2.0)
 - compatible with C++03
