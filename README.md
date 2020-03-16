@@ -84,6 +84,7 @@ public:
     void insertEdges(const std::vector<Edge>& edges);
     void eraseSuperTriangle();
     void eraseOuterTriangles();
+    void eraseOuterTrianglesAndHoles();
     // ...
 }
 
