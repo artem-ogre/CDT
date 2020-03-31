@@ -368,8 +368,8 @@ std::tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
                 return std::make_tuple(iT, iP1, iP2);
         }
     }
-    throw std::runtime_error(
-        "Could not find vertex triangle intersected by edge");
+    throw std::runtime_error("Could not find vertex triangle intersected by "
+                             "edge. Note: can be caused by duplicate points.");
 }
 
 template <typename T>
