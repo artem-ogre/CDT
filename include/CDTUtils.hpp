@@ -96,27 +96,27 @@ Vertex<T> Vertex<T>::makeOnEdge(
 //*****************************************************************************
 // Edge
 //*****************************************************************************
-Edge::Edge(VertInd iV1, VertInd iV2)
+CDT_INLINE_IF_HEADER_ONLY Edge::Edge(VertInd iV1, VertInd iV2)
     : m_vertices(
           iV1 < iV2 ? std::make_pair(iV1, iV2) : std::make_pair(iV2, iV1))
 {}
 
-bool Edge::operator==(const Edge& other) const
+CDT_INLINE_IF_HEADER_ONLY bool Edge::operator==(const Edge& other) const
 {
     return m_vertices == other.m_vertices;
 }
 
-VertInd Edge::v1() const
+CDT_INLINE_IF_HEADER_ONLY VertInd Edge::v1() const
 {
     return m_vertices.first;
 }
 
-VertInd Edge::v2() const
+CDT_INLINE_IF_HEADER_ONLY VertInd Edge::v2() const
 {
     return m_vertices.second;
 }
 
-const std::pair<VertInd, VertInd>& Edge::verts() const
+CDT_INLINE_IF_HEADER_ONLY const std::pair<VertInd, VertInd>& Edge::verts() const
 {
     return m_vertices;
 }

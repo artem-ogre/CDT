@@ -14,6 +14,15 @@
 typedef char couldnt_parse_cxx_standard[-1];
 #endif
 
+// Functions defined outside the class need to be 'inline'
+// if CDT is configured to be used as header-only library:
+// single-definition rule is violated otherwise
+#ifdef CDT_USE_AS_COMPILED_LIBRARY
+#define CDT_INLINE_IF_HEADER_ONLY
+#else
+#define CDT_INLINE_IF_HEADER_ONLY inline
+#endif
+
 #include <cassert>
 #include <cmath>
 #include <limits>
