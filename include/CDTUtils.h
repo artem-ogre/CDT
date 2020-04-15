@@ -32,21 +32,20 @@ typedef char couldnt_parse_cxx_standard[-1];
 #ifdef CDT_CXX11_IS_SUPPORTED
 #include <array>
 #include <functional>
+#include <random>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
-#include <random>
 #else
 #include <boost/array.hpp>
 #include <boost/functional/hash.hpp>
+#include <boost/random.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
-#include <boost/random.hpp>
 namespace std
 {
 using boost::array;
-using boost::hash;
 using boost::make_tuple;
 using boost::tie;
 using boost::tuple;
@@ -156,6 +155,17 @@ struct Triangle
 {
     VerticesArr3 vertices;   ///< triangle's three vertices
     NeighborsArr3 neighbors; ///< triangle's three neighbors
+
+    // needed for c++03 compatibility (no uniform initialization available)
+    static Triangle make(
+        const std::array<VertInd, 3>& vertices,
+        const std::array<TriInd, 3>& neighbors)
+    {
+        Triangle t;
+        t.vertices = vertices;
+        t.neighbors = neighbors;
+        return t;
+    }
 };
 
 typedef std::vector<Triangle> TriangleVec; ///< Vector of triangles
@@ -313,8 +323,12 @@ struct hash<CDT::Edge>
 private:
     static void hashCombine(std::size_t& seed, const CDT::VertInd& key)
     {
-        std::hash<CDT::VertInd> hasher;
-        seed ^= hasher(key) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+#ifdef CDT_CXX11_IS_SUPPORTED
+        typedef std::hash<CDT::VertInd> Hasher;
+#else
+        typedef boost::hash<CDT::VertInd> Hasher;
+#endif
+        seed ^= Hasher()(key) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }
     static std::size_t hashEdge(const CDT::Edge& e)
     {

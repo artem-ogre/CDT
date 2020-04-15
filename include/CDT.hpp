@@ -11,7 +11,16 @@ namespace CDT
 namespace detail
 {
 static std::mt19937 randGen(9001);
+
+// needed for c++03 compatibility (no uniform initialization available)
+template <typename T>
+std::array<T, 3> arr3(const T& v0, const T& v1, const T& v2)
+{
+    const std::array<T, 3> out = {v0, v1, v2};
+    return out;
 }
+
+} // namespace detail
 
 template <typename T>
 Triangulation<T>::Triangulation(
@@ -494,9 +503,10 @@ Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iT)
     const VertInd v1 = vv[0], v2 = vv[1], v3 = vv[2];
     const TriInd n1 = nn[0], n2 = nn[1], n3 = nn[2];
     // make two new triangles and convert current triangle to 3rd new triangle
-    triangles[iNewT1] = {{v2, v3, v}, {n2, iNewT2, iT}};
-    triangles[iNewT2] = {{v3, v1, v}, {n3, iT, iNewT1}};
-    t = {{v1, v2, v}, {n1, iNewT1, iNewT2}};
+    using detail::arr3;
+    triangles[iNewT1] = Triangle::make(arr3(v2, v3, v), arr3(n2, iNewT2, iT));
+    triangles[iNewT2] = Triangle::make(arr3(v3, v1, v), arr3(n3, iT, iNewT1));
+    t = Triangle::make(arr3(v1, v2, v), arr3(n1, iNewT1, iNewT2));
     // make and add a new vertex
     vertices.push_back(Vertex<T>::makeInTriangle(pos, iT, iNewT1, iNewT2));
     // adjust lists of adjacent triangles for v1, v2, v3
@@ -552,10 +562,11 @@ std::stack<TriInd> Triangulation<T>::insertPointOnEdge(
     const TriInd n3 = t2.neighbors[i];
     const TriInd n2 = t2.neighbors[cw(i)];
     // add new triangles and change existing ones
-    t1 = {{v1, v2, v}, {n1, iTnew2, iTnew1}};
-    t2 = {{v3, v4, v}, {n3, iTnew1, iTnew2}};
-    triangles[iTnew1] = {{v1, v, v4}, {iT1, iT2, n4}};
-    triangles[iTnew2] = {{v3, v, v2}, {iT2, iT1, n2}};
+    using detail::arr3;
+    t1 = Triangle::make(arr3(v1, v2, v), arr3(n1, iTnew2, iTnew1));
+    t2 = Triangle::make(arr3(v3, v4, v), arr3(n3, iTnew1, iTnew2));
+    triangles[iTnew1] = Triangle::make(arr3(v1, v, v4), arr3(iT1, iT2, n4));
+    triangles[iTnew2] = Triangle::make(arr3(v3, v, v2), arr3(iT2, iT1, n2));
     // make and add new vertex
     vertices.push_back(Vertex<T>::makeOnEdge(pos, iT1, iTnew2, iT2, iTnew1));
     // adjust neighboring triangles and vertices
@@ -727,8 +738,9 @@ void Triangulation<T>::flipEdge(const TriInd iT, const TriInd iTopo)
     const TriInd n4 = triOpoNs[i];
     const TriInd n2 = triOpoNs[cw(i)];
     // change vertices and neighbors
-    t = {{v4, v1, v3}, {n3, iTopo, n4}};
-    tOpo = {{v2, v3, v1}, {n2, iT, n1}};
+    using detail::arr3;
+    t = Triangle::make(arr3(v4, v1, v3), arr3(n3, iTopo, n4));
+    tOpo = Triangle::make(arr3(v2, v3, v1), arr3(n2, iT, n1));
     // adjust neighboring triangles and vertices
     changeNeighbor(n1, iT, iTopo);
     changeNeighbor(n4, iTopo, iT);
