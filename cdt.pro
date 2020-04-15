@@ -4,12 +4,13 @@ TEMPLATE = app
 
 # Uncomment to not use boost::rtree
 DEFINES += CDT_DONT_USE_BOOST_RTREE
+DEFINES += CDT_USE_AS_COMPILED_LIBRARY
 
 SOURCES += \
     main.cpp \
 
 # Uncomment to use as compiled library
-DEFINES += CDT_USE_AS_COMPILED_LIBRARY
+#DEFINES += CDT_USE_AS_COMPILED_LIBRARY
 SOURCES += CDT.cpp
 
 INCLUDEPATH += \
