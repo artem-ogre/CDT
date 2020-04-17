@@ -117,7 +117,7 @@ cdt.eraseOuterTriangles();
 /* ... */ = cdt.edges;
 ```
 ## Contributors
-- [Artem Amirkhanov](https://github.com/kalleakerblom)
+- [Artem Amirkhanov](https://github.com/artem-ogre)
 - [Karl Åkerblom](https://github.com/kalleakerblom)
 
 ## Contributing
