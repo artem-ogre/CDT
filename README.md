@@ -117,7 +117,9 @@ cdt.eraseOuterTriangles();
 /* ... */ = cdt.edges;
 ```
 ## Contributors
-Karl Åkerblom: algorithm implementation, triangle walking
+- [Artem Amirkhanov](https://github.com/kalleakerblom)
+- [Karl Åkerblom](https://github.com/kalleakerblom)
+
 ## Contributing
 Any feedback and contributions are welcome.
 ## License
