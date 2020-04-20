@@ -36,6 +36,17 @@ typedef char couldnt_parse_cxx_standard[-1];
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
+namespace CDT
+{
+using std::array;
+using std::make_tuple;
+using std::mt19937;
+using std::tie;
+using std::tuple;
+using std::unordered_map;
+using std::unordered_set;
+} // namespace CDT
+
 #else
 #include <boost/array.hpp>
 #include <boost/functional/hash.hpp>
@@ -43,7 +54,7 @@ typedef char couldnt_parse_cxx_standard[-1];
 #include <boost/tuple/tuple.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
-namespace std
+namespace CDT
 {
 using boost::array;
 using boost::make_tuple;
@@ -52,7 +63,7 @@ using boost::tuple;
 using boost::unordered_map;
 using boost::unordered_set;
 using boost::random::mt19937;
-} // namespace std
+} // namespace CDT
 #endif
 
 #ifdef CDT_USE_STRONG_TYPING
@@ -79,12 +90,12 @@ struct V2d
     static V2d make(const T x, const T y);
 };
 
-CDT_TYPEDEF(unsigned char, Index);           ///< Index in triangle
-CDT_TYPEDEF(std::size_t, VertInd);           ///< Vertex index
-CDT_TYPEDEF(std::size_t, TriInd);            ///< Triangle index
-typedef std::vector<TriInd> TriIndVec;       ///< Vector of triangle indices
-typedef std::array<VertInd, 3> VerticesArr3; ///< array of three vertex indices
-typedef std::array<TriInd, 3> NeighborsArr3; ///< array of three neighbors
+CDT_TYPEDEF(unsigned char, Index);      ///< Index in triangle
+CDT_TYPEDEF(std::size_t, VertInd);      ///< Vertex index
+CDT_TYPEDEF(std::size_t, TriInd);       ///< Triangle index
+typedef std::vector<TriInd> TriIndVec;  ///< Vector of triangle indices
+typedef array<VertInd, 3> VerticesArr3; ///< array of three vertex indices
+typedef array<TriInd, 3> NeighborsArr3; ///< array of three neighbors
 
 /// 2D bounding box
 template <typename T>
@@ -140,9 +151,9 @@ private:
     std::pair<VertInd, VertInd> m_vertices;
 };
 
-typedef std::unordered_set<Edge> EdgeUSet;     ///< Hash table of edges
-typedef std::unordered_set<TriInd> TriIndUSet; ///< Hash table of triangles
-typedef std::unordered_map<TriInd, TriInd> TriIndUMap; ///< Triangle hash map
+typedef unordered_set<Edge> EdgeUSet;             ///< Hash table of edges
+typedef unordered_set<TriInd> TriIndUSet;         ///< Hash table of triangles
+typedef unordered_map<TriInd, TriInd> TriIndUMap; ///< Triangle hash map
 
 /// Triangulation triangle (CCW winding)
 /* Counter-clockwise winding:
@@ -157,9 +168,8 @@ struct Triangle
     NeighborsArr3 neighbors; ///< triangle's three neighbors
 
     // needed for c++03 compatibility (no uniform initialization available)
-    static Triangle make(
-        const std::array<VertInd, 3>& vertices,
-        const std::array<TriInd, 3>& neighbors)
+    static Triangle
+    make(const array<VertInd, 3>& vertices, const array<TriInd, 3>& neighbors)
     {
         Triangle t;
         t.vertices = vertices;

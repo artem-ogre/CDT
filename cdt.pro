@@ -21,6 +21,7 @@ HEADERS += \
     include/predicates.h \
     include/CDT.h \
     include/CDT.hpp \
+    include/remove_at.hpp \
     utils/VerifyTopology.h \
     include/PointRTree.h \
     include/CDTUtils.h \

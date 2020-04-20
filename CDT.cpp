@@ -12,4 +12,21 @@ template struct CDT::Box2d<double>;
 template struct CDT::Vertex<float>;
 template struct CDT::Vertex<double>;
 
+template <>
+CDT::IndexMapping
+CDT::RemoveDuplicates<float>(std::vector<V2d<float> >& vertices);
+template <>
+CDT::IndexMapping
+CDT::RemoveDuplicates<double>(std::vector<V2d<double> >& vertices);
+
+template <>
+CDT::IndexMapping CDT::RemoveDuplicatesAndRemapEdges<float>(
+    std::vector<CDT::V2d<float> >& vertices,
+    std::vector<CDT::Edge>& edges);
+
+template <>
+CDT::IndexMapping CDT::RemoveDuplicatesAndRemapEdges<double>(
+    std::vector<CDT::V2d<double> >& vertices,
+    std::vector<CDT::Edge>& edges);
+
 #endif

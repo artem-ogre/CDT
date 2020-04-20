@@ -22,7 +22,7 @@ inline bool verifyTopology(const CDT::Triangulation<T>& cdt)
         typedef TriIndVec::const_iterator TriIndCit;
         for(TriIndCit it = v.triangles.begin(); it != v.triangles.end(); ++it)
         {
-            const std::array<VertInd, 3>& vv = cdt.triangles[*it].vertices;
+            const array<VertInd, 3>& vv = cdt.triangles[*it].vertices;
             if(std::find(vv.begin(), vv.end(), iV) == vv.end())
                 return false;
         }
@@ -36,7 +36,7 @@ inline bool verifyTopology(const CDT::Triangulation<T>& cdt)
         {
             if(*it == noNeighbor)
                 continue;
-            const std::array<TriInd, 3>& nn = cdt.triangles[*it].neighbors;
+            const array<TriInd, 3>& nn = cdt.triangles[*it].neighbors;
             if(std::find(nn.begin(), nn.end(), iT) == nn.end())
                 return false;
         }
