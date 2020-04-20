@@ -44,8 +44,8 @@ inline ForwardIt remove_at(
             ii_first != ii_last ? first + static_cast<diff_t>(*ii_first) : last;
 #ifdef REMOVE_AT_CXX11_IS_SUPPORTED
         std::move(source_first, source_last, destination);
-#elif
-        std::copy(source_first, source_last, destination) // c++98 version
+#else
+        std::copy(source_first, source_last, destination); // c++98 version
 #endif
         destination += source_last - source_first;
     }
