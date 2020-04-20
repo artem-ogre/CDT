@@ -6,6 +6,22 @@
 #include "remove_at.hpp"
 #include <algorithm>
 
+#ifdef CDT_CXX11_IS_SUPPORTED
+namespace std
+{
+
+template <typename TFirst, typename TSecond>
+struct hash<std::pair<TFirst, TSecond> >
+{
+    size_t operator()(const std::pair<TFirst, TSecond>& p) const
+    {
+        return hash<TFirst>()(p.first) ^ hash<TSecond>()(p.second);
+    }
+};
+
+} // namespace std
+#endif
+
 namespace CDT
 {
 
@@ -892,7 +908,7 @@ IndexMapping RemoveDuplicates(std::vector<V2d<T> >& vertices)
 
     for(std::size_t iIn = 0, iOut = iIn; iIn < vertices.size(); ++iIn)
     {
-        const V2d<T>& v = vertices[iIn].XY();
+        const V2d<T>& v = vertices[iIn];
         const XY xy(v.x, v.y);
         Cit it;
         bool isUnique;
