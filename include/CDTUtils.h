@@ -90,6 +90,12 @@ struct V2d
     static V2d make(const T x, const T y);
 };
 
+template <typename T>
+bool operator==(const CDT::V2d<T>& lhs, const CDT::V2d<T>& rhs)
+{
+    return lhs.x == rhs.x && lhs.y == rhs.y;
+}
+
 CDT_TYPEDEF(unsigned char, Index);      ///< Index in triangle
 CDT_TYPEDEF(std::size_t, VertInd);      ///< Vertex index
 CDT_TYPEDEF(std::size_t, TriInd);       ///< Triangle index

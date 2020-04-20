@@ -10,16 +10,17 @@
 namespace std
 {
 
-template <typename TFirst, typename TSecond>
-struct hash<std::pair<TFirst, TSecond> >
+template <typename T>
+struct hash<CDT::V2d<T> >
 {
-    size_t operator()(const std::pair<TFirst, TSecond>& p) const
+    size_t operator()(const CDT::V2d<T>& xy) const
     {
-        return hash<TFirst>()(p.first) ^ hash<TSecond>()(p.second);
+        return hash<T>()(xy.x) ^ hash<T>()(xy.y);
     }
 };
 
 } // namespace std
+
 #endif
 
 namespace CDT
@@ -899,20 +900,17 @@ template <typename T>
 IndexMapping RemoveDuplicates(std::vector<V2d<T> >& vertices)
 {
     IndexMapping duplicateMapping;
-    // hack: use std::pair because it is hashable and comparable in boost
-    typedef std::pair<T, T> XY;
-    typedef unordered_map<XY, std::size_t> PosToIndex;
+    typedef unordered_map<V2d<T>, std::size_t> PosToIndex;
     typedef typename PosToIndex::const_iterator Cit;
     PosToIndex uniqueVerts;
-    std::vector<std::size_t> removedDuplicateIndices;
 
+    std::vector<std::size_t> removedDuplicateIndices;
     for(std::size_t iIn = 0, iOut = iIn; iIn < vertices.size(); ++iIn)
     {
-        const V2d<T>& v = vertices[iIn];
-        const XY xy(v.x, v.y);
         Cit it;
         bool isUnique;
-        tie(it, isUnique) = uniqueVerts.insert(std::make_pair(xy, iOut));
+        tie(it, isUnique) =
+            uniqueVerts.insert(std::make_pair(vertices[iIn], iOut));
         if(isUnique)
         {
             ++iOut;
@@ -922,7 +920,7 @@ IndexMapping RemoveDuplicates(std::vector<V2d<T> >& vertices)
         removedDuplicateIndices.push_back(iIn);
     }
 
-    // actually remove the duplicates
+    // remove detected duplicates
     vertices.erase(
         remove_at(
             vertices.begin(),
