@@ -897,26 +897,25 @@ void Triangulation<T>::insertVertices(const std::vector<V2d<T> >& newVertices)
 }
 
 template <typename T>
-IndexMapping RemoveDuplicates(std::vector<V2d<T> >& vertices)
+std::vector<std::size_t> RemoveDuplicates(std::vector<V2d<T> >& vertices)
 {
-    IndexMapping duplicateMapping;
     typedef unordered_map<V2d<T>, std::size_t> PosToIndex;
-    typedef typename PosToIndex::const_iterator Cit;
     PosToIndex uniqueVerts;
-
+    std::vector<std::size_t> mapping(vertices.size());
     std::vector<std::size_t> removedDuplicateIndices;
+
     for(std::size_t iIn = 0, iOut = iIn; iIn < vertices.size(); ++iIn)
     {
-        Cit it;
+        typename PosToIndex::const_iterator it;
         bool isUnique;
         tie(it, isUnique) =
             uniqueVerts.insert(std::make_pair(vertices[iIn], iOut));
         if(isUnique)
         {
-            ++iOut;
+            mapping[iIn] = iOut++;
             continue;
         }
-        duplicateMapping[iIn] = it->second; // found a duplicate
+        mapping[iIn] = it->second; // found a duplicate
         removedDuplicateIndices.push_back(iIn);
     }
 
@@ -929,38 +928,24 @@ IndexMapping RemoveDuplicates(std::vector<V2d<T> >& vertices)
             removedDuplicateIndices.end()),
         vertices.end());
 
-    return duplicateMapping;
+    return mapping;
 }
 
 CDT_INLINE_IF_HEADER_ONLY void
-RemapEdges(std::vector<Edge>& edges, const IndexMapping& mapping)
+RemapEdges(std::vector<Edge>& edges, const std::vector<std::size_t>& mapping)
 {
-    typedef std::vector<Edge>::iterator It;
-    typedef IndexMapping::const_iterator MappingCit;
-    for(It it = edges.begin(); it != edges.end(); ++it)
+    for(std::vector<Edge>::iterator it = edges.begin(); it != edges.end(); ++it)
     {
-        array<VertInd, 2> vv = {it->v1(), it->v2()};
-        bool isRemapped = false;
-        for(unsigned char i = 0; i < 2; ++i)
-        {
-            MappingCit mcit = mapping.find(vv[i]);
-            if(mcit != mapping.end())
-            {
-                vv[i] = mcit->second;
-                isRemapped = true;
-            }
-        }
-        if(isRemapped)
-            *it = Edge(vv[0], vv[1]);
+        *it = Edge(mapping[it->v1()], mapping[it->v2()]); // remap
     }
 }
 
 template <typename T>
-IndexMapping RemoveDuplicatesAndRemapEdges(
+std::vector<std::size_t> RemoveDuplicatesAndRemapEdges(
     std::vector<V2d<T> >& vertices,
     std::vector<Edge>& edges)
 {
-    const IndexMapping mapping = RemoveDuplicates(vertices);
+    const std::vector<std::size_t> mapping = RemoveDuplicates(vertices);
     RemapEdges(edges, mapping);
     return mapping;
 }

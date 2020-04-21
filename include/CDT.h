@@ -133,23 +133,21 @@ private:
     FindingClosestPoint::Enum m_closestPtMode;
 };
 
-typedef unordered_map<std::size_t, std::size_t> IndexMapping;
-
-/// Removes duplicated points in-place and returns a mapping in a form
-///  key: removed duplicate vertex index] 
-///  value: original duplicate vertex index
-/// Example: vertices 0,1,3 where 0 and 3 are the same 
-/// will produce a mapping with single entry: '3 -> 0'
+/// Removes duplicated points in-place, returns a mapping as a vector of indices
+/// Example: vertices 0,1,3,4 where 0 and 3 are the same
+/// will produce a vector [0,1,0,2] which are indices into [0,1,4]
 template <typename T>
-IndexMapping RemoveDuplicates(std::vector<V2d<T> >& vertices);
+std::vector<std::size_t> RemoveDuplicates(std::vector<V2d<T> >& vertices);
 
 /// Use given vertex index mapping to remap vertex indices in edges (in-place)
 /// vertex mapping can be a result of RemoveDuplicates function
-void RemapEdges(std::vector<Edge>& edges, const IndexMapping& mapping);
+void RemapEdges(
+    std::vector<Edge>& edges,
+    const std::vector<std::size_t>& mapping);
 
 /// Does the same as a chained call of RemoveDuplicates + RemapEdges
 template <typename T>
-IndexMapping RemoveDuplicatesAndRemapEdges(
+std::vector<std::size_t> RemoveDuplicatesAndRemapEdges(
     std::vector<V2d<T> >& vertices,
     std::vector<Edge>& edges);
 
