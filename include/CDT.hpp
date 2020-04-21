@@ -292,6 +292,8 @@ void Triangulation<T>::insertEdge(Edge edge)
 {
     const VertInd iA = edge.v1();
     VertInd iB = edge.v2();
+    if(iA == iB) // edge connects a vertex to itself
+        return;
     const Vertex<T>& a = vertices[iA];
     const Vertex<T>& b = vertices[iB];
     if(verticesShareEdge(a, b))
