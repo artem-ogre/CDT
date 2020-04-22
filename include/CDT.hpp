@@ -3,20 +3,38 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 #include "CDT.h"
 
+#include "remove_at.hpp"
 #include <algorithm>
+
+#ifdef CDT_CXX11_IS_SUPPORTED
+namespace std
+{
+
+template <typename T>
+struct hash<CDT::V2d<T> >
+{
+    size_t operator()(const CDT::V2d<T>& xy) const
+    {
+        return hash<T>()(xy.x) ^ hash<T>()(xy.y);
+    }
+};
+
+} // namespace std
+
+#endif
 
 namespace CDT
 {
 
 namespace detail
 {
-static std::mt19937 randGen(9001);
+static mt19937 randGen(9001);
 
 // needed for c++03 compatibility (no uniform initialization available)
 template <typename T>
-std::array<T, 3> arr3(const T& v0, const T& v1, const T& v2)
+array<T, 3> arr3(const T& v0, const T& v1, const T& v2)
 {
-    const std::array<T, 3> out = {v0, v1, v2};
+    const array<T, 3> out = {v0, v1, v2};
     return out;
 }
 
@@ -274,6 +292,8 @@ void Triangulation<T>::insertEdge(Edge edge)
 {
     const VertInd iA = edge.v1();
     VertInd iB = edge.v2();
+    if(iA == iB) // edge connects a vertex to itself
+        return;
     const Vertex<T>& a = vertices[iA];
     const Vertex<T>& b = vertices[iB];
     if(verticesShareEdge(a, b))
@@ -283,7 +303,7 @@ void Triangulation<T>::insertEdge(Edge edge)
     }
     TriInd iT;
     VertInd iVleft, iVright;
-    std::tie(iT, iVleft, iVright) =
+    tie(iT, iVleft, iVright) =
         intersectedTriangle(iA, a.triangles, a.pos, b.pos);
     // if one of the triangle vertices is on the edge, move edge start
     if(iT == noNeighbor)
@@ -351,7 +371,7 @@ void Triangulation<T>::insertEdge(Edge edge)
  *  - index of point on the right of the line
  */
 template <typename T>
-std::tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
+tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
     const VertInd iA,
     const std::vector<TriInd>& candidates,
     const V2d<T>& a,
@@ -372,9 +392,9 @@ std::tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
         if(locP2 == PtLineLocation::Right)
         {
             if(locP1 == PtLineLocation::OnLine)
-                return std::make_tuple(noNeighbor, iP1, iP2);
+                return make_tuple(noNeighbor, iP1, iP2);
             if(locP1 == PtLineLocation::Left)
-                return std::make_tuple(iT, iP1, iP2);
+                return make_tuple(iT, iP1, iP2);
         }
     }
     throw std::runtime_error("Could not find vertex triangle intersected by "
@@ -413,7 +433,7 @@ template <typename T>
 void Triangulation<T>::insertVertex(const V2d<T>& pos)
 {
     const VertInd iVert(vertices.size());
-    std::array<TriInd, 2> trisAt = walkingSearchTrianglesAt(pos);
+    array<TriInd, 2> trisAt = walkingSearchTrianglesAt(pos);
     std::stack<TriInd> triStack =
         trisAt[1] == noNeighbor ? insertPointInTriangle(pos, trisAt[0])
                                 : insertPointOnEdge(pos, trisAt[0], trisAt[1]);
@@ -498,8 +518,8 @@ Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iT)
     const TriInd iNewT2 = addTriangle();
 
     Triangle& t = triangles[iT];
-    const std::array<VertInd, 3> vv = t.vertices;
-    const std::array<TriInd, 3> nn = t.neighbors;
+    const array<VertInd, 3> vv = t.vertices;
+    const array<TriInd, 3> nn = t.neighbors;
     const VertInd v1 = vv[0], v2 = vv[1], v3 = vv[2];
     const TriInd n1 = nn[0], n2 = nn[1], n3 = nn[2];
     // make two new triangles and convert current triangle to 3rd new triangle
@@ -588,9 +608,9 @@ std::stack<TriInd> Triangulation<T>::insertPointOnEdge(
 }
 
 template <typename T>
-std::array<TriInd, 2> Triangulation<T>::trianglesAt(const V2d<T>& pos) const
+array<TriInd, 2> Triangulation<T>::trianglesAt(const V2d<T>& pos) const
 {
-    std::array<TriInd, 2> out = {noNeighbor, noNeighbor};
+    array<TriInd, 2> out = {noNeighbor, noNeighbor};
     for(TriInd i = TriInd(0); i < TriInd(triangles.size()); ++i)
     {
         const Triangle& t = triangles[i];
@@ -644,10 +664,10 @@ TriInd Triangulation<T>::walkTriangles(
 }
 
 template <typename T>
-std::array<TriInd, 2>
+array<TriInd, 2>
 Triangulation<T>::walkingSearchTrianglesAt(const V2d<T>& pos) const
 {
-    std::array<TriInd, 2> out = {noNeighbor, noNeighbor};
+    array<TriInd, 2> out = {noNeighbor, noNeighbor};
     // Query RTree for a vertex close to pos, to start the search
 #ifndef CDT_DONT_USE_BOOST_RTREE
     const VertInd startVertex =
@@ -722,10 +742,10 @@ void Triangulation<T>::flipEdge(const TriInd iT, const TriInd iTopo)
 {
     Triangle& t = triangles[iT];
     Triangle& tOpo = triangles[iTopo];
-    const std::array<TriInd, 3>& triNs = t.neighbors;
-    const std::array<TriInd, 3>& triOpoNs = tOpo.neighbors;
-    const std::array<VertInd, 3>& triVs = t.vertices;
-    const std::array<VertInd, 3>& triOpoVs = tOpo.vertices;
+    const array<TriInd, 3>& triNs = t.neighbors;
+    const array<TriInd, 3>& triOpoNs = tOpo.neighbors;
+    const array<VertInd, 3>& triVs = t.vertices;
+    const array<VertInd, 3>& triOpoVs = tOpo.vertices;
     // find vertices and neighbors
     Index i = opposedVertexInd(t, iTopo);
     const VertInd v1 = triVs[i];
@@ -876,6 +896,60 @@ void Triangulation<T>::insertVertices(const std::vector<V2d<T> >& newVertices)
     typedef typename std::vector<V2d<T> >::const_iterator Cit;
     for(Cit it = newVertices.begin(); it != newVertices.end(); ++it)
         insertVertex(*it);
+}
+
+template <typename T>
+std::vector<std::size_t> RemoveDuplicates(std::vector<V2d<T> >& vertices)
+{
+    typedef unordered_map<V2d<T>, std::size_t> PosToIndex;
+    PosToIndex uniqueVerts;
+    std::vector<std::size_t> mapping(vertices.size());
+    std::vector<std::size_t> removedDuplicateIndices;
+
+    for(std::size_t iIn = 0, iOut = iIn; iIn < vertices.size(); ++iIn)
+    {
+        typename PosToIndex::const_iterator it;
+        bool isUnique;
+        tie(it, isUnique) =
+            uniqueVerts.insert(std::make_pair(vertices[iIn], iOut));
+        if(isUnique)
+        {
+            mapping[iIn] = iOut++;
+            continue;
+        }
+        mapping[iIn] = it->second; // found a duplicate
+        removedDuplicateIndices.push_back(iIn);
+    }
+
+    // remove detected duplicates
+    vertices.erase(
+        remove_at(
+            vertices.begin(),
+            vertices.end(),
+            removedDuplicateIndices.begin(),
+            removedDuplicateIndices.end()),
+        vertices.end());
+
+    return mapping;
+}
+
+CDT_INLINE_IF_HEADER_ONLY void
+RemapEdges(std::vector<Edge>& edges, const std::vector<std::size_t>& mapping)
+{
+    for(std::vector<Edge>::iterator it = edges.begin(); it != edges.end(); ++it)
+    {
+        *it = Edge(mapping[it->v1()], mapping[it->v2()]); // remap
+    }
+}
+
+template <typename T>
+std::vector<std::size_t> RemoveDuplicatesAndRemapEdges(
+    std::vector<V2d<T> >& vertices,
+    std::vector<Edge>& edges)
+{
+    const std::vector<std::size_t> mapping = RemoveDuplicates(vertices);
+    RemapEdges(edges, mapping);
+    return mapping;
 }
 
 } // namespace CDT

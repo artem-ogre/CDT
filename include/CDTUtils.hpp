@@ -124,22 +124,22 @@ CDT_INLINE_IF_HEADER_ONLY const std::pair<VertInd, VertInd>& Edge::verts() const
 //*****************************************************************************
 // Utility functions
 //*****************************************************************************
-inline Index ccw(Index i)
+CDT_INLINE_IF_HEADER_ONLY Index ccw(Index i)
 {
     return Index((i + 1) % 3);
 }
 
-inline Index cw(Index i)
+CDT_INLINE_IF_HEADER_ONLY Index cw(Index i)
 {
     return Index((i + 2) % 3);
 }
 
-inline bool isOnEdge(const PtTriLocation::Enum location)
+CDT_INLINE_IF_HEADER_ONLY bool isOnEdge(const PtTriLocation::Enum location)
 {
     return location > PtTriLocation::Outside;
 }
 
-inline Index edgeNeighbor(const PtTriLocation::Enum location)
+CDT_INLINE_IF_HEADER_ONLY Index edgeNeighbor(const PtTriLocation::Enum location)
 {
     assert(location >= PtTriLocation::OnEdge1);
     return static_cast<Index>(location - PtTriLocation::OnEdge1);
@@ -187,7 +187,7 @@ PtTriLocation::Enum locatePointTriangle(
     return result;
 }
 
-inline Index opoNbr(const Index vertIndex)
+CDT_INLINE_IF_HEADER_ONLY Index opoNbr(const Index vertIndex)
 {
     if(vertIndex == Index(0))
         return Index(1);
@@ -198,7 +198,7 @@ inline Index opoNbr(const Index vertIndex)
     throw std::runtime_error("Invalid vertex index");
 }
 
-inline Index opoVrt(const Index neighborIndex)
+CDT_INLINE_IF_HEADER_ONLY Index opoVrt(const Index neighborIndex)
 {
     if(neighborIndex == Index(0))
         return Index(2);
@@ -209,7 +209,8 @@ inline Index opoVrt(const Index neighborIndex)
     throw std::runtime_error("Invalid neighbor index");
 }
 
-inline Index opposedTriangleInd(const Triangle& tri, const VertInd iVert)
+CDT_INLINE_IF_HEADER_ONLY Index
+opposedTriangleInd(const Triangle& tri, const VertInd iVert)
 {
     for(Index vi = Index(0); vi < Index(3); ++vi)
         if(iVert == tri.vertices[vi])
@@ -217,7 +218,7 @@ inline Index opposedTriangleInd(const Triangle& tri, const VertInd iVert)
     throw std::runtime_error("Could not find opposed triangle index");
 }
 
-inline Index opposedTriangleInd(
+CDT_INLINE_IF_HEADER_ONLY Index opposedTriangleInd(
     const Triangle& tri,
     const VertInd iVedge1,
     const VertInd iVedge2)
@@ -231,7 +232,8 @@ inline Index opposedTriangleInd(
     throw std::runtime_error("Could not find opposed-to-edge triangle index");
 }
 
-inline Index opposedVertexInd(const Triangle& tri, const TriInd iTopo)
+CDT_INLINE_IF_HEADER_ONLY Index
+opposedVertexInd(const Triangle& tri, const TriInd iTopo)
 {
     for(Index ni = Index(0); ni < Index(3); ++ni)
         if(iTopo == tri.neighbors[ni])
@@ -239,7 +241,8 @@ inline Index opposedVertexInd(const Triangle& tri, const TriInd iTopo)
     throw std::runtime_error("Could not find opposed vertex index");
 }
 
-inline Index neighborInd(const Triangle& tri, const TriInd iTnbr)
+CDT_INLINE_IF_HEADER_ONLY Index
+neighborInd(const Triangle& tri, const TriInd iTnbr)
 {
     for(Index ni = Index(0); ni < Index(3); ++ni)
         if(iTnbr == tri.neighbors[ni])
@@ -247,7 +250,7 @@ inline Index neighborInd(const Triangle& tri, const TriInd iTnbr)
     throw std::runtime_error("Could not find neighbor triangle index");
 }
 
-inline Index vertexInd(const Triangle& tri, const VertInd iV)
+CDT_INLINE_IF_HEADER_ONLY Index vertexInd(const Triangle& tri, const VertInd iV)
 {
     for(Index i = Index(0); i < Index(3); ++i)
         if(iV == tri.vertices[i])
@@ -255,12 +258,14 @@ inline Index vertexInd(const Triangle& tri, const VertInd iV)
     throw std::runtime_error("Could not find vertex index in triangle");
 }
 
-inline TriInd opposedTriangle(const Triangle& tri, const VertInd iVert)
+CDT_INLINE_IF_HEADER_ONLY TriInd
+opposedTriangle(const Triangle& tri, const VertInd iVert)
 {
     return tri.neighbors[opposedTriangleInd(tri, iVert)];
 }
 
-inline VertInd opposedVertex(const Triangle& tri, const TriInd iTopo)
+CDT_INLINE_IF_HEADER_ONLY VertInd
+opposedVertex(const Triangle& tri, const TriInd iTopo)
 {
     return tri.vertices[opposedVertexInd(tri, iTopo)];
 }

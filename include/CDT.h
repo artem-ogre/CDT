@@ -31,6 +31,11 @@ struct FindingClosestPoint
     };
 };
 
+/// Constant representing no valid neighbor for a triangle
+const static TriInd noNeighbor(std::numeric_limits<std::size_t>::max());
+/// Constant representing no valid vertex for a triangle
+const static VertInd noVertex(std::numeric_limits<std::size_t>::max());
+
 /// Data structure representing a 2D triangulation
 template <typename T>
 class Triangulation
@@ -63,7 +68,7 @@ private:
     void addSuperTriangle(const Box2d<T>& box);
     void insertVertex(const V2d<T>& pos);
     void insertEdge(Edge edge);
-    std::tuple<TriInd, VertInd, VertInd> intersectedTriangle(
+    tuple<TriInd, VertInd, VertInd> intersectedTriangle(
         const VertInd iA,
         const std::vector<TriInd>& candidates,
         const V2d<T>& a,
@@ -74,8 +79,8 @@ private:
     /// Returns indices of four resulting triangles
     std::stack<TriInd>
     insertPointOnEdge(const V2d<T>& pos, const TriInd iT1, const TriInd iT2);
-    std::array<TriInd, 2> trianglesAt(const V2d<T>& pos) const;
-    std::array<TriInd, 2> walkingSearchTrianglesAt(const V2d<T>& pos) const;
+    array<TriInd, 2> trianglesAt(const V2d<T>& pos) const;
+    array<TriInd, 2> walkingSearchTrianglesAt(const V2d<T>& pos) const;
     TriInd walkTriangles(const VertInd startVertex, const V2d<T>& pos) const;
     VertInd
     nearestVertexRand(const V2d<T>& pos, const std::size_t nSamples) const;
@@ -128,12 +133,23 @@ private:
     FindingClosestPoint::Enum m_closestPtMode;
 };
 
-/// Constant representing no valid neighbor for a triangle
-const static TriInd noNeighbor =
-    TriInd(std::numeric_limits<std::size_t>::max());
-/// Constant representing no valid vertex for a triangle
-const static VertInd noVertex =
-    VertInd(std::numeric_limits<std::size_t>::max());
+/// Removes duplicated points in-place, returns a mapping as a vector of indices
+/// Example: vertices 0,1,3,4 where 0 and 3 are the same
+/// will produce a vector [0,1,0,2] which are indices into [0,1,4]
+template <typename T>
+std::vector<std::size_t> RemoveDuplicates(std::vector<V2d<T> >& vertices);
+
+/// Use given vertex index mapping to remap vertex indices in edges (in-place)
+/// vertex mapping can be a result of RemoveDuplicates function
+void RemapEdges(
+    std::vector<Edge>& edges,
+    const std::vector<std::size_t>& mapping);
+
+/// Does the same as a chained call of RemoveDuplicates + RemapEdges
+template <typename T>
+std::vector<std::size_t> RemoveDuplicatesAndRemapEdges(
+    std::vector<V2d<T> >& vertices,
+    std::vector<Edge>& edges);
 
 } // namespace CDT
 
