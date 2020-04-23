@@ -12,9 +12,9 @@ Numerically robust C++ implementation of constrained Delaunay triangulation (CDT
 ### Please ★ this repository if it helped. This means a lot to the authors :)
 
 ### Table of Contents  
-- [Description](#description)
 - [Algorithm](#algorithm)
 - [Installing](#installing)
+- [Details](#details)
 - [Using](#using)
 - [Contributors](#contributors)
 - [Contributing](#contributing)
@@ -22,29 +22,13 @@ Numerically robust C++ implementation of constrained Delaunay triangulation (CDT
 - [Bibliography](#bibliography)
 
 
-## Description
-
-- Performs constraint Delaunay triangulation
-- Supports three ways of removing outer triangles: 
-    - `eraseSuperTriangle`: produce a convex-hull  
-    - `eraseOuterTriangles`: remove all outer triangles until a boundary defined by constraint edges
-    - `eraseOuterTrianglesAndHoles`: remove outer triangles and automatically detected holes. Starts from super-triangle and traverses triangles until outer boundary. Triangles outside outer boundary will be removed. Then traversal continues until next boundary. Triangles between two boundaries will be kept. Traversal to next boundary continues (this time removing triangles). Stops when all triangles are traversed.
-
-
-- Uses William C. Lenthe's implementation of robust orientation and in-circle geometric predicates: https://github.com/wlenthe/GeometricPredicates.
-
-- Optionally depends on Boost for rtree 
-implementation (finding closest point) and fall back for some std types on pre-C++11 compilers. Boost dependency can be easily be removed via defining `CDT_DONT_USE_BOOST_RTREE`. This replaces `nearestVertexRtree` with slower `nearestVertexRand`.
-
-- A demonstrator tool is included: requires Qt for GUI. When running demo-tool **make sure** that working directory contains folder `test files`.
-
 ## Algorithm
 Implementation closely follows incremental construction algorithm by Anglada [[1](#1)]. During the legalization, the cases
 when at least one vertex belongs to super-triangle are resolved using an approach as described in Žalik et. al [[2](#2)].
 For efficient search of a triangle that contains inserted point randomized walking search is applied [[3](#3)]. To find the starting triangle we first find the nearest point using boost::rtree or using a closest random point.
 
 ### Input pre-conditions:
-- No duplicated points
+- No duplicated points (use provided functions for removing duplicate points and re-mapping edges)
 - No two constraint edges intersect each other
 
 ## Installing
@@ -52,6 +36,22 @@ For efficient search of a triangle that contains inserted point randomized walki
 No installation is needed. For the demonstrator tool qmake project file is used. It could either be opened in QtCreator directly, or qmake can be used to generate project files (e.g., makefiles or MSVC-project)
 ### As compiled library
 Define `CDT_USE_AS_COMPILED_LIBRARY` and compile `CDT.cpp`
+
+## Details
+
+- Supports three ways of removing outer triangles: 
+    - `eraseSuperTriangle`: produce a convex-hull  
+    - `eraseOuterTriangles`: remove all outer triangles until a boundary defined by constraint edges
+    - `eraseOuterTrianglesAndHoles`: remove outer triangles and automatically detected holes. Starts from super-triangle and traverses triangles until outer boundary. Triangles outside outer boundary will be removed. Then traversal continues until next boundary. Triangles between two boundaries will be kept. Traversal to next boundary continues (this time removing triangles). Stops when all triangles are traversed.
+
+- Removing duplicate points and re-mapping constraint edges can be done using functions: `RemoveDuplicatesAndRemapEdges, RemoveDuplicates,  RemapEdges`
+
+- Uses William C. Lenthe's implementation of robust orientation and in-circle geometric predicates: https://github.com/wlenthe/GeometricPredicates.
+
+- Optionally depends on Boost for rtree 
+implementation (finding closest point) and fall back for some std types on pre-C++11 compilers. Boost dependency can be easily be removed via defining `CDT_DONT_USE_BOOST_RTREE`. This replaces `nearestVertexRtree` with slower `nearestVertexRand`.
+
+- A demonstrator tool is included: requires Qt for GUI. When running demo-tool **make sure** that working directory contains folder `test files`.
 
 ## Using
 ### Synopsis
