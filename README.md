@@ -1,4 +1,4 @@
-<img src="./readme_images/CDT.png" alt="CDT Logo" height="120"/>
+<img src="./readme_images/CDT_logo.png" alt="CDT Logo" height="120"/>
 
 # CDT: Constrained Delaunay Triangulation
 
