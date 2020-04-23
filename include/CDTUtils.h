@@ -96,9 +96,9 @@ bool operator==(const CDT::V2d<T>& lhs, const CDT::V2d<T>& rhs)
     return lhs.x == rhs.x && lhs.y == rhs.y;
 }
 
-CDT_TYPEDEF(unsigned char, Index);      ///< Index in triangle
-CDT_TYPEDEF(std::size_t, VertInd);      ///< Vertex index
-CDT_TYPEDEF(std::size_t, TriInd);       ///< Triangle index
+CDT_TYPEDEF(unsigned char, Index)       ///< Index in triangle
+CDT_TYPEDEF(std::size_t, VertInd)       ///< Vertex index
+CDT_TYPEDEF(std::size_t, TriInd)        ///< Triangle index
 typedef std::vector<TriInd> TriIndVec;  ///< Vector of triangle indices
 typedef array<VertInd, 3> VerticesArr3; ///< array of three vertex indices
 typedef array<TriInd, 3> NeighborsArr3; ///< array of three neighbors
