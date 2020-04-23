@@ -105,7 +105,14 @@ public slots:
     }
 
     void prtScn()
-    {}
+    {
+        QFile file("cdt_screenshot.png");
+        file.open(QIODevice::WriteOnly);
+        QPixmap pixmap(rect().size());
+        pixmap.fill(Qt::transparent);
+        paint_(&pixmap);
+        pixmap.save(&file, "PNG");
+    }
 
     void saveToOff()
     {
@@ -214,7 +221,14 @@ private:
 protected:
     void paintEvent(QPaintEvent*)
     {
-        QPainter p(this);
+        paint_(this);
+    }
+
+private:
+    void paint_(QPaintDevice* pd)
+    {
+        QPainter p(pd);
+        p.setBrush(QBrush(Qt::white));
         if(m_cdt.vertices.empty())
             return;
 
@@ -280,9 +294,11 @@ protected:
             const QPointF pt1(scale * (v1.x - c.x), scale * (v1.y - c.y));
             const QPointF pt2(scale * (v2.x - c.x), scale * (v2.y - c.y));
             const QPointF pt3(scale * (v3.x - c.x), scale * (v3.y - c.y));
-            p.drawLine(pt1, pt2);
-            p.drawLine(pt2, pt3);
-            p.drawLine(pt3, pt1);
+            const CDT::array<QPointF, 3> pts = {pt1, pt2, pt3};
+            p.drawPolygon(pts.begin(), pts.size());
+            //            p.drawLine(pt1, pt2);
+            //            p.drawLine(pt2, pt3);
+            //            p.drawLine(pt3, pt1);
         }
         // constraint edges
         pen.setColor(QColor(50, 50, 50));
@@ -300,7 +316,7 @@ protected:
         if(m_isHidePoints)
             return;
         // draw points
-        pen.setColor(QColor(50, 50, 200));
+        pen.setColor(QColor(3, 102, 214));
         pen.setWidthF(7.0);
         p.setPen(pen);
         for(std::size_t i = 0; i < m_cdt.vertices.size(); ++i)
