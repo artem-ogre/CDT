@@ -90,6 +90,18 @@ public:
     // ...
 }
 
+template <typename T>
+std::vector<std::size_t> RemoveDuplicates(std::vector<V2d<T> >& vertices);
+
+void RemapEdges(
+    std::vector<Edge>& edges,
+    const std::vector<std::size_t>& mapping);
+
+template <typename T>
+std::vector<std::size_t> RemoveDuplicatesAndRemapEdges(
+    std::vector<V2d<T> >& vertices,
+    std::vector<Edge>& edges);
+
 } // namespace CDT
 ```
 
