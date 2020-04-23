@@ -1,3 +1,5 @@
+<img src="./readme_images/CDT.png" alt="CDT Logo" height="120"/>
+
 # CDT: Constrained Delaunay Triangulation
 
 Numerically robust C++ implementation of constrained Delaunay triangulation (CDT)
