@@ -796,7 +796,7 @@ void Triangulation<T>::removeAdjacentTriangle(
     const TriInd iTriangle)
 {
     std::vector<TriInd>& tris = vertices[iVertex].triangles;
-    tris.erase(std::remove(tris.begin(), tris.end(), iTriangle), tris.end());
+    tris.erase(std::find(tris.begin(), tris.end(), iTriangle));
 }
 
 inline std::pair<std::vector<VertInd>, std::vector<VertInd> >
