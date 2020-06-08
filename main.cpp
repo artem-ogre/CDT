@@ -490,7 +490,7 @@ public:
             m_cdtWidget,
             SLOT(removeOuterTrianglesAndHoles(int)));
         m_cdtWidget->removeOuterTrianglesAndHoles(0);
-        removeOuterHoles->setChecked(false);
+        removeOuterHoles->setChecked(true);
 
         QPushButton* screenshotBtn = new QPushButton(tr("Make Screenshot"));
         connect(screenshotBtn, SIGNAL(clicked()), m_cdtWidget, SLOT(prtScn()));
