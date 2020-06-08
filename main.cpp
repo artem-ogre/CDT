@@ -7,6 +7,7 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <optional>
 
 #include <QApplication>
 #include <QCheckBox>
@@ -51,9 +52,10 @@ public:
         , m_isRemoveOuterAndHoles(false)
     {
         setAutoFillBackground(false);
+        setMouseTracking(true);
     }
 
-    QSize sizeHint() const
+    QSize sizeHint() const override
     {
         return QSize(9001, 9001); // over 9000!
     }
@@ -64,6 +66,7 @@ public slots:
         QDir dir = QDir(QDir::currentPath(), tr("*.txt"));
         dir.setPath(QStringLiteral("test files"));
         const QString fileName = dir.filePath(item->text());
+        reset();
         readData(fileName);
         updateCDT();
     }
@@ -148,6 +151,14 @@ public slots:
         }
         fout.close();
     }
+    
+    void reset() {
+        m_points.clear();
+        m_edges.clear();
+        m_geoAnchor.reset();
+        m_mousePos.reset();
+        m_scale = 0.0;
+    }
 
 private:
     void readData(const QString& file)
@@ -219,30 +230,30 @@ private:
     }
 
 protected:
-    void paintEvent(QPaintEvent*)
+    void paintEvent(QPaintEvent*) override
     {
         paint_(this);
     }
     
     void wheelEvent(QWheelEvent *event) override {
-        const int degrees = event->delta() / 8;
-        std::cout << "degrees: " << degrees << "\n";
-//        int steps = degrees / 15;
-//        double scaleFactor = 1.0;
-//        const qreal minFactor = 1.0;
-//        const qreal maxFactor = 10.0;
-//        qreal h11 = 1.0, h22 = 0;
-//        if(steps > 0)
-//        {
-//            h11 = (h11 >= maxFactor) ? h11 : (h11 + scaleFactor);
-//            h22 = (h22 >= maxFactor) ? h22 : (h22 + scaleFactor);
-//        }
-//        else
-//        {
-//            h11 = (h11 <= minFactor) ? minFactor : (h11 - scaleFactor);
-//            h22 = (h22 <= minFactor) ? minFactor : (h22 - scaleFactor);
-//        }
+        int steps = event->delta() / 120;
+        auto scale = m_scale + steps * 0.2;
+        scale = steps>0 ? std::min(scale, 7.0) : std::max(scale, -7.0);
+        if (m_scale == scale) {
+            return;
+        }
+        
+        if (m_mousePos) {
+            m_geoAnchor = m_transform.inverted().map(*m_mousePos);
+        }
+        m_scale = scale;
+        update();
     }
+    
+    void mouseMoveEvent(QMouseEvent *event) override {
+        m_mousePos = event->pos();
+    }
+    
 
 private:
     void paint_(QPaintDevice* pd)
@@ -251,21 +262,35 @@ private:
         p.setBrush(QBrush(Qt::white));
         if(m_cdt.vertices.empty())
             return;
-
-        const CoordType fixedSize(std::min(size().width(), size().height()));
+        
         p.setRenderHints(QPainter::Antialiasing);
-        p.translate(fixedSize / 2.0, fixedSize / 2.0);
-        p.scale(1, -1);
-
         const Box2d box = Box2d::envelop(m_points);
-        const V2d c = {(box.min.x + box.max.x) / CoordType(2),
-                       (box.min.y + box.max.y) / CoordType(2)};
-        const double scale =
-            0.8 * fixedSize /
-            (std::fmax(box.max.x - box.min.x, box.max.y - box.min.y));
-
+        
+        auto vp_size = size() * 0.8;
+        auto vp_aspect_ratio = vp_size.width() * 1.0 / vp_size.height();
+        auto geo_size = Box2d::envelop(m_points);
+        auto geo_aspect_ratio = (geo_size.max.x - geo_size.min.x) / (geo_size.max.y - geo_size.min.y);
+        auto scale = (geo_aspect_ratio > vp_aspect_ratio) ? vp_size.width()/(geo_size.max.x - geo_size.min.x) : vp_size.height()/(geo_size.max.y - geo_size.min.y);
+        scale *= std::pow(2, m_scale);
+        
+        QPointF scrOrigin{size().width()/2.0, size().height()/2.0};
+        QPointF geoOrigin{(box.min.x + box.max.x)/2, (box.min.y + box.max.y)/2};
+        
+        if (m_mousePos && m_geoAnchor) {
+            scrOrigin = *m_mousePos;
+            geoOrigin = *m_geoAnchor;
+        }
+        
+        m_transform.reset();
+        m_transform.translate(scrOrigin.x(), scrOrigin.y());
+        m_transform.scale(scale, -scale);
+        m_transform.translate(-geoOrigin.x(), -geoOrigin.y());
+        p.setTransform(m_transform);
+        
+        
         QPen pen;
         pen.setCapStyle(Qt::RoundCap);
+        pen.setCosmetic(true);
 
         // Draw triangles
         pen.setWidthF(2.0);
@@ -284,9 +309,9 @@ private:
                 const V2d& v1 = m_cdt.vertices[t->vertices[0]].pos;
                 const V2d& v2 = m_cdt.vertices[t->vertices[1]].pos;
                 const V2d& v3 = m_cdt.vertices[t->vertices[2]].pos;
-                const QPointF pt1(scale * (v1.x - c.x), scale * (v1.y - c.y));
-                const QPointF pt2(scale * (v2.x - c.x), scale * (v2.y - c.y));
-                const QPointF pt3(scale * (v3.x - c.x), scale * (v3.y - c.y));
+                QPointF pt1(v1.x, v1.y);
+                QPointF pt2(v2.x, v2.y);
+                QPointF pt3(v3.x, v3.y);
                 p.drawLine(pt1, pt2);
                 p.drawLine(pt2, pt3);
                 p.drawLine(pt3, pt1);
@@ -311,14 +336,11 @@ private:
             const V2d& v1 = m_cdt.vertices[t->vertices[0]].pos;
             const V2d& v2 = m_cdt.vertices[t->vertices[1]].pos;
             const V2d& v3 = m_cdt.vertices[t->vertices[2]].pos;
-            const QPointF pt1(scale * (v1.x - c.x), scale * (v1.y - c.y));
-            const QPointF pt2(scale * (v2.x - c.x), scale * (v2.y - c.y));
-            const QPointF pt3(scale * (v3.x - c.x), scale * (v3.y - c.y));
+            QPointF pt1(v1.x, v1.y);
+            QPointF pt2(v2.x, v2.y);
+            QPointF pt3(v3.x, v3.y);
             const CDT::array<QPointF, 3> pts = {pt1, pt2, pt3};
             p.drawPolygon(pts.begin(), pts.size());
-            //            p.drawLine(pt1, pt2);
-            //            p.drawLine(pt2, pt3);
-            //            p.drawLine(pt3, pt1);
         }
         // constraint edges
         pen.setColor(QColor(50, 50, 50));
@@ -328,8 +350,8 @@ private:
         {
             const V2d& v1 = m_cdt.vertices[e->v1()].pos;
             const V2d& v2 = m_cdt.vertices[e->v2()].pos;
-            const QPointF pt1(scale * (v1.x - c.x), scale * (v1.y - c.y));
-            const QPointF pt2(scale * (v2.x - c.x), scale * (v2.y - c.y));
+            QPointF pt1(v1.x, v1.y);
+            QPointF pt2(v2.x, v2.y);
             p.drawLine(pt1, pt2);
         }
 
@@ -342,8 +364,8 @@ private:
         for(std::size_t i = 0; i < m_cdt.vertices.size(); ++i)
         {
             const Vertex& v = m_cdt.vertices[i];
-            const QPointF pt(scale * (v.pos.x - c.x), scale * (v.pos.y - c.y));
-            p.drawPoint(pt);
+            QPointF pt1(v.pos.x, v.pos.y);
+            p.drawPoint(pt1);
         }
         // last added point
         if(m_ptLimit <= m_points.size())
@@ -352,8 +374,8 @@ private:
             pen.setWidthF(9.0);
             p.setPen(pen);
             const Vertex& v = m_cdt.vertices.back();
-            const QPointF pt(scale * (v.pos.x - c.x), scale * (v.pos.y - c.y));
-            p.drawPoint(pt);
+            QPointF pt1(v.pos.x, v.pos.y);
+            p.drawPoint(pt1);
         }
     }
 
@@ -367,6 +389,10 @@ private:
     bool m_isHideSuperTri;
     bool m_isRemoveOuter;
     bool m_isRemoveOuterAndHoles;
+    float m_scale = 0.0;
+    QTransform m_transform;
+    std::optional<QPointF> m_mousePos;
+    std::optional<QPointF> m_geoAnchor;
 };
 
 class MainWindow : public QWidget
