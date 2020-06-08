@@ -250,8 +250,23 @@ protected:
         update();
     }
     
+    void mousePressEvent(QMouseEvent *event) override {
+        m_isDraging = true;
+        m_mousePos = event->pos();
+        m_geoAnchor = m_transform.inverted().map(*m_mousePos);
+    }
+    
+    void mouseReleaseEvent(QMouseEvent *event) override {
+        (void)event;
+        m_isDraging = false;
+    }
+    
     void mouseMoveEvent(QMouseEvent *event) override {
         m_mousePos = event->pos();
+        
+        if (m_isDraging) {
+            update();
+        }
     }
     
 
@@ -393,6 +408,7 @@ private:
     QTransform m_transform;
     std::optional<QPointF> m_mousePos;
     std::optional<QPointF> m_geoAnchor;
+    bool m_isDraging = false;
 };
 
 class MainWindow : public QWidget
