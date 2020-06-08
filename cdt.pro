@@ -1,5 +1,7 @@
 QT += core gui widgets
 
+CONFIG-=app_bundle
+
 TEMPLATE = app
 
 # Uncomment to not use boost::rtree

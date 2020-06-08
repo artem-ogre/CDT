@@ -223,6 +223,26 @@ protected:
     {
         paint_(this);
     }
+    
+    void wheelEvent(QWheelEvent *event) override {
+        const int degrees = event->delta() / 8;
+        std::cout << "degrees: " << degrees << "\n";
+//        int steps = degrees / 15;
+//        double scaleFactor = 1.0;
+//        const qreal minFactor = 1.0;
+//        const qreal maxFactor = 10.0;
+//        qreal h11 = 1.0, h22 = 0;
+//        if(steps > 0)
+//        {
+//            h11 = (h11 >= maxFactor) ? h11 : (h11 + scaleFactor);
+//            h22 = (h22 >= maxFactor) ? h22 : (h22 + scaleFactor);
+//        }
+//        else
+//        {
+//            h11 = (h11 <= minFactor) ? minFactor : (h11 - scaleFactor);
+//            h22 = (h22 <= minFactor) ? minFactor : (h22 - scaleFactor);
+//        }
+    }
 
 private:
     void paint_(QPaintDevice* pd)
