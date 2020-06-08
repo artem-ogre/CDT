@@ -269,6 +269,13 @@ protected:
         }
     }
     
+    void leaveEvent(QEvent *event) override {
+        (void)event;
+        m_isDraging = false;
+        m_mousePos = QPointF{size().width()/2.0, size().height()/2.0};
+        m_geoAnchor = m_transform.inverted().map(*m_mousePos);
+    }
+    
 
 private:
     void paint_(QPaintDevice* pd)
