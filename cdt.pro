@@ -2,6 +2,10 @@ QT += core gui widgets
 
 TEMPLATE = app
 
+macx {
+    CONFIG -= app_bundle
+}
+
 # Uncomment to not use boost::rtree
 DEFINES += CDT_DONT_USE_BOOST_RTREE
 DEFINES += CDT_USE_AS_COMPILED_LIBRARY
