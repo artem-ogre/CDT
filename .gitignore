@@ -71,3 +71,8 @@ Thumbs.db
 *.dll
 *.exe
 
+# xcode
+*.xcode*
+# moc
+moc_*.h
+

@@ -49,6 +49,8 @@ public:
         , m_isHideSuperTri(false)
         , m_isRemoveOuter(false)
         , m_isRemoveOuterAndHoles(false)
+        , m_translation(0., 0.)
+        , m_scale(1.0)
     {
         setAutoFillBackground(false);
     }
@@ -65,6 +67,7 @@ public slots:
         dir.setPath(QStringLiteral("test files"));
         const QString fileName = dir.filePath(item->text());
         readData(fileName);
+        initTransform();
         updateCDT();
     }
 
@@ -225,24 +228,49 @@ protected:
     }
 
 private:
+    QPointF sceneToScreen(const V2d& xy) const
+    {
+        const QPointF screenCenter(width() / 2.0, height() / 2.0);
+        return QPointF(m_scale * xy.x, -m_scale * xy.y) + screenCenter +
+               m_translation;
+    }
+    QPointF screenToScene(const QPointF& xy) const
+    {
+        const QPointF screenCenter(width() / 2.0, height() / 2.0);
+        QPointF out = (xy - m_translation - screenCenter) / m_scale;
+        out.setY(-out.y());
+        return out;
+    }
+    double calculateScale(const int w, const int h) const
+    {
+        const V2d sceneSize = V2d::make(
+            m_sceneBox.max.x - m_sceneBox.min.x,
+            m_sceneBox.max.y - m_sceneBox.min.y);
+        const double sceneRatio = sceneSize.x / sceneSize.y;
+        const double screenRatio = static_cast<double>(w) / h;
+        double scale =
+            (sceneRatio > screenRatio) ? w / sceneSize.x : h / sceneSize.y;
+        return scale * 0.95;
+    }
+    void initTransform()
+    {
+        m_sceneBox = Box2d::envelop(m_points);
+        QPointF sceneCenter(
+            (m_sceneBox.min.x + m_sceneBox.max.x) / CoordType(2),
+            (m_sceneBox.min.y + m_sceneBox.max.y) / CoordType(2));
+        m_scale = calculateScale(width(), height());
+        m_translation =
+            QPointF(-m_scale * sceneCenter.x(), m_scale * sceneCenter.y());
+    }
+
     void paint_(QPaintDevice* pd)
     {
         QPainter p(pd);
+        p.setRenderHints(QPainter::Antialiasing);
+
         p.setBrush(QBrush(Qt::white));
         if(m_cdt.vertices.empty())
             return;
-
-        const CoordType fixedSize(std::min(size().width(), size().height()));
-        p.setRenderHints(QPainter::Antialiasing);
-        p.translate(fixedSize / 2.0, fixedSize / 2.0);
-        p.scale(1, -1);
-
-        const Box2d box = Box2d::envelop(m_points);
-        const V2d c = {(box.min.x + box.max.x) / CoordType(2),
-                       (box.min.y + box.max.y) / CoordType(2)};
-        const double scale =
-            0.8 * fixedSize /
-            (std::fmax(box.max.x - box.min.x, box.max.y - box.min.y));
 
         QPen pen;
         pen.setCapStyle(Qt::RoundCap);
@@ -264,9 +292,9 @@ private:
                 const V2d& v1 = m_cdt.vertices[t->vertices[0]].pos;
                 const V2d& v2 = m_cdt.vertices[t->vertices[1]].pos;
                 const V2d& v3 = m_cdt.vertices[t->vertices[2]].pos;
-                const QPointF pt1(scale * (v1.x - c.x), scale * (v1.y - c.y));
-                const QPointF pt2(scale * (v2.x - c.x), scale * (v2.y - c.y));
-                const QPointF pt3(scale * (v3.x - c.x), scale * (v3.y - c.y));
+                const QPointF pt1 = sceneToScreen(v1);
+                const QPointF pt2 = sceneToScreen(v2);
+                const QPointF pt3 = sceneToScreen(v3);
                 p.drawLine(pt1, pt2);
                 p.drawLine(pt2, pt3);
                 p.drawLine(pt3, pt1);
@@ -291,14 +319,9 @@ private:
             const V2d& v1 = m_cdt.vertices[t->vertices[0]].pos;
             const V2d& v2 = m_cdt.vertices[t->vertices[1]].pos;
             const V2d& v3 = m_cdt.vertices[t->vertices[2]].pos;
-            const QPointF pt1(scale * (v1.x - c.x), scale * (v1.y - c.y));
-            const QPointF pt2(scale * (v2.x - c.x), scale * (v2.y - c.y));
-            const QPointF pt3(scale * (v3.x - c.x), scale * (v3.y - c.y));
-            const CDT::array<QPointF, 3> pts = {pt1, pt2, pt3};
+            const CDT::array<QPointF, 3> pts = {
+                sceneToScreen(v1), sceneToScreen(v2), sceneToScreen(v3)};
             p.drawPolygon(pts.begin(), pts.size());
-            //            p.drawLine(pt1, pt2);
-            //            p.drawLine(pt2, pt3);
-            //            p.drawLine(pt3, pt1);
         }
         // constraint edges
         pen.setColor(QColor(50, 50, 50));
@@ -308,9 +331,7 @@ private:
         {
             const V2d& v1 = m_cdt.vertices[e->v1()].pos;
             const V2d& v2 = m_cdt.vertices[e->v2()].pos;
-            const QPointF pt1(scale * (v1.x - c.x), scale * (v1.y - c.y));
-            const QPointF pt2(scale * (v2.x - c.x), scale * (v2.y - c.y));
-            p.drawLine(pt1, pt2);
+            p.drawLine(sceneToScreen(v1), sceneToScreen(v2));
         }
 
         if(m_isHidePoints)
@@ -321,9 +342,7 @@ private:
         p.setPen(pen);
         for(std::size_t i = 0; i < m_cdt.vertices.size(); ++i)
         {
-            const Vertex& v = m_cdt.vertices[i];
-            const QPointF pt(scale * (v.pos.x - c.x), scale * (v.pos.y - c.y));
-            p.drawPoint(pt);
+            p.drawPoint(sceneToScreen(m_cdt.vertices[i].pos));
         }
         // last added point
         if(m_ptLimit <= m_points.size())
@@ -332,9 +351,51 @@ private:
             pen.setWidthF(9.0);
             p.setPen(pen);
             const Vertex& v = m_cdt.vertices.back();
-            const QPointF pt(scale * (v.pos.x - c.x), scale * (v.pos.y - c.y));
-            p.drawPoint(pt);
+            p.drawPoint(sceneToScreen(v.pos));
         }
+    }
+
+    void mousePressEvent(QMouseEvent* event)
+    {
+        m_prevMousePos = event->pos();
+        qApp->setOverrideCursor(Qt::ClosedHandCursor);
+        setMouseTracking(true);
+    }
+    void mouseMoveEvent(QMouseEvent* event)
+    {
+        m_translation += (event->pos() - m_prevMousePos);
+        m_prevMousePos = event->pos();
+        update();
+    }
+    void mouseReleaseEvent(QMouseEvent*)
+    {
+        qApp->restoreOverrideCursor();
+        setMouseTracking(false);
+    }
+    void wheelEvent(QWheelEvent* event)
+    {
+        const double newScale =
+            m_scale * std::max(0.3, (1. + event->delta() * 8e-4));
+        if(m_scale == newScale)
+        {
+            return;
+        }
+        const QPointF cursor = event->posF();
+        const QPointF scenePt = screenToScene(cursor);
+        const QPointF screenCenter = QPointF(width(), height()) / 2.0;
+        m_translation = cursor - newScale * QPointF(scenePt.x(), -scenePt.y()) -
+                        screenCenter;
+        m_scale = newScale;
+        update();
+    }
+    void resizeEvent(QResizeEvent* e)
+    {
+        const double scaleRatio =
+            calculateScale(width(), height()) /
+            calculateScale(e->oldSize().width(), e->oldSize().height());
+        m_scale *= scaleRatio;
+        m_translation *= scaleRatio;
+        update();
     }
 
 private:
@@ -347,6 +408,11 @@ private:
     bool m_isHideSuperTri;
     bool m_isRemoveOuter;
     bool m_isRemoveOuterAndHoles;
+
+    QPointF m_prevMousePos;
+    QPointF m_translation;
+    double m_scale;
+    Box2d m_sceneBox;
 };
 
 class MainWindow : public QWidget
@@ -358,6 +424,7 @@ public:
         : QWidget(parent)
     {
         m_cdtWidget = new CDTWidget();
+        m_cdtWidget->setMinimumSize(QSize(1, 1));
         // Right pane
         QListWidget* filesList = new QListWidget();
         connect(
