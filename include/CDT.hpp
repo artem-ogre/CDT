@@ -408,11 +408,13 @@ void Triangulation<T>::addSuperTriangle(const Box2d<T>& box)
                            (box.min.y + box.max.y) / T(2)};
     const T w = box.max.x - box.min.x;
     const T h = box.max.y - box.min.y;
-    const T diag = T(4) * std::sqrt(w * w + h * h);
-    const T shift = diag / std::sqrt(T(2)); // diagonal * sin(45deg)
-    const V2d<T> posV1 = {center.x - shift, center.y - shift};
-    const V2d<T> posV2 = {center.x + shift, center.y - shift};
-    const V2d<T> posV3 = {center.x, center.y + diag};
+    T r = std::sqrt(w * w + h * h) / 2.0; // incircle radius
+    r *= 1.1;
+    const T R = 2.0 * r;                        // excircle radius
+    const T shiftX = R * std::sqrt(T(3)) / 2.0; // R * cos(30 deg)
+    const V2d<T> posV1 = {center.x - shiftX, center.y - r};
+    const V2d<T> posV2 = {center.x + shiftX, center.y - r};
+    const V2d<T> posV3 = {center.x, center.y + R};
     vertices.push_back(Vertex<T>::make(posV1, TriInd(0)));
     vertices.push_back(Vertex<T>::make(posV2, TriInd(0)));
     vertices.push_back(Vertex<T>::make(posV3, TriInd(0)));
