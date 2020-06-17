@@ -133,6 +133,7 @@ cdt.eraseOuterTriangles();
 ## Contributors
 - [Artem Amirkhanov](https://github.com/artem-ogre)
 - [Karl Åkerblom](https://github.com/kalleakerblom)
+- [baiwenlei](https://github.com/baiwenlei): dragging and zooming in the viewer
 
 ## Contributing
 Any feedback and contributions are welcome.
