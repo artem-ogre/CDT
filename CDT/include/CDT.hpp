@@ -15,11 +15,26 @@ struct hash<CDT::V2d<T> >
 {
     size_t operator()(const CDT::V2d<T>& xy) const
     {
-        return hash<T>()(xy.x) ^ hash<T>()(xy.y);
+        const std::hash<T> hasher;
+        return hasher(xy.x) ^ hasher(xy.y);
     }
 };
 
 } // namespace std
+
+#else
+
+namespace CDT
+{
+
+template<typename T>
+std::size_t hash_value(const CDT::V2d<T> &xy)
+{
+    const boost::hash<T> hasher;
+    return hasher(xy.x) ^ hasher(xy.y);
+}
+
+} // namespace CDT
 
 #endif
 
