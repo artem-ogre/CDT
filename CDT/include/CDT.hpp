@@ -421,7 +421,7 @@ void Triangulation<T>::addSuperTriangle(const Box2d<T>& box)
     const Triangle superTri = {{VertInd(0), VertInd(1), VertInd(2)},
                                {noNeighbor, noNeighbor, noNeighbor}};
     addTriangle(superTri);
-#ifndef CDT_DONT_USE_BOOST_RTREE
+#ifdef CDT_USE_BOOST
     if(m_closestPtMode == FindingClosestPoint::BoostRTree)
     {
         m_rtree.addPoint(posV1, VertInd(0));
@@ -455,7 +455,7 @@ void Triangulation<T>::insertVertex(const V2d<T>& pos)
             triStack.push(iTopo);
         }
     }
-#ifndef CDT_DONT_USE_BOOST_RTREE
+#ifdef CDT_USE_BOOST
     if(m_closestPtMode == FindingClosestPoint::BoostRTree)
         m_rtree.addPoint(pos, iVert);
 #endif
@@ -671,7 +671,7 @@ Triangulation<T>::walkingSearchTrianglesAt(const V2d<T>& pos) const
 {
     array<TriInd, 2> out = {noNeighbor, noNeighbor};
     // Query RTree for a vertex close to pos, to start the search
-#ifndef CDT_DONT_USE_BOOST_RTREE
+#ifdef CDT_USE_BOOST
     const VertInd startVertex =
         m_closestPtMode == FindingClosestPoint::BoostRTree
             ? nearestVertexRtree(pos)
@@ -694,7 +694,7 @@ Triangulation<T>::walkingSearchTrianglesAt(const V2d<T>& pos) const
     return out;
 }
 
-#ifndef CDT_DONT_USE_BOOST_RTREE
+#ifdef CDT_USE_BOOST
 template <typename T>
 VertInd Triangulation<T>::nearestVertexRtree(const V2d<T>& pos) const
 {
