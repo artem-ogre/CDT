@@ -63,8 +63,7 @@ public:
 public slots:
     void buildCDT(QListWidgetItem* item)
     {
-        QDir dir = QDir(QDir::currentPath(), tr("*.txt"));
-        dir.setPath(QStringLiteral("test files"));
+        QDir dir = QDir(QString(), tr("*.txt"));
         const QString fileName = dir.filePath(item->text());
         readData(fileName);
         initTransform();
@@ -519,8 +518,7 @@ public:
         setWindowTitle(tr("CDT Visualizer"));
 
         // Read files list
-        QDir dir = QDir(QDir::currentPath(), tr("*.txt"));
-        dir.setPath(QStringLiteral("test files"));
+        QDir dir = QDir(QString(), tr("*.txt"));
         QFileInfoList list = dir.entryInfoList();
         filesList->clear();
         QFileInfoList::iterator it;
