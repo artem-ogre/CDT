@@ -191,7 +191,7 @@ private:
                 m_ptLimit < m_points.size()
                     ? std::vector<V2d>(&m_points[0], &m_points[m_ptLimit])
                     : m_points;
-            const std::vector<std::size_t> mapping = CDT::RemoveDuplicates(pts);
+            const CDT::DuplicatesInfo duplInfo = CDT::RemoveDuplicates(pts);
             m_cdt.insertVertices(pts);
             if(m_ptLimit >= m_points.size() && !m_edges.empty())
             {
@@ -199,7 +199,7 @@ private:
                     m_edgeLimit < m_edges.size()
                         ? std::vector<Edge>(&m_edges[0], &m_edges[m_edgeLimit])
                         : m_edges;
-                CDT::RemapEdges(edges, mapping);
+                CDT::RemapEdges(edges, duplInfo.mapping);
                 m_cdt.insertEdges(edges);
             }
             if(m_isRemoveOuterAndHoles)
