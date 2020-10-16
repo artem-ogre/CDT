@@ -27,8 +27,8 @@ struct hash<CDT::V2d<T> >
 namespace CDT
 {
 
-template<typename T>
-std::size_t hash_value(const CDT::V2d<T> &xy)
+template <typename T>
+std::size_t hash_value(const CDT::V2d<T>& xy)
 {
     const boost::hash<T> hasher;
     return hasher(xy.x) ^ hasher(xy.y);
@@ -916,7 +916,7 @@ void Triangulation<T>::insertVertices(const std::vector<V2d<T> >& newVertices)
 }
 
 template <typename T>
-std::vector<std::size_t> RemoveDuplicates(std::vector<V2d<T> >& vertices)
+DuplicatesInfo RemoveDuplicates(std::vector<V2d<T> >& vertices)
 {
     typedef unordered_map<V2d<T>, std::size_t> PosToIndex;
     PosToIndex uniqueVerts;
@@ -947,7 +947,8 @@ std::vector<std::size_t> RemoveDuplicates(std::vector<V2d<T> >& vertices)
             removedDuplicateIndices.end()),
         vertices.end());
 
-    return mapping;
+    const DuplicatesInfo duplicateVertices = {mapping, removedDuplicateIndices};
+    return duplicateVertices;
 }
 
 CDT_INLINE_IF_HEADER_ONLY void
@@ -960,13 +961,13 @@ RemapEdges(std::vector<Edge>& edges, const std::vector<std::size_t>& mapping)
 }
 
 template <typename T>
-std::vector<std::size_t> RemoveDuplicatesAndRemapEdges(
+DuplicatesInfo RemoveDuplicatesAndRemapEdges(
     std::vector<V2d<T> >& vertices,
     std::vector<Edge>& edges)
 {
-    const std::vector<std::size_t> mapping = RemoveDuplicates(vertices);
-    RemapEdges(edges, mapping);
-    return mapping;
+    const DuplicatesInfo duplicateVertices = RemoveDuplicates(vertices);
+    RemapEdges(edges, duplicateVertices.mapping);
+    return duplicateVertices;
 }
 
 } // namespace CDT
