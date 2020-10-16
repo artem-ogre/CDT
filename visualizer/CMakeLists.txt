@@ -6,9 +6,12 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
 
+option(CDT_USE_FIND_PACKAGE
+    "If enabled prebuild CDT is consumed with find_package" OFF)
+
 if(CDT_USE_FIND_PACKAGE)
     # add CDT as package
-    find_package(CDT REQUIRED)
+    find_package(CDT REQUIRED CONFIG)
 else()
     # add CDT as source (easier development)
     add_subdirectory(../CDT CDT)
