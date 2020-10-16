@@ -61,6 +61,8 @@ else()
     add_library(${PROJECT_NAME} INTERFACE)
 endif()
 
+add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+
 foreach(dir_ ${cdt_include_dirs})
     target_include_directories(
         ${PROJECT_NAME} ${cdt_scope} $<BUILD_INTERFACE:${dir_}>)
@@ -71,8 +73,8 @@ target_include_directories(
 target_compile_definitions(
     ${PROJECT_NAME}
     ${cdt_scope}
-    $<$<BOOL:CDT_USE_BOOST>:CDT_USE_BOOST>
-    $<$<BOOL:CDT_USE_AS_COMPILED_LIBRARY>:CDT_USE_AS_COMPILED_LIBRARY>
+    $<$<BOOL:${CDT_USE_BOOST}>:CDT_USE_BOOST>
+    $<$<BOOL:${CDT_USE_AS_COMPILED_LIBRARY}>:CDT_USE_AS_COMPILED_LIBRARY>
 )
 
 

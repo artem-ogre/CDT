@@ -5,7 +5,14 @@ project(CDT_visualizer VERSION 0.0.1 LANGUAGES CXX)
 set(CMAKE_AUTOMOC ON)
 
 find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
-find_package(CDT REQUIRED)
+
+if(CDT_USE_FIND_PACKAGE)
+    # add CDT as package
+    find_package(CDT REQUIRED)
+else()
+    # add CDT as source (easier development)
+    add_subdirectory(../CDT CDT)
+endif()
 
 add_executable(${PROJECT_NAME})
 target_sources(${PROJECT_NAME} PRIVATE main.cpp)
