@@ -178,7 +178,7 @@ TriIndUSet PeelLayer(
     const TriangleVec& triangles,
     const EdgeUSet& fixedEdges,
     const unsigned short layerDepth,
-    std::vector<std::size_t>& triDepths);
+    std::vector<unsigned short>& triDepths);
 
 } // namespace CDT
 
