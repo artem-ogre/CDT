@@ -12,15 +12,15 @@ template struct CDT::Box2d<double>;
 template struct CDT::Vertex<float>;
 template struct CDT::Vertex<double>;
 
-template std::vector<std::size_t>
+template CDT::DuplicatesInfo
 CDT::RemoveDuplicates<float>(std::vector<V2d<float> >&);
-template std::vector<std::size_t>
+template CDT::DuplicatesInfo
 CDT::RemoveDuplicates<double>(std::vector<V2d<double> >&);
 
-template std::vector<std::size_t> CDT::RemoveDuplicatesAndRemapEdges<float>(
+template CDT::DuplicatesInfo CDT::RemoveDuplicatesAndRemapEdges<float>(
     std::vector<CDT::V2d<float> >&,
     std::vector<CDT::Edge>&);
-template std::vector<std::size_t> CDT::RemoveDuplicatesAndRemapEdges<double>(
+template CDT::DuplicatesInfo CDT::RemoveDuplicatesAndRemapEdges<double>(
     std::vector<CDT::V2d<double> >&,
     std::vector<CDT::Edge>&);
 
