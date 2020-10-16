@@ -77,6 +77,10 @@ target_compile_definitions(
     $<$<BOOL:${CDT_USE_AS_COMPILED_LIBRARY}>:CDT_USE_AS_COMPILED_LIBRARY>
 )
 
+if(CDT_USE_BOOST)
+    target_link_libraries(${PROJECT_NAME} INTERFACE Boost::boost)
+endif()
+
 
 # -------------
 # installation
