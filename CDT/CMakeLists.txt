@@ -5,7 +5,7 @@ project(
     VERSION 0.0.1
     DESCRIPTION
     "C++ library for constrained Delaunay triangulation (CDT)"
-    HOMEPAGE_URL "https://github.com/bernedom/SI"
+    HOMEPAGE_URL "https://github.com/artem-ogre/CDT"
     LANGUAGES CXX)
 
 
