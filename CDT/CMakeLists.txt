@@ -48,14 +48,25 @@ endif()
 
 # configure target
 set(cdt_include_dirs
-    ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_SOURCE_DIR}/extras
+    include
+    extras
 )
 
 if(CDT_USE_AS_COMPILED_LIBRARY)
     set(cdt_scope PUBLIC)
-    set(cdt_sources src/CDT.cpp)
-    add_library(${PROJECT_NAME} ${cdt_sources})
+    set(cdt_sources
+        src/CDT.cpp
+    )
+    set(cdt_headers
+        include/CDT.h
+        include/CDTUtils.h
+        include/PointRTree.h
+        include/remove_at.hpp
+        include/CDT.hpp
+        include/CDTUtils.hpp
+        include/predicates.h
+    )
+    add_library(${PROJECT_NAME} ${cdt_sources} ${cdt_headers})
 else()
     set(cdt_scope INTERFACE)
     add_library(${PROJECT_NAME} INTERFACE)
@@ -65,8 +76,12 @@ add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 foreach(dir_ ${cdt_include_dirs})
     target_include_directories(
-        ${PROJECT_NAME} ${cdt_scope} $<BUILD_INTERFACE:${dir_}>)
+        ${PROJECT_NAME}
+        ${cdt_scope}
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/${dir_}>
+    )
 endforeach()
+
 target_include_directories(
     ${PROJECT_NAME} INTERFACE $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
