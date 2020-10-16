@@ -116,17 +116,37 @@ public:
     // ...
 }
 
+struct DuplicatesInfo
+{
+    std::vector<std::size_t> mapping;    ///< vertex index mapping
+    std::vector<std::size_t> duplicates; ///< duplicates' indices
+};
+
 template <typename T>
-std::vector<std::size_t> RemoveDuplicates(std::vector<V2d<T> >& vertices);
+DuplicatesInfo RemoveDuplicates(std::vector<V2d<T> >& vertices);
 
 void RemapEdges(
     std::vector<Edge>& edges,
     const std::vector<std::size_t>& mapping);
 
 template <typename T>
-std::vector<std::size_t> RemoveDuplicatesAndRemapEdges(
+DuplicatesInfo RemoveDuplicatesAndRemapEdges(
     std::vector<V2d<T> >& vertices,
     std::vector<Edge>& edges);
+
+template <typename T>
+std::vector<unsigned short> CalculateTriangleDepths(
+    const std::vector<Vertex<T> >& vertices,
+    const TriangleVec& triangles,
+    const EdgeUSet& fixedEdges);
+
+template <typename T>
+TriIndUSet PeelLayer(
+    std::stack<TriInd> seeds,
+    const TriangleVec& triangles,
+    const EdgeUSet& fixedEdges,
+    const unsigned short layerDepth,
+    std::vector<unsigned short>& triDepths);
 
 } // namespace CDT
 ```
