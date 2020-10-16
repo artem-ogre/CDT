@@ -6,7 +6,7 @@
 #define CDT_lNrmUayWQaIR5fxnsg9B
 
 #include "CDTUtils.h"
-#ifndef CDT_DONT_USE_BOOST_RTREE
+#ifdef CDT_USE_BOOST
 #include "PointRTree.h"
 #endif
 
@@ -24,7 +24,7 @@ struct FindingClosestPoint
 {
     enum Enum
     {
-#ifndef CDT_DONT_USE_BOOST_RTREE
+#ifdef CDT_USE_BOOST
         BoostRTree,
 #endif
         ClosestRandom,
@@ -84,7 +84,7 @@ private:
     TriInd walkTriangles(const VertInd startVertex, const V2d<T>& pos) const;
     VertInd
     nearestVertexRand(const V2d<T>& pos, const std::size_t nSamples) const;
-#ifndef CDT_DONT_USE_BOOST_RTREE
+#ifdef CDT_USE_BOOST
     VertInd nearestVertexRtree(const V2d<T>& pos) const;
 #endif
     bool isFlipNeeded(
@@ -126,7 +126,7 @@ private:
     growToBoundaryExt(std::stack<TriInd> seeds, TriIndUSet& traversed) const;
 
     std::vector<TriInd> m_dummyTris;
-#ifndef CDT_DONT_USE_BOOST_RTREE
+#ifdef CDT_USE_BOOST
     PointRTree<T> m_rtree;
 #endif
     std::size_t m_nRandSamples;
