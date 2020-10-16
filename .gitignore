@@ -76,3 +76,8 @@ Thumbs.db
 # moc
 moc_*.h
 
+# CLion
+*.idea*
+
+# CMake build
+*build*
