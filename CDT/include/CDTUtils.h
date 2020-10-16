@@ -5,6 +5,11 @@
 #ifndef CDT_obwOaxOTdAWcLNTlNnaq
 #define CDT_obwOaxOTdAWcLNTlNnaq
 
+#ifdef CDT_DONT_USE_BOOST_RTREE
+// CDT_DONT_USE_BOOST_RTREE was replaced with CDT_USE_BOOST
+typedef char CDT_DONT_USE_BOOST_RTREE__was__replaced__with__CDT_USE_BOOST[-1];
+#endif
+
 // #define CDT_USE_STRONG_TYPING // strong type checks on indices
 
 // check if c++11 is supported
