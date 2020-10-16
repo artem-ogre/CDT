@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.3)
 
-project(CDT_visualizer VERSION 0.0.1 LANGUAGES CXX)
+project(CDT_visualizer VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_AUTOMOC ON)
 
