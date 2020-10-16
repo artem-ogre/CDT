@@ -13,7 +13,7 @@ Numerically robust C++ implementation of constrained Delaunay triangulation (CDT
 
 ### Table of Contents  
 - [Algorithm](#algorithm)
-- [Installing](#installing)
+- [Installation](#installation)
 - [Details](#details)
 - [Using](#using)
 - [Contributors](#contributors)
@@ -31,11 +31,34 @@ For efficient search of a triangle that contains inserted point randomized walki
 - No duplicated points (use provided functions for removing duplicate points and re-mapping edges)
 - No two constraint edges intersect each other
 
-## Installing
-### As header-only
-No installation is needed. For the demonstrator tool qmake project file is used. It could either be opened in QtCreator directly, or qmake can be used to generate project files (e.g., makefiles or MSVC-project)
-### As compiled library
-Define `CDT_USE_AS_COMPILED_LIBRARY` and compile `CDT.cpp`
+## Installation
+### Adding to CMake project directly
+Can be done with [`add_subdirectory`](https://cmake.org/cmake/help/latest/command/add_subdirectory.html) command (e.g., see CDT visualizer's CMakeLists.txt).
+```Cmake
+# add CDT as subdirectory to CMake project
+add_subdirectory(../CDT CDT)
+```
+### Adding to non-CMake project directly
+To use as **header-only** copy headers from `CDT/include`
+
+To use as a **compiled library** define `CDT_USE_AS_COMPILED_LIBRARY` and compile `CDT.cpp`
+
+### Consume pre-build CDT in CMake project with [`find_package`](https://cmake.org/cmake/help/latest/command/find_package.html)
+CDT provides package config files that can be included by other projects to find and use it.
+
+```bash
+# from CDT folder
+mkdir build && cd build
+# configure with desired CMake flags
+cmake -DCDT_USE_AS_COMPILED_LIBRARY=ON -DCDT_USE_BOOST=ON ..
+# build and install
+cmake --build . && cmake --install .
+```
+
+```CMake
+# In consuming CMakeLists.txt
+find_package(CDT REQUIRED CONFIG)
+```
 
 ## Details
 
@@ -48,8 +71,11 @@ Define `CDT_USE_AS_COMPILED_LIBRARY` and compile `CDT.cpp`
 
 - Uses William C. Lenthe's implementation of robust orientation and in-circle geometric predicates: https://github.com/wlenthe/GeometricPredicates.
 
-- Optionally depends on Boost for rtree 
-implementation (finding closest point) and fall back for some std types on pre-C++11 compilers. Boost dependency can be easily be removed via defining `CDT_DONT_USE_BOOST_RTREE`. This replaces `nearestVertexRtree` with slower `nearestVertexRand`.
+- Boost is an optional dependency used for:
+    * **Performance:** rtree implementation for finding the closest point during points insertion:  `nearestVertexRtree` is a faster than `nearestVertexRand`. Also `boost::container::flat_set` is used for faster triangle walking
+    * **Fall back** for standard library features missing in C++98 compilers.
+
+    To opt in define `CDT_USE_BOOST` either in CMake or in a preprocessor.
 
 - A demonstrator tool is included: requires Qt for GUI. When running demo-tool **make sure** that working directory contains folder `test files`.
 
@@ -63,7 +89,7 @@ struct FindingClosestPoint
 {
     enum Enum
     {
-#ifndef CDT_DONT_USE_BOOST_RTREE
+#ifdef CDT_USE_BOOST
         BoostRTree,
 #endif
         ClosestRandom,
