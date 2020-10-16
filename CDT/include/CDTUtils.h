@@ -28,8 +28,13 @@ typedef char couldnt_parse_cxx_standard[-1];
 #include <limits>
 #include <vector>
 
+#ifdef CDT_USE_BOOST
+#include <boost/container/flat_set.hpp>
+#endif
+
 // use fall-backs for c++11 features
 #ifdef CDT_CXX11_IS_SUPPORTED
+
 #include <array>
 #include <functional>
 #include <random>
@@ -160,6 +165,10 @@ private:
 typedef unordered_set<Edge> EdgeUSet;             ///< Hash table of edges
 typedef unordered_set<TriInd> TriIndUSet;         ///< Hash table of triangles
 typedef unordered_map<TriInd, TriInd> TriIndUMap; ///< Triangle hash map
+#ifdef CDT_USE_BOOST
+/// Flat hash table of triangles
+typedef boost::container::flat_set<TriInd> TriIndFlatUSet;
+#endif
 
 /// Triangulation triangle (CCW winding)
 /* Counter-clockwise winding:

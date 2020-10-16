@@ -637,7 +637,11 @@ TriInd Triangulation<T>::walkTriangles(
 {
     // begin walk in search of triangle at pos
     TriInd currTri = vertices[startVertex].triangles[0];
+#ifdef CDT_USE_BOOST
+    TriIndFlatUSet visited;
+#else
     TriIndUSet visited;
+#endif
     bool found = false;
     while(!found)
     {

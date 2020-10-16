@@ -26,18 +26,22 @@ option(CDT_USE_BOOST
 option(CDT_USE_AS_COMPILED_LIBRARY
     "If enabled templates for float and double will be instantiated and compiled into a library")
 
-message(STATUS "CDT_USE_BOOST is ${CDT_USE_BOOST}")
-message(STATUS "CDT_USE_AS_COMPILED_LIBRARY is ${CDT_USE_AS_COMPILED_LIBRARY}")
-
-
 # check if Boost is needed
-if(NOT cxx_std_11 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
-    set(CDT_NO_CXX11 ON)
+if(cxx_std_11 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+    # options
+    option(CDT_USE_BOOST
+        "If enabled Boost::rtree can be used for finding the nearest point; boost::flat_set is used for better performance"
+        OFF)
+    message(STATUS "CDT_USE_BOOST is ${CDT_USE_BOOST}")
+else()
     message(STATUS "Compiler does not support C++11: falling back to Boost")
+    set(CDT_USE_BOOST ON)
 endif()
 
+message(STATUS "CDT_USE_AS_COMPILED_LIBRARY is ${CDT_USE_AS_COMPILED_LIBRARY}")
+
 # Use boost for c++98 versions of c++11 containers or for Boost::rtree
-if(CDT_NO_CXX11 OR CDT_USE_BOOST)
+if(CDT_USE_BOOST)
     find_package(Boost REQUIRED)
 endif()
 
