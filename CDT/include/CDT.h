@@ -121,9 +121,6 @@ private:
     template <typename TriIndexIter>
     void eraseTrianglesAtIndices(TriIndexIter first, TriIndexIter last);
     TriIndUSet growToBoundary(std::stack<TriInd> seeds) const;
-    // return triangles behind boundary as second out parameter
-    std::pair<TriIndUSet, TriIndUSet>
-    growToBoundaryExt(std::stack<TriInd> seeds, TriIndUSet& traversed) const;
 
     std::vector<TriInd> m_dummyTris;
 #ifdef CDT_USE_BOOST
@@ -150,6 +147,29 @@ template <typename T>
 std::vector<std::size_t> RemoveDuplicatesAndRemapEdges(
     std::vector<V2d<T> >& vertices,
     std::vector<Edge>& edges);
+
+/// Calculate depth of each triangle in constraint triangulation.
+/// Perform depth peeling from super triangle to outermost boundary,
+/// then to next boundary and so on until all triangles are traversed
+/// For example depth is:
+/// * 0 for triangles outside outermost boundary
+/// * 1 for triangles inside boundary but outside hole
+/// * 2 for triangles in hole
+/// * 3 for triangles in island and so on...
+template <typename T>
+std::vector<unsigned short> CalculateTriangleDepths(
+    const std::vector<Vertex<T> >& vertices,
+    const TriangleVec& triangles,
+    const EdgeUSet& fixedEdges);
+
+/// Depth-peel a layer in triangulation, used when calculating triangle depths
+template <typename T>
+TriIndUSet PeelLayer(
+    std::stack<TriInd> seeds,
+    const TriangleVec& triangles,
+    const EdgeUSet& fixedEdges,
+    const std::size_t layerDepth,
+    std::vector<std::size_t>& triDepths);
 
 } // namespace CDT
 

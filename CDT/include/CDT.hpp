@@ -143,23 +143,17 @@ void Triangulation<T>::eraseOuterTriangles()
 template <typename T>
 void Triangulation<T>::eraseOuterTrianglesAndHoles()
 {
-    std::stack<TriInd> seeds;
-    seeds.push(vertices[0].triangles.front());
-    std::pair<TriIndUSet, TriIndUSet> growResult;
+    const std::vector<unsigned short> triDepths =
+        CalculateTriangleDepths(vertices, triangles, fixedEdges);
+
     TriIndVec toErase;
-    TriIndUSet traversed;
-    bool isOuterRegion = true;
-    do
+    toErase.reserve(triangles.size());
+    for(std::size_t iT = 0; iT != triangles.size(); ++iT)
     {
-        growResult = growToBoundaryExt(seeds, traversed);
-        const TriIndUSet& region = growResult.first;
-        const TriIndUSet& newSeeds = growResult.second;
-        if(isOuterRegion)
-            toErase.insert(toErase.end(), region.begin(), region.end());
-        isOuterRegion = !isOuterRegion;
-        seeds = std::stack<TriInd>(
-            std::deque<TriInd>(newSeeds.begin(), newSeeds.end()));
-    } while(!seeds.empty());
+        if(triDepths[iT] % 2 == 0)
+            toErase.push_back(iT);
+    }
+
     eraseTrianglesAtIndices(toErase.begin(), toErase.end());
     eraseSuperTriangleVertices();
 }
@@ -199,38 +193,6 @@ TriIndUSet Triangulation<T>::growToBoundary(std::stack<TriInd> seeds) const
 }
 
 template <typename T>
-std::pair<TriIndUSet, TriIndUSet> Triangulation<T>::growToBoundaryExt(
-    std::stack<TriInd> seeds,
-    TriIndUSet& traversed) const
-{
-    TriIndUSet newTraversed;
-    TriIndUSet behindBoundary;
-    while(!seeds.empty())
-    {
-        const TriInd iT = seeds.top();
-        seeds.pop();
-        traversed.insert(iT);
-        newTraversed.insert(iT);
-        behindBoundary.erase(iT);
-        const Triangle& t = triangles[iT];
-        for(Index i(0); i < Index(3); ++i)
-        {
-            const Edge opEdge(t.vertices[ccw(i)], t.vertices[cw(i)]);
-            const TriInd iN = t.neighbors[opoNbr(i)];
-            if(iN == noNeighbor || traversed.count(iN))
-                continue;
-            if(fixedEdges.count(opEdge))
-            {
-                behindBoundary.insert(iN);
-                continue;
-            }
-            seeds.push(iN);
-        }
-    }
-    return std::make_pair(newTraversed, behindBoundary);
-}
-
-template <typename T>
 void Triangulation<T>::makeDummy(const TriInd iT)
 {
     const Triangle& t = triangles[iT];
@@ -265,8 +227,9 @@ TriInd Triangulation<T>::addTriangle()
 {
     if(m_dummyTris.empty())
     {
-        const Triangle dummy = {{noVertex, noVertex, noVertex},
-                                {noNeighbor, noNeighbor, noNeighbor}};
+        const Triangle dummy = {
+            {noVertex, noVertex, noVertex},
+            {noNeighbor, noNeighbor, noNeighbor}};
         triangles.push_back(dummy);
         return TriInd(triangles.size() - 1);
     }
@@ -404,8 +367,8 @@ tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
 template <typename T>
 void Triangulation<T>::addSuperTriangle(const Box2d<T>& box)
 {
-    const V2d<T> center = {(box.min.x + box.max.x) / T(2),
-                           (box.min.y + box.max.y) / T(2)};
+    const V2d<T> center = {
+        (box.min.x + box.max.x) / T(2), (box.min.y + box.max.y) / T(2)};
     const T w = box.max.x - box.min.x;
     const T h = box.max.y - box.min.y;
     T r = std::sqrt(w * w + h * h) / 2.0; // incircle radius
@@ -418,8 +381,9 @@ void Triangulation<T>::addSuperTriangle(const Box2d<T>& box)
     vertices.push_back(Vertex<T>::make(posV1, TriInd(0)));
     vertices.push_back(Vertex<T>::make(posV2, TriInd(0)));
     vertices.push_back(Vertex<T>::make(posV3, TriInd(0)));
-    const Triangle superTri = {{VertInd(0), VertInd(1), VertInd(2)},
-                               {noNeighbor, noNeighbor, noNeighbor}};
+    const Triangle superTri = {
+        {VertInd(0), VertInd(1), VertInd(2)},
+        {noNeighbor, noNeighbor, noNeighbor}};
     addTriangle(superTri);
 #ifdef CDT_USE_BOOST
     if(m_closestPtMode == FindingClosestPoint::BoostRTree)
@@ -956,6 +920,61 @@ std::vector<std::size_t> RemoveDuplicatesAndRemapEdges(
     const std::vector<std::size_t> mapping = RemoveDuplicates(vertices);
     RemapEdges(edges, mapping);
     return mapping;
+}
+
+template <typename T>
+TriIndUSet PeelLayer(
+    std::stack<TriInd> seeds,
+    const TriangleVec& triangles,
+    const EdgeUSet& fixedEdges,
+    const unsigned short layerDepth,
+    std::vector<unsigned short>& triDepths)
+{
+    TriIndUSet behindBoundary;
+    while(!seeds.empty())
+    {
+        const TriInd iT = seeds.top();
+        seeds.pop();
+        triDepths[iT] = layerDepth;
+        behindBoundary.erase(iT);
+        const Triangle& t = triangles[iT];
+        for(Index i(0); i < Index(3); ++i)
+        {
+            const Edge opEdge(t.vertices[ccw(i)], t.vertices[cw(i)]);
+            const TriInd iN = t.neighbors[opoNbr(i)];
+            if(iN == noNeighbor || triDepths[iN] <= layerDepth)
+                continue;
+            if(fixedEdges.count(opEdge))
+            {
+                behindBoundary.insert(iN);
+                continue;
+            }
+            seeds.push(iN);
+        }
+    }
+    return behindBoundary;
+}
+
+template <typename T>
+std::vector<unsigned short> CalculateTriangleDepths(
+    const std::vector<Vertex<T> >& vertices,
+    const TriangleVec& triangles,
+    const EdgeUSet& fixedEdges)
+{
+    std::vector<unsigned short> triDepths(
+        triangles.size(), std::numeric_limits<unsigned short>::max());
+    typedef std::deque<TriInd> TriDeque;
+    std::stack<TriInd> seeds(TriDeque(1, vertices[0].triangles.front()));
+    unsigned short layerDepth = 0;
+
+    do
+    {
+        const TriIndUSet& newSeeds =
+            PeelLayer<T>(seeds, triangles, fixedEdges, layerDepth++, triDepths);
+        seeds = std::stack<TriInd>(TriDeque(newSeeds.begin(), newSeeds.end()));
+    } while(!seeds.empty());
+
+    return triDepths;
 }
 
 } // namespace CDT
