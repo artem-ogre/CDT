@@ -12,7 +12,6 @@
 #include <QCheckBox>
 #include <QColor>
 #include <QDir>
-#include <QFileDialog>
 #include <QHBoxLayout>
 #include <QListWidget>
 #include <QMessageBox>
@@ -28,7 +27,6 @@ typedef CDT::V2d<CoordType> V2d;
 typedef CDT::Vertex<CoordType> Vertex;
 typedef CDT::Triangle Triangle;
 typedef CDT::Box2d<CoordType> Box2d;
-typedef CDT::Index Index;
 typedef CDT::Edge Edge;
 
 class CDTWidget : public QWidget
@@ -38,7 +36,7 @@ class CDTWidget : public QWidget
 public:
     explicit CDTWidget(QWidget* parent = NULL)
         : QWidget(parent)
-#ifndef CDT_DONT_USE_BOOST_RTREE
+#ifdef CDT_USE_BOOST
         , m_cdt(CDT::FindingClosestPoint::BoostRTree)
 #else
         , m_cdt(CDT::FindingClosestPoint::ClosestRandom, 10)
@@ -182,7 +180,7 @@ private:
 
     void updateCDT()
     {
-#ifndef CDT_DONT_USE_BOOST_RTREE
+#ifdef CDT_USE_BOOST
         m_cdt = Triangulation(CDT::FindingClosestPoint::BoostRTree);
 #else
         m_cdt = Triangulation(CDT::FindingClosestPoint::ClosestRandom, 10);
