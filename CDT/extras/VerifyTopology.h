@@ -2,6 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+/**
+ * @file
+ * Helper function to verify if triangulation has no inconsistencies
+ */
+
 #ifndef CDT_Zahj4kpHLwFgkKtcOI1i
 #define CDT_Zahj4kpHLwFgkKtcOI1i
 
@@ -13,7 +18,7 @@ namespace CDT
 {
 
 /**
- * Verify that triangulation topology is correct.
+ * Verify that triangulation topology is consistent.
  *
  * Checks:
  *  - for each vertex adjacent triangles contain the vertex
