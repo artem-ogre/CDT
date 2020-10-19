@@ -769,6 +769,7 @@ void Triangulation<T>::removeAdjacentTriangle(
     tris.erase(std::find(tris.begin(), tris.end(), iTriangle));
 }
 
+/// Split points collection to points before and after given vertex index
 inline std::pair<std::vector<VertInd>, std::vector<VertInd> >
 splitPseudopolygon(const VertInd vi, const std::vector<VertInd>& points)
 {
