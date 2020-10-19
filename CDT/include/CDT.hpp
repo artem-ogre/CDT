@@ -1,6 +1,12 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+
+/**
+ * @file
+ * Public API - implementation
+ */
+
 #include "CDT.h"
 
 #include "remove_at.hpp"
@@ -30,7 +36,7 @@ namespace detail
 {
 static mt19937 randGen(9001);
 
-// needed for c++03 compatibility (no uniform initialization available)
+/// Needed for c++03 compatibility (no uniform initialization available)
 template <typename T>
 array<T, 3> arr3(const T& v0, const T& v1, const T& v2)
 {

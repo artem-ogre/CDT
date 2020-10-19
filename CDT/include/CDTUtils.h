@@ -2,6 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+/**
+ * @file
+ * Utilities and helpers
+ */
+
 #ifndef CDT_obwOaxOTdAWcLNTlNnaq
 #define CDT_obwOaxOTdAWcLNTlNnaq
 
@@ -16,7 +21,7 @@ typedef char CDT_DONT_USE_BOOST_RTREE__was__replaced__with__CDT_USE_BOOST[-1];
 #if __cplusplus >= 201103L || (defined(_MSC_VER) && _MSC_VER >= 1900)
 #define CDT_CXX11_IS_SUPPORTED
 #elif !defined(__cplusplus) && !defined(_MSC_VER)
-typedef char couldnt_parse_cxx_standard[-1];
+typedef char couldnt_parse_cxx_standard[-1]; ///< Error: couldn't parse standard
 #endif
 
 // Functions defined outside the class need to be 'inline'
@@ -25,6 +30,10 @@ typedef char couldnt_parse_cxx_standard[-1];
 #ifdef CDT_USE_AS_COMPILED_LIBRARY
 #define CDT_INLINE_IF_HEADER_ONLY
 #else
+/**
+ * Macro for inlining non-template functions when in header-only mode to
+ * avoids multiple declaration errors.
+ */
 #define CDT_INLINE_IF_HEADER_ONLY inline
 #endif
 
@@ -76,14 +85,6 @@ using boost::random::mt19937;
 } // namespace CDT
 #endif
 
-#ifdef CDT_USE_STRONG_TYPING
-#include <boost/serialization/strong_typedef.hpp>
-#define CDT_TYPEDEF(typeWhat, typeAs) BOOST_STRONG_TYPEDEF(typeWhat, typeAs)
-// note: hashes for strong-typedefs are specialized at the bottom
-#else
-#define CDT_TYPEDEF(typeWhat, typeAs) typedef typeWhat typeAs;
-#endif
-
 namespace CDT
 {
 
@@ -107,12 +108,22 @@ bool operator==(const CDT::V2d<T>& lhs, const CDT::V2d<T>& rhs)
     return lhs.x == rhs.x && lhs.y == rhs.y;
 }
 
+#ifndef CDT_USE_STRONG_TYPING
 /// Index in triangle
-CDT_TYPEDEF(unsigned char, Index)
+typedef unsigned char Index;
 /// Vertex index
-CDT_TYPEDEF(std::size_t, VertInd)
+typedef std::size_t VertInd;
 /// Triangle index
-CDT_TYPEDEF(std::size_t, TriInd)
+typedef std::size_t TriInd;
+#else
+/// Index in triangle
+BOOST_STRONG_TYPEDEF(unsigned char, Index);
+/// Vertex index
+BOOST_STRONG_TYPEDEF(std::size_t, VertInd);
+/// Triangle index
+BOOST_STRONG_TYPEDEF(std::size_t, TriInd);
+#endif
+
 typedef std::vector<TriInd> TriIndVec;  ///< Vector of triangle indices
 typedef array<VertInd, 3> VerticesArr3; ///< array of three vertex indices
 typedef array<TriInd, 3> NeighborsArr3; ///< array of three neighbors

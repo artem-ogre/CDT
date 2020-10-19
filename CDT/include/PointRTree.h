@@ -2,6 +2,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+
+/**
+ * @file
+ * Adapter between for boost::geometry::rtree and CDT
+ */
+
 #ifndef CDT_o2ROLeC4NKchgja4Awtg
 #define CDT_o2ROLeC4NKchgja4Awtg
 

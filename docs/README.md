@@ -9,9 +9,9 @@ Numerically robust C++ implementation of constrained Delaunay triangulation (CDT
 - backwards-compatible with C++03
 - cross-platform: tested on Windows and Linux
 
-### Please ★ this repository if it helped. This means a lot to the authors :)
+**Please ★ this repository if it helped. This means a lot to the authors :)**
 
-### Table of Contents  
+**Table of Contents**
 - [Algorithm](#algorithm)
 - [Installation](#installation)
 - [Details](#details)
@@ -27,23 +27,29 @@ Implementation closely follows incremental construction algorithm by Anglada [[1
 when at least one vertex belongs to super-triangle are resolved using an approach as described in Žalik et. al [[2](#2)].
 For efficient search of a triangle that contains inserted point randomized walking search is applied [[3](#3)]. To find the starting triangle we first find the nearest point using boost::rtree or using a closest random point.
 
-### Input pre-conditions:
+**Pre-conditions:**
 - No duplicated points (use provided functions for removing duplicate points and re-mapping edges)
 - No two constraint edges intersect each other
 
+**Post-conditions:**
+- Triangles have counter-clockwise (CCW) winding
+
 ## Installation
-### Adding to CMake project directly
+**Adding to CMake project directly**
+
 Can be done with [`add_subdirectory`](https://cmake.org/cmake/help/latest/command/add_subdirectory.html) command (e.g., see CDT visualizer's CMakeLists.txt).
 ```Cmake
 # add CDT as subdirectory to CMake project
 add_subdirectory(../CDT CDT)
 ```
-### Adding to non-CMake project directly
+**Adding to non-CMake project directly**
+
 To use as **header-only** copy headers from `CDT/include`
 
 To use as a **compiled library** define `CDT_USE_AS_COMPILED_LIBRARY` and compile `CDT.cpp`
 
-### Consume pre-build CDT in CMake project with [`find_package`](https://cmake.org/cmake/help/latest/command/find_package.html)
+**Consume pre-build CDT in CMake project with [`find_package`](https://cmake.org/cmake/help/latest/command/find_package.html)**
+
 CDT provides package config files that can be included by other projects to find and use it.
 
 ```bash
@@ -80,7 +86,8 @@ find_package(CDT REQUIRED CONFIG)
 - A demonstrator tool is included: requires Qt for GUI. When running demo-tool **make sure** that working directory contains folder `test files`.
 
 ## Using
-### Synopsis
+**Synopsis**
+
 ```c++
 namespace CDT
 {
@@ -151,7 +158,8 @@ TriIndUSet PeelLayer(
 } // namespace CDT
 ```
 
-### Triangulated convex-hull example
+**Triangulated convex-hull example**
+
 ```c++
 #include "CDT.h"
 using Triangulation = CDT::Triangulation<float>;
@@ -167,7 +175,8 @@ cdt.eraseSuperTriangle();
 /* ... */ = cdt.vertices;
 /* ... */ = cdt.edges;
 ```
-### Triangulated region constrained by boundary example
+**Triangulated region constrained by boundary example**
+
 ```c++
 // ... same as above
 cdt.insertVertices(/* points */);

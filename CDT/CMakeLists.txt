@@ -134,11 +134,21 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_SOURCE_BROWSER YES)
     set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
     set(DOXYGEN_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/docs")
+    set(DOXYGEN_USE_MDFILE_AS_MAINPAGE ${PROJECT_SOURCE_DIR}/../docs/README.md)
+    set(DOXYGEN_IMAGE_PATH ${PROJECT_SOURCE_DIR}/../docs/images)
     # this target will only be built if specifically asked to.
     # run "make api-docs" to create the doxygen documentation
     doxygen_add_docs(
         ${PROJECT_NAME}-docs
         ${PROJECT_SOURCE_DIR}
+        ${PROJECT_SOURCE_DIR}/../docs
         COMMENT "Generate doxygen documentation for CDT."
+    )
+    # copy README.md images to doxygen so that they are displayed
+    add_custom_command(
+        TARGET ${PROJECT_NAME}-docs POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                ${PROJECT_SOURCE_DIR}/../docs/images
+                ${DOXYGEN_OUTPUT_DIRECTORY}/html/images
     )
 endif(DOXYGEN_FOUND)
