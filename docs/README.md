@@ -22,7 +22,8 @@ Numerically robust C++ implementation of constrained Delaunay triangulation (CDT
 - [Bibliography](#bibliography)
 
 
-## Algorithm
+## <a name="algorithm"/>Algorithm</a>
+
 Implementation closely follows incremental construction algorithm by Anglada [[1](#1)]. During the legalization, the cases
 when at least one vertex belongs to super-triangle are resolved using an approach as described in Žalik et. al [[2](#2)].
 For efficient search of a triangle that contains inserted point randomized walking search is applied [[3](#3)]. To find the starting triangle we first find the nearest point using boost::rtree or using a closest random point.
@@ -34,7 +35,7 @@ For efficient search of a triangle that contains inserted point randomized walki
 **Post-conditions:**
 - Triangles have counter-clockwise (CCW) winding
 
-## Installation
+## <a name="installation"/>Installation</a>
 **Adding to CMake project directly**
 
 Can be done with [`add_subdirectory`](https://cmake.org/cmake/help/latest/command/add_subdirectory.html) command (e.g., see CDT visualizer's CMakeLists.txt).
@@ -66,7 +67,7 @@ cmake --build . && cmake --install .
 find_package(CDT REQUIRED CONFIG)
 ```
 
-## Details
+## <a name="details"/>Details</a>
 
 - Supports three ways of removing outer triangles: 
     - `eraseSuperTriangle`: produce a convex-hull  
@@ -85,8 +86,9 @@ find_package(CDT REQUIRED CONFIG)
 
 - A demonstrator tool is included: requires Qt for GUI. When running demo-tool **make sure** that working directory contains folder `test files`.
 
-## Using
-**Synopsis**
+## <a name="using"/>Using</a>
+
+**Synopsis of the public API (see CDT.h )**
 
 ```c++
 namespace CDT
@@ -185,21 +187,22 @@ cdt.eraseOuterTriangles();
 /* ... */ = cdt.vertices;
 /* ... */ = cdt.edges;
 ```
-## Contributors
+## <a name="contributors"/>Contributors</a>
 - [Artem Amirkhanov](https://github.com/artem-ogre)
 - [Karl Åkerblom](https://github.com/kalleakerblom)
 - [baiwenlei](https://github.com/baiwenlei): dragging and zooming in the viewer
 
-## Contributing
+## <a name="contributing"/>Contributing</a>
 Any feedback and contributions are welcome.
-## License
+
+## <a name="license"/>License</a>
+
 [Mozilla Public License,  v. 2.0](https://www.mozilla.org/en-US/MPL/2.0/FAQ/)
 
-## Examples
+## <a name="examples"/>Examples</a>
 <img src="./images/A.png" alt="A" height="200"/> <img src="./images/Bean.png" alt="Bean" height="200"/> <img src="./images/Guitar.png" alt="Guitar" height="200"/> <img src="./images/Guitar_no_holes.png" alt="Guitar with holes" height="200"/> <img src="./images/LakeSuperior.png" alt="Lake Superior" height="200"/> <img src="./images/Sweden.png" alt="Sweden" height="200"/>
 
-
-## Bibliography
+## <a name="bibliography"/>Bibliography</a>
 <a name="1">[1]</a> Marc Vigo Anglada,
 An improved incremental algorithm for constructing restricted Delaunay triangulations,
 _Computers & Graphics_,
