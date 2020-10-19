@@ -119,3 +119,22 @@ install(
 )
 
 install(EXPORT ${PROJECT_NAME}Config NAMESPACE CDT:: DESTINATION cmake)
+
+# ------------
+# documentation
+# ------------
+
+find_package(Doxygen)
+if(DOXYGEN_FOUND)
+    message(STATUS "Doxygen found: adding documentation target.")
+    # doxygen settings can be set here, prefixed with "DOXYGEN_"
+    set(DOXYGEN_SOURCE_BROWSER YES)
+    set(DOXYGEN_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/docs")
+    # this target will only be built if specifically asked to.
+    # run "make api-docs" to create the doxygen documentation
+    doxygen_add_docs(
+        ${PROJECT_NAME}-docs
+        ${PROJECT_SOURCE_DIR}
+        COMMENT "Generate doxygen documentation for CDT."
+    )
+endif(DOXYGEN_FOUND)
