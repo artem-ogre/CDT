@@ -127,8 +127,12 @@ install(EXPORT ${PROJECT_NAME}Config NAMESPACE CDT:: DESTINATION cmake)
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
     message(STATUS "Doxygen found: adding documentation target.")
+    set(DOXYGEN_EXCLUDE_PATTERNS
+        */predicates.h
+    )
     # doxygen settings can be set here, prefixed with "DOXYGEN_"
     set(DOXYGEN_SOURCE_BROWSER YES)
+    set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
     set(DOXYGEN_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/docs")
     # this target will only be built if specifically asked to.
     # run "make api-docs" to create the doxygen documentation

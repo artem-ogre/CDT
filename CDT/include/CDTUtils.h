@@ -100,15 +100,19 @@ struct V2d
     static V2d make(const T x, const T y);
 };
 
+/// If two 2D vectors are exactly equal
 template <typename T>
 bool operator==(const CDT::V2d<T>& lhs, const CDT::V2d<T>& rhs)
 {
     return lhs.x == rhs.x && lhs.y == rhs.y;
 }
 
-CDT_TYPEDEF(unsigned char, Index)       ///< Index in triangle
-CDT_TYPEDEF(std::size_t, VertInd)       ///< Vertex index
-CDT_TYPEDEF(std::size_t, TriInd)        ///< Triangle index
+/// Index in triangle
+CDT_TYPEDEF(unsigned char, Index)
+/// Vertex index
+CDT_TYPEDEF(std::size_t, VertInd)
+/// Triangle index
+CDT_TYPEDEF(std::size_t, TriInd)
 typedef std::vector<TriInd> TriIndVec;  ///< Vector of triangle indices
 typedef array<VertInd, 3> VerticesArr3; ///< array of three vertex indices
 typedef array<TriInd, 3> NeighborsArr3; ///< array of three neighbors
@@ -187,7 +191,10 @@ struct Triangle
     VerticesArr3 vertices;   ///< triangle's three vertices
     NeighborsArr3 neighbors; ///< triangle's three neighbors
 
-    // needed for c++03 compatibility (no uniform initialization available)
+    /**
+     * Factory method
+     * @note needed for c++03 compatibility (no uniform initialization available)
+     */
     static Triangle
     make(const array<VertInd, 3>& vertices, const array<TriInd, 3>& neighbors)
     {

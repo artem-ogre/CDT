@@ -12,6 +12,16 @@
 namespace CDT
 {
 
+/**
+ * Verify that triangulation topology is correct.
+ *
+ * Checks:
+ *  - for each vertex adjacent triangles contain the vertex
+ *  - each triangle's neighbor in turn has triangle as its neighbor
+ *  - each of triangle's vertices has triangle as adjacent
+ *
+ * @tparam T type of vertex coordinates (e.g., float, double)
+ */
 template <typename T>
 inline bool verifyTopology(const CDT::Triangulation<T>& cdt)
 {

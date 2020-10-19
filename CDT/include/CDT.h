@@ -20,14 +20,19 @@
 namespace CDT
 {
 
+/// Enum of strategies for finding closest point to the newly inserted one
 struct FindingClosestPoint
 {
+    /**
+     * The Enum itself
+     * @note needed to pre c++11 compilers that don't support 'class enum'
+     */
     enum Enum
     {
 #ifdef CDT_USE_BOOST
-        BoostRTree,
+        BoostRTree, ///< use boost::geometry::rtree
 #endif
-        ClosestRandom,
+        ClosestRandom, ///< pick closest from few randomly selected candidates
     };
 };
 
@@ -36,7 +41,11 @@ const static TriInd noNeighbor(std::numeric_limits<std::size_t>::max());
 /// Constant representing no valid vertex for a triangle
 const static VertInd noVertex(std::numeric_limits<std::size_t>::max());
 
-/// Data structure representing a 2D triangulation
+/**
+ * Data structure representing a 2D constrained Delaunay triangulation
+ *
+ * @tparam T type of vertex coordinates (e.g., float, double)
+ */
 template <typename T>
 class Triangulation
 {
@@ -51,16 +60,19 @@ public:
     Triangulation(
         const FindingClosestPoint::Enum closestPtMode,
         const size_t nRandSamples = 10);
-    /// Add vertices to triangulation
+    /// Insert vertices into triangulation
     void insertVertices(const std::vector<V2d<T> >& vertices);
-    /// Add constraints (fixed edges) to triangulation
+    /// Insert constraints (fixed edges) into triangulation
     void insertEdges(const std::vector<Edge>& edges);
     /// Erase triangles adjacent to super triangle
     void eraseSuperTriangle();
     /// Erase triangles outside of constrained boundary using growing
     void eraseOuterTriangles();
-    /// Erase triangles outside of constrained boundary
-    /// and automatically detected holes using growing
+    /**
+     * Erase triangles outside of constrained boundary and auto-detected holes
+     *
+     * @note detecting holes relies on layer peeling based on layer depth
+     */
     void eraseOuterTrianglesAndHoles();
 
 private:
@@ -130,48 +142,92 @@ private:
     FindingClosestPoint::Enum m_closestPtMode;
 };
 
-/// Information about removed duplicated vertices.
-/// Example: vertices {0,1,2,3,4} where 0 and 3 are the same
-/// will produce mapping {0,1,2,0,3} (to new vertices {0,1,2,3})
-/// and duplicates {3}
+/**
+ * Information about removed duplicated vertices.
+ *
+ * Contains mapping information and removed duplicates indices.
+ * @note vertices {0,1,2,3,4} where 0 and 3 are the same will produce mapping
+ *       {0,1,2,0,3} (to new vertices {0,1,2,3}) and duplicates {3}
+ */
 struct DuplicatesInfo
 {
     std::vector<std::size_t> mapping;    ///< vertex index mapping
     std::vector<std::size_t> duplicates; ///< duplicates' indices
 };
 
-/// Removes duplicated points in-place, returns information about duplicated
-/// vertices that were removed.
+/**
+ * Remove duplicated points in-place
+ * 
+ * @tparam T type of vertex coordinates (e.g., float, double)
+ * @param[in, out] vertices collection of vertices to remove duplicates from
+ * @returns information about duplicated vertices that were removed.
+ */
 template <typename T>
 DuplicatesInfo RemoveDuplicates(std::vector<V2d<T> >& vertices);
 
-/// Use given vertex index mapping to remap vertex indices in edges (in-place)
-/// vertex mapping can be a result of RemoveDuplicates function
+/**
+ * Remap vertex indices in edges (in-place) using given vertex-index mapping.
+ *
+ * @note Mapping can be a result of RemoveDuplicates function
+ * @param[in,out] edges collection of edges to remap
+ * @param mapping vertex-index mapping
+ */
 void RemapEdges(
     std::vector<Edge>& edges,
     const std::vector<std::size_t>& mapping);
 
-/// Does the same as a chained call of RemoveDuplicates + RemapEdges
+/**
+ * Same as a chained call of @ref RemoveDuplicates + @ref RemapEdges
+ *
+ * @tparam T type of vertex coordinates (e.g., float, double)
+ * @param[in, out] vertices collection of vertices to remove duplicates from
+ * @param[in,out] edges collection of edges to remap
+ */
 template <typename T>
 DuplicatesInfo RemoveDuplicatesAndRemapEdges(
     std::vector<V2d<T> >& vertices,
     std::vector<Edge>& edges);
 
-/// Calculate depth of each triangle in constraint triangulation.
-/// Perform depth peeling from super triangle to outermost boundary,
-/// then to next boundary and so on until all triangles are traversed
-/// For example depth is:
-/// * 0 for triangles outside outermost boundary
-/// * 1 for triangles inside boundary but outside hole
-/// * 2 for triangles in hole
-/// * 3 for triangles in island and so on...
+/**
+ * Calculate depth of each triangle in constraint triangulation.
+ *
+ * Perform depth peeling from super triangle to outermost boundary,
+ * then to next boundary and so on until all triangles are traversed.@n
+ * For example depth is:
+ *  - 0 for triangles outside outermost boundary
+ *  - 1 for triangles inside boundary but outside hole
+ *  - 2 for triangles in hole
+ *  - 3 for triangles in island and so on...
+ *
+ * @tparam T type of vertex coordinates (e.g., float, double)
+ * @param vertices vertices of triangulation
+ * @param triangles triangles of triangulation
+ * @param fixedEdges constraint edges of triangulation
+ * @return vector where element at index i stores depth of i-th triangle
+ */
 template <typename T>
 std::vector<unsigned short> CalculateTriangleDepths(
     const std::vector<Vertex<T> >& vertices,
     const TriangleVec& triangles,
     const EdgeUSet& fixedEdges);
 
-/// Depth-peel a layer in triangulation, used when calculating triangle depths
+/**
+ * Depth-peel a layer in triangulation, used when calculating triangle depths
+ *
+ * It takes starting seed triangles, traverses neighboring triangles, and
+ * assigns given layer depth to the traversed triangles. Traversal is blocked by
+ * constraint edges. Triangles behind constraint edges are recorded as seeds of
+ * next layer and returned from the function.
+ *
+ * @tparam T type of vertex coordinates (e.g., float, double)
+ * @param seeds indices of seed triangles
+ * @param triangles triangles of triangulation
+ * @param fixedEdges constraint edges of triangulation
+ * @param layerDepth current layer's depth to mark triangles with
+ * @param[in, out] triDepths depths of triangles
+ * @return triangles of the next layer that are adjacent to the peeled layer.
+ *         To be used as seeds when peeling the next layer.
+ */
 template <typename T>
 TriIndUSet PeelLayer(
     std::stack<TriInd> seeds,
