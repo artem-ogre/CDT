@@ -1,0 +1,426 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.13.2"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- BEGIN opengraph metadata -->
+<meta property="og:title" content="CDT" />
+<meta property="og:image" content="https://repository-images.githubusercontent.com/179470761/87cff280-184e-11eb-8837-b1ad740baf8a" />
+<meta property="og:description" content="C++ library for constrained and conforming Delaunay triangulations" />
+<meta property="og:url" content="https://artem-ogre.github.io/CDT/" />
+<!-- END opengraph metadata -->
+<!-- BEGIN twitter metadata -->
+<meta name="twitter:image:src" content="https://repository-images.githubusercontent.com/179470761/87cff280-184e-11eb-8837-b1ad740baf8a" />
+<meta name="twitter:title" content="CDT" />
+<meta name="twitter:description" content="C++ library for constrained and conforming Delaunay triangulations" />
+<!-- END twitter metadata -->
+<title>CDT: CDT</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<!--favicon-->
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="logo.svg"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="manifest" href="site.webmanifest" />
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript" src="doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="toggle-alternative-theme.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init()
+    DoxygenAwesomeDarkModeToggle.init()
+    DoxygenAwesomeParagraphLink.init()
+</script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only-darkmode-toggle.css" rel="stylesheet" type="text/css"/>
+<link href="custom.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<!-- https://tholman.com/github-corners/ -->
+<a href="https://github.com/artem-ogre/CDT" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">CDT
+   &#160;<span id="projectnumber">1.4.2</span>
+   </div>
+   <div id="projectbrief">C++ library for constrained Delaunay triangulation</div>
+  </td>
+   <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.13.2 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() { codefold.init(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('index.html',''); initResizable(true); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Loading...</div>
+<div class="SRStatus" id="Searching">Searching...</div>
+<div class="SRStatus" id="NoMatches">No Matches</div>
+</div>
+</div>
+</div>
+</div>
+
+<div><div class="header">
+  <div class="headertitle"><div class="title"><a class="el" href="namespaceCDT.html" title="Namespace containing triangulation functionality.">CDT</a> </div></div>
+</div><!--header-->
+<div class="contents">
+<div class="textblock"><p><a class="anchor" id="md__2home_2artem_2data_2dev_2CDT_2docs_2README"></a> <img src="./images/CDT_logo.png" alt="CDT Logo" style="height: 100%; width: 100%; max-height: 250px; object-fit: contain" class="inline"/></p>
+<p><a href="https://github.com/artem-ogre/CDT/actions/"><img src="https://github.com/artem-ogre/CDT/workflows/CI%20Builds/badge.svg" alt="CI Builds" style="pointer-events: none;" class="inline"/></a></p>
+<h2><a class="anchor" id="autotoc_md0"></a>
+What is CDT</h2>
+<p><a class="el" href="namespaceCDT.html" title="Namespace containing triangulation functionality.">CDT</a> is a C++ library for generating constraint or conforming Delaunay triangulations.</p><ul>
+<li><b>open-source:</b> permissively-licensed under Mozilla Public License (MPL) 2.0</li>
+<li><b>cross-platform:</b> tested on Windows, Linux (Ubuntu), and macOS; tested architectures: <code>x64</code> and <code>arm64</code></li>
+<li><b>portable:</b> backwards-compatible with C++98</li>
+<li><b>bloat-free:</b> no external dependencies by default</li>
+<li><b>flexible:</b> can be consumed as a header-only or as a compiled library</li>
+<li><b>performant:</b> continuously profiled, measured, and optimized</li>
+<li><b>numerically robust:</b> triangulation algorithms rely on robust geometric predicates</li>
+</ul>
+<p><em><b>If <a class="el" href="namespaceCDT.html" title="Namespace containing triangulation functionality.">CDT</a> helped you please consider adding a star on <a href="https://github.com/artem-ogre/CDT">GitHub</a>. This means a lot to the authors</b></em> 🤩</p>
+<p><a class="anchor" id="table-of-contents"></a></p>
+<h2><a class="anchor" id="autotoc_md1"></a>
+Table of Contents</h2>
+<ul>
+<li>What is CDT</li>
+<li><a class="el" href="#table-of-contents">Table of Contents</a></li>
+<li><a class="el" href="#what-can-cdt-do">What can CDT do?</a></li>
+<li><a class="el" href="#properly-handling-the-corner-cases">Properly Handling the Corner-Cases</a></li>
+<li><a class="el" href="#online-documentation">Online Documentation</a></li>
+<li><a class="el" href="#algorithm">Algorithm</a></li>
+<li><a class="el" href="#implementation-details">Implementation Details</a></li>
+<li><a class="el" href="#adding-withpackage-manager">Adding CDT to your C++ project Using a Package Manager</a></li>
+<li><a class="el" href="#installationbuilding">Installation/Building</a></li>
+<li><a class="el" href="#api">Where to find CDT API</a></li>
+<li><a class="el" href="#code-examples">Code Examples</a><ul>
+<li>Delaunay triangulation without constraints (triangulated convex-hull)</li>
+<li>Constrained Delaunay triangulation (auto-detected boundaries and holes)</li>
+<li>Conforming Delaunay triangulation</li>
+<li>Resolve edge intersections by adding new points and splitting edges</li>
+<li>Custom point/edge type</li>
+<li>Callbacks</li>
+</ul>
+</li>
+<li><a class="el" href="#python-bindings">Python bindings?</a></li>
+<li><a class="el" href="#contributors">Contributors</a></li>
+<li><a class="el" href="#contributing">Contributing</a></li>
+<li><a class="el" href="#license">License</a></li>
+<li><a class="el" href="#example-gallery">Example Gallery</a></li>
+<li><a class="el" href="#bibliography">Bibliography</a></li>
+</ul>
+<p><a class="anchor" id="what-can-cdt-do"></a></p>
+<h2><a class="anchor" id="autotoc_md2"></a>
+What can CDT do?</h2>
+<p><img src="./images/show-case.png" alt="CDT show-case: constrained and conforming triangulations, convex hulls, automatically removing holes" style="height: 100%; width: 100%; max-height: 300px; object-fit: contain" class="inline"/></p>
+<ul>
+<li>Constrained Delaunay Triangulations: force edges into Delaunay triangulation</li>
+<li>Conforming Delaunay Triangulations: add new points into Delaunay triangulation until the edge is present in triangulation</li>
+<li>Convex-hulls</li>
+<li>Automatically finding and removing holes</li>
+</ul>
+<p><a class="anchor" id="properly-handling-the-corner-cases"></a></p>
+<h2><a class="anchor" id="autotoc_md3"></a>
+Properly Handling the Corner-Cases</h2>
+<p><img src="./images/corner-cases.png" alt="CDT supported corner cases: points on edges, overlapping edges, resolving edge intersections" style="height: 100%; width: 100%; max-height: 300px; object-fit: contain" class="inline"/></p>
+<ul>
+<li>Points exactly on the edges</li>
+<li>Exactly overlapping edges</li>
+<li>Resolving intersecting edges by adding points at the intersections (with <code><a class="el" href="structCDT_1_1IntersectingConstraintEdges.html#afd50ae5a48b442fc2f4d3800dd29f968a0aa540b11f4de6383147db9a12fbbc25" title="attempt to resolve constraint edge intersections">CDT::IntersectingConstraintEdges::TryResolve</a></code>)</li>
+</ul>
+<p><a class="anchor" id="online-documentation"></a></p>
+<h2><a class="anchor" id="autotoc_md4"></a>
+Online Documentation</h2>
+<p><a href="https://artem-ogre.github.io/CDT/"><b>Latest online documentation</b></a> (automatically generated with Doxygen).</p>
+<p><a class="anchor" id="algorithm"></a></p>
+<h2><a class="anchor" id="autotoc_md5"></a>
+Algorithm</h2>
+<ul>
+<li>Implementation closely follows incremental construction algorithm by Anglada <a href="#[1]">[1]</a>.</li>
+<li>During the legalization, the cases when at least one vertex belongs to super-triangle are resolved using an approach as described in Žalik et al. <a href="#[2]">[2]</a>.</li>
+<li>For finding a triangle that contains inserted point remembering randomized triangle walk is used <a href="#[3]">[3]</a>. To find the starting triangle for the walk the nearest point is found using a kd-tree with mid-split nodes.</li>
+<li>Order in which vertices are inserted is controlled by <code><a class="el" href="structCDT_1_1VertexInsertionOrder.html" title="Enum of strategies specifying order in which a range of vertices is inserted.">CDT::VertexInsertionOrder</a></code>:<ul>
+<li><code><a class="el" href="structCDT_1_1VertexInsertionOrder.html#a15657aebfc10b7986d4b47dc1247a4aea66fc9a83d60682940454cfef737b06dd" title="Automatic insertion order optimized for better performance.">CDT::VertexInsertionOrder::Auto</a></code> uses breadth-first traversal of a Kd-tree for initial bulk-load <a href="#[4]">[4]</a> and randomized insertion order for the subsequent calls of <code><a class="el" href="classCDT_1_1Triangulation.html#a9a549def9b96626bd01d89cc7dc92bda" title="Insert custom point-types specified by iterator range and X/Y-getters.">CDT::Triangulation::insertVertices</a></code>. Randomization improves performance and avoid worst-case scenarios. Generally vertex insertion with <code><a class="el" href="structCDT_1_1VertexInsertionOrder.html#a15657aebfc10b7986d4b47dc1247a4aea66fc9a83d60682940454cfef737b06dd" title="Automatic insertion order optimized for better performance.">CDT::VertexInsertionOrder::Auto</a></code> is faster.</li>
+<li>The original vertices order can be optied-in using <code><a class="el" href="structCDT_1_1VertexInsertionOrder.html#a15657aebfc10b7986d4b47dc1247a4aea610ecf7cff2c1e5fb86413188c92f644" title="insert vertices in same order they are provided">CDT::VertexInsertionOrder::AsProvided</a></code> when constructing a triangulation.</li>
+</ul>
+</li>
+</ul>
+<p><b>Pre-conditions:</b></p><ul>
+<li>No duplicated points (use provided functions for removing duplicate points and re-mapping edges)</li>
+<li>No two constraint edges intersect each other (overlapping boundaries are allowed)</li>
+</ul>
+<p><b>Post-conditions:</b></p><ul>
+<li>Triangles have counter-clockwise (CCW) winding in a 2D coordinate system where X-axis points right and Y-axis points up.</li>
+</ul>
+<p><a class="anchor" id="implementation-details"></a></p>
+<h2><a class="anchor" id="autotoc_md6"></a>
+Implementation Details</h2>
+<ul>
+<li>Supports three ways of removing outer triangles:<ul>
+<li><code><a class="el" href="classCDT_1_1Triangulation.html#acd71abb1fcb1202d34ba52ecca56ce38" title="Erase triangles adjacent to super triangle.">CDT::Triangulation::eraseSuperTriangle</a></code>: produce a convex-hull</li>
+<li><code><a class="el" href="classCDT_1_1Triangulation.html#a0fafaf3924237a63afbc0be0df40b9e9" title="Erase triangles outside of constrained boundary using growing.">CDT::Triangulation::eraseOuterTriangles</a></code>: remove all outer triangles until a boundary defined by constraint edges</li>
+<li><code><a class="el" href="classCDT_1_1Triangulation.html#a7eed200fc66732f075c8336c6cba2d16" title="Erase triangles outside of constrained boundary and auto-detected holes.">CDT::Triangulation::eraseOuterTrianglesAndHoles</a></code>: remove outer triangles and automatically detected holes. Starts from super-triangle and traverses triangles until outer boundary. Triangles outside outer boundary will be removed. Then traversal continues until next boundary. Triangles between two boundaries will be kept. Traversal to next boundary continues (this time removing triangles). Stops when all triangles are traversed.</li>
+</ul>
+</li>
+<li>Supports <a class="el" href="#overlapping-boundaries-example">overlapping boundaries</a></li>
+<li>Removing duplicate points and re-mapping constraint edges can be done using functions: <code><a class="el" href="group__helpers.html#ga676558d20eda1f33b75ecb7484d7e149" title="Find point duplicates, remove them from vector (in-place) and remap edges (in-place)">CDT::RemoveDuplicatesAndRemapEdges</a></code>, <code><a class="el" href="group__helpers.html#ga288f40e940912032277bfa861c684036" title="Remove duplicates in-place from vector of custom points.">CDT::RemoveDuplicates</a></code>, <code><a class="el" href="group__helpers.html#ga54915fbaeb0fa668303f34124fe98767" title="Remap vertex indices in edges (in-place) using given vertex-index mapping.">CDT::RemapEdges</a></code></li>
+<li>Uses William C. Lenthe's implementation of robust orientation and in-circle geometric predicates: <a href="https://github.com/wlenthe/GeometricPredicates">github.com/wlenthe/GeometricPredicates</a></li>
+<li>On old compilers without C++11 support Boost is used as a fall back for missing C++11 standard library features.</li>
+<li>A demonstrator tool is included: requires Qt for GUI. When running demo-tool <b>make sure</b> that working directory contains files from 'data' folder.</li>
+</ul>
+<p><a class="anchor" id="adding-withpackage-manager"></a></p>
+<h2><a class="anchor" id="autotoc_md7"></a>
+Adding CDT to your C++ project Using a Package Manager</h2>
+<h3><a class="anchor" id="autotoc_md8"></a>
+vcpkg</h3>
+<p><a class="el" href="namespaceCDT.html" title="Namespace containing triangulation functionality.">CDT</a> port is <a href="https://github.com/microsoft/vcpkg/tree/master/ports/cdt">available</a> in Microsoft's <a href="https://github.com/microsoft/vcpkg">vcpkg</a>.</p>
+<h3><a class="anchor" id="autotoc_md9"></a>
+Conan</h3>
+<p><a class="el" href="namespaceCDT.html" title="Namespace containing triangulation functionality.">CDT</a> is not in the conan-center but there's a <code>conanfile.py</code> recipe provided (in this repo). Note that it might need small adjustments like changing boost version to fit your needs.</p>
+<h3><a class="anchor" id="autotoc_md10"></a>
+spack</h3>
+<p>A <a href="https://github.com/spack/spack/blob/develop/var/spack/repos/builtin/packages/cdt/package.py">recipe</a> for <a class="el" href="namespaceCDT.html" title="Namespace containing triangulation functionality.">CDT</a> is <a href="https://spack.readthedocs.io/en/latest/package_list.html#cdt">available</a> in <a href="https://spack.io">spack</a>.</p>
+<p><a class="anchor" id="installationbuilding"></a></p>
+<h2><a class="anchor" id="autotoc_md11"></a>
+Installation/Building</h2>
+<p><a class="el" href="namespaceCDT.html" title="Namespace containing triangulation functionality.">CDT</a> uses modern CMake and should <em>just work</em> out of the box without any surprises. The are many ways to consume <a class="el" href="namespaceCDT.html" title="Namespace containing triangulation functionality.">CDT</a>:</p><ul>
+<li>copy headers and use as a header-only library</li>
+<li>add to CMake project directly with <code>add_subdirectory</code></li>
+<li>pre-build and add to CMake project as a dependency with <code>find_package</code></li>
+<li>consume as a Conan package</li>
+</ul>
+<p><b>CMake options</b></p>
+<table class="markdownTable">
+<tr class="markdownTableHead">
+<th class="markdownTableHeadNone">Option   </th><th class="markdownTableHeadCenter">Default value   </th><th class="markdownTableHeadLeft">Description    </th></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>CDT_USE_64_BIT_INDEX_TYPE</code>   </td><td class="markdownTableBodyCenter"><code>OFF</code>   </td><td class="markdownTableBodyLeft">Use 64bits to store vertex/triangle index types. Otherwise 32bits are used (up to 4.2bn items)    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>CDT_USE_AS_COMPILED_LIBRARY</code>   </td><td class="markdownTableBodyCenter"><code>OFF</code>   </td><td class="markdownTableBodyLeft">Instantiate templates for float and double and compiled into a library    </td></tr>
+<tr class="markdownTableRowOdd">
+<td class="markdownTableBodyNone"><code>CDT_DISABLE_EXCEPTIONS</code>   </td><td class="markdownTableBodyCenter"><code>OFF</code>   </td><td class="markdownTableBodyLeft">Disables exceptions: instead of throwing the library will call <code>std::terminate</code>    </td></tr>
+<tr class="markdownTableRowEven">
+<td class="markdownTableBodyNone"><code>CDT_ENABLE_CALLBACK_HANDLER</code>   </td><td class="markdownTableBodyCenter"><code>OFF</code>   </td><td class="markdownTableBodyLeft">If enabled it is possible to provide a callback handler to the triangulation   </td></tr>
+</table>
+<p><b>Adding to CMake project directly</b></p>
+<p>Can be done with <a href="https://cmake.org/cmake/help/latest/command/add_subdirectory.html"><code>add_subdirectory</code></a> command (e.g., see <a class="el" href="namespaceCDT.html" title="Namespace containing triangulation functionality.">CDT</a> visualizer's CMakeLists.txt). </p><div class="fragment"><div class="line"># add CDT as subdirectory to CMake project</div>
+<div class="line">add_subdirectory(../CDT CDT)</div>
+</div><!-- fragment --><p> <b>Adding to non-CMake project directly</b></p>
+<p>To use as <b>header-only</b> copy headers from <code>CDT/include</code></p>
+<p>To use as a <b>compiled library</b> define <code>CDT_USE_AS_COMPILED_LIBRARY</code> and compile <code><a class="el" href="CDT_8cpp.html" title="Explicit template instantiations for float and double coordinate types.">CDT.cpp</a></code></p>
+<p><b>Consume pre-build <a class="el" href="namespaceCDT.html" title="Namespace containing triangulation functionality.">CDT</a> in CMake project with <a href="https://cmake.org/cmake/help/latest/command/find_package.html">find_package</a></b></p>
+<p><a class="el" href="namespaceCDT.html" title="Namespace containing triangulation functionality.">CDT</a> provides package config files that can be included by other projects to find and use it.</p>
+<div class="fragment"><div class="line"># from CDT folder</div>
+<div class="line">mkdir build &amp;&amp; cd build</div>
+<div class="line"># configure with desired CMake flags</div>
+<div class="line">cmake -DCDT_USE_AS_COMPILED_LIBRARY=ON ..</div>
+<div class="line"># build and install</div>
+<div class="line">cmake --build . &amp;&amp; cmake --install .</div>
+</div><!-- fragment --><div class="fragment"><div class="line"># In consuming CMakeLists.txt</div>
+<div class="line">find_package(CDT REQUIRED CONFIG)</div>
+</div><!-- fragment --><p><a class="anchor" id="api"></a></p>
+<h2><a class="anchor" id="autotoc_md12"></a>
+Where to find CDT API</h2>
+<p>Public API is provided in two places:</p><ul>
+<li><code><a class="el" href="classCDT_1_1Triangulation.html" title="Data structure representing a 2D constrained Delaunay triangulation.">CDT::Triangulation</a></code> class is used for performing constrained Delaunay triangulations.</li>
+<li>Free functions in <a href="../CDT/include/CDT.h"><code>CDT.h</code></a> provide some additional functionality for removing duplicates, re-mapping edges and triangle depth-peeling</li>
+</ul>
+<p><a class="anchor" id="code-examples"></a></p>
+<h2><a class="anchor" id="autotoc_md13"></a>
+Code Examples</h2>
+<p>ℹ️ For more up-to-date code examples please see <a class="el" href="namespaceCDT.html" title="Namespace containing triangulation functionality.">CDT</a> tests in <a href="../CDT/tests/cdt.test.cpp"><code>cdt.test.cpp</code></a>.</p>
+<p><a class="anchor" id="example-delaunay-triangulation"></a></p>
+<p><b>Delaunay triangulation without constraints (triangulated convex-hull)</b></p>
+<p><img src="./images/LakeSuperior.png" alt="Example of a triangulated convex hull" height="150" class="inline"/></p>
+<div class="fragment"><div class="line"><span class="preprocessor">#include &quot;<a class="code" href="CDT_8h.html">CDT.h</a>&quot;</span></div>
+<div class="line"><a class="code hl_class" href="classCDT_1_1Triangulation.html">CDT::Triangulation&lt;double&gt;</a> cdt;</div>
+<div class="line">cdt.<a class="code hl_function" href="classCDT_1_1Triangulation.html#a9a549def9b96626bd01d89cc7dc92bda">insertVertices</a>(<span class="comment">/* points */</span>);</div>
+<div class="line">cdt.<a class="code hl_function" href="classCDT_1_1Triangulation.html#acd71abb1fcb1202d34ba52ecca56ce38">eraseSuperTriangle</a>();</div>
+<div class="line"><span class="comment">/* access triangles */</span> = cdt.<a class="code hl_variable" href="classCDT_1_1Triangulation.html#ae77d983cdcaa9cba8636a93c364540cb">triangles</a>;</div>
+<div class="line"><span class="comment">/* access vertices */</span> = cdt.<a class="code hl_variable" href="classCDT_1_1Triangulation.html#a808c84638b7572fc2b2b2bd6cf592baa">vertices</a>;</div>
+<div class="line"><span class="comment">/* access boundary (fixed) edges */</span> = cdt.<a class="code hl_variable" href="classCDT_1_1Triangulation.html#a0b21ff0171d79da1e372fa9f7a19c95a">fixedEdges</a>;</div>
+<div class="line"><span class="comment">/* calculate all edges (on demand) */</span> = <a class="code hl_function" href="group__helpers.html#gab41a7d6ed19670132a9469949ee8b372">CDT::extractEdgesFromTriangles</a>(cdt.<a class="code hl_variable" href="classCDT_1_1Triangulation.html#ae77d983cdcaa9cba8636a93c364540cb">triangles</a>);</div>
+<div class="ttc" id="aCDT_8h_html"><div class="ttname"><a href="CDT_8h.html">CDT.h</a></div><div class="ttdoc">Public API.</div></div>
+<div class="ttc" id="aclassCDT_1_1Triangulation_html"><div class="ttname"><a href="classCDT_1_1Triangulation.html">CDT::Triangulation</a></div><div class="ttdoc">Data structure representing a 2D constrained Delaunay triangulation.</div><div class="ttdef"><b>Definition</b> <a href="Triangulation_8h_source.html#l00404">Triangulation.h:405</a></div></div>
+<div class="ttc" id="aclassCDT_1_1Triangulation_html_a0b21ff0171d79da1e372fa9f7a19c95a"><div class="ttname"><a href="classCDT_1_1Triangulation.html#a0b21ff0171d79da1e372fa9f7a19c95a">CDT::Triangulation::fixedEdges</a></div><div class="ttdeci">EdgeUSet fixedEdges</div><div class="ttdoc">triangulation&#39;s constraints (fixed edges)</div><div class="ttdef"><b>Definition</b> <a href="Triangulation_8h_source.html#l00410">Triangulation.h:410</a></div></div>
+<div class="ttc" id="aclassCDT_1_1Triangulation_html_a808c84638b7572fc2b2b2bd6cf592baa"><div class="ttname"><a href="classCDT_1_1Triangulation.html#a808c84638b7572fc2b2b2bd6cf592baa">CDT::Triangulation::vertices</a></div><div class="ttdeci">V2dVec vertices</div><div class="ttdoc">triangulation&#39;s vertices</div><div class="ttdef"><b>Definition</b> <a href="Triangulation_8h_source.html#l00408">Triangulation.h:408</a></div></div>
+<div class="ttc" id="aclassCDT_1_1Triangulation_html_a9a549def9b96626bd01d89cc7dc92bda"><div class="ttname"><a href="classCDT_1_1Triangulation.html#a9a549def9b96626bd01d89cc7dc92bda">CDT::Triangulation::insertVertices</a></div><div class="ttdeci">void insertVertices(TVertexIter first, TVertexIter last, TGetVertexCoordX getX, TGetVertexCoordY getY)</div><div class="ttdoc">Insert custom point-types specified by iterator range and X/Y-getters.</div><div class="ttdef"><b>Definition</b> <a href="Triangulation_8h_source.html#l00995">Triangulation.h:995</a></div></div>
+<div class="ttc" id="aclassCDT_1_1Triangulation_html_acd71abb1fcb1202d34ba52ecca56ce38"><div class="ttname"><a href="classCDT_1_1Triangulation.html#acd71abb1fcb1202d34ba52ecca56ce38">CDT::Triangulation::eraseSuperTriangle</a></div><div class="ttdeci">void eraseSuperTriangle()</div><div class="ttdoc">Erase triangles adjacent to super triangle.</div></div>
+<div class="ttc" id="aclassCDT_1_1Triangulation_html_ae77d983cdcaa9cba8636a93c364540cb"><div class="ttname"><a href="classCDT_1_1Triangulation.html#ae77d983cdcaa9cba8636a93c364540cb">CDT::Triangulation::triangles</a></div><div class="ttdeci">TriangleVec triangles</div><div class="ttdoc">triangulation&#39;s triangles</div><div class="ttdef"><b>Definition</b> <a href="Triangulation_8h_source.html#l00409">Triangulation.h:409</a></div></div>
+<div class="ttc" id="agroup__helpers_html_gab41a7d6ed19670132a9469949ee8b372"><div class="ttname"><a href="group__helpers.html#gab41a7d6ed19670132a9469949ee8b372">CDT::extractEdgesFromTriangles</a></div><div class="ttdeci">CDT_EXPORT EdgeUSet extractEdgesFromTriangles(const TriangleVec &amp;triangles)</div><div class="ttdoc">Extract all edges of triangles.</div><div class="ttdef"><b>Definition</b> <a href="CDT_8hpp_source.html#l00074">CDT.hpp:74</a></div></div>
+</div><!-- fragment --><p><b>Constrained Delaunay triangulation (auto-detected boundaries and holes)</b></p>
+<p><img src="./images/A.png" alt="Example of a triangulation with constrained boundaries and auto-detected holes" height="150" class="inline"/></p>
+<div class="fragment"><div class="line"><span class="comment">// ... same as above</span></div>
+<div class="line">cdt.<a class="code hl_function" href="classCDT_1_1Triangulation.html#a9a549def9b96626bd01d89cc7dc92bda">insertVertices</a>(<span class="comment">/* points */</span>);</div>
+<div class="line">cdt.<a class="code hl_function" href="classCDT_1_1Triangulation.html#a972f00c83b36c4a775aad30735f918d7">insertEdges</a>(<span class="comment">/* boundary edges */</span>);</div>
+<div class="line">cdt.<a class="code hl_function" href="classCDT_1_1Triangulation.html#a7eed200fc66732f075c8336c6cba2d16">eraseOuterTrianglesAndHoles</a>();</div>
+<div class="line"><span class="comment">/* access triangles */</span> = cdt.<a class="code hl_variable" href="classCDT_1_1Triangulation.html#ae77d983cdcaa9cba8636a93c364540cb">triangles</a>;</div>
+<div class="line"><span class="comment">/* access vertices */</span> = cdt.<a class="code hl_variable" href="classCDT_1_1Triangulation.html#a808c84638b7572fc2b2b2bd6cf592baa">vertices</a>;</div>
+<div class="line"><span class="comment">/* access boundary (fixed) edges */</span> = cdt.<a class="code hl_variable" href="classCDT_1_1Triangulation.html#a0b21ff0171d79da1e372fa9f7a19c95a">fixedEdges</a>;</div>
+<div class="line"><span class="comment">/* calculate all edges (on demand) */</span> = <a class="code hl_function" href="group__helpers.html#gab41a7d6ed19670132a9469949ee8b372">CDT::extractEdgesFromTriangles</a>(cdt.<a class="code hl_variable" href="classCDT_1_1Triangulation.html#ae77d983cdcaa9cba8636a93c364540cb">triangles</a>);</div>
+<div class="ttc" id="aclassCDT_1_1Triangulation_html_a7eed200fc66732f075c8336c6cba2d16"><div class="ttname"><a href="classCDT_1_1Triangulation.html#a7eed200fc66732f075c8336c6cba2d16">CDT::Triangulation::eraseOuterTrianglesAndHoles</a></div><div class="ttdeci">void eraseOuterTrianglesAndHoles()</div><div class="ttdoc">Erase triangles outside of constrained boundary and auto-detected holes.</div><div class="ttdef"><b>Definition</b> <a href="Triangulation_8hpp_source.html#l00124">Triangulation.hpp:124</a></div></div>
+<div class="ttc" id="aclassCDT_1_1Triangulation_html_a972f00c83b36c4a775aad30735f918d7"><div class="ttname"><a href="classCDT_1_1Triangulation.html#a972f00c83b36c4a775aad30735f918d7">CDT::Triangulation::insertEdges</a></div><div class="ttdeci">void insertEdges(TEdgeIter first, TEdgeIter last, TGetEdgeVertexStart getStart, TGetEdgeVertexEnd getEnd)</div><div class="ttdoc">Insert constraint edges into triangulation for Constrained Delaunay Triangulation (for example see fi...</div><div class="ttdef"><b>Definition</b> <a href="Triangulation_8h_source.html#l01081">Triangulation.h:1081</a></div></div>
+</div><!-- fragment --><p><b>Conforming Delaunay triangulation</b></p>
+<p>Use <code><a class="el" href="classCDT_1_1Triangulation.html#a1529c0a2bc7de096a1251da55c7b3967" title="Insert constraint edges into triangulation for Conforming Delaunay Triangulation (for example see fig...">CDT::Triangulation::conformToEdges</a></code> instead of <code><a class="el" href="classCDT_1_1Triangulation.html#a972f00c83b36c4a775aad30735f918d7" title="Insert constraint edges into triangulation for Constrained Delaunay Triangulation (for example see fi...">CDT::Triangulation::insertEdges</a></code></p>
+<p><b>Resolve edge intersections by adding new points and splitting edges</b></p>
+<p>Pass <code><a class="el" href="structCDT_1_1IntersectingConstraintEdges.html#afd50ae5a48b442fc2f4d3800dd29f968a0aa540b11f4de6383147db9a12fbbc25" title="attempt to resolve constraint edge intersections">CDT::IntersectingConstraintEdges::TryResolve</a></code> to <code><a class="el" href="classCDT_1_1Triangulation.html" title="Data structure representing a 2D constrained Delaunay triangulation.">CDT::Triangulation</a></code> constructor.</p>
+<p><b>Custom point/edge type</b></p>
+<div class="fragment"><div class="line"><span class="keyword">struct </span>CustomPoint2D</div>
+<div class="line">{</div>
+<div class="line">    <span class="keywordtype">double</span> data[2];</div>
+<div class="line">};</div>
+<div class="line"> </div>
+<div class="line"><span class="keyword">struct </span>CustomEdge</div>
+<div class="line">{</div>
+<div class="line">    std::pair&lt;std::size_t, std::size_t&gt; vertices;</div>
+<div class="line">};</div>
+<div class="line"> </div>
+<div class="line"><span class="comment">// containers other than std::vector will work too</span></div>
+<div class="line">std::vector&lt;CustomPoint2D&gt; points = <span class="comment">/*...*/</span>; </div>
+<div class="line">std::vector&lt;CustomEdge&gt; edges = <span class="comment">/*...*/</span>;</div>
+<div class="line"><a class="code hl_class" href="classCDT_1_1Triangulation.html">CDT::Triangulation&lt;double&gt;</a> cdt;</div>
+<div class="line">cdt.<a class="code hl_function" href="classCDT_1_1Triangulation.html#a9a549def9b96626bd01d89cc7dc92bda">insertVertices</a>(</div>
+<div class="line">    points.begin(),</div>
+<div class="line">    points.end(),</div>
+<div class="line">    [](<span class="keyword">const</span> CustomPoint2D&amp; p){ return p.data[0]; },</div>
+<div class="line">    [](<span class="keyword">const</span> CustomPoint2D&amp; p){ return p.data[1]; }</div>
+<div class="line">);</div>
+<div class="line">cdt.<a class="code hl_function" href="classCDT_1_1Triangulation.html#a972f00c83b36c4a775aad30735f918d7">insertEdges</a>(</div>
+<div class="line">    edges.begin(),</div>
+<div class="line">    edges.end(),</div>
+<div class="line">    [](<span class="keyword">const</span> CustomEdge&amp; e){ return e.vertices.first; },</div>
+<div class="line">    [](<span class="keyword">const</span> CustomEdge&amp; e){ return e.vertices.second; }</div>
+<div class="line">);</div>
+</div><!-- fragment --><p><b>Callbacks</b></p>
+<p>For advanced usage and deep integration with custom algorithms <a class="el" href="namespaceCDT.html" title="Namespace containing triangulation functionality.">CDT</a> allows to register user callbacks for important events. For example it is possible to do progress reporting or abort triangulation.</p>
+<p>⚠️ Callbacks need to be enabled with <code>CDT_ENABLE_CALLBACK_HANDLER</code>.</p>
+<p>User needs to implement callback handler by deriving from <code><a class="el" href="classCDT_1_1ICallbackHandler.html" title="Interface for the callback handler that user can derive from and inject into the triangulation to mon...">CDT::ICallbackHandler</a></code> and register it with <code><a class="el" href="classCDT_1_1Triangulation.html#af59009a3303b4658fa75df3af528110c" title="Set user-provided callback handler.">CDT::Triangulation::setCallbackHandler</a></code>. See <a href="../CDT/tests/cdt.test.cpp"><code>cdt.test.cpp</code></a> for usage examples.</p>
+<p><a class="anchor" id="python-bindings"></a></p>
+<h2><a class="anchor" id="autotoc_md14"></a>
+Python bindings?</h2>
+<p>For Python bindings check-out <a href="https://github.com/artem-ogre/PythonCDT">PythonCDT</a></p>
+<p><a class="anchor" id="contributors"></a></p>
+<h2><a class="anchor" id="autotoc_md15"></a>
+Contributors</h2>
+<ul>
+<li><a href="https://github.com/artem-ogre">Artem Amirkhanov</a></li>
+<li><a href="https://github.com/kalleakerblom">Karl Åkerblom</a></li>
+<li><a href="https://github.com/baiwenlei">baiwenlei</a>: dragging and zooming in the viewer</li>
+<li><a href="https://github.com/eisbaerli">Bärbel Holm</a>: removing duplicates and re-mapping edges</li>
+<li><a href="https://github.com/AndreFecteau">Andre Fecteau</a>: benchmarking, profiling, and providing a kd-tree implementation a derivative of which is included in <a class="el" href="namespaceCDT.html" title="Namespace containing triangulation functionality.">CDT</a></li>
+<li><a href="https://github.com/msokalski">msokalski</a>: algorithm discussions and suggestions, bug finding</li>
+<li><a href="https://github.com/alkonior">alkonior</a>: finding, reproducing, and reporting a bug (<a href="https://github.com/artem-ogre/CDT/issues/142">#142</a>)</li>
+<li><a href="https://github.com/ldcMasa">ldcMasa</a>: finding compilation issue (<a href="https://github.com/artem-ogre/CDT/issues/144">#144</a>)</li>
+<li><a href="https://github.com/egladil86">egladil86</a>: finding, reproducing, and reporting a bug (<a href="https://github.com/artem-ogre/CDT/issues/148">#148</a>)</li>
+<li><a href="https://github.com/Som1Lse">Som1Lse</a>: fuzzing <a class="el" href="namespaceCDT.html" title="Namespace containing triangulation functionality.">CDT</a>: finding, reproducing, and reporting bugs (<a href="https://github.com/artem-ogre/CDT/issues/148">#154</a>)</li>
+<li><a href="https://github.com/Madrich">Madrich</a>: help with implementing user callbacks (<a href="https://github.com/artem-ogre/CDT/issues/178">#178</a>)</li>
+</ul>
+<p><a class="anchor" id="contributing"></a></p>
+<h2><a class="anchor" id="autotoc_md16"></a>
+Contributing</h2>
+<p>Any feedback and contributions are welcome.</p>
+<p><a class="anchor" id="license"></a></p>
+<h2><a class="anchor" id="autotoc_md17"></a>
+License</h2>
+<p><a href="https://www.mozilla.org/en-US/MPL/2.0/FAQ/">Mozilla Public License, v. 2.0</a></p>
+<p>For attribution you can use the following template: </p><div class="fragment"><div class="line">This software is based part on CDT (C++ library for constrained Delaunay triangulation):</div>
+<div class="line">Copyright © 2019 Leica Geosystems Technology AB</div>
+<div class="line">Copyright © The CDT Contributors</div>
+<div class="line">Licensed under the MPL-2.0 license.</div>
+<div class="line">https://github.com/artem-ogre/CDT</div>
+<div class="line">${INSERT_FULL_MPL_2.0_TEXT}</div>
+</div><!-- fragment --><p><a class="anchor" id="example-gallery"></a></p>
+<h2><a class="anchor" id="autotoc_md18"></a>
+Example Gallery</h2>
+<p><img src="./images/A.png" alt="A" style="height: 45%; width: 45%; object-fit: contain" class="inline"/> <img src="./images/Bean.png" alt="Bean" style="height: 45%; width: 45%; object-fit: contain" class="inline"/> <img src="./images/Guitar.png" alt="Guitar" style="height: 45%; width: 45%; object-fit: contain" class="inline"/> <img src="./images/Guitar_no_holes.png" alt="Guitar with holes" style="height: 45%; width: 45%; object-fit: contain" class="inline"/> <img src="./images/LakeSuperior.png" alt="Lake Superior" style="height: 45%; width: 45%; object-fit: contain" class="inline"/> <img src="./images/Sweden.png" alt="Sweden" style="height: 45%; width: 45%; object-fit: contain" class="inline"/> <a class="anchor" id="overlapping-boundaries-example"></a><img src="./images/Overlapping_boundaries.png" alt="Overlapping boundaries" style="height: 45%; width: 45%; object-fit: contain" class="inline"/></p>
+<p><a class="anchor" id="bibliography"></a></p>
+<h2><a class="anchor" id="autotoc_md19"></a>
+Bibliography</h2>
+<p><a class="anchor" id="[1]"></a>[1] Marc Vigo Anglada, An improved incremental algorithm for constructing restricted Delaunay triangulations, <em>Computers &amp; Graphics</em>, Volume 21, Issue 2, 1997, Pages 215-223, ISSN 0097-8493.</p>
+<p><a class="anchor" id="[2]"></a>[2] Borut Žalik and Ivana Kolingerová, An incremental construction algorithm for Delaunay triangulation using the nearest-point paradigm, <em>International Journal of Geographical Information Science</em>, Volume 17, Issue 2, Pages 119-138, 2003, DOI 10.1080/713811749.</p>
+<p><a class="anchor" id="[3]"></a>[3] Olivier Devillers, Sylvvain Pion, Monique Tellaud, Walking in a triangulation, <em>International Journal of Foundations of Computer Science</em>, Volume 13, Issue 2, Pages 181-199, 2002</p>
+<p><a class="anchor" id="[4]"></a>[4] Liu, Jianfei &amp; Yan, Jinhui &amp; Lo, S.. A new insertion sequence for incremental Delaunay triangulation. <em>Acta Mechanica Sinica</em>, Volume 29, 2013 </p>
+</div></div><!-- PageDoc -->
+<a href="doxygen_crawl.html"></a>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.13.2 </li>
+  </ul>
+</div>
+</body>
+</html>

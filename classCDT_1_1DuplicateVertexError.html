@@ -1,0 +1,310 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.13.2"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- BEGIN opengraph metadata -->
+<meta property="og:title" content="CDT" />
+<meta property="og:image" content="https://repository-images.githubusercontent.com/179470761/87cff280-184e-11eb-8837-b1ad740baf8a" />
+<meta property="og:description" content="C++ library for constrained and conforming Delaunay triangulations" />
+<meta property="og:url" content="https://artem-ogre.github.io/CDT/" />
+<!-- END opengraph metadata -->
+<!-- BEGIN twitter metadata -->
+<meta name="twitter:image:src" content="https://repository-images.githubusercontent.com/179470761/87cff280-184e-11eb-8837-b1ad740baf8a" />
+<meta name="twitter:title" content="CDT" />
+<meta name="twitter:description" content="C++ library for constrained and conforming Delaunay triangulations" />
+<!-- END twitter metadata -->
+<title>CDT: CDT::DuplicateVertexError Class Reference</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<!--favicon-->
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="logo.svg"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="manifest" href="site.webmanifest" />
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript" src="doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="toggle-alternative-theme.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init()
+    DoxygenAwesomeDarkModeToggle.init()
+    DoxygenAwesomeParagraphLink.init()
+</script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only-darkmode-toggle.css" rel="stylesheet" type="text/css"/>
+<link href="custom.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<!-- https://tholman.com/github-corners/ -->
+<a href="https://github.com/artem-ogre/CDT" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">CDT
+   &#160;<span id="projectnumber">1.4.2</span>
+   </div>
+   <div id="projectbrief">C++ library for constrained Delaunay triangulation</div>
+  </td>
+   <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.13.2 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() { codefold.init(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('classCDT_1_1DuplicateVertexError.html',''); initResizable(true); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Loading...</div>
+<div class="SRStatus" id="Searching">Searching...</div>
+<div class="SRStatus" id="NoMatches">No Matches</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="classCDT_1_1DuplicateVertexError-members.html">List of all members</a>  </div>
+  <div class="headertitle"><div class="title">CDT::DuplicateVertexError Class Reference<div class="ingroups"><a class="el" href="group__API.html">Public API</a></div></div></div>
+</div><!--header-->
+<div class="contents">
+
+<p><a class="el" href="classCDT_1_1Error.html" title="Base class for errors.">Error</a> thrown when duplicate vertex is detected during vertex insertion.  
+ <a href="#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="Triangulation_8h_source.html">Triangulation.h</a>&gt;</code></p>
+<div class="dynheader">
+Inheritance diagram for CDT::DuplicateVertexError:</div>
+<div class="dyncontent">
+<div class="center"><img src="classCDT_1_1DuplicateVertexError__inherit__graph.png" border="0" usemap="#aCDT_1_1DuplicateVertexError_inherit__map" alt="Inheritance graph"/></div>
+<map name="aCDT_1_1DuplicateVertexError_inherit__map" id="aCDT_1_1DuplicateVertexError_inherit__map">
+<area shape="rect" title="Error thrown when duplicate vertex is detected during vertex insertion." alt="" coords="5,152,196,177"/>
+<area shape="rect" href="classCDT_1_1Error.html" title="Base class for errors." alt="" coords="57,79,144,104"/>
+<area shape="poly" title=" " alt="" coords="103,118,103,152,98,152,98,118"/>
+<area shape="rect" title=" " alt="" coords="31,5,170,31"/>
+<area shape="poly" title=" " alt="" coords="103,44,103,79,98,79,98,44"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
+<div class="dynheader">
+Collaboration diagram for CDT::DuplicateVertexError:</div>
+<div class="dyncontent">
+<div class="center"><img src="classCDT_1_1DuplicateVertexError__coll__graph.png" border="0" usemap="#aCDT_1_1DuplicateVertexError_coll__map" alt="Collaboration graph"/></div>
+<map name="aCDT_1_1DuplicateVertexError_coll__map" id="aCDT_1_1DuplicateVertexError_coll__map">
+<area shape="rect" title="Error thrown when duplicate vertex is detected during vertex insertion." alt="" coords="5,152,196,177"/>
+<area shape="rect" href="classCDT_1_1Error.html" title="Base class for errors." alt="" coords="57,79,144,104"/>
+<area shape="poly" title=" " alt="" coords="103,118,103,152,98,152,98,118"/>
+<area shape="rect" title=" " alt="" coords="31,5,170,31"/>
+<area shape="poly" title=" " alt="" coords="103,44,103,79,98,79,98,44"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
+Public Member Functions</h2></td></tr>
+<tr class="memitem:a8c15a88d2b45198683737c858c5a2a7d" id="r_a8c15a88d2b45198683737c858c5a2a7d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a8c15a88d2b45198683737c858c5a2a7d">DuplicateVertexError</a> (const <a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> <a class="el" href="#a5350d461ed783cf7af7a5c06a6f096bd">v1</a>, const <a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> <a class="el" href="#a44332d602cd01a4ff37421d0e6739cdb">v2</a>, const <a class="el" href="classCDT_1_1SourceLocation.html">SourceLocation</a> &amp;srcLoc)</td></tr>
+<tr class="memdesc:a8c15a88d2b45198683737c858c5a2a7d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <br /></td></tr>
+<tr class="separator:a8c15a88d2b45198683737c858c5a2a7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5350d461ed783cf7af7a5c06a6f096bd" id="r_a5350d461ed783cf7af7a5c06a6f096bd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a5350d461ed783cf7af7a5c06a6f096bd">v1</a> () const</td></tr>
+<tr class="memdesc:a5350d461ed783cf7af7a5c06a6f096bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">first duplicate  <br /></td></tr>
+<tr class="separator:a5350d461ed783cf7af7a5c06a6f096bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a44332d602cd01a4ff37421d0e6739cdb" id="r_a44332d602cd01a4ff37421d0e6739cdb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a44332d602cd01a4ff37421d0e6739cdb">v2</a> () const</td></tr>
+<tr class="memdesc:a44332d602cd01a4ff37421d0e6739cdb"><td class="mdescLeft">&#160;</td><td class="mdescRight">second duplicate  <br /></td></tr>
+<tr class="separator:a44332d602cd01a4ff37421d0e6739cdb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="inherit_header pub_methods_classCDT_1_1Error"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classCDT_1_1Error')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classCDT_1_1Error.html">CDT::Error</a></td></tr>
+<tr class="memitem:a818c8c5b4e046e7ce5aa410820f1848b inherit pub_methods_classCDT_1_1Error" id="r_a818c8c5b4e046e7ce5aa410820f1848b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDT_1_1Error.html#a818c8c5b4e046e7ce5aa410820f1848b">Error</a> (const std::string &amp;<a class="el" href="classCDT_1_1Error.html#ad2f3e586200bb201a9e268703d77ad14">description</a>, const <a class="el" href="classCDT_1_1SourceLocation.html">SourceLocation</a> &amp;srcLoc)</td></tr>
+<tr class="memdesc:a818c8c5b4e046e7ce5aa410820f1848b inherit pub_methods_classCDT_1_1Error"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <br /></td></tr>
+<tr class="separator:a818c8c5b4e046e7ce5aa410820f1848b inherit pub_methods_classCDT_1_1Error"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad2f3e586200bb201a9e268703d77ad14 inherit pub_methods_classCDT_1_1Error" id="r_ad2f3e586200bb201a9e268703d77ad14"><td class="memItemLeft" align="right" valign="top">const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDT_1_1Error.html#ad2f3e586200bb201a9e268703d77ad14">description</a> () const</td></tr>
+<tr class="memdesc:ad2f3e586200bb201a9e268703d77ad14 inherit pub_methods_classCDT_1_1Error"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get error description.  <br /></td></tr>
+<tr class="separator:ad2f3e586200bb201a9e268703d77ad14 inherit pub_methods_classCDT_1_1Error"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5f3dde2e934df710fbf4cebdf6825a08 inherit pub_methods_classCDT_1_1Error" id="r_a5f3dde2e934df710fbf4cebdf6825a08"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classCDT_1_1SourceLocation.html">SourceLocation</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classCDT_1_1Error.html#a5f3dde2e934df710fbf4cebdf6825a08">sourceLocation</a> () const</td></tr>
+<tr class="memdesc:a5f3dde2e934df710fbf4cebdf6825a08 inherit pub_methods_classCDT_1_1Error"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get source location from where the error was thrown.  <br /></td></tr>
+<tr class="separator:a5f3dde2e934df710fbf4cebdf6825a08 inherit pub_methods_classCDT_1_1Error"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p><a class="el" href="classCDT_1_1Error.html" title="Base class for errors.">Error</a> thrown when duplicate vertex is detected during vertex insertion. </p>
+
+<p class="definition">Definition at line <a class="el" href="Triangulation_8h_source.html#l00188">188</a> of file <a class="el" href="Triangulation_8h_source.html">Triangulation.h</a>.</p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a8c15a88d2b45198683737c858c5a2a7d" name="a8c15a88d2b45198683737c858c5a2a7d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8c15a88d2b45198683737c858c5a2a7d">&#9670;&#160;</a></span>DuplicateVertexError()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">CDT::DuplicateVertexError::DuplicateVertexError </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a></td>          <td class="paramname"><span class="paramname"><em>v1</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a></td>          <td class="paramname"><span class="paramname"><em>v2</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classCDT_1_1SourceLocation.html">SourceLocation</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>srcLoc</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Constructor. </p>
+
+<p class="definition">Definition at line <a class="el" href="Triangulation_8h_source.html#l00192">192</a> of file <a class="el" href="Triangulation_8h_source.html">Triangulation.h</a>.</p>
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a5350d461ed783cf7af7a5c06a6f096bd" name="a5350d461ed783cf7af7a5c06a6f096bd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5350d461ed783cf7af7a5c06a6f096bd">&#9670;&#160;</a></span>v1()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> CDT::DuplicateVertexError::v1 </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>first duplicate </p>
+
+<p class="definition">Definition at line <a class="el" href="Triangulation_8h_source.html#l00204">204</a> of file <a class="el" href="Triangulation_8h_source.html">Triangulation.h</a>.</p>
+
+</div>
+</div>
+<a id="a44332d602cd01a4ff37421d0e6739cdb" name="a44332d602cd01a4ff37421d0e6739cdb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a44332d602cd01a4ff37421d0e6739cdb">&#9670;&#160;</a></span>v2()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> CDT::DuplicateVertexError::v2 </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>second duplicate </p>
+
+<p class="definition">Definition at line <a class="el" href="Triangulation_8h_source.html#l00209">209</a> of file <a class="el" href="Triangulation_8h_source.html">Triangulation.h</a>.</p>
+
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following file:<ul>
+<li>include/<a class="el" href="Triangulation_8h_source.html">Triangulation.h</a></li>
+</ul>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="namespaceCDT.html">CDT</a></li><li class="navelem"><a class="el" href="classCDT_1_1DuplicateVertexError.html">DuplicateVertexError</a></li>
+    <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.13.2 </li>
+  </ul>
+</div>
+</body>
+</html>

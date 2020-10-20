@@ -1,0 +1,397 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.13.2"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- BEGIN opengraph metadata -->
+<meta property="og:title" content="CDT" />
+<meta property="og:image" content="https://repository-images.githubusercontent.com/179470761/87cff280-184e-11eb-8837-b1ad740baf8a" />
+<meta property="og:description" content="C++ library for constrained and conforming Delaunay triangulations" />
+<meta property="og:url" content="https://artem-ogre.github.io/CDT/" />
+<!-- END opengraph metadata -->
+<!-- BEGIN twitter metadata -->
+<meta name="twitter:image:src" content="https://repository-images.githubusercontent.com/179470761/87cff280-184e-11eb-8837-b1ad740baf8a" />
+<meta name="twitter:title" content="CDT" />
+<meta name="twitter:description" content="C++ library for constrained and conforming Delaunay triangulations" />
+<!-- END twitter metadata -->
+<title>CDT: include/CDTUtils.h File Reference</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<!--favicon-->
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="logo.svg"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="manifest" href="site.webmanifest" />
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript" src="doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="toggle-alternative-theme.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init()
+    DoxygenAwesomeDarkModeToggle.init()
+    DoxygenAwesomeParagraphLink.init()
+</script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+  $(function() { init_search(); });
+/* @license-end */
+</script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only-darkmode-toggle.css" rel="stylesheet" type="text/css"/>
+<link href="custom.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<!-- https://tholman.com/github-corners/ -->
+<a href="https://github.com/artem-ogre/CDT" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">CDT
+   &#160;<span id="projectnumber">1.4.2</span>
+   </div>
+   <div id="projectbrief">C++ library for constrained Delaunay triangulation</div>
+  </td>
+   <td>        <div id="MSearchBox" class="MSearchBoxInactive">
+        <span class="left">
+          <span id="MSearchSelect"                onmouseover="return searchBox.OnSearchSelectShow()"                onmouseout="return searchBox.OnSearchSelectHide()">&#160;</span>
+          <input type="text" id="MSearchField" value="" placeholder="Search" accesskey="S"
+               onfocus="searchBox.OnSearchFieldFocus(true)" 
+               onblur="searchBox.OnSearchFieldFocus(false)" 
+               onkeyup="searchBox.OnSearchFieldChange(event)"/>
+          </span><span class="right">
+            <a id="MSearchClose" href="javascript:searchBox.CloseResultsWindow()"><img id="MSearchCloseImg" border="0" src="search/close.svg" alt=""/></a>
+          </span>
+        </div>
+</td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.13.2 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() { codefold.init(0); });
+/* @license-end */
+</script>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('CDTUtils_8h.html',''); initResizable(true); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Loading...</div>
+<div class="SRStatus" id="Searching">Searching...</div>
+<div class="SRStatus" id="NoMatches">No Matches</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
+<a href="#func-members">Functions</a>  </div>
+  <div class="headertitle"><div class="title">CDTUtils.h File Reference</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>Utilities and helpers.  
+<a href="#details">More...</a></p>
+
+<p><a href="CDTUtils_8h_source.html">Go to the source code of this file.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structCDT_1_1V2d.html">CDT::V2d&lt; T &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">2D vector  <a href="structCDT_1_1V2d.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structCDT_1_1Box2d.html">CDT::Box2d&lt; T &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">2D bounding box  <a href="structCDT_1_1Box2d.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structCDT_1_1Edge.html">CDT::Edge</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structCDT_1_1Edge.html" title="Edge connecting two vertices: vertex with smaller index is always first.">Edge</a> connecting two vertices: vertex with smaller index is always first.  <a href="structCDT_1_1Edge.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structCDT_1_1Triangle.html">CDT::Triangle</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classCDT_1_1Triangulation.html" title="Data structure representing a 2D constrained Delaunay triangulation.">Triangulation</a> triangle (counter-clockwise winding)  <a href="structCDT_1_1Triangle.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structCDT_1_1PtTriLocation.html">CDT::PtTriLocation</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Location of point on a triangle.  <a href="structCDT_1_1PtTriLocation.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structCDT_1_1PtLineLocation.html">CDT::PtLineLocation</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Relative location of point to a line.  <a href="structCDT_1_1PtLineLocation.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structboost_1_1hash_3_01CDT_1_1VertInd_01_4.html">boost::hash&lt; CDT::VertInd &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Vertex index hasher.  <a href="structboost_1_1hash_3_01CDT_1_1VertInd_01_4.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structboost_1_1hash_3_01CDT_1_1TriInd_01_4.html">boost::hash&lt; CDT::TriInd &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Triangle index hasher.  <a href="structboost_1_1hash_3_01CDT_1_1TriInd_01_4.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structboost_1_1hash_3_01CDT_1_1Edge_01_4.html">boost::hash&lt; CDT::Edge &gt;</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Edge hasher.  <a href="structboost_1_1hash_3_01CDT_1_1Edge_01_4.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html">CDT</a></td></tr>
+<tr class="memdesc:namespaceCDT"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace containing triangulation functionality. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:a0a14ae176c4c08fc75a82b590f91e552" id="r_a0a14ae176c4c08fc75a82b590f91e552"><td class="memItemLeft" align="right" valign="top">typedef char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0a14ae176c4c08fc75a82b590f91e552">CDT_DONT_USE_BOOST_RTREE__was__replaced__with__CDT_USE_BOOST</a>[-1]</td></tr>
+<tr class="separator:a0a14ae176c4c08fc75a82b590f91e552"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb6f2420a92bb10a9ff3f02e776cc64e" id="r_aeb6f2420a92bb10a9ff3f02e776cc64e"><td class="memItemLeft" align="right" valign="top">typedef char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aeb6f2420a92bb10a9ff3f02e776cc64e">couldnt_parse_cxx_standard</a>[-1]</td></tr>
+<tr class="memdesc:aeb6f2420a92bb10a9ff3f02e776cc64e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Error: couldn't parse standard.  <br /></td></tr>
+<tr class="separator:aeb6f2420a92bb10a9ff3f02e776cc64e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5d8d9b713598f94691ee7ddec39080bd" id="r_a5d8d9b713598f94691ee7ddec39080bd"><td class="memItemLeft" align="right" valign="top">typedef unsigned long long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a5d8d9b713598f94691ee7ddec39080bd">CDT::IndexSizeType</a></td></tr>
+<tr class="separator:a5d8d9b713598f94691ee7ddec39080bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab0bf748c79acc778c4507c30ee416871" id="r_ab0bf748c79acc778c4507c30ee416871"><td class="memItemLeft" align="right" valign="top">typedef unsigned char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#ab0bf748c79acc778c4507c30ee416871">CDT::Index</a></td></tr>
+<tr class="memdesc:ab0bf748c79acc778c4507c30ee416871"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="namespaceCDT.html#ab0bf748c79acc778c4507c30ee416871" title="Index in triangle.">Index</a> in triangle.  <br /></td></tr>
+<tr class="separator:ab0bf748c79acc778c4507c30ee416871"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a342cf6dfcbc2a0ce90809874c4ce8fca" id="r_a342cf6dfcbc2a0ce90809874c4ce8fca"><td class="memItemLeft" align="right" valign="top">typedef IndexSizeType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">CDT::VertInd</a></td></tr>
+<tr class="memdesc:a342cf6dfcbc2a0ce90809874c4ce8fca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Vertex index.  <br /></td></tr>
+<tr class="separator:a342cf6dfcbc2a0ce90809874c4ce8fca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adad7d838934038a6d71d9fa3fddafaa3" id="r_adad7d838934038a6d71d9fa3fddafaa3"><td class="memItemLeft" align="right" valign="top">typedef IndexSizeType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">CDT::TriInd</a></td></tr>
+<tr class="memdesc:adad7d838934038a6d71d9fa3fddafaa3"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structCDT_1_1Triangle.html" title="Triangulation triangle (counter-clockwise winding)">Triangle</a> index.  <br /></td></tr>
+<tr class="separator:adad7d838934038a6d71d9fa3fddafaa3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a1459b39577a311a7378379243d056f" id="r_a1a1459b39577a311a7378379243d056f"><td class="memItemLeft" align="right" valign="top">typedef std::vector&lt; <a class="el" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a1a1459b39577a311a7378379243d056f">CDT::TriIndVec</a></td></tr>
+<tr class="memdesc:a1a1459b39577a311a7378379243d056f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Vector of triangle indices.  <br /></td></tr>
+<tr class="separator:a1a1459b39577a311a7378379243d056f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a397cce3da0edcca7fbd41db17df9921f" id="r_a397cce3da0edcca7fbd41db17df9921f"><td class="memItemLeft" align="right" valign="top">typedef array&lt; <a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a>, 3 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a397cce3da0edcca7fbd41db17df9921f">CDT::VerticesArr3</a></td></tr>
+<tr class="memdesc:a397cce3da0edcca7fbd41db17df9921f"><td class="mdescLeft">&#160;</td><td class="mdescRight">array of three vertex indices  <br /></td></tr>
+<tr class="separator:a397cce3da0edcca7fbd41db17df9921f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a29e1b20182fc9032017cefc2430a53bd" id="r_a29e1b20182fc9032017cefc2430a53bd"><td class="memItemLeft" align="right" valign="top">typedef array&lt; <a class="el" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a>, 3 &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a29e1b20182fc9032017cefc2430a53bd">CDT::NeighborsArr3</a></td></tr>
+<tr class="memdesc:a29e1b20182fc9032017cefc2430a53bd"><td class="mdescLeft">&#160;</td><td class="mdescRight">array of three neighbors  <br /></td></tr>
+<tr class="separator:a29e1b20182fc9032017cefc2430a53bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00ecb94ef8a4604d2afcd2be323ea5fe" id="r_a00ecb94ef8a4604d2afcd2be323ea5fe"><td class="memItemLeft" align="right" valign="top">typedef std::vector&lt; <a class="el" href="structCDT_1_1Edge.html">Edge</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a00ecb94ef8a4604d2afcd2be323ea5fe">CDT::EdgeVec</a></td></tr>
+<tr class="memdesc:a00ecb94ef8a4604d2afcd2be323ea5fe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Vector of edges.  <br /></td></tr>
+<tr class="separator:a00ecb94ef8a4604d2afcd2be323ea5fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a062e6b7c0b1f0eddf4f449e6bf6d9011" id="r_a062e6b7c0b1f0eddf4f449e6bf6d9011"><td class="memItemLeft" align="right" valign="top">typedef unordered_set&lt; <a class="el" href="structCDT_1_1Edge.html">Edge</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a062e6b7c0b1f0eddf4f449e6bf6d9011">CDT::EdgeUSet</a></td></tr>
+<tr class="memdesc:a062e6b7c0b1f0eddf4f449e6bf6d9011"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hash table of edges.  <br /></td></tr>
+<tr class="separator:a062e6b7c0b1f0eddf4f449e6bf6d9011"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c946be7165a2ac3e3c69d6492a2ab98" id="r_a6c946be7165a2ac3e3c69d6492a2ab98"><td class="memItemLeft" align="right" valign="top">typedef unordered_set&lt; <a class="el" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a6c946be7165a2ac3e3c69d6492a2ab98">CDT::TriIndUSet</a></td></tr>
+<tr class="memdesc:a6c946be7165a2ac3e3c69d6492a2ab98"><td class="mdescLeft">&#160;</td><td class="mdescRight">Hash table of triangles.  <br /></td></tr>
+<tr class="separator:a6c946be7165a2ac3e3c69d6492a2ab98"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa405f979f595e0de7b0f8cf590a23490" id="r_aa405f979f595e0de7b0f8cf590a23490"><td class="memItemLeft" align="right" valign="top">typedef unordered_map&lt; <a class="el" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a>, <a class="el" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#aa405f979f595e0de7b0f8cf590a23490">CDT::TriIndUMap</a></td></tr>
+<tr class="memdesc:aa405f979f595e0de7b0f8cf590a23490"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="structCDT_1_1Triangle.html" title="Triangulation triangle (counter-clockwise winding)">Triangle</a> hash map.  <br /></td></tr>
+<tr class="separator:aa405f979f595e0de7b0f8cf590a23490"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adcc7f3c0f0573a300a4d298b90252f1d" id="r_adcc7f3c0f0573a300a4d298b90252f1d"><td class="memItemLeft" align="right" valign="top">typedef std::vector&lt; <a class="el" href="structCDT_1_1Triangle.html">Triangle</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#adcc7f3c0f0573a300a4d298b90252f1d">CDT::TriangleVec</a></td></tr>
+<tr class="memdesc:adcc7f3c0f0573a300a4d298b90252f1d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Vector of triangles.  <br /></td></tr>
+<tr class="separator:adcc7f3c0f0573a300a4d298b90252f1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:a01da01cc76a5d52ed52e8162fcce6af8" id="r_a01da01cc76a5d52ed52e8162fcce6af8"><td class="memTemplParams" colspan="2">template&lt;typename T&gt; </td></tr>
+<tr class="memitem:a01da01cc76a5d52ed52e8162fcce6af8"><td class="memTemplItemLeft" align="right" valign="top">std::string&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a01da01cc76a5d52ed52e8162fcce6af8">CDT::to_string</a> (const T &amp;value)</td></tr>
+<tr class="separator:a01da01cc76a5d52ed52e8162fcce6af8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7709a31f81106a1cb7a4052d7fc9c351" id="r_a7709a31f81106a1cb7a4052d7fc9c351"><td class="memTemplParams" colspan="2">template&lt;typename T&gt; </td></tr>
+<tr class="memitem:a7709a31f81106a1cb7a4052d7fc9c351"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a7709a31f81106a1cb7a4052d7fc9c351">CDT::handleException</a> (const T &amp;error)</td></tr>
+<tr class="separator:a7709a31f81106a1cb7a4052d7fc9c351"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4894a3d45a5d2beab01a59b412028f73" id="r_a4894a3d45a5d2beab01a59b412028f73"><td class="memTemplParams" colspan="2">template&lt;typename T&gt; </td></tr>
+<tr class="memitem:a4894a3d45a5d2beab01a59b412028f73"><td class="memTemplItemLeft" align="right" valign="top">array&lt; T, 3 &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a4894a3d45a5d2beab01a59b412028f73">CDT::arr3</a> (const T &amp;v0, const T &amp;v1, const T &amp;v2)</td></tr>
+<tr class="memdesc:a4894a3d45a5d2beab01a59b412028f73"><td class="mdescLeft">&#160;</td><td class="mdescRight">Needed for c++03 compatibility (no uniform initialization available)  <br /></td></tr>
+<tr class="separator:a4894a3d45a5d2beab01a59b412028f73"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a88218ce58fb5ef72098114d420628529" id="r_a88218ce58fb5ef72098114d420628529"><td class="memTemplParams" colspan="2">template&lt;typename T&gt; </td></tr>
+<tr class="memitem:a88218ce58fb5ef72098114d420628529"><td class="memTemplItemLeft" align="right" valign="top">array&lt; T, 3 &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a88218ce58fb5ef72098114d420628529">CDT::arr3</a> (const T &amp;v)</td></tr>
+<tr class="memdesc:a88218ce58fb5ef72098114d420628529"><td class="mdescLeft">&#160;</td><td class="mdescRight">Needed for c++03 compatibility (no uniform initialization available)  <br /></td></tr>
+<tr class="separator:a88218ce58fb5ef72098114d420628529"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa7774758aea84c3c4c431d05f8ebf1a9" id="r_aa7774758aea84c3c4c431d05f8ebf1a9"><td class="memTemplParams" colspan="2">template&lt;typename T&gt; </td></tr>
+<tr class="memitem:aa7774758aea84c3c4c431d05f8ebf1a9"><td class="memTemplItemLeft" align="right" valign="top">const T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#aa7774758aea84c3c4c431d05f8ebf1a9">CDT::getX_V2d</a> (const <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &amp;v)</td></tr>
+<tr class="memdesc:aa7774758aea84c3c4c431d05f8ebf1a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">X- coordinate getter for <a class="el" href="structCDT_1_1V2d.html" title="2D vector">V2d</a>.  <br /></td></tr>
+<tr class="separator:aa7774758aea84c3c4c431d05f8ebf1a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd66a4bb0b41a6dc58da3a5053ca74c4" id="r_afd66a4bb0b41a6dc58da3a5053ca74c4"><td class="memTemplParams" colspan="2">template&lt;typename T&gt; </td></tr>
+<tr class="memitem:afd66a4bb0b41a6dc58da3a5053ca74c4"><td class="memTemplItemLeft" align="right" valign="top">const T &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#afd66a4bb0b41a6dc58da3a5053ca74c4">CDT::getY_V2d</a> (const <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &amp;v)</td></tr>
+<tr class="memdesc:afd66a4bb0b41a6dc58da3a5053ca74c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Y-coordinate getter for <a class="el" href="structCDT_1_1V2d.html" title="2D vector">V2d</a>.  <br /></td></tr>
+<tr class="separator:afd66a4bb0b41a6dc58da3a5053ca74c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaf03f79d929ddd98f64c2c575cc842e1" id="r_aaf03f79d929ddd98f64c2c575cc842e1"><td class="memTemplParams" colspan="2">template&lt;typename T&gt; </td></tr>
+<tr class="memitem:aaf03f79d929ddd98f64c2c575cc842e1"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#aaf03f79d929ddd98f64c2c575cc842e1">CDT::operator==</a> (const <a class="el" href="structCDT_1_1V2d.html">CDT::V2d</a>&lt; T &gt; &amp;lhs, const <a class="el" href="structCDT_1_1V2d.html">CDT::V2d</a>&lt; T &gt; &amp;rhs)</td></tr>
+<tr class="memdesc:aaf03f79d929ddd98f64c2c575cc842e1"><td class="mdescLeft">&#160;</td><td class="mdescRight">If two 2D vectors are exactly equal.  <br /></td></tr>
+<tr class="separator:aaf03f79d929ddd98f64c2c575cc842e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae11f603c45fb9ccb6df79428bb215147" id="r_ae11f603c45fb9ccb6df79428bb215147"><td class="memItemLeft" align="right" valign="top"><a id="ae11f603c45fb9ccb6df79428bb215147" name="ae11f603c45fb9ccb6df79428bb215147"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>CDT::BOOST_STRONG_TYPEDEF</b> (unsigned char, <a class="el" href="namespaceCDT.html#ab0bf748c79acc778c4507c30ee416871">Index</a>)</td></tr>
+<tr class="memdesc:ae11f603c45fb9ccb6df79428bb215147"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="namespaceCDT.html#ab0bf748c79acc778c4507c30ee416871" title="Index in triangle.">Index</a> in triangle. <br /></td></tr>
+<tr class="separator:ae11f603c45fb9ccb6df79428bb215147"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abcd6a36bc361bd3562e9c9d8d273d289" id="r_abcd6a36bc361bd3562e9c9d8d273d289"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#abcd6a36bc361bd3562e9c9d8d273d289">CDT::BOOST_STRONG_TYPEDEF</a> (IndexSizeType, <a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a>)</td></tr>
+<tr class="memdesc:abcd6a36bc361bd3562e9c9d8d273d289"><td class="mdescLeft">&#160;</td><td class="mdescRight">Vertex index.  <br /></td></tr>
+<tr class="separator:abcd6a36bc361bd3562e9c9d8d273d289"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1f5839f3c84d7cdb0ff4fe0f77281601" id="r_a1f5839f3c84d7cdb0ff4fe0f77281601"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a1f5839f3c84d7cdb0ff4fe0f77281601">CDT::edge_get_v1</a> (const <a class="el" href="structCDT_1_1Edge.html">Edge</a> &amp;e)</td></tr>
+<tr class="memdesc:a1f5839f3c84d7cdb0ff4fe0f77281601"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get edge first vertex.  <br /></td></tr>
+<tr class="separator:a1f5839f3c84d7cdb0ff4fe0f77281601"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1212a690b0ed75055d5305fec53c46b1" id="r_a1212a690b0ed75055d5305fec53c46b1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a1212a690b0ed75055d5305fec53c46b1">CDT::edge_get_v2</a> (const <a class="el" href="structCDT_1_1Edge.html">Edge</a> &amp;e)</td></tr>
+<tr class="memdesc:a1212a690b0ed75055d5305fec53c46b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get edge second vertex.  <br /></td></tr>
+<tr class="separator:a1212a690b0ed75055d5305fec53c46b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a994de354727683a9e07d3e4d4645f620" id="r_a994de354727683a9e07d3e4d4645f620"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structCDT_1_1Edge.html">Edge</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a994de354727683a9e07d3e4d4645f620">CDT::edge_make</a> (<a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iV1, <a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iV2)</td></tr>
+<tr class="memdesc:a994de354727683a9e07d3e4d4645f620"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get edge second vertex.  <br /></td></tr>
+<tr class="separator:a994de354727683a9e07d3e4d4645f620"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71e51d357ff08262d1bb774ce23b0c29" id="r_a71e51d357ff08262d1bb774ce23b0c29"><td class="memItemLeft" align="right" valign="top">CDT_EXPORT <a class="el" href="namespaceCDT.html#ab0bf748c79acc778c4507c30ee416871">Index</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a71e51d357ff08262d1bb774ce23b0c29">CDT::ccw</a> (<a class="el" href="namespaceCDT.html#ab0bf748c79acc778c4507c30ee416871">Index</a> i)</td></tr>
+<tr class="memdesc:a71e51d357ff08262d1bb774ce23b0c29"><td class="mdescLeft">&#160;</td><td class="mdescRight">Advance vertex or neighbor index counter-clockwise.  <br /></td></tr>
+<tr class="separator:a71e51d357ff08262d1bb774ce23b0c29"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a36f349a95810a0abb13c81e7386fceb5" id="r_a36f349a95810a0abb13c81e7386fceb5"><td class="memItemLeft" align="right" valign="top">CDT_EXPORT <a class="el" href="namespaceCDT.html#ab0bf748c79acc778c4507c30ee416871">Index</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a36f349a95810a0abb13c81e7386fceb5">CDT::cw</a> (<a class="el" href="namespaceCDT.html#ab0bf748c79acc778c4507c30ee416871">Index</a> i)</td></tr>
+<tr class="memdesc:a36f349a95810a0abb13c81e7386fceb5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Advance vertex or neighbor index clockwise.  <br /></td></tr>
+<tr class="separator:a36f349a95810a0abb13c81e7386fceb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac3a88d58a1de1f8d9b226a28cbcbf1b3" id="r_ac3a88d58a1de1f8d9b226a28cbcbf1b3"><td class="memItemLeft" align="right" valign="top">CDT_EXPORT bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#ac3a88d58a1de1f8d9b226a28cbcbf1b3">CDT::isOnEdge</a> (<a class="el" href="structCDT_1_1PtTriLocation.html#afd00bc31e9ae62de61018e58fc64beff">PtTriLocation::Enum</a> location)</td></tr>
+<tr class="memdesc:ac3a88d58a1de1f8d9b226a28cbcbf1b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if location is classified as on any of three edges.  <br /></td></tr>
+<tr class="separator:ac3a88d58a1de1f8d9b226a28cbcbf1b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f5565bf9b57f1b1f4252bf421bb2814" id="r_a9f5565bf9b57f1b1f4252bf421bb2814"><td class="memItemLeft" align="right" valign="top">CDT_EXPORT <a class="el" href="namespaceCDT.html#ab0bf748c79acc778c4507c30ee416871">Index</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a9f5565bf9b57f1b1f4252bf421bb2814">CDT::edgeNeighbor</a> (<a class="el" href="structCDT_1_1PtTriLocation.html#afd00bc31e9ae62de61018e58fc64beff">PtTriLocation::Enum</a> location)</td></tr>
+<tr class="memdesc:a9f5565bf9b57f1b1f4252bf421bb2814"><td class="mdescLeft">&#160;</td><td class="mdescRight">Neighbor index from a on-edge location.  <br /></td></tr>
+<tr class="separator:a9f5565bf9b57f1b1f4252bf421bb2814"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a674926a5846def2ff5cfbbf329127727" id="r_a674926a5846def2ff5cfbbf329127727"><td class="memTemplParams" colspan="2">template&lt;typename T&gt; </td></tr>
+<tr class="memitem:a674926a5846def2ff5cfbbf329127727"><td class="memTemplItemLeft" align="right" valign="top">CDT_EXPORT T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a674926a5846def2ff5cfbbf329127727">CDT::orient2D</a> (const <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &amp;p, const <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &amp;v1, const <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &amp;v2)</td></tr>
+<tr class="memdesc:a674926a5846def2ff5cfbbf329127727"><td class="mdescLeft">&#160;</td><td class="mdescRight">Orient p against line v1-v2 2D: robust geometric predicate.  <br /></td></tr>
+<tr class="separator:a674926a5846def2ff5cfbbf329127727"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6920ce3b4f652eaf7f2430119d0a046b" id="r_a6920ce3b4f652eaf7f2430119d0a046b"><td class="memTemplParams" colspan="2">template&lt;typename T&gt; </td></tr>
+<tr class="memitem:a6920ce3b4f652eaf7f2430119d0a046b"><td class="memTemplItemLeft" align="right" valign="top">CDT_EXPORT <a class="el" href="structCDT_1_1PtLineLocation.html#a637cf860a0a8ec4916af90cce7343482">PtLineLocation::Enum</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a6920ce3b4f652eaf7f2430119d0a046b">CDT::locatePointLine</a> (const <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &amp;p, const <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &amp;v1, const <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &amp;v2, T orientationTolerance=T(0))</td></tr>
+<tr class="memdesc:a6920ce3b4f652eaf7f2430119d0a046b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if point lies to the left of, to the right of, or on a line.  <br /></td></tr>
+<tr class="separator:a6920ce3b4f652eaf7f2430119d0a046b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2838931e20edee84157bfa20f2e1392d" id="r_a2838931e20edee84157bfa20f2e1392d"><td class="memTemplParams" colspan="2">template&lt;typename T&gt; </td></tr>
+<tr class="memitem:a2838931e20edee84157bfa20f2e1392d"><td class="memTemplItemLeft" align="right" valign="top">CDT_EXPORT <a class="el" href="structCDT_1_1PtLineLocation.html#a637cf860a0a8ec4916af90cce7343482">PtLineLocation::Enum</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a2838931e20edee84157bfa20f2e1392d">CDT::classifyOrientation</a> (T orientation, T orientationTolerance=T(0))</td></tr>
+<tr class="memdesc:a2838931e20edee84157bfa20f2e1392d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Classify value of orient2d predicate.  <br /></td></tr>
+<tr class="separator:a2838931e20edee84157bfa20f2e1392d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb15a895999b7bf687de460afc9945fa" id="r_adb15a895999b7bf687de460afc9945fa"><td class="memTemplParams" colspan="2">template&lt;typename T&gt; </td></tr>
+<tr class="memitem:adb15a895999b7bf687de460afc9945fa"><td class="memTemplItemLeft" align="right" valign="top">CDT_EXPORT <a class="el" href="structCDT_1_1PtTriLocation.html#afd00bc31e9ae62de61018e58fc64beff">PtTriLocation::Enum</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#adb15a895999b7bf687de460afc9945fa">CDT::locatePointTriangle</a> (const <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &amp;p, const <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &amp;v1, const <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &amp;v2, const <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &amp;v3)</td></tr>
+<tr class="memdesc:adb15a895999b7bf687de460afc9945fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if point a lies inside of, outside of, or on an edge of a triangle.  <br /></td></tr>
+<tr class="separator:adb15a895999b7bf687de460afc9945fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b2af2372b08611f8accaffe1fd3e51e" id="r_a5b2af2372b08611f8accaffe1fd3e51e"><td class="memItemLeft" align="right" valign="top">CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY <a class="el" href="namespaceCDT.html#ab0bf748c79acc778c4507c30ee416871">Index</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a5b2af2372b08611f8accaffe1fd3e51e">CDT::opoNbr</a> (<a class="el" href="namespaceCDT.html#ab0bf748c79acc778c4507c30ee416871">Index</a> vertIndex)</td></tr>
+<tr class="memdesc:a5b2af2372b08611f8accaffe1fd3e51e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opposed neighbor index from vertex index.  <br /></td></tr>
+<tr class="separator:a5b2af2372b08611f8accaffe1fd3e51e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a552641d23d442690bfbc8cb178b21130" id="r_a552641d23d442690bfbc8cb178b21130"><td class="memItemLeft" align="right" valign="top">CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY <a class="el" href="namespaceCDT.html#ab0bf748c79acc778c4507c30ee416871">Index</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a552641d23d442690bfbc8cb178b21130">CDT::opoVrt</a> (<a class="el" href="namespaceCDT.html#ab0bf748c79acc778c4507c30ee416871">Index</a> neighborIndex)</td></tr>
+<tr class="memdesc:a552641d23d442690bfbc8cb178b21130"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opposed vertex index from neighbor index.  <br /></td></tr>
+<tr class="separator:a552641d23d442690bfbc8cb178b21130"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a24c56d174d8f1f90c159dab151a6bda2" id="r_a24c56d174d8f1f90c159dab151a6bda2"><td class="memItemLeft" align="right" valign="top">CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY <a class="el" href="namespaceCDT.html#ab0bf748c79acc778c4507c30ee416871">Index</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a24c56d174d8f1f90c159dab151a6bda2">CDT::opposedTriangleInd</a> (const <a class="el" href="namespaceCDT.html#a397cce3da0edcca7fbd41db17df9921f">VerticesArr3</a> &amp;vv, <a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iVert)</td></tr>
+<tr class="memdesc:a24c56d174d8f1f90c159dab151a6bda2"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="namespaceCDT.html#ab0bf748c79acc778c4507c30ee416871" title="Index in triangle.">Index</a> of triangle's neighbor opposed to a vertex.  <br /></td></tr>
+<tr class="separator:a24c56d174d8f1f90c159dab151a6bda2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1efd9102aff49ff8182e6c5c497ea573" id="r_a1efd9102aff49ff8182e6c5c497ea573"><td class="memItemLeft" align="right" valign="top">CDT_INLINE_IF_HEADER_ONLY <a class="el" href="namespaceCDT.html#ab0bf748c79acc778c4507c30ee416871">Index</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a1efd9102aff49ff8182e6c5c497ea573">CDT::edgeNeighborInd</a> (const <a class="el" href="namespaceCDT.html#a397cce3da0edcca7fbd41db17df9921f">VerticesArr3</a> &amp;vv, <a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iVedge1, <a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iVedge2)</td></tr>
+<tr class="memdesc:a1efd9102aff49ff8182e6c5c497ea573"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="namespaceCDT.html#ab0bf748c79acc778c4507c30ee416871" title="Index in triangle.">Index</a> of triangle's neighbor opposed to an edge.  <br /></td></tr>
+<tr class="separator:a1efd9102aff49ff8182e6c5c497ea573"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae670571f2331af35b407dc5e83a80cc4" id="r_ae670571f2331af35b407dc5e83a80cc4"><td class="memItemLeft" align="right" valign="top">CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY <a class="el" href="namespaceCDT.html#ab0bf748c79acc778c4507c30ee416871">Index</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#ae670571f2331af35b407dc5e83a80cc4">CDT::opposedVertexInd</a> (const <a class="el" href="namespaceCDT.html#a29e1b20182fc9032017cefc2430a53bd">NeighborsArr3</a> &amp;nn, <a class="el" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> iTopo)</td></tr>
+<tr class="memdesc:ae670571f2331af35b407dc5e83a80cc4"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="namespaceCDT.html#ab0bf748c79acc778c4507c30ee416871" title="Index in triangle.">Index</a> of triangle's vertex opposed to a triangle.  <br /></td></tr>
+<tr class="separator:ae670571f2331af35b407dc5e83a80cc4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5c4e30508562015d91905f07de1cbd9e" id="r_a5c4e30508562015d91905f07de1cbd9e"><td class="memItemLeft" align="right" valign="top">CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY <a class="el" href="namespaceCDT.html#ab0bf748c79acc778c4507c30ee416871">Index</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a5c4e30508562015d91905f07de1cbd9e">CDT::vertexInd</a> (const <a class="el" href="namespaceCDT.html#a397cce3da0edcca7fbd41db17df9921f">VerticesArr3</a> &amp;vv, <a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iV)</td></tr>
+<tr class="memdesc:a5c4e30508562015d91905f07de1cbd9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">If triangle has a given vertex return vertex-index.  <br /></td></tr>
+<tr class="separator:a5c4e30508562015d91905f07de1cbd9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abbfe49d0f78efb1e6f453991aab021b7" id="r_abbfe49d0f78efb1e6f453991aab021b7"><td class="memItemLeft" align="right" valign="top">CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY <a class="el" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#abbfe49d0f78efb1e6f453991aab021b7">CDT::opposedTriangle</a> (const <a class="el" href="structCDT_1_1Triangle.html">Triangle</a> &amp;tri, <a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iVert)</td></tr>
+<tr class="memdesc:abbfe49d0f78efb1e6f453991aab021b7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given triangle and a vertex find opposed triangle.  <br /></td></tr>
+<tr class="separator:abbfe49d0f78efb1e6f453991aab021b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a54d389c21a6b172c72757f053bc7a4a1" id="r_a54d389c21a6b172c72757f053bc7a4a1"><td class="memItemLeft" align="right" valign="top">CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY <a class="el" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a54d389c21a6b172c72757f053bc7a4a1">CDT::edgeNeighbor</a> (const <a class="el" href="structCDT_1_1Triangle.html">Triangle</a> &amp;tri, <a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iVedge1, <a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iVedge2)</td></tr>
+<tr class="memdesc:a54d389c21a6b172c72757f053bc7a4a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given triangle and an edge find neighbor sharing the edge.  <br /></td></tr>
+<tr class="separator:a54d389c21a6b172c72757f053bc7a4a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a062528813048666e38e507c535522004" id="r_a062528813048666e38e507c535522004"><td class="memItemLeft" align="right" valign="top">CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY <a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a062528813048666e38e507c535522004">CDT::opposedVertex</a> (const <a class="el" href="structCDT_1_1Triangle.html">Triangle</a> &amp;tri, <a class="el" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> iTopo)</td></tr>
+<tr class="memdesc:a062528813048666e38e507c535522004"><td class="mdescLeft">&#160;</td><td class="mdescRight">Given two triangles, return vertex of first triangle opposed to the second.  <br /></td></tr>
+<tr class="separator:a062528813048666e38e507c535522004"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac08e464ee04d71d5f438ec3baf1332b0" id="r_ac08e464ee04d71d5f438ec3baf1332b0"><td class="memTemplParams" colspan="2">template&lt;typename T&gt; </td></tr>
+<tr class="memitem:ac08e464ee04d71d5f438ec3baf1332b0"><td class="memTemplItemLeft" align="right" valign="top">CDT_EXPORT bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#ac08e464ee04d71d5f438ec3baf1332b0">CDT::isInCircumcircle</a> (const <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &amp;p, const <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &amp;v1, const <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &amp;v2, const <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &amp;v3)</td></tr>
+<tr class="memdesc:ac08e464ee04d71d5f438ec3baf1332b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test if point lies in a circumscribed circle of a triangle.  <br /></td></tr>
+<tr class="separator:ac08e464ee04d71d5f438ec3baf1332b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a36811343105941141d574129be7e1dbb" id="r_a36811343105941141d574129be7e1dbb"><td class="memItemLeft" align="right" valign="top">CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a36811343105941141d574129be7e1dbb">CDT::verticesShareEdge</a> (const <a class="el" href="namespaceCDT.html#a1a1459b39577a311a7378379243d056f">TriIndVec</a> &amp;aTris, const <a class="el" href="namespaceCDT.html#a1a1459b39577a311a7378379243d056f">TriIndVec</a> &amp;bTris)</td></tr>
+<tr class="memdesc:a36811343105941141d574129be7e1dbb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Test if two vertices share at least one common triangle.  <br /></td></tr>
+<tr class="separator:a36811343105941141d574129be7e1dbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b6b4a553dbca57b134a51134bcfbe2d" id="r_a2b6b4a553dbca57b134a51134bcfbe2d"><td class="memTemplParams" colspan="2">template&lt;typename T&gt; </td></tr>
+<tr class="memitem:a2b6b4a553dbca57b134a51134bcfbe2d"><td class="memTemplItemLeft" align="right" valign="top">CDT_EXPORT T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a2b6b4a553dbca57b134a51134bcfbe2d">CDT::distance</a> (const <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &amp;a, const <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &amp;b)</td></tr>
+<tr class="memdesc:a2b6b4a553dbca57b134a51134bcfbe2d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Distance between two 2D points.  <br /></td></tr>
+<tr class="separator:a2b6b4a553dbca57b134a51134bcfbe2d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a4df1a3e8e85a929894eec64dc8ce73" id="r_a6a4df1a3e8e85a929894eec64dc8ce73"><td class="memTemplParams" colspan="2">template&lt;typename T&gt; </td></tr>
+<tr class="memitem:a6a4df1a3e8e85a929894eec64dc8ce73"><td class="memTemplItemLeft" align="right" valign="top">CDT_EXPORT T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a6a4df1a3e8e85a929894eec64dc8ce73">CDT::distanceSquared</a> (const <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &amp;a, const <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &amp;b)</td></tr>
+<tr class="memdesc:a6a4df1a3e8e85a929894eec64dc8ce73"><td class="mdescLeft">&#160;</td><td class="mdescRight">Squared distance between two 2D points.  <br /></td></tr>
+<tr class="separator:a6a4df1a3e8e85a929894eec64dc8ce73"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3e56faea8cec2713ed31dbcae80c878b" id="r_a3e56faea8cec2713ed31dbcae80c878b"><td class="memItemLeft" align="right" valign="top">CDT_INLINE_IF_HEADER_ONLY bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a3e56faea8cec2713ed31dbcae80c878b">CDT::touchesSuperTriangle</a> (const <a class="el" href="structCDT_1_1Triangle.html">Triangle</a> &amp;t)</td></tr>
+<tr class="memdesc:a3e56faea8cec2713ed31dbcae80c878b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if any of triangle's vertices belongs to a super-triangle.  <br /></td></tr>
+<tr class="separator:a3e56faea8cec2713ed31dbcae80c878b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Utilities and helpers. </p>
+
+<p class="definition">Definition in file <a class="el" href="CDTUtils_8h_source.html">CDTUtils.h</a>.</p>
+</div><h2 class="groupheader">Typedef Documentation</h2>
+<a id="a0a14ae176c4c08fc75a82b590f91e552" name="a0a14ae176c4c08fc75a82b590f91e552"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0a14ae176c4c08fc75a82b590f91e552">&#9670;&#160;</a></span>CDT_DONT_USE_BOOST_RTREE__was__replaced__with__CDT_USE_BOOST</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef char CDT_DONT_USE_BOOST_RTREE__was__replaced__with__CDT_USE_BOOST[-1]</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p class="definition">Definition at line <a class="el" href="CDTUtils_8h_source.html#l00015">15</a> of file <a class="el" href="CDTUtils_8h_source.html">CDTUtils.h</a>.</p>
+
+</div>
+</div>
+<a id="aeb6f2420a92bb10a9ff3f02e776cc64e" name="aeb6f2420a92bb10a9ff3f02e776cc64e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb6f2420a92bb10a9ff3f02e776cc64e">&#9670;&#160;</a></span>couldnt_parse_cxx_standard</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef char couldnt_parse_cxx_standard[-1]</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Error: couldn't parse standard. </p>
+
+<p class="definition">Definition at line <a class="el" href="CDTUtils_8h_source.html#l00024">24</a> of file <a class="el" href="CDTUtils_8h_source.html">CDTUtils.h</a>.</p>
+
+</div>
+</div>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_c9083ae231f9fec5daf3be9340efa1d0.html">include</a></li><li class="navelem"><a class="el" href="CDTUtils_8h.html">CDTUtils.h</a></li>
+    <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.13.2 </li>
+  </ul>
+</div>
+</body>
+</html>

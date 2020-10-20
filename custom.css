@@ -1,0 +1,27 @@
+.github-corner svg {
+    fill: var(--primary-color);
+    color: var(--page-background-color);
+}
+
+.memItemLeft,
+.memTemplItemLeft {
+    white-space: normal;
+}
+
+.memTemplParams {
+    white-space: normal;
+}
+
+table.memberdecls .memItemLeft,
+table.memberdecls .memTemplItemLeft {
+    padding-right: var(--spacing-large);
+}
+
+table.memberdecls .memTemplParams {
+    padding-bottom: var(--spacing-medium);
+}
+
+table.memberdecls .memItemRight,
+table.memberdecls .memTemplItemRight {
+    vertical-align: top;
+}
