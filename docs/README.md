@@ -12,6 +12,7 @@ Numerically robust C++ implementation of constrained Delaunay triangulation (CDT
 **Please ★ this repository if it helped. This means a lot to the authors :)**
 
 **Table of Contents**
+- [Online Documentation](#online-doc)
 - [Algorithm](#algorithm)
 - [Installation](#installation)
 - [Details](#details)
@@ -21,6 +22,8 @@ Numerically robust C++ implementation of constrained Delaunay triangulation (CDT
 - [Examples](#examples)
 - [Bibliography](#bibliography)
 
+## <a name="online-doc"/>Online Documentation</a>
+[**Latest online documentation**](https://artem-ogre.github.io/CDT/doxygen/index.html) (automatically generated with Doxygen).
 
 ## <a name="algorithm"/>Algorithm</a>
 
