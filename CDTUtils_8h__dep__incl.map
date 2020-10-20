@@ -1,0 +1,28 @@
+<map id="include/CDTUtils.h" name="include/CDTUtils.h">
+<area shape="rect" id="Node000001" title="Utilities and helpers." alt="" coords="209,5,351,31"/>
+<area shape="rect" id="Node000002" href="$InitializeWithGrid_8h.html" title="Helper function to initialize triangulation with regular grid instead of super&#45;triangle." alt="" coords="5,372,197,397"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="233,38,191,57,151,85,134,101,120,120,111,141,108,164,108,239,105,372,99,372,103,239,103,163,106,139,115,117,130,98,147,80,189,53,231,33"/>
+<area shape="rect" id="Node000003" href="$CDT_8h.html" title="Public API." alt="" coords="253,299,363,324"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="237,39,210,56,190,80,188,91,191,103,214,164,244,219,300,297,296,300,240,222,209,166,185,105,182,91,186,77,207,52,234,35"/>
+<area shape="rect" id="Node000006" href="$CDTUtils_8hpp.html" title="Utilities and helpers &#45; implementation." alt="" coords="201,79,359,104"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="274,44,276,78,270,79,269,45"/>
+<area shape="rect" id="Node000007" href="$KDTree_8h_source.html" title=" " alt="" coords="384,79,515,104"/>
+<area shape="poly" id="edge9_Node000001_Node000007" title=" " alt="" coords="321,34,423,76,421,81,319,38"/>
+<area shape="rect" id="Node000008" href="$LocatorKDTree_8h.html" title="Adapter between for KDTree and CDT." alt="" coords="387,152,565,177"/>
+<area shape="poly" id="edge15_Node000001_Node000008" title=" " alt="" coords="366,26,463,45,503,59,529,77,534,87,535,98,527,119,511,138,494,154,490,150,507,135,522,117,530,98,529,89,525,80,501,64,462,50,365,31"/>
+<area shape="rect" id="Node000009" href="$Triangulation_8h.html" title="Triangulation class." alt="" coords="395,225,565,251"/>
+<area shape="poly" id="edge16_Node000001_Node000009" title=" " alt="" coords="366,27,472,46,518,60,550,77,573,99,587,123,590,150,580,179,567,195,551,209,517,228,514,223,548,204,563,192,575,176,584,149,582,125,568,103,546,81,516,65,471,52,365,32"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="263,331,136,374,134,369,261,326"/>
+<area shape="rect" id="Node000004" href="$VerifyTopology_8h.html" title="Helper function to verify if triangulation has no inconsistencies." alt="" coords="222,372,394,397"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="311,338,311,372,305,372,305,338"/>
+<area shape="rect" id="Node000005" href="$CDT_8hpp.html" title="Public API &#45; implementation." alt="" coords="418,372,545,397"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="342,327,447,369,445,374,340,332"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="446,369,342,326,344,322,448,364"/>
+<area shape="poly" id="edge8_Node000006_Node000001" title=" " alt="" coords="286,65,284,31,290,31,291,65"/>
+<area shape="poly" id="edge10_Node000007_Node000008" title=" " alt="" coords="461,116,474,151,469,153,456,118"/>
+<area shape="poly" id="edge11_Node000008_Node000009" title=" " alt="" coords="480,191,482,225,477,225,475,191"/>
+<area shape="poly" id="edge12_Node000009_Node000003" title=" " alt="" coords="441,258,337,301,335,296,439,253"/>
+<area shape="rect" id="Node000010" href="$Triangulation_8hpp.html" title="Triangulation class &#45; implementation." alt="" coords="387,299,573,324"/>
+<area shape="poly" id="edge13_Node000009_Node000010" title=" " alt="" coords="474,264,476,298,470,299,469,265"/>
+<area shape="poly" id="edge14_Node000010_Node000009" title=" " alt="" coords="486,285,484,251,490,251,491,285"/>
+</map>

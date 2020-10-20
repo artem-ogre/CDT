@@ -1,0 +1,15 @@
+<map id="include/Triangulation.h" name="include/Triangulation.h">
+<area shape="rect" id="Node000001" title="Triangulation class." alt="" coords="482,5,651,31"/>
+<area shape="rect" id="Node000002" href="$CDT_8h.html" title="Public API." alt="" coords="339,79,450,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="528,38,424,81,422,76,526,33"/>
+<area shape="rect" id="Node000006" href="$Triangulation_8hpp.html" title="Triangulation class &#45; implementation." alt="" coords="474,79,659,104"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="561,44,562,78,557,79,555,45"/>
+<area shape="rect" id="Node000003" href="$InitializeWithGrid_8h.html" title="Helper function to initialize triangulation with regular grid instead of super&#45;triangle." alt="" coords="5,152,197,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="335,110,149,154,148,149,334,105"/>
+<area shape="rect" id="Node000004" href="$VerifyTopology_8h.html" title="Helper function to verify if triangulation has no inconsistencies." alt="" coords="222,152,394,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="372,115,324,154,320,150,369,110"/>
+<area shape="rect" id="Node000005" href="$CDT_8hpp.html" title="Public API &#45; implementation." alt="" coords="418,152,545,177"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="414,112,462,150,459,154,410,116"/>
+<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="462,145,414,106,417,102,466,140"/>
+<area shape="poly" id="edge7_Node000006_Node000001" title=" " alt="" coords="573,65,571,31,576,31,578,65"/>
+</map>

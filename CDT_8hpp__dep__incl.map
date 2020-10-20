@@ -1,0 +1,10 @@
+<map id="include/CDT.hpp" name="include/CDT.hpp">
+<area shape="rect" id="Node000001" title="Public API &#45; implementation." alt="" coords="141,5,267,31"/>
+<area shape="rect" id="Node000002" href="$CDT_8h.html" title="Public API." alt="" coords="149,79,259,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="198,44,200,78,194,79,193,45"/>
+<area shape="poly" id="edge4_Node000002_Node000001" title=" " alt="" coords="210,65,208,31,214,31,215,65"/>
+<area shape="rect" id="Node000003" href="$InitializeWithGrid_8h.html" title="Helper function to initialize triangulation with regular grid instead of super&#45;triangle." alt="" coords="5,152,197,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="178,114,120,154,117,150,175,110"/>
+<area shape="rect" id="Node000004" href="$VerifyTopology_8h.html" title="Helper function to verify if triangulation has no inconsistencies." alt="" coords="222,152,394,177"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="234,110,292,150,289,154,231,114"/>
+</map>

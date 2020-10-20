@@ -1,0 +1,353 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.11.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- BEGIN opengraph metadata -->
+<meta property="og:title" content="CDT" />
+<meta property="og:image" content="https://repository-images.githubusercontent.com/179470761/87cff280-184e-11eb-8837-b1ad740baf8a" />
+<meta property="og:description" content="C++ library for constrained and conforming Delaunay triangulations" />
+<meta property="og:url" content="https://artem-ogre.github.io/CDT/" />
+<!-- END opengraph metadata -->
+<!-- BEGIN twitter metadata -->
+<meta name="twitter:image:src" content="https://repository-images.githubusercontent.com/179470761/87cff280-184e-11eb-8837-b1ad740baf8a" />
+<meta name="twitter:title" content="CDT" />
+<meta name="twitter:description" content="C++ library for constrained and conforming Delaunay triangulations" />
+<!-- END twitter metadata -->
+<title>CDT: include/CDT.h File Reference</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<!--favicon-->
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="logo.svg"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="manifest" href="site.webmanifest" />
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript" src="doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="toggle-alternative-theme.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init()
+    DoxygenAwesomeDarkModeToggle.init()
+    DoxygenAwesomeParagraphLink.init()
+</script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only-darkmode-toggle.css" rel="stylesheet" type="text/css"/>
+<link href="custom.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<!-- https://tholman.com/github-corners/ -->
+<a href="https://github.com/artem-ogre/CDT" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">CDT
+   &#160;<span id="projectnumber">1.4.1</span>
+   </div>
+   <div id="projectbrief">C++ library for constrained Delaunay triangulation</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.11.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() { codefold.init(0); });
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','Search',true);
+  $(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('CDT_8h.html',''); initResizable(true); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Loading...</div>
+<div class="SRStatus" id="Searching">Searching...</div>
+<div class="SRStatus" id="NoMatches">No Matches</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#nested-classes">Classes</a> &#124;
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
+<a href="#func-members">Functions</a>  </div>
+  <div class="headertitle"><div class="title">CDT.h File Reference</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>Public API.  
+<a href="#details">More...</a></p>
+<div class="textblock"><code>#include &quot;<a class="el" href="CDTUtils_8h_source.html">CDTUtils.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="Triangulation_8h_source.html">Triangulation.h</a>&quot;</code><br />
+<code>#include &quot;remove_at.hpp&quot;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
+<code>#include &lt;cassert&gt;</code><br />
+<code>#include &lt;cstdlib&gt;</code><br />
+<code>#include &lt;iterator&gt;</code><br />
+<code>#include &lt;memory&gt;</code><br />
+<code>#include &lt;stack&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
+<code>#include &quot;<a class="el" href="CDT_8hpp_source.html">CDT.hpp</a>&quot;</code><br />
+</div><div class="textblock"><div class="dynheader">
+Include dependency graph for CDT.h:</div>
+<div class="dyncontent">
+<div class="center"><img src="CDT_8h__incl.png" border="0" usemap="#ainclude_2CDT_8h" alt=""/></div>
+<map name="ainclude_2CDT_8h" id="ainclude_2CDT_8h">
+<area shape="rect" title="Public API." alt="" coords="1764,5,1875,31"/>
+<area shape="rect" href="CDTUtils_8h.html" title="Utilities and helpers." alt="" coords="914,299,1005,324"/>
+<area shape="poly" title=" " alt="" coords="1764,21,1567,22,1308,29,1183,36,1074,47,993,62,966,71,951,81,935,103,926,129,923,157,924,186,935,241,951,285,946,287,930,242,919,186,917,157,921,128,930,101,947,77,964,66,991,56,1073,41,1182,31,1308,23,1567,17,1764,16"/>
+<area shape="rect" title=" " alt="" coords="1713,379,1798,405"/>
+<area shape="poly" title=" " alt="" coords="1830,30,1853,66,1880,121,1890,153,1896,185,1897,219,1891,252,1872,290,1845,324,1815,352,1787,374,1784,369,1812,348,1841,321,1868,288,1886,250,1892,218,1891,186,1885,154,1875,123,1849,69,1826,32"/>
+<area shape="rect" title=" " alt="" coords="1194,379,1263,405"/>
+<area shape="poly" title=" " alt="" coords="1764,21,1585,25,1470,31,1350,42,1233,58,1129,82,1085,96,1047,113,1016,132,995,154,985,170,980,187,980,203,984,219,1004,251,1034,281,1072,309,1112,334,1188,371,1186,376,1110,339,1069,314,1030,286,999,255,979,221,975,204,975,186,980,168,991,150,1013,128,1044,108,1083,91,1128,76,1232,53,1349,36,1469,26,1585,19,1764,16"/>
+<area shape="rect" title=" " alt="" coords="5,379,68,405"/>
+<area shape="poly" title=" " alt="" coords="1764,22,1446,25,1227,31,999,43,782,60,600,86,529,102,475,120,441,141,433,152,430,164,430,239,428,268,421,291,411,309,396,323,379,333,359,340,312,347,200,351,140,358,82,375,77,376,75,372,80,369,139,353,199,346,311,342,357,335,377,328,393,319,406,306,416,289,422,267,425,239,425,163,428,150,438,137,473,115,528,97,599,80,782,55,998,37,1227,26,1446,20,1764,16"/>
+<area shape="rect" href="Triangulation_8h.html" title="Triangulation class." alt="" coords="1365,79,1484,104"/>
+<area shape="poly" title=" " alt="" coords="1764,32,1498,79,1498,74,1763,27"/>
+<area shape="rect" title=" " alt="" coords="1005,152,1071,177"/>
+<area shape="poly" title=" " alt="" coords="1764,27,1581,46,1467,62,1353,81,1205,117,1084,152,1083,146,1204,111,1352,76,1466,56,1580,41,1764,21"/>
+<area shape="rect" title=" " alt="" coords="2101,379,2172,405"/>
+<area shape="poly" title=" " alt="" coords="1875,19,1956,25,2050,36,2136,53,2170,64,2194,76,2216,95,2229,113,2236,135,2238,163,2238,240,2230,280,2212,316,2187,348,2163,372,2160,368,2183,344,2207,313,2225,278,2233,239,2233,163,2231,136,2224,116,2212,98,2191,81,2167,69,2134,58,2049,41,1956,31,1875,25"/>
+<area shape="rect" title=" " alt="" coords="1744,152,1801,177"/>
+<area shape="poly" title=" " alt="" coords="1818,32,1783,140,1778,138,1813,30"/>
+<area shape="rect" href="remove__at_8hpp_source.html" title=" " alt="" coords="2027,299,2147,324"/>
+<area shape="poly" title=" " alt="" coords="1852,28,1893,48,1934,77,1983,129,2025,187,2057,242,2079,285,2074,287,2052,245,2020,190,1979,133,1931,81,1890,53,1850,33"/>
+<area shape="rect" title=" " alt="" coords="2103,79,2181,104"/>
+<area shape="poly" title=" " alt="" coords="1872,28,2090,76,2089,81,1871,33"/>
+<area shape="rect" href="CDT_8hpp.html" title="Public API &#45; implementation." alt="" coords="1800,225,1876,251"/>
+<area shape="poly" title=" " alt="" coords="1819,31,1821,116,1833,211,1827,212,1816,117,1813,31"/>
+<area shape="poly" title=" " alt="" coords="1005,312,1355,333,1555,350,1701,369,1714,373,1712,378,1700,375,1555,355,1355,338,1005,317"/>
+<area shape="poly" title=" " alt="" coords="1005,321,1088,342,1181,369,1189,372,1187,377,1180,375,1086,347,1004,326"/>
+<area shape="rect" title=" " alt="" coords="1288,379,1351,405"/>
+<area shape="poly" title=" " alt="" coords="1005,315,1129,335,1203,350,1276,369,1283,372,1281,377,1275,375,1202,355,1128,340,1005,321"/>
+<area shape="rect" title=" " alt="" coords="1375,379,1434,405"/>
+<area shape="poly" title=" " alt="" coords="1005,313,1165,330,1264,346,1363,369,1370,372,1368,377,1361,375,1263,351,1164,335,1005,318"/>
+<area shape="poly" title=" " alt="" coords="914,323,886,327,763,336,659,339,480,334,395,334,304,338,201,351,81,375,73,377,71,372,80,369,200,345,303,333,395,328,481,329,659,333,763,331,886,321,913,318"/>
+<area shape="rect" title=" " alt="" coords="93,379,215,405"/>
+<area shape="poly" title=" " alt="" coords="914,323,886,327,701,342,556,345,412,352,327,360,228,375,207,379,206,374,227,369,327,355,411,347,556,340,701,336,886,321,913,318"/>
+<area shape="rect" title=" " alt="" coords="240,379,431,405"/>
+<area shape="poly" title=" " alt="" coords="914,323,886,327,665,350,568,359,444,375,411,380,410,374,443,369,567,354,664,345,886,321,913,317"/>
+<area shape="rect" title=" " alt="" coords="455,379,615,405"/>
+<area shape="poly" title=" " alt="" coords="914,323,628,375,604,379,603,374,627,369,913,318"/>
+<area shape="rect" title=" " alt="" coords="639,379,831,405"/>
+<area shape="poly" title=" " alt="" coords="928,327,782,377,780,372,926,321"/>
+<area shape="rect" title=" " alt="" coords="987,379,1169,405"/>
+<area shape="poly" title=" " alt="" coords="978,322,1050,369,1047,374,975,326"/>
+<area shape="rect" href="CDTUtils_8hpp.html" title="Utilities and helpers &#45; implementation." alt="" coords="855,379,962,405"/>
+<area shape="poly" title=" " alt="" coords="947,326,918,368,914,365,943,323"/>
+<area shape="poly" title=" " alt="" coords="921,378,950,335,954,338,925,381"/>
+<area shape="rect" title=" " alt="" coords="857,460,960,485"/>
+<area shape="poly" title=" " alt="" coords="911,405,911,446,906,446,906,405"/>
+<area shape="rect" title=" " alt="" coords="1661,460,1748,485"/>
+<area shape="poly" title=" " alt="" coords="944,402,975,409,1167,437,1358,455,1525,464,1648,468,1647,473,1525,469,1357,460,1166,442,973,415,943,407"/>
+<area shape="poly" title=" " alt="" coords="1366,104,1279,123,1232,137,1186,154,1152,171,1127,187,1072,227,985,292,982,288,1068,223,1124,182,1149,166,1184,150,1230,132,1278,118,1365,99"/>
+<area shape="poly" title=" " alt="" coords="1414,106,1390,132,1365,169,1356,189,1351,210,1351,230,1358,249,1388,293,1422,321,1459,338,1499,346,1592,352,1644,358,1701,369,1712,372,1710,378,1700,375,1644,363,1591,358,1498,351,1457,343,1419,326,1384,297,1353,252,1346,231,1346,209,1351,187,1361,166,1386,129,1410,102"/>
+<area shape="poly" title=" " alt="" coords="1365,102,1256,121,1193,136,1132,154,1108,167,1083,180,909,238,769,271,446,327,343,340,262,345,182,353,81,375,74,377,72,372,80,369,181,348,262,340,343,335,446,321,768,266,907,232,1081,175,1105,162,1130,150,1192,131,1254,116,1365,97"/>
+<area shape="poly" title=" " alt="" coords="1478,101,1551,121,1631,150,1653,163,1675,175,1707,184,1737,186,1793,183,1818,183,1843,188,1867,201,1890,223,1906,236,1922,244,1936,251,1945,262,1943,280,1927,308,1840,414,1823,430,1803,442,1762,460,1760,456,1801,438,1820,425,1836,410,1922,305,1938,278,1940,263,1933,255,1920,249,1903,241,1887,227,1864,205,1841,193,1818,189,1793,189,1737,192,1706,189,1673,180,1651,167,1629,154,1550,126,1476,107"/>
+<area shape="rect" href="LocatorKDTree_8h.html" title="Adapter between for KDTree and CDT." alt="" coords="1197,152,1325,177"/>
+<area shape="poly" title=" " alt="" coords="1399,106,1301,149,1299,144,1397,102"/>
+<area shape="poly" title=" " alt="" coords="1366,105,1090,155,1085,156,1084,151,1090,149,1365,100"/>
+<area shape="poly" title=" " alt="" coords="1485,101,1575,121,1675,149,1704,162,1733,175,1801,190,1864,195,1976,196,2027,201,2074,216,2097,229,2119,247,2141,269,2162,297,2168,315,2167,334,2154,368,2149,366,2162,333,2163,316,2157,300,2137,273,2116,251,2094,234,2072,221,2025,206,1976,201,1863,200,1800,195,1732,180,1702,167,1673,155,1574,126,1484,106"/>
+<area shape="poly" title=" " alt="" coords="1485,101,1725,149,1731,151,1730,156,1724,155,1484,106"/>
+<area shape="rect" title=" " alt="" coords="1474,152,1533,177"/>
+<area shape="poly" title=" " alt="" coords="1439,102,1482,141,1479,145,1436,106"/>
+<area shape="rect" title=" " alt="" coords="1557,152,1617,177"/>
+<area shape="poly" title=" " alt="" coords="1452,102,1549,144,1547,149,1450,106"/>
+<area shape="rect" href="Triangulation_8hpp.html" title="Triangulation class &#45; implementation." alt="" coords="1368,225,1503,251"/>
+<area shape="poly" title=" " alt="" coords="1423,104,1423,155,1429,212,1424,212,1418,155,1418,104"/>
+<area shape="poly" title=" " alt="" coords="1235,180,1127,228,994,295,992,290,1125,223,1233,175"/>
+<area shape="rect" href="KDTree_8h_source.html" title=" " alt="" coords="1138,225,1218,251"/>
+<area shape="poly" title=" " alt="" coords="1249,179,1204,218,1200,214,1246,175"/>
+<area shape="poly" title=" " alt="" coords="1144,253,1009,297,1007,292,1142,248"/>
+<area shape="poly" title=" " alt="" coords="1174,252,1161,285,1158,304,1162,323,1179,349,1201,369,1197,373,1175,352,1157,325,1153,304,1155,284,1169,250"/>
+<area shape="poly" title=" " alt="" coords="1197,248,1377,369,1374,374,1194,253"/>
+<area shape="poly" title=" " alt="" coords="1444,250,1470,286,1488,305,1509,322,1558,345,1601,353,1646,358,1701,369,1711,372,1709,377,1700,375,1645,363,1600,359,1557,350,1506,326,1484,309,1465,289,1440,253"/>
+<area shape="poly" title=" " alt="" coords="1417,253,1344,301,1254,372,1251,368,1340,297,1415,249"/>
+<area shape="poly" title=" " alt="" coords="1418,253,1391,274,1364,300,1344,334,1330,367,1325,365,1339,332,1360,297,1387,270,1415,249"/>
+<area shape="poly" title=" " alt="" coords="1440,250,1446,282,1459,325,1480,371,1495,392,1512,410,1543,432,1578,447,1614,458,1648,464,1648,469,1613,463,1576,452,1540,436,1508,414,1491,395,1476,374,1454,327,1441,283,1434,251"/>
+<area shape="poly" title=" " alt="" coords="1437,225,1437,175,1431,118,1436,117,1442,174,1442,225"/>
+<area shape="rect" href="portable__nth__element_8hpp_source.html" title=" " alt="" coords="1520,299,1713,324"/>
+<area shape="poly" title=" " alt="" coords="1465,248,1575,291,1573,296,1463,253"/>
+<area shape="rect" title=" " alt="" coords="1737,299,1800,324"/>
+<area shape="poly" title=" " alt="" coords="1497,248,1724,296,1723,301,1496,253"/>
+<area shape="poly" title=" " alt="" coords="1638,322,1724,370,1722,375,1636,327"/>
+<area shape="poly" title=" " alt="" coords="1693,321,2088,381,2087,386,1692,327"/>
+<area shape="rect" title=" " alt="" coords="1521,372,1688,412"/>
+<area shape="poly" title=" " alt="" coords="1618,325,1612,359,1607,358,1612,324"/>
+<area shape="poly" title=" " alt="" coords="2040,327,1812,380,1811,375,2038,321"/>
+<area shape="poly" title=" " alt="" coords="2097,323,2124,366,2120,369,2092,326"/>
+<area shape="poly" title=" " alt="" coords="1839,225,1836,140,1825,45,1830,44,1841,139,1844,225"/>
+<area shape="poly" title=" " alt="" coords="1839,251,1831,285,1815,325,1798,350,1780,371,1776,368,1794,347,1810,323,1826,284,1834,250"/>
+<area shape="poly" title=" " alt="" coords="1800,242,1741,245,1667,254,1586,272,1508,301,1484,316,1461,334,1425,370,1421,366,1458,330,1481,311,1506,296,1585,267,1666,249,1741,240,1800,237"/>
+<area shape="poly" title=" " alt="" coords="1842,251,1845,282,1844,325,1834,371,1825,394,1812,414,1784,439,1752,457,1750,452,1781,435,1808,410,1820,391,1829,370,1838,324,1839,282,1837,251"/>
+<area shape="poly" title=" " alt="" coords="1828,253,1791,291,1787,287,1825,249"/>
+</map>
+</div>
+</div><div class="textblock"><div class="dynheader">
+This graph shows which files directly or indirectly include this file:</div>
+<div class="dyncontent">
+<div class="center"><img src="CDT_8h__dep__incl.png" border="0" usemap="#ainclude_2CDT_8hdep" alt=""/></div>
+<map name="ainclude_2CDT_8hdep" id="ainclude_2CDT_8hdep">
+<area shape="rect" title="Public API." alt="" coords="339,5,450,31"/>
+<area shape="rect" href="InitializeWithGrid_8h.html" title="Helper function to initialize triangulation with regular grid instead of super&#45;triangle." alt="" coords="5,79,197,104"/>
+<area shape="poly" title=" " alt="" coords="335,36,149,81,148,76,334,31"/>
+<area shape="rect" href="VerifyTopology_8h.html" title="Helper function to verify if triangulation has no inconsistencies." alt="" coords="222,79,394,104"/>
+<area shape="poly" title=" " alt="" coords="372,41,324,81,320,76,369,37"/>
+<area shape="rect" href="CDT_8hpp.html" title="Public API &#45; implementation." alt="" coords="418,79,545,104"/>
+<area shape="poly" title=" " alt="" coords="414,38,462,76,459,81,410,42"/>
+<area shape="poly" title=" " alt="" coords="462,71,414,33,417,29,466,67"/>
+</map>
+</div>
+</div>
+<p><a href="CDT_8h_source.html">Go to the source code of this file.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structCDT_1_1DuplicatesInfo.html">CDT::DuplicatesInfo</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Information about removed duplicated vertices.  <a href="structCDT_1_1DuplicatesInfo.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structboost_1_1hash_3_01CDT_1_1V2d_3_01T_01_4_01_4.html">boost::hash&lt; CDT::V2d&lt; T &gt; &gt;</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html">CDT</a></td></tr>
+<tr class="memdesc:namespaceCDT"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace containing triangulation functionality. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="typedef-members" name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:ga0e7ee5426a4c4652ef99a6df4d76ac2c" id="r_ga0e7ee5426a4c4652ef99a6df4d76ac2c"><td class="memItemLeft" align="right" valign="top">typedef unsigned short&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__API.html#ga0e7ee5426a4c4652ef99a6df4d76ac2c">CDT::LayerDepth</a></td></tr>
+<tr class="memdesc:ga0e7ee5426a4c4652ef99a6df4d76ac2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type used for storing layer depths for triangles.  <br /></td></tr>
+<tr class="separator:ga0e7ee5426a4c4652ef99a6df4d76ac2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9b98c5381e0830b9ea55a7a8811b5947" id="r_ga9b98c5381e0830b9ea55a7a8811b5947"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="group__API.html#ga0e7ee5426a4c4652ef99a6df4d76ac2c">LayerDepth</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__API.html#ga9b98c5381e0830b9ea55a7a8811b5947">CDT::BoundaryOverlapCount</a></td></tr>
+<tr class="separator:ga9b98c5381e0830b9ea55a7a8811b5947"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad4e6358ea9efbabe19e5d3efd97d1acf" id="r_gad4e6358ea9efbabe19e5d3efd97d1acf"><td class="memItemLeft" align="right" valign="top">typedef std::vector&lt; <a class="el" href="namespaceCDT.html#a1a1459b39577a311a7378379243d056f">TriIndVec</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__API.html#gad4e6358ea9efbabe19e5d3efd97d1acf">CDT::VerticesTriangles</a></td></tr>
+<tr class="memdesc:gad4e6358ea9efbabe19e5d3efd97d1acf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Triangles by vertex index.  <br /></td></tr>
+<tr class="separator:gad4e6358ea9efbabe19e5d3efd97d1acf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ga2468ee877c798c4d16429d357d89fcae" id="r_ga2468ee877c798c4d16429d357d89fcae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="CDTUtils_8h.html#a95e63ccd7c7f2156d2926a8eec3a5c88">CDT_EXPORT</a> <a class="el" href="group__API.html#gad4e6358ea9efbabe19e5d3efd97d1acf">VerticesTriangles</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__helpers.html#ga2468ee877c798c4d16429d357d89fcae">CDT::calculateTrianglesByVertex</a> (const <a class="el" href="namespaceCDT.html#adcc7f3c0f0573a300a4d298b90252f1d">TriangleVec</a> &amp;triangles, <a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> verticesSize)</td></tr>
+<tr class="memdesc:ga2468ee877c798c4d16429d357d89fcae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculate triangles adjacent to vertices (triangles by vertex index)  <br /></td></tr>
+<tr class="separator:ga2468ee877c798c4d16429d357d89fcae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf2a13e7cc765f757db88a398a5221bc4" id="r_gaf2a13e7cc765f757db88a398a5221bc4"><td class="memTemplParams" colspan="2">template&lt;typename T , typename TVertexIter , typename TGetVertexCoordX , typename TGetVertexCoordY &gt; </td></tr>
+<tr class="memitem:gaf2a13e7cc765f757db88a398a5221bc4"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structCDT_1_1DuplicatesInfo.html">DuplicatesInfo</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__helpers.html#gaf2a13e7cc765f757db88a398a5221bc4">CDT::FindDuplicates</a> (TVertexIter first, TVertexIter last, TGetVertexCoordX getX, TGetVertexCoordY getY)</td></tr>
+<tr class="memdesc:gaf2a13e7cc765f757db88a398a5221bc4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find duplicates in given custom point-type range.  <br /></td></tr>
+<tr class="separator:gaf2a13e7cc765f757db88a398a5221bc4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga288f40e940912032277bfa861c684036" id="r_ga288f40e940912032277bfa861c684036"><td class="memTemplParams" colspan="2">template&lt;typename TVertex , typename TAllocator &gt; </td></tr>
+<tr class="memitem:ga288f40e940912032277bfa861c684036"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__helpers.html#ga288f40e940912032277bfa861c684036">CDT::RemoveDuplicates</a> (std::vector&lt; TVertex, TAllocator &gt; &amp;vertices, const std::vector&lt; std::size_t &gt; &amp;duplicates)</td></tr>
+<tr class="memdesc:ga288f40e940912032277bfa861c684036"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove duplicates in-place from vector of custom points.  <br /></td></tr>
+<tr class="separator:ga288f40e940912032277bfa861c684036"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaab061af3b5ddf52a932a2bb1f1e81f47" id="r_gaab061af3b5ddf52a932a2bb1f1e81f47"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:gaab061af3b5ddf52a932a2bb1f1e81f47"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="CDTUtils_8h.html#a95e63ccd7c7f2156d2926a8eec3a5c88">CDT_EXPORT</a> <a class="el" href="structCDT_1_1DuplicatesInfo.html">DuplicatesInfo</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__helpers.html#gaab061af3b5ddf52a932a2bb1f1e81f47">CDT::RemoveDuplicates</a> (std::vector&lt; <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &gt; &amp;vertices)</td></tr>
+<tr class="memdesc:gaab061af3b5ddf52a932a2bb1f1e81f47"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove duplicated points in-place.  <br /></td></tr>
+<tr class="separator:gaab061af3b5ddf52a932a2bb1f1e81f47"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga001ff21a8eac3bce11c4221ddfc660e4" id="r_ga001ff21a8eac3bce11c4221ddfc660e4"><td class="memTemplParams" colspan="2">template&lt;typename TEdgeIter , typename TGetEdgeVertexStart , typename TGetEdgeVertexEnd , typename TMakeEdgeFromStartAndEnd &gt; </td></tr>
+<tr class="memitem:ga001ff21a8eac3bce11c4221ddfc660e4"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="CDTUtils_8h.html#a95e63ccd7c7f2156d2926a8eec3a5c88">CDT_EXPORT</a> void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__helpers.html#ga001ff21a8eac3bce11c4221ddfc660e4">CDT::RemapEdges</a> (TEdgeIter first, TEdgeIter last, const std::vector&lt; std::size_t &gt; &amp;mapping, TGetEdgeVertexStart getStart, TGetEdgeVertexEnd getEnd, TMakeEdgeFromStartAndEnd makeEdge)</td></tr>
+<tr class="memdesc:ga001ff21a8eac3bce11c4221ddfc660e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remap vertex indices in edges (in-place) using given vertex-index mapping.  <br /></td></tr>
+<tr class="separator:ga001ff21a8eac3bce11c4221ddfc660e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5e1bc1f0d135e78f5888fb4a596ad02b" id="r_ga5e1bc1f0d135e78f5888fb4a596ad02b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="CDTUtils_8h.html#a95e63ccd7c7f2156d2926a8eec3a5c88">CDT_EXPORT</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__helpers.html#ga5e1bc1f0d135e78f5888fb4a596ad02b">CDT::RemapEdges</a> (std::vector&lt; <a class="el" href="structCDT_1_1Edge.html">Edge</a> &gt; &amp;edges, const std::vector&lt; std::size_t &gt; &amp;mapping)</td></tr>
+<tr class="memdesc:ga5e1bc1f0d135e78f5888fb4a596ad02b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remap vertex indices in edges (in-place) using given vertex-index mapping.  <br /></td></tr>
+<tr class="separator:ga5e1bc1f0d135e78f5888fb4a596ad02b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga676558d20eda1f33b75ecb7484d7e149" id="r_ga676558d20eda1f33b75ecb7484d7e149"><td class="memTemplParams" colspan="2">template&lt;typename T , typename TVertex , typename TGetVertexCoordX , typename TGetVertexCoordY , typename TVertexAllocator , typename TEdgeIter , typename TGetEdgeVertexStart , typename TGetEdgeVertexEnd , typename TMakeEdgeFromStartAndEnd &gt; </td></tr>
+<tr class="memitem:ga676558d20eda1f33b75ecb7484d7e149"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structCDT_1_1DuplicatesInfo.html">DuplicatesInfo</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__helpers.html#ga676558d20eda1f33b75ecb7484d7e149">CDT::RemoveDuplicatesAndRemapEdges</a> (std::vector&lt; TVertex, TVertexAllocator &gt; &amp;vertices, TGetVertexCoordX getX, TGetVertexCoordY getY, TEdgeIter edgesFirst, TEdgeIter edgesLast, TGetEdgeVertexStart getStart, TGetEdgeVertexEnd getEnd, TMakeEdgeFromStartAndEnd makeEdge)</td></tr>
+<tr class="memdesc:ga676558d20eda1f33b75ecb7484d7e149"><td class="mdescLeft">&#160;</td><td class="mdescRight">Find point duplicates, remove them from vector (in-place) and remap edges (in-place)  <br /></td></tr>
+<tr class="separator:ga676558d20eda1f33b75ecb7484d7e149"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaed3044b5b3c4bb21d1c86227fb90ca09" id="r_gaed3044b5b3c4bb21d1c86227fb90ca09"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:gaed3044b5b3c4bb21d1c86227fb90ca09"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="CDTUtils_8h.html#a95e63ccd7c7f2156d2926a8eec3a5c88">CDT_EXPORT</a> <a class="el" href="structCDT_1_1DuplicatesInfo.html">DuplicatesInfo</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__helpers.html#gaed3044b5b3c4bb21d1c86227fb90ca09">CDT::RemoveDuplicatesAndRemapEdges</a> (std::vector&lt; <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &gt; &amp;vertices, std::vector&lt; <a class="el" href="structCDT_1_1Edge.html">Edge</a> &gt; &amp;edges)</td></tr>
+<tr class="memdesc:gaed3044b5b3c4bb21d1c86227fb90ca09"><td class="mdescLeft">&#160;</td><td class="mdescRight">Same as a chained call of <a class="el" href="group__helpers.html#ga288f40e940912032277bfa861c684036" title="Remove duplicates in-place from vector of custom points.">CDT::RemoveDuplicates</a> + <a class="el" href="group__helpers.html#ga001ff21a8eac3bce11c4221ddfc660e4" title="Remap vertex indices in edges (in-place) using given vertex-index mapping.">CDT::RemapEdges</a>.  <br /></td></tr>
+<tr class="separator:gaed3044b5b3c4bb21d1c86227fb90ca09"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab41a7d6ed19670132a9469949ee8b372" id="r_gab41a7d6ed19670132a9469949ee8b372"><td class="memItemLeft" align="right" valign="top"><a class="el" href="CDTUtils_8h.html#a95e63ccd7c7f2156d2926a8eec3a5c88">CDT_EXPORT</a> <a class="el" href="namespaceCDT.html#a062e6b7c0b1f0eddf4f449e6bf6d9011">EdgeUSet</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__helpers.html#gab41a7d6ed19670132a9469949ee8b372">CDT::extractEdgesFromTriangles</a> (const <a class="el" href="namespaceCDT.html#adcc7f3c0f0573a300a4d298b90252f1d">TriangleVec</a> &amp;triangles)</td></tr>
+<tr class="memdesc:gab41a7d6ed19670132a9469949ee8b372"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extract all edges of triangles.  <br /></td></tr>
+<tr class="separator:gab41a7d6ed19670132a9469949ee8b372"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad996fd6631b67aa6fb5732d021ec27da" id="r_gad996fd6631b67aa6fb5732d021ec27da"><td class="memItemLeft" align="right" valign="top"><a class="el" href="CDTUtils_8h.html#a95e63ccd7c7f2156d2926a8eec3a5c88">CDT_EXPORT</a> unordered_map&lt; <a class="el" href="structCDT_1_1Edge.html">Edge</a>, <a class="el" href="namespaceCDT.html#a00ecb94ef8a4604d2afcd2be323ea5fe">EdgeVec</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__helpers.html#gad996fd6631b67aa6fb5732d021ec27da">CDT::EdgeToPiecesMapping</a> (const unordered_map&lt; <a class="el" href="structCDT_1_1Edge.html">Edge</a>, <a class="el" href="namespaceCDT.html#a00ecb94ef8a4604d2afcd2be323ea5fe">EdgeVec</a> &gt; &amp;pieceToOriginals)</td></tr>
+<tr class="separator:gad996fd6631b67aa6fb5732d021ec27da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1aa8e45f3833854876f05911f1bccd14" id="r_ga1aa8e45f3833854876f05911f1bccd14"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:ga1aa8e45f3833854876f05911f1bccd14"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="CDTUtils_8h.html#a95e63ccd7c7f2156d2926a8eec3a5c88">CDT_EXPORT</a> unordered_map&lt; <a class="el" href="structCDT_1_1Edge.html">Edge</a>, std::vector&lt; <a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__helpers.html#ga1aa8e45f3833854876f05911f1bccd14">CDT::EdgeToSplitVertices</a> (const unordered_map&lt; <a class="el" href="structCDT_1_1Edge.html">Edge</a>, <a class="el" href="namespaceCDT.html#a00ecb94ef8a4604d2afcd2be323ea5fe">EdgeVec</a> &gt; &amp;edgeToPieces, const std::vector&lt; <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &gt; &amp;vertices)</td></tr>
+<tr class="separator:ga1aa8e45f3833854876f05911f1bccd14"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga001ff21a8eac3bce11c4221ddfc660e4" id="r_ga001ff21a8eac3bce11c4221ddfc660e4"><td class="memTemplParams" colspan="2">template&lt;typename TEdgeIter , typename TGetEdgeVertexStart , typename TGetEdgeVertexEnd , typename TMakeEdgeFromStartAndEnd &gt; </td></tr>
+<tr class="memitem:ga001ff21a8eac3bce11c4221ddfc660e4"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__helpers.html#ga001ff21a8eac3bce11c4221ddfc660e4">CDT::RemapEdges</a> (TEdgeIter first, const TEdgeIter last, const std::vector&lt; std::size_t &gt; &amp;mapping, TGetEdgeVertexStart getStart, TGetEdgeVertexEnd getEnd, TMakeEdgeFromStartAndEnd makeEdge)</td></tr>
+<tr class="memdesc:ga001ff21a8eac3bce11c4221ddfc660e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remap vertex indices in edges (in-place) using given vertex-index mapping.  <br /></td></tr>
+<tr class="separator:ga001ff21a8eac3bce11c4221ddfc660e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1aa8e45f3833854876f05911f1bccd14" id="r_ga1aa8e45f3833854876f05911f1bccd14"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:ga1aa8e45f3833854876f05911f1bccd14"><td class="memTemplItemLeft" align="right" valign="top">unordered_map&lt; <a class="el" href="structCDT_1_1Edge.html">Edge</a>, std::vector&lt; <a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> &gt; &gt;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__helpers.html#ga1aa8e45f3833854876f05911f1bccd14">CDT::EdgeToSplitVertices</a> (const unordered_map&lt; <a class="el" href="structCDT_1_1Edge.html">Edge</a>, <a class="el" href="namespaceCDT.html#a00ecb94ef8a4604d2afcd2be323ea5fe">EdgeVec</a> &gt; &amp;edgeToPieces, const std::vector&lt; <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &gt; &amp;vertices)</td></tr>
+<tr class="separator:ga1aa8e45f3833854876f05911f1bccd14"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Public API. </p>
+
+<p class="definition">Definition in file <a class="el" href="CDT_8h_source.html">CDT.h</a>.</p>
+</div></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_c9083ae231f9fec5daf3be9340efa1d0.html">include</a></li><li class="navelem"><a class="el" href="CDT_8h.html">CDT.h</a></li>
+    <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.11.0 </li>
+  </ul>
+</div>
+</body>
+</html>

@@ -1,0 +1,17 @@
+<map id="include/LocatorKDTree.h" name="include/LocatorKDTree.h">
+<area shape="rect" id="Node000001" title="Adapter between for KDTree and CDT." alt="" coords="477,5,656,31"/>
+<area shape="rect" id="Node000002" href="$Triangulation_8h.html" title="Triangulation class." alt="" coords="482,79,651,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="569,44,569,79,564,79,564,44"/>
+<area shape="rect" id="Node000003" href="$CDT_8h.html" title="Public API." alt="" coords="339,152,450,177"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="528,112,424,154,422,149,526,107"/>
+<area shape="rect" id="Node000007" href="$Triangulation_8hpp.html" title="Triangulation class &#45; implementation." alt="" coords="474,152,659,177"/>
+<area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="561,118,562,152,557,152,555,118"/>
+<area shape="rect" id="Node000004" href="$InitializeWithGrid_8h.html" title="Helper function to initialize triangulation with regular grid instead of super&#45;triangle." alt="" coords="5,225,197,251"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="335,183,149,228,148,223,334,178"/>
+<area shape="rect" id="Node000005" href="$VerifyTopology_8h.html" title="Helper function to verify if triangulation has no inconsistencies." alt="" coords="222,225,394,251"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="372,188,324,227,320,223,369,184"/>
+<area shape="rect" id="Node000006" href="$CDT_8hpp.html" title="Public API &#45; implementation." alt="" coords="418,225,545,251"/>
+<area shape="poly" id="edge5_Node000003_Node000006" title=" " alt="" coords="414,185,462,223,459,227,410,189"/>
+<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="462,218,414,179,417,175,466,214"/>
+<area shape="poly" id="edge8_Node000007_Node000002" title=" " alt="" coords="573,139,571,104,576,104,578,138"/>
+</map>

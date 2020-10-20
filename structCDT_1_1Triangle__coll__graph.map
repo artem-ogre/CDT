@@ -1,0 +1,7 @@
+<map id="CDT::Triangle" name="CDT::Triangle">
+<area shape="rect" id="Node000001" title="Triangulation triangle (counter&#45;clockwise winding)" alt="" coords="109,93,215,119"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,5,153,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,39,152,91,149,95,98,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="177,5,315,31"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="227,43,176,95,172,91,223,39"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="CDT::Triangulation&lt; T, TNearPointLocator &gt;" name="CDT::Triangulation&lt; T, TNearPointLocator &gt;">
+<area shape="rect" id="Node000001" title="Data structure representing a 2D constrained Delaunay triangulation." alt="" coords="401,55,589,95"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="35,5,212,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="226,30,378,53,401,57,401,62,377,58,225,35"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,55,241,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="255,73,401,73,401,78,255,78"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="40,119,207,159"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="220,120,400,89,401,94,221,125"/>
+</map>

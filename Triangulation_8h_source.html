@@ -1,0 +1,785 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.11.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- BEGIN opengraph metadata -->
+<meta property="og:title" content="CDT" />
+<meta property="og:image" content="https://repository-images.githubusercontent.com/179470761/87cff280-184e-11eb-8837-b1ad740baf8a" />
+<meta property="og:description" content="C++ library for constrained and conforming Delaunay triangulations" />
+<meta property="og:url" content="https://artem-ogre.github.io/CDT/" />
+<!-- END opengraph metadata -->
+<!-- BEGIN twitter metadata -->
+<meta name="twitter:image:src" content="https://repository-images.githubusercontent.com/179470761/87cff280-184e-11eb-8837-b1ad740baf8a" />
+<meta name="twitter:title" content="CDT" />
+<meta name="twitter:description" content="C++ library for constrained and conforming Delaunay triangulations" />
+<!-- END twitter metadata -->
+<title>CDT: include/Triangulation.h Source File</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<!--favicon-->
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="logo.svg"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="manifest" href="site.webmanifest" />
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript" src="doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="toggle-alternative-theme.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init()
+    DoxygenAwesomeDarkModeToggle.init()
+    DoxygenAwesomeParagraphLink.init()
+</script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only-darkmode-toggle.css" rel="stylesheet" type="text/css"/>
+<link href="custom.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<!-- https://tholman.com/github-corners/ -->
+<a href="https://github.com/artem-ogre/CDT" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">CDT
+   &#160;<span id="projectnumber">1.4.1</span>
+   </div>
+   <div id="projectbrief">C++ library for constrained Delaunay triangulation</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.11.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() { codefold.init(0); });
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','Search',true);
+  $(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('Triangulation_8h_source.html',''); initResizable(true); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Loading...</div>
+<div class="SRStatus" id="Searching">Searching...</div>
+<div class="SRStatus" id="NoMatches">No Matches</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">Triangulation.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="Triangulation_8h.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span><span class="comment">/* This Source Code Form is subject to the terms of the Mozilla Public</span></div>
+<div class="line"><a id="l00002" name="l00002"></a><span class="lineno">    2</span><span class="comment"> * License, v. 2.0. If a copy of the MPL was not distributed with this</span></div>
+<div class="line"><a id="l00003" name="l00003"></a><span class="lineno">    3</span><span class="comment"> * file, You can obtain one at https://mozilla.org/MPL/2.0/. */</span></div>
+<div class="line"><a id="l00004" name="l00004"></a><span class="lineno">    4</span> </div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#ifndef CDT_vW1vZ0lO8rS4gY4uI4fB</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#define CDT_vW1vZ0lO8rS4gY4uI4fB</span></div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &quot;<a class="code" href="CDTUtils_8h.html">CDTUtils.h</a>&quot;</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &quot;<a class="code" href="LocatorKDTree_8h.html">LocatorKDTree.h</a>&quot;</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#include &lt;algorithm&gt;</span></div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span><span class="preprocessor">#include &lt;cstdlib&gt;</span></div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#include &lt;iterator&gt;</span></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#include &lt;stack&gt;</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &lt;stdexcept&gt;</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &lt;utility&gt;</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespaceCDT.html">CDT</a></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>{</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
+<div class="foldopen" id="foldopen00038" data-start="{" data-end="};">
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno"><a class="line" href="structCDT_1_1VertexInsertionOrder.html">   38</a></span><span class="keyword">struct </span><a class="code hl_define" href="CDTUtils_8h.html#a95e63ccd7c7f2156d2926a8eec3a5c88">CDT_EXPORT</a> <a class="code hl_struct" href="structCDT_1_1VertexInsertionOrder.html">VertexInsertionOrder</a></div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>{</div>
+<div class="foldopen" id="foldopen00044" data-start="{" data-end="};">
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno"><a class="line" href="structCDT_1_1VertexInsertionOrder.html#a15657aebfc10b7986d4b47dc1247a4ae">   44</a></span>    <span class="keyword">enum</span> <a class="code hl_enumeration" href="structCDT_1_1VertexInsertionOrder.html#a15657aebfc10b7986d4b47dc1247a4ae">Enum</a></div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>    {</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno"><a class="line" href="structCDT_1_1VertexInsertionOrder.html#a15657aebfc10b7986d4b47dc1247a4aea66fc9a83d60682940454cfef737b06dd">   51</a></span>        <a class="code hl_enumvalue" href="structCDT_1_1VertexInsertionOrder.html#a15657aebfc10b7986d4b47dc1247a4aea66fc9a83d60682940454cfef737b06dd">Auto</a>,</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno"><a class="line" href="structCDT_1_1VertexInsertionOrder.html#a15657aebfc10b7986d4b47dc1247a4aea610ecf7cff2c1e5fb86413188c92f644">   53</a></span>        <a class="code hl_enumvalue" href="structCDT_1_1VertexInsertionOrder.html#a15657aebfc10b7986d4b47dc1247a4aea610ecf7cff2c1e5fb86413188c92f644">AsProvided</a>,</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>    };</div>
+</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>};</div>
+</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
+<div class="foldopen" id="foldopen00058" data-start="{" data-end="};">
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno"><a class="line" href="structCDT_1_1SuperGeometryType.html">   58</a></span><span class="keyword">struct </span><a class="code hl_define" href="CDTUtils_8h.html#a95e63ccd7c7f2156d2926a8eec3a5c88">CDT_EXPORT</a> <a class="code hl_struct" href="structCDT_1_1SuperGeometryType.html">SuperGeometryType</a></div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>{</div>
+<div class="foldopen" id="foldopen00064" data-start="{" data-end="};">
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno"><a class="line" href="structCDT_1_1SuperGeometryType.html#a8515cbcfc5a7a1044c2dd2644676f310">   64</a></span>    <span class="keyword">enum</span> <a class="code hl_enumeration" href="structCDT_1_1SuperGeometryType.html#a8515cbcfc5a7a1044c2dd2644676f310">Enum</a></div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    {</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno"><a class="line" href="structCDT_1_1SuperGeometryType.html#a8515cbcfc5a7a1044c2dd2644676f310a09faef5876d8831f83051525569a4a2e">   66</a></span>        <a class="code hl_enumvalue" href="structCDT_1_1SuperGeometryType.html#a8515cbcfc5a7a1044c2dd2644676f310a09faef5876d8831f83051525569a4a2e">SuperTriangle</a>, </div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno"><a class="line" href="structCDT_1_1SuperGeometryType.html#a8515cbcfc5a7a1044c2dd2644676f310a248c327ba47b19a0eab495cc87e2d592">   67</a></span>        <a class="code hl_enumvalue" href="structCDT_1_1SuperGeometryType.html#a8515cbcfc5a7a1044c2dd2644676f310a248c327ba47b19a0eab495cc87e2d592">Custom</a>,        </div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    };</div>
+</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>};</div>
+</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span> </div>
+<div class="foldopen" id="foldopen00074" data-start="{" data-end="};">
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno"><a class="line" href="structCDT_1_1IntersectingConstraintEdges.html">   74</a></span><span class="keyword">struct </span><a class="code hl_define" href="CDTUtils_8h.html#a95e63ccd7c7f2156d2926a8eec3a5c88">CDT_EXPORT</a> <a class="code hl_struct" href="structCDT_1_1IntersectingConstraintEdges.html">IntersectingConstraintEdges</a></div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>{</div>
+<div class="foldopen" id="foldopen00080" data-start="{" data-end="};">
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno"><a class="line" href="structCDT_1_1IntersectingConstraintEdges.html#afd50ae5a48b442fc2f4d3800dd29f968">   80</a></span>    <span class="keyword">enum</span> <a class="code hl_enumeration" href="structCDT_1_1IntersectingConstraintEdges.html#afd50ae5a48b442fc2f4d3800dd29f968">Enum</a></div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>    {</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno"><a class="line" href="structCDT_1_1IntersectingConstraintEdges.html#afd50ae5a48b442fc2f4d3800dd29f968a4da7e66d6bca807d0325d5cea89f4e82">   82</a></span>        <a class="code hl_enumvalue" href="structCDT_1_1IntersectingConstraintEdges.html#afd50ae5a48b442fc2f4d3800dd29f968a4da7e66d6bca807d0325d5cea89f4e82">NotAllowed</a>, </div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno"><a class="line" href="structCDT_1_1IntersectingConstraintEdges.html#afd50ae5a48b442fc2f4d3800dd29f968a0aa540b11f4de6383147db9a12fbbc25">   83</a></span>        <a class="code hl_enumvalue" href="structCDT_1_1IntersectingConstraintEdges.html#afd50ae5a48b442fc2f4d3800dd29f968a0aa540b11f4de6383147db9a12fbbc25">TryResolve</a>, </div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno"><a class="line" href="structCDT_1_1IntersectingConstraintEdges.html#afd50ae5a48b442fc2f4d3800dd29f968a5dc652c27b8cb5bd767e4e4680e814d1">   88</a></span>        <a class="code hl_enumvalue" href="structCDT_1_1IntersectingConstraintEdges.html#afd50ae5a48b442fc2f4d3800dd29f968a5dc652c27b8cb5bd767e4e4680e814d1">DontCheck</a>,</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>    };</div>
+</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>};</div>
+</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span> </div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span><span class="keyword">typedef</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">short</span> <a class="code hl_typedef" href="group__API.html#ga0e7ee5426a4c4652ef99a6df4d76ac2c">LayerDepth</a>;</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span><span class="keyword">typedef</span> <a class="code hl_typedef" href="group__API.html#ga0e7ee5426a4c4652ef99a6df4d76ac2c">LayerDepth</a> BoundaryOverlapCount;</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span> </div>
+<div class="foldopen" id="foldopen00103" data-start="{" data-end="};">
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno"><a class="line" href="classCDT_1_1SourceLocation.html">  103</a></span><span class="keyword">class </span><a class="code hl_class" href="classCDT_1_1SourceLocation.html">SourceLocation</a></div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>{</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>    <a class="code hl_class" href="classCDT_1_1SourceLocation.html">SourceLocation</a>(<span class="keyword">const</span> std::string&amp; file, <span class="keyword">const</span> std::string&amp; func, <span class="keywordtype">int</span> line)</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>        : m_file(file)</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>        , m_func(func)</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>        , m_line(line)</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>    {}</div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>    <span class="keyword">const</span> std::string&amp; file()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>        <span class="keywordflow">return</span> m_file;</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>    }</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>    <span class="keyword">const</span> std::string&amp; func()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>        <span class="keywordflow">return</span> m_func;</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>    }</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>    <span class="keywordtype">int</span> line()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>        <span class="keywordflow">return</span> m_line;</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>    }</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span> </div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>    std::string m_file;</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>    std::string m_func;</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>    <span class="keywordtype">int</span> m_line;</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span>};</div>
+</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span> </div>
+<div class="foldopen" id="foldopen00131" data-start="" data-end="">
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno"><a class="line" href="group__API.html#ga1e013a6fe2061d2ff7c4ee5824fe8057">  131</a></span><span class="preprocessor">#define CDT_SOURCE_LOCATION                                                    \</span></div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span><span class="preprocessor">    SourceLocation(std::string(__FILE__), std::string(__func__), __LINE__)</span></div>
+</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span> </div>
+<div class="foldopen" id="foldopen00138" data-start="{" data-end="};">
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno"><a class="line" href="classCDT_1_1Error.html">  138</a></span><span class="keyword">class </span><a class="code hl_class" href="classCDT_1_1Error.html">Error</a> : <span class="keyword">public</span> std::runtime_error</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>{</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span><span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00142" data-start="{" data-end="}">
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno"><a class="line" href="classCDT_1_1Error.html#a818c8c5b4e046e7ce5aa410820f1848b">  142</a></span>    <a class="code hl_function" href="classCDT_1_1Error.html#a818c8c5b4e046e7ce5aa410820f1848b">Error</a>(<span class="keyword">const</span> std::string&amp; <a class="code hl_function" href="classCDT_1_1Error.html#ad2f3e586200bb201a9e268703d77ad14">description</a>, <span class="keyword">const</span> <a class="code hl_class" href="classCDT_1_1SourceLocation.html">SourceLocation</a>&amp; srcLoc)</div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>        : std::runtime_error(</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>              <a class="code hl_function" href="classCDT_1_1Error.html#ad2f3e586200bb201a9e268703d77ad14">description</a> + <span class="stringliteral">&quot;\nin &#39;&quot;</span> + srcLoc.func() + <span class="stringliteral">&quot;&#39; at &quot;</span> + srcLoc.file() +</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>              <span class="stringliteral">&quot;:&quot;</span> + std::to_string(srcLoc.line()))</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>        , m_description(<a class="code hl_function" href="classCDT_1_1Error.html#ad2f3e586200bb201a9e268703d77ad14">description</a>)</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>        , m_srcLoc(srcLoc)</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>    {}</div>
+</div>
+<div class="foldopen" id="foldopen00150" data-start="{" data-end="}">
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno"><a class="line" href="classCDT_1_1Error.html#ad2f3e586200bb201a9e268703d77ad14">  150</a></span>    <span class="keyword">const</span> std::string&amp; <a class="code hl_function" href="classCDT_1_1Error.html#ad2f3e586200bb201a9e268703d77ad14">description</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>        <span class="keywordflow">return</span> m_description;</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>    }</div>
+</div>
+<div class="foldopen" id="foldopen00155" data-start="{" data-end="}">
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno"><a class="line" href="classCDT_1_1Error.html#a5f3dde2e934df710fbf4cebdf6825a08">  155</a></span>    <span class="keyword">const</span> <a class="code hl_class" href="classCDT_1_1SourceLocation.html">SourceLocation</a>&amp; <a class="code hl_function" href="classCDT_1_1Error.html#a5f3dde2e934df710fbf4cebdf6825a08">sourceLocation</a>()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>        <span class="keywordflow">return</span> m_srcLoc;</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>    }</div>
+</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span> </div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>    std::string m_description;</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>    <a class="code hl_class" href="classCDT_1_1SourceLocation.html">SourceLocation</a> m_srcLoc;</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>};</div>
+</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span> </div>
+<div class="foldopen" id="foldopen00169" data-start="{" data-end="};">
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno"><a class="line" href="classCDT_1_1FinalizedError.html">  169</a></span><span class="keyword">class </span><a class="code hl_class" href="classCDT_1_1FinalizedError.html">FinalizedError</a> : <span class="keyword">public</span> <a class="code hl_class" href="classCDT_1_1Error.html">Error</a></div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>{</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>    <a class="code hl_class" href="classCDT_1_1FinalizedError.html">FinalizedError</a>(<span class="keyword">const</span> <a class="code hl_class" href="classCDT_1_1SourceLocation.html">SourceLocation</a>&amp; srcLoc)</div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span>        : <a class="code hl_function" href="classCDT_1_1Error.html#a818c8c5b4e046e7ce5aa410820f1848b">Error</a>(</div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>              <span class="stringliteral">&quot;Triangulation was finalized with &#39;erase...&#39; method. Further &quot;</span></div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span>              <span class="stringliteral">&quot;modification is not possible.&quot;</span>,</div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>              srcLoc)</div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>    {}</div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>};</div>
+</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span> </div>
+<div class="foldopen" id="foldopen00183" data-start="{" data-end="};">
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno"><a class="line" href="classCDT_1_1DuplicateVertexError.html">  183</a></span><span class="keyword">class </span><a class="code hl_class" href="classCDT_1_1DuplicateVertexError.html">DuplicateVertexError</a> : <span class="keyword">public</span> <a class="code hl_class" href="classCDT_1_1Error.html">Error</a></div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>{</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span>    <a class="code hl_class" href="classCDT_1_1DuplicateVertexError.html">DuplicateVertexError</a>(</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>        <span class="keyword">const</span> <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> v1,</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>        <span class="keyword">const</span> <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> v2,</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>        <span class="keyword">const</span> <a class="code hl_class" href="classCDT_1_1SourceLocation.html">SourceLocation</a>&amp; srcLoc)</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>        : <a class="code hl_function" href="classCDT_1_1Error.html#a818c8c5b4e046e7ce5aa410820f1848b">Error</a>(</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>              <span class="stringliteral">&quot;Duplicate vertex detected: #&quot;</span> + std::to_string(v1) +</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>                  <span class="stringliteral">&quot; is a duplicate of #&quot;</span> + std::to_string(v2),</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>              srcLoc)</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>        , m_v1(v1)</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>        , m_v2(v2)</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>    {}</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>    <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> v1()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>        <span class="keywordflow">return</span> m_v1;</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>    }</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>    <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> v2()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>        <span class="keywordflow">return</span> m_v2;</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>    }</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span> </div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>    <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> m_v1, m_v2;</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>};</div>
+</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span> </div>
+<div class="foldopen" id="foldopen00214" data-start="{" data-end="};">
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno"><a class="line" href="classCDT_1_1IntersectingConstraintsError.html">  214</a></span><span class="keyword">class </span><a class="code hl_class" href="classCDT_1_1IntersectingConstraintsError.html">IntersectingConstraintsError</a> : <span class="keyword">public</span> <a class="code hl_class" href="classCDT_1_1Error.html">Error</a></div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>{</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>    <a class="code hl_class" href="classCDT_1_1IntersectingConstraintsError.html">IntersectingConstraintsError</a>(</div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>        <span class="keyword">const</span> <a class="code hl_struct" href="structCDT_1_1Edge.html">Edge</a>&amp; e1,</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>        <span class="keyword">const</span> <a class="code hl_struct" href="structCDT_1_1Edge.html">Edge</a>&amp; e2,</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>        <span class="keyword">const</span> <a class="code hl_class" href="classCDT_1_1SourceLocation.html">SourceLocation</a>&amp; srcLoc)</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>        : <a class="code hl_function" href="classCDT_1_1Error.html#a818c8c5b4e046e7ce5aa410820f1848b">Error</a>(</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>              <span class="stringliteral">&quot;Intersecting constraint edges detected: (&quot;</span> +</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>                  std::to_string(e1.<a class="code hl_function" href="structCDT_1_1Edge.html#ab0da8b6072d360b599d206e2d068efd8">v1</a>()) + <span class="stringliteral">&quot;, &quot;</span> + std::to_string(e1.<a class="code hl_function" href="structCDT_1_1Edge.html#a995bb5f916b7bdfb68cb1468d515c8f8">v2</a>()) +</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>                  <span class="stringliteral">&quot;) intersects (&quot;</span> + std::to_string(e2.<a class="code hl_function" href="structCDT_1_1Edge.html#ab0da8b6072d360b599d206e2d068efd8">v1</a>()) + <span class="stringliteral">&quot;, &quot;</span> +</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>                  std::to_string(e2.<a class="code hl_function" href="structCDT_1_1Edge.html#a995bb5f916b7bdfb68cb1468d515c8f8">v2</a>()) + <span class="stringliteral">&quot;)&quot;</span>,</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span>              srcLoc)</div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>        , m_e1(e1)</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>        , m_e2(e2)</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>    {}</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>    <span class="keyword">const</span> <a class="code hl_struct" href="structCDT_1_1Edge.html">Edge</a>&amp; e1()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>        <span class="keywordflow">return</span> m_e1;</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>    }</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>    <span class="keyword">const</span> <a class="code hl_struct" href="structCDT_1_1Edge.html">Edge</a>&amp; e2()<span class="keyword"> const</span></div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span><span class="keyword">    </span>{</div>
+<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>        <span class="keywordflow">return</span> m_e2;</div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>    }</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span> </div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>    <a class="code hl_struct" href="structCDT_1_1Edge.html">Edge</a> m_e1, m_e2;</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>};</div>
+</div>
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span> </div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span> </div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> TNearPo<span class="keywordtype">int</span>Locator = LocatorKDTree&lt;T&gt; &gt;</div>
+<div class="foldopen" id="foldopen00258" data-start="{" data-end="};">
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno"><a class="line" href="classCDT_1_1Triangulation.html">  258</a></span><span class="keyword">class </span><a class="code hl_define" href="CDTUtils_8h.html#a95e63ccd7c7f2156d2926a8eec3a5c88">CDT_EXPORT</a> <a class="code hl_class" href="classCDT_1_1Triangulation.html">Triangulation</a></div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>{</div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno"><a class="line" href="classCDT_1_1Triangulation.html#a3b2f90ccbb7c23ae0ec45e57bad1cf05">  261</a></span>    <span class="keyword">typedef</span> std::vector&lt;V2d&lt;T&gt; &gt; <a class="code hl_typedef" href="classCDT_1_1Triangulation.html#a3b2f90ccbb7c23ae0ec45e57bad1cf05">V2dVec</a>; </div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno"><a class="line" href="classCDT_1_1Triangulation.html#a808c84638b7572fc2b2b2bd6cf592baa">  262</a></span>    <a class="code hl_typedef" href="classCDT_1_1Triangulation.html#a3b2f90ccbb7c23ae0ec45e57bad1cf05">V2dVec</a> <a class="code hl_variable" href="classCDT_1_1Triangulation.html#a808c84638b7572fc2b2b2bd6cf592baa">vertices</a>;                     </div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno"><a class="line" href="classCDT_1_1Triangulation.html#ae77d983cdcaa9cba8636a93c364540cb">  263</a></span>    <a class="code hl_typedef" href="namespaceCDT.html#adcc7f3c0f0573a300a4d298b90252f1d">TriangleVec</a> <a class="code hl_variable" href="classCDT_1_1Triangulation.html#ae77d983cdcaa9cba8636a93c364540cb">triangles</a>;               </div>
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno"><a class="line" href="classCDT_1_1Triangulation.html#a0b21ff0171d79da1e372fa9f7a19c95a">  264</a></span>    <a class="code hl_typedef" href="namespaceCDT.html#a062e6b7c0b1f0eddf4f449e6bf6d9011">EdgeUSet</a> <a class="code hl_variable" href="classCDT_1_1Triangulation.html#a0b21ff0171d79da1e372fa9f7a19c95a">fixedEdges</a>; </div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span> </div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno"><a class="line" href="classCDT_1_1Triangulation.html#add086b08342f04708817727afa0739b9">  273</a></span>    unordered_map&lt;Edge, BoundaryOverlapCount&gt; <a class="code hl_variable" href="classCDT_1_1Triangulation.html#add086b08342f04708817727afa0739b9">overlapCount</a>;</div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span> </div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno"><a class="line" href="classCDT_1_1Triangulation.html#aceae79cb3fdce9d47caa0ea129ee4f8e">  280</a></span>    unordered_map&lt;Edge, EdgeVec&gt; <a class="code hl_variable" href="classCDT_1_1Triangulation.html#aceae79cb3fdce9d47caa0ea129ee4f8e">pieceToOriginals</a>;</div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span> </div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>    <span class="comment">/*____ API _____*/</span></div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>    <a class="code hl_class" href="classCDT_1_1Triangulation.html">Triangulation</a>();</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>    <span class="keyword">explicit</span> <a class="code hl_class" href="classCDT_1_1Triangulation.html">Triangulation</a>(<a class="code hl_enumeration" href="structCDT_1_1VertexInsertionOrder.html#a15657aebfc10b7986d4b47dc1247a4ae">VertexInsertionOrder::Enum</a> vertexInsertionOrder);</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>    <a class="code hl_class" href="classCDT_1_1Triangulation.html">Triangulation</a>(</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>        <a class="code hl_enumeration" href="structCDT_1_1VertexInsertionOrder.html#a15657aebfc10b7986d4b47dc1247a4ae">VertexInsertionOrder::Enum</a> vertexInsertionOrder,</div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>        <a class="code hl_enumeration" href="structCDT_1_1IntersectingConstraintEdges.html#afd50ae5a48b442fc2f4d3800dd29f968">IntersectingConstraintEdges::Enum</a> intersectingEdgesStrategy,</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>        T minDistToConstraintEdge);</div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span>    <a class="code hl_class" href="classCDT_1_1Triangulation.html">Triangulation</a>(</div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>        <a class="code hl_enumeration" href="structCDT_1_1VertexInsertionOrder.html#a15657aebfc10b7986d4b47dc1247a4ae">VertexInsertionOrder::Enum</a> vertexInsertionOrder,</div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>        <span class="keyword">const</span> TNearPointLocator&amp; nearPtLocator,</div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>        <a class="code hl_enumeration" href="structCDT_1_1IntersectingConstraintEdges.html#afd50ae5a48b442fc2f4d3800dd29f968">IntersectingConstraintEdges::Enum</a> intersectingEdgesStrategy,</div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>        T minDistToConstraintEdge);</div>
+<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span>    <span class="keyword">template</span> &lt;</div>
+<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span>        <span class="keyword">typename</span> TVertexIter,</div>
+<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span>        <span class="keyword">typename</span> TGetVertexCoordX,</div>
+<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>        <span class="keyword">typename</span> TGetVertexCoordY&gt;</div>
+<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span>    <span class="keywordtype">void</span> insertVertices(</div>
+<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span>        TVertexIter first,</div>
+<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span>        TVertexIter last,</div>
+<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>        TGetVertexCoordX getX,</div>
+<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span>        TGetVertexCoordY getY);</div>
+<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>    <span class="keywordtype">void</span> insertVertices(<span class="keyword">const</span> std::vector&lt;<a class="code hl_struct" href="structCDT_1_1V2d.html">V2d&lt;T&gt;</a> &gt;&amp; vertices);</div>
+<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span>    <span class="keyword">template</span> &lt;</div>
+<div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span>        <span class="keyword">typename</span> TEdgeIter,</div>
+<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span>        <span class="keyword">typename</span> TGetEdgeVertexStart,</div>
+<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>        <span class="keyword">typename</span> TGetEdgeVertexEnd&gt;</div>
+<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>    <span class="keywordtype">void</span> insertEdges(</div>
+<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>        TEdgeIter first,</div>
+<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>        TEdgeIter last,</div>
+<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span>        TGetEdgeVertexStart getStart,</div>
+<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span>        TGetEdgeVertexEnd getEnd);</div>
+<div class="line"><a id="l00403" name="l00403"></a><span class="lineno">  403</span>    <span class="keywordtype">void</span> insertEdges(<span class="keyword">const</span> std::vector&lt;Edge&gt;&amp; edges);</div>
+<div class="line"><a id="l00433" name="l00433"></a><span class="lineno">  433</span>    <span class="keyword">template</span> &lt;</div>
+<div class="line"><a id="l00434" name="l00434"></a><span class="lineno">  434</span>        <span class="keyword">typename</span> TEdgeIter,</div>
+<div class="line"><a id="l00435" name="l00435"></a><span class="lineno">  435</span>        <span class="keyword">typename</span> TGetEdgeVertexStart,</div>
+<div class="line"><a id="l00436" name="l00436"></a><span class="lineno">  436</span>        <span class="keyword">typename</span> TGetEdgeVertexEnd&gt;</div>
+<div class="line"><a id="l00437" name="l00437"></a><span class="lineno">  437</span>    <span class="keywordtype">void</span> conformToEdges(</div>
+<div class="line"><a id="l00438" name="l00438"></a><span class="lineno">  438</span>        TEdgeIter first,</div>
+<div class="line"><a id="l00439" name="l00439"></a><span class="lineno">  439</span>        TEdgeIter last,</div>
+<div class="line"><a id="l00440" name="l00440"></a><span class="lineno">  440</span>        TGetEdgeVertexStart getStart,</div>
+<div class="line"><a id="l00441" name="l00441"></a><span class="lineno">  441</span>        TGetEdgeVertexEnd getEnd);</div>
+<div class="line"><a id="l00462" name="l00462"></a><span class="lineno">  462</span>    <span class="keywordtype">void</span> conformToEdges(<span class="keyword">const</span> std::vector&lt;Edge&gt;&amp; edges);</div>
+<div class="line"><a id="l00468" name="l00468"></a><span class="lineno">  468</span>    <span class="keywordtype">void</span> eraseSuperTriangle();</div>
+<div class="line"><a id="l00470" name="l00470"></a><span class="lineno">  470</span>    <span class="keywordtype">void</span> eraseOuterTriangles();</div>
+<div class="line"><a id="l00477" name="l00477"></a><span class="lineno">  477</span>    <span class="keywordtype">void</span> eraseOuterTrianglesAndHoles();</div>
+<div class="line"><a id="l00482" name="l00482"></a><span class="lineno">  482</span>    <span class="keywordtype">void</span> initializedWithCustomSuperGeometry();</div>
+<div class="line"><a id="l00483" name="l00483"></a><span class="lineno">  483</span> </div>
+<div class="line"><a id="l00489" name="l00489"></a><span class="lineno">  489</span>    <span class="keywordtype">bool</span> isFinalized() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00490" name="l00490"></a><span class="lineno">  490</span> </div>
+<div class="line"><a id="l00504" name="l00504"></a><span class="lineno">  504</span>    std::vector&lt;LayerDepth&gt; calculateTriangleDepths() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00505" name="l00505"></a><span class="lineno">  505</span> </div>
+<div class="line"><a id="l00512" name="l00512"></a><span class="lineno">  512</span> </div>
+<div class="line"><a id="l00520" name="l00520"></a><span class="lineno">  520</span>    <span class="keywordtype">void</span> flipEdge(<a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> iT, <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> iTopo);</div>
+<div class="line"><a id="l00521" name="l00521"></a><span class="lineno">  521</span> </div>
+<div class="line"><a id="l00522" name="l00522"></a><span class="lineno">  522</span>    <span class="keywordtype">void</span> flipEdge(</div>
+<div class="line"><a id="l00523" name="l00523"></a><span class="lineno">  523</span>        <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> iT,</div>
+<div class="line"><a id="l00524" name="l00524"></a><span class="lineno">  524</span>        <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> iTopo,</div>
+<div class="line"><a id="l00525" name="l00525"></a><span class="lineno">  525</span>        <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> v1,</div>
+<div class="line"><a id="l00526" name="l00526"></a><span class="lineno">  526</span>        <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> v2,</div>
+<div class="line"><a id="l00527" name="l00527"></a><span class="lineno">  527</span>        <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> v3,</div>
+<div class="line"><a id="l00528" name="l00528"></a><span class="lineno">  528</span>        <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> v4,</div>
+<div class="line"><a id="l00529" name="l00529"></a><span class="lineno">  529</span>        <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> n1,</div>
+<div class="line"><a id="l00530" name="l00530"></a><span class="lineno">  530</span>        <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> n2,</div>
+<div class="line"><a id="l00531" name="l00531"></a><span class="lineno">  531</span>        <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> n3,</div>
+<div class="line"><a id="l00532" name="l00532"></a><span class="lineno">  532</span>        <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> n4);</div>
+<div class="line"><a id="l00533" name="l00533"></a><span class="lineno">  533</span> </div>
+<div class="line"><a id="l00539" name="l00539"></a><span class="lineno">  539</span>    <span class="keywordtype">void</span> removeTriangles(<span class="keyword">const</span> <a class="code hl_typedef" href="namespaceCDT.html#a6c946be7165a2ac3e3c69d6492a2ab98">TriIndUSet</a>&amp; removedTriangles);</div>
+<div class="line"><a id="l00540" name="l00540"></a><span class="lineno">  540</span> </div>
+<div class="line"><a id="l00542" name="l00542"></a><span class="lineno">  542</span>    <a class="code hl_typedef" href="namespaceCDT.html#a1a1459b39577a311a7378379243d056f">TriIndVec</a>&amp; VertTrisInternal();</div>
+<div class="line"><a id="l00544" name="l00544"></a><span class="lineno">  544</span>    <span class="keyword">const</span> <a class="code hl_typedef" href="namespaceCDT.html#a1a1459b39577a311a7378379243d056f">TriIndVec</a>&amp; VertTrisInternal() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00546" name="l00546"></a><span class="lineno">  546</span> </div>
+<div class="line"><a id="l00547" name="l00547"></a><span class="lineno">  547</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00548" name="l00548"></a><span class="lineno">  548</span>    <span class="comment">/*____ Detail __*/</span></div>
+<div class="line"><a id="l00549" name="l00549"></a><span class="lineno">  549</span>    <span class="keywordtype">void</span> addSuperTriangle(<span class="keyword">const</span> <a class="code hl_struct" href="structCDT_1_1Box2d.html">Box2d&lt;T&gt;</a>&amp; box);</div>
+<div class="line"><a id="l00550" name="l00550"></a><span class="lineno">  550</span>    <span class="keywordtype">void</span> addNewVertex(<span class="keyword">const</span> <a class="code hl_struct" href="structCDT_1_1V2d.html">V2d&lt;T&gt;</a>&amp; pos, <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> iT);</div>
+<div class="line"><a id="l00551" name="l00551"></a><span class="lineno">  551</span>    <span class="keywordtype">void</span> insertVertex(<a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iVert);</div>
+<div class="line"><a id="l00552" name="l00552"></a><span class="lineno">  552</span>    <span class="keywordtype">void</span> insertVertex(<a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iVert, <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> walkStart);</div>
+<div class="line"><a id="l00553" name="l00553"></a><span class="lineno">  553</span>    <span class="keywordtype">void</span> ensureDelaunayByEdgeFlips(<a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iV1, std::stack&lt;TriInd&gt;&amp; triStack);</div>
+<div class="line"><a id="l00555" name="l00555"></a><span class="lineno">  555</span>    std::vector&lt;Edge&gt; insertVertex_FlipFixedEdges(<a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iV1);</div>
+<div class="line"><a id="l00556" name="l00556"></a><span class="lineno">  556</span> </div>
+<div class="line"><a id="l00558" name="l00558"></a><span class="lineno">  558</span>    <span class="keyword">typedef</span> tuple&lt;IndexSizeType, IndexSizeType, TriInd, TriInd, Index&gt;</div>
+<div class="line"><a id="l00559" name="l00559"></a><span class="lineno">  559</span>        TriangulatePseudoPolygonTask;</div>
+<div class="line"><a id="l00560" name="l00560"></a><span class="lineno">  560</span> </div>
+<div class="line"><a id="l00573" name="l00573"></a><span class="lineno">  573</span>    <span class="keywordtype">void</span> insertEdge(</div>
+<div class="line"><a id="l00574" name="l00574"></a><span class="lineno">  574</span>        <a class="code hl_struct" href="structCDT_1_1Edge.html">Edge</a> edge,</div>
+<div class="line"><a id="l00575" name="l00575"></a><span class="lineno">  575</span>        <a class="code hl_struct" href="structCDT_1_1Edge.html">Edge</a> originalEdge,</div>
+<div class="line"><a id="l00576" name="l00576"></a><span class="lineno">  576</span>        <a class="code hl_typedef" href="namespaceCDT.html#a00ecb94ef8a4604d2afcd2be323ea5fe">EdgeVec</a>&amp; remaining,</div>
+<div class="line"><a id="l00577" name="l00577"></a><span class="lineno">  577</span>        std::vector&lt;TriangulatePseudoPolygonTask&gt;&amp; tppIterations);</div>
+<div class="line"><a id="l00578" name="l00578"></a><span class="lineno">  578</span> </div>
+<div class="line"><a id="l00591" name="l00591"></a><span class="lineno">  591</span>    <span class="keywordtype">void</span> insertEdgeIteration(</div>
+<div class="line"><a id="l00592" name="l00592"></a><span class="lineno">  592</span>        <a class="code hl_struct" href="structCDT_1_1Edge.html">Edge</a> edge,</div>
+<div class="line"><a id="l00593" name="l00593"></a><span class="lineno">  593</span>        <a class="code hl_struct" href="structCDT_1_1Edge.html">Edge</a> originalEdge,</div>
+<div class="line"><a id="l00594" name="l00594"></a><span class="lineno">  594</span>        <a class="code hl_typedef" href="namespaceCDT.html#a00ecb94ef8a4604d2afcd2be323ea5fe">EdgeVec</a>&amp; remaining,</div>
+<div class="line"><a id="l00595" name="l00595"></a><span class="lineno">  595</span>        std::vector&lt;TriangulatePseudoPolygonTask&gt;&amp; tppIterations);</div>
+<div class="line"><a id="l00596" name="l00596"></a><span class="lineno">  596</span> </div>
+<div class="line"><a id="l00598" name="l00598"></a><span class="lineno">  598</span>    <span class="keyword">typedef</span> tuple&lt;Edge, EdgeVec, BoundaryOverlapCount&gt; ConformToEdgeTask;</div>
+<div class="line"><a id="l00599" name="l00599"></a><span class="lineno">  599</span> </div>
+<div class="line"><a id="l00612" name="l00612"></a><span class="lineno">  612</span>    <span class="keywordtype">void</span> conformToEdge(</div>
+<div class="line"><a id="l00613" name="l00613"></a><span class="lineno">  613</span>        <a class="code hl_struct" href="structCDT_1_1Edge.html">Edge</a> edge,</div>
+<div class="line"><a id="l00614" name="l00614"></a><span class="lineno">  614</span>        <a class="code hl_typedef" href="namespaceCDT.html#a00ecb94ef8a4604d2afcd2be323ea5fe">EdgeVec</a> originals,</div>
+<div class="line"><a id="l00615" name="l00615"></a><span class="lineno">  615</span>        BoundaryOverlapCount overlaps,</div>
+<div class="line"><a id="l00616" name="l00616"></a><span class="lineno">  616</span>        std::vector&lt;ConformToEdgeTask&gt;&amp; remaining);</div>
+<div class="line"><a id="l00617" name="l00617"></a><span class="lineno">  617</span> </div>
+<div class="line"><a id="l00629" name="l00629"></a><span class="lineno">  629</span>    <span class="keywordtype">void</span> conformToEdgeIteration(</div>
+<div class="line"><a id="l00630" name="l00630"></a><span class="lineno">  630</span>        <a class="code hl_struct" href="structCDT_1_1Edge.html">Edge</a> edge,</div>
+<div class="line"><a id="l00631" name="l00631"></a><span class="lineno">  631</span>        <span class="keyword">const</span> <a class="code hl_typedef" href="namespaceCDT.html#a00ecb94ef8a4604d2afcd2be323ea5fe">EdgeVec</a>&amp; originals,</div>
+<div class="line"><a id="l00632" name="l00632"></a><span class="lineno">  632</span>        BoundaryOverlapCount overlaps,</div>
+<div class="line"><a id="l00633" name="l00633"></a><span class="lineno">  633</span>        std::vector&lt;ConformToEdgeTask&gt;&amp; remaining);</div>
+<div class="line"><a id="l00634" name="l00634"></a><span class="lineno">  634</span> </div>
+<div class="line"><a id="l00635" name="l00635"></a><span class="lineno">  635</span>    tuple&lt;TriInd, VertInd, VertInd&gt; intersectedTriangle(</div>
+<div class="line"><a id="l00636" name="l00636"></a><span class="lineno">  636</span>        <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iA,</div>
+<div class="line"><a id="l00637" name="l00637"></a><span class="lineno">  637</span>        <span class="keyword">const</span> <a class="code hl_struct" href="structCDT_1_1V2d.html">V2d&lt;T&gt;</a>&amp; a,</div>
+<div class="line"><a id="l00638" name="l00638"></a><span class="lineno">  638</span>        <span class="keyword">const</span> <a class="code hl_struct" href="structCDT_1_1V2d.html">V2d&lt;T&gt;</a>&amp; b,</div>
+<div class="line"><a id="l00639" name="l00639"></a><span class="lineno">  639</span>        T orientationTolerance = T(0)) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00641" name="l00641"></a><span class="lineno">  641</span>    std::stack&lt;TriInd&gt; insertVertexInsideTriangle(<a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> v, <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> iT);</div>
+<div class="line"><a id="l00643" name="l00643"></a><span class="lineno">  643</span>    std::stack&lt;TriInd&gt; insertVertexOnEdge(<a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> v, <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> iT1, <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> iT2);</div>
+<div class="line"><a id="l00644" name="l00644"></a><span class="lineno">  644</span>    array&lt;TriInd, 2&gt; trianglesAt(<span class="keyword">const</span> <a class="code hl_struct" href="structCDT_1_1V2d.html">V2d&lt;T&gt;</a>&amp; pos) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00645" name="l00645"></a><span class="lineno">  645</span>    array&lt;TriInd, 2&gt;</div>
+<div class="line"><a id="l00646" name="l00646"></a><span class="lineno">  646</span>    walkingSearchTrianglesAt(<a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iV, <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> startVertex) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00647" name="l00647"></a><span class="lineno">  647</span>    <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> walkTriangles(<a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> startVertex, <span class="keyword">const</span> <a class="code hl_struct" href="structCDT_1_1V2d.html">V2d&lt;T&gt;</a>&amp; pos) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00650" name="l00650"></a><span class="lineno">  650</span>    <span class="keywordtype">void</span> edgeFlipInfo(</div>
+<div class="line"><a id="l00651" name="l00651"></a><span class="lineno">  651</span>        <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> iT,</div>
+<div class="line"><a id="l00652" name="l00652"></a><span class="lineno">  652</span>        <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iV1,</div>
+<div class="line"><a id="l00653" name="l00653"></a><span class="lineno">  653</span>        <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a>&amp; iTopo,</div>
+<div class="line"><a id="l00654" name="l00654"></a><span class="lineno">  654</span>        <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a>&amp; iV2,</div>
+<div class="line"><a id="l00655" name="l00655"></a><span class="lineno">  655</span>        <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a>&amp; iV3,</div>
+<div class="line"><a id="l00656" name="l00656"></a><span class="lineno">  656</span>        <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a>&amp; iV4,</div>
+<div class="line"><a id="l00657" name="l00657"></a><span class="lineno">  657</span>        <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a>&amp; n1,</div>
+<div class="line"><a id="l00658" name="l00658"></a><span class="lineno">  658</span>        <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a>&amp; n2,</div>
+<div class="line"><a id="l00659" name="l00659"></a><span class="lineno">  659</span>        <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a>&amp; n3,</div>
+<div class="line"><a id="l00660" name="l00660"></a><span class="lineno">  660</span>        <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a>&amp; n4);</div>
+<div class="line"><a id="l00661" name="l00661"></a><span class="lineno">  661</span>    <span class="keywordtype">bool</span> isFlipNeeded(<a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iV1, <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iV2, <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iV3, <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iV4) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00662" name="l00662"></a><span class="lineno">  662</span>    <span class="keywordtype">void</span> changeNeighbor(<a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> iT, <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> oldNeighbor, <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> newNeighbor);</div>
+<div class="line"><a id="l00663" name="l00663"></a><span class="lineno">  663</span>    <span class="keywordtype">void</span> changeNeighbor(</div>
+<div class="line"><a id="l00664" name="l00664"></a><span class="lineno">  664</span>        <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> iT,</div>
+<div class="line"><a id="l00665" name="l00665"></a><span class="lineno">  665</span>        <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iVedge1,</div>
+<div class="line"><a id="l00666" name="l00666"></a><span class="lineno">  666</span>        <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iVedge2,</div>
+<div class="line"><a id="l00667" name="l00667"></a><span class="lineno">  667</span>        <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> newNeighbor);</div>
+<div class="line"><a id="l00668" name="l00668"></a><span class="lineno">  668</span>    <span class="keywordtype">void</span> triangulatePseudoPolygon(</div>
+<div class="line"><a id="l00669" name="l00669"></a><span class="lineno">  669</span>        <span class="keyword">const</span> std::vector&lt;VertInd&gt;&amp; poly,</div>
+<div class="line"><a id="l00670" name="l00670"></a><span class="lineno">  670</span>        unordered_map&lt;Edge, TriInd&gt;&amp; outerTris,</div>
+<div class="line"><a id="l00671" name="l00671"></a><span class="lineno">  671</span>        <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> iT,</div>
+<div class="line"><a id="l00672" name="l00672"></a><span class="lineno">  672</span>        <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> iN,</div>
+<div class="line"><a id="l00673" name="l00673"></a><span class="lineno">  673</span>        std::vector&lt;TriangulatePseudoPolygonTask&gt;&amp; iterations);</div>
+<div class="line"><a id="l00674" name="l00674"></a><span class="lineno">  674</span>    <span class="keywordtype">void</span> triangulatePseudoPolygonIteration(</div>
+<div class="line"><a id="l00675" name="l00675"></a><span class="lineno">  675</span>        <span class="keyword">const</span> std::vector&lt;VertInd&gt;&amp; poly,</div>
+<div class="line"><a id="l00676" name="l00676"></a><span class="lineno">  676</span>        unordered_map&lt;Edge, TriInd&gt;&amp; outerTris,</div>
+<div class="line"><a id="l00677" name="l00677"></a><span class="lineno">  677</span>        std::vector&lt;TriangulatePseudoPolygonTask&gt;&amp; iterations);</div>
+<div class="line"><a id="l00678" name="l00678"></a><span class="lineno">  678</span>    IndexSizeType findDelaunayPoint(</div>
+<div class="line"><a id="l00679" name="l00679"></a><span class="lineno">  679</span>        <span class="keyword">const</span> std::vector&lt;VertInd&gt;&amp; poly,</div>
+<div class="line"><a id="l00680" name="l00680"></a><span class="lineno">  680</span>        IndexSizeType iA,</div>
+<div class="line"><a id="l00681" name="l00681"></a><span class="lineno">  681</span>        IndexSizeType iB) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00682" name="l00682"></a><span class="lineno">  682</span>    <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> addTriangle(<span class="keyword">const</span> <a class="code hl_struct" href="structCDT_1_1Triangle.html">Triangle</a>&amp; t); <span class="comment">// note: invalidates iterators!</span></div>
+<div class="line"><a id="l00683" name="l00683"></a><span class="lineno">  683</span>    <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> addTriangle(); <span class="comment">// note: invalidates triangle iterators!</span></div>
+<div class="line"><a id="l00689" name="l00689"></a><span class="lineno">  689</span>    <span class="keywordtype">void</span> finalizeTriangulation(<span class="keyword">const</span> <a class="code hl_typedef" href="namespaceCDT.html#a6c946be7165a2ac3e3c69d6492a2ab98">TriIndUSet</a>&amp; removedTriangles);</div>
+<div class="line"><a id="l00690" name="l00690"></a><span class="lineno">  690</span>    <a class="code hl_typedef" href="namespaceCDT.html#a6c946be7165a2ac3e3c69d6492a2ab98">TriIndUSet</a> growToBoundary(std::stack&lt;TriInd&gt; seeds) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00691" name="l00691"></a><span class="lineno">  691</span>    <span class="keywordtype">void</span> fixEdge(<span class="keyword">const</span> <a class="code hl_struct" href="structCDT_1_1Edge.html">Edge</a>&amp; edge);</div>
+<div class="line"><a id="l00692" name="l00692"></a><span class="lineno">  692</span>    <span class="keywordtype">void</span> fixEdge(<span class="keyword">const</span> <a class="code hl_struct" href="structCDT_1_1Edge.html">Edge</a>&amp; edge, <span class="keyword">const</span> <a class="code hl_struct" href="structCDT_1_1Edge.html">Edge</a>&amp; originalEdge);</div>
+<div class="line"><a id="l00698" name="l00698"></a><span class="lineno">  698</span>    <span class="keywordtype">void</span> splitFixedEdge(<span class="keyword">const</span> <a class="code hl_struct" href="structCDT_1_1Edge.html">Edge</a>&amp; edge, <span class="keyword">const</span> <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> iSplitVert);</div>
+<div class="line"><a id="l00707" name="l00707"></a><span class="lineno">  707</span>    <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> addSplitEdgeVertex(</div>
+<div class="line"><a id="l00708" name="l00708"></a><span class="lineno">  708</span>        <span class="keyword">const</span> <a class="code hl_struct" href="structCDT_1_1V2d.html">V2d&lt;T&gt;</a>&amp; splitVert,</div>
+<div class="line"><a id="l00709" name="l00709"></a><span class="lineno">  709</span>        <span class="keyword">const</span> <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> iT,</div>
+<div class="line"><a id="l00710" name="l00710"></a><span class="lineno">  710</span>        <span class="keyword">const</span> <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> iTopo);</div>
+<div class="line"><a id="l00720" name="l00720"></a><span class="lineno">  720</span>    <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> splitFixedEdgeAt(</div>
+<div class="line"><a id="l00721" name="l00721"></a><span class="lineno">  721</span>        <span class="keyword">const</span> <a class="code hl_struct" href="structCDT_1_1Edge.html">Edge</a>&amp; edge,</div>
+<div class="line"><a id="l00722" name="l00722"></a><span class="lineno">  722</span>        <span class="keyword">const</span> <a class="code hl_struct" href="structCDT_1_1V2d.html">V2d&lt;T&gt;</a>&amp; splitVert,</div>
+<div class="line"><a id="l00723" name="l00723"></a><span class="lineno">  723</span>        <span class="keyword">const</span> <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> iT,</div>
+<div class="line"><a id="l00724" name="l00724"></a><span class="lineno">  724</span>        <span class="keyword">const</span> <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> iTopo);</div>
+<div class="line"><a id="l00731" name="l00731"></a><span class="lineno">  731</span>    <span class="keywordtype">void</span> makeDummy(<a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> iT);</div>
+<div class="line"><a id="l00737" name="l00737"></a><span class="lineno">  737</span>    <span class="keywordtype">void</span> eraseDummies();</div>
+<div class="line"><a id="l00753" name="l00753"></a><span class="lineno">  753</span>    unordered_map&lt;TriInd, LayerDepth&gt; peelLayer(</div>
+<div class="line"><a id="l00754" name="l00754"></a><span class="lineno">  754</span>        std::stack&lt;TriInd&gt; seeds,</div>
+<div class="line"><a id="l00755" name="l00755"></a><span class="lineno">  755</span>        <a class="code hl_typedef" href="group__API.html#ga0e7ee5426a4c4652ef99a6df4d76ac2c">LayerDepth</a> layerDepth,</div>
+<div class="line"><a id="l00756" name="l00756"></a><span class="lineno">  756</span>        std::vector&lt;LayerDepth&gt;&amp; triDepths) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00757" name="l00757"></a><span class="lineno">  757</span> </div>
+<div class="line"><a id="l00758" name="l00758"></a><span class="lineno">  758</span>    <span class="keywordtype">void</span> insertVertices_AsProvided(<a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> superGeomVertCount);</div>
+<div class="line"><a id="l00759" name="l00759"></a><span class="lineno">  759</span>    <span class="keywordtype">void</span> insertVertices_Randomized(<a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> superGeomVertCount);</div>
+<div class="line"><a id="l00760" name="l00760"></a><span class="lineno">  760</span>    <span class="keywordtype">void</span> insertVertices_KDTreeBFS(</div>
+<div class="line"><a id="l00761" name="l00761"></a><span class="lineno">  761</span>        <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> superGeomVertCount,</div>
+<div class="line"><a id="l00762" name="l00762"></a><span class="lineno">  762</span>        <a class="code hl_struct" href="structCDT_1_1V2d.html">V2d&lt;T&gt;</a> boxMin,</div>
+<div class="line"><a id="l00763" name="l00763"></a><span class="lineno">  763</span>        <a class="code hl_struct" href="structCDT_1_1V2d.html">V2d&lt;T&gt;</a> boxMax);</div>
+<div class="line"><a id="l00764" name="l00764"></a><span class="lineno">  764</span>    std::pair&lt;TriInd, TriInd&gt; edgeTriangles(<a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> a, <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> b) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00765" name="l00765"></a><span class="lineno">  765</span>    <span class="keywordtype">bool</span> hasEdge(<a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> a, <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> b) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00766" name="l00766"></a><span class="lineno">  766</span>    <span class="keywordtype">void</span> setAdjacentTriangle(<span class="keyword">const</span> <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> v, <span class="keyword">const</span> <a class="code hl_typedef" href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">TriInd</a> t);</div>
+<div class="line"><a id="l00767" name="l00767"></a><span class="lineno">  767</span>    <span class="keywordtype">void</span> pivotVertexTriangleCW(<a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> v);</div>
+<div class="line"><a id="l00769" name="l00769"></a><span class="lineno">  769</span>    <span class="keywordtype">void</span> tryAddVertexToLocator(<span class="keyword">const</span> <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> v);</div>
+<div class="line"><a id="l00772" name="l00772"></a><span class="lineno">  772</span>    <span class="keywordtype">void</span> tryInitNearestPointLocator();</div>
+<div class="line"><a id="l00773" name="l00773"></a><span class="lineno">  773</span> </div>
+<div class="line"><a id="l00774" name="l00774"></a><span class="lineno">  774</span>    std::vector&lt;TriInd&gt; m_dummyTris;</div>
+<div class="line"><a id="l00775" name="l00775"></a><span class="lineno">  775</span>    TNearPointLocator m_nearPtLocator;</div>
+<div class="line"><a id="l00776" name="l00776"></a><span class="lineno">  776</span>    IndexSizeType m_nTargetVerts;</div>
+<div class="line"><a id="l00777" name="l00777"></a><span class="lineno">  777</span>    <a class="code hl_enumeration" href="structCDT_1_1SuperGeometryType.html#a8515cbcfc5a7a1044c2dd2644676f310">SuperGeometryType::Enum</a> m_superGeomType;</div>
+<div class="line"><a id="l00778" name="l00778"></a><span class="lineno">  778</span>    <a class="code hl_enumeration" href="structCDT_1_1VertexInsertionOrder.html#a15657aebfc10b7986d4b47dc1247a4ae">VertexInsertionOrder::Enum</a> m_vertexInsertionOrder;</div>
+<div class="line"><a id="l00779" name="l00779"></a><span class="lineno">  779</span>    <a class="code hl_enumeration" href="structCDT_1_1IntersectingConstraintEdges.html#afd50ae5a48b442fc2f4d3800dd29f968">IntersectingConstraintEdges::Enum</a> m_intersectingEdgesStrategy;</div>
+<div class="line"><a id="l00780" name="l00780"></a><span class="lineno">  780</span>    T m_minDistToConstraintEdge;</div>
+<div class="line"><a id="l00781" name="l00781"></a><span class="lineno">  781</span>    <a class="code hl_typedef" href="namespaceCDT.html#a1a1459b39577a311a7378379243d056f">TriIndVec</a> m_vertTris; </div>
+<div class="line"><a id="l00782" name="l00782"></a><span class="lineno">  782</span>};</div>
+</div>
+<div class="line"><a id="l00783" name="l00783"></a><span class="lineno">  783</span> </div>
+<div class="line"><a id="l00786" name="l00786"></a><span class="lineno">  786</span> </div>
+<div class="line"><a id="l00787" name="l00787"></a><span class="lineno">  787</span><span class="keyword">namespace </span>detail</div>
+<div class="line"><a id="l00788" name="l00788"></a><span class="lineno">  788</span>{</div>
+<div class="line"><a id="l00789" name="l00789"></a><span class="lineno">  789</span> </div>
+<div class="foldopen" id="foldopen00791" data-start="{" data-end="};">
+<div class="line"><a id="l00791" name="l00791"></a><span class="lineno"><a class="line" href="structCDT_1_1detail_1_1SplitMix64RandGen.html">  791</a></span><span class="keyword">struct </span><a class="code hl_struct" href="structCDT_1_1detail_1_1SplitMix64RandGen.html">SplitMix64RandGen</a></div>
+<div class="line"><a id="l00792" name="l00792"></a><span class="lineno">  792</span>{</div>
+<div class="line"><a id="l00793" name="l00793"></a><span class="lineno">  793</span>    <span class="keyword">typedef</span> <span class="keywordtype">unsigned</span> <span class="keywordtype">long</span> <span class="keywordtype">long</span> uint64;</div>
+<div class="line"><a id="l00794" name="l00794"></a><span class="lineno">  794</span>    uint64 m_state;</div>
+<div class="line"><a id="l00795" name="l00795"></a><span class="lineno">  795</span>    <span class="keyword">explicit</span> <a class="code hl_struct" href="structCDT_1_1detail_1_1SplitMix64RandGen.html">SplitMix64RandGen</a>(uint64 state)</div>
+<div class="line"><a id="l00796" name="l00796"></a><span class="lineno">  796</span>        : m_state(state)</div>
+<div class="line"><a id="l00797" name="l00797"></a><span class="lineno">  797</span>    {}</div>
+<div class="line"><a id="l00798" name="l00798"></a><span class="lineno">  798</span>    <span class="keyword">explicit</span> <a class="code hl_struct" href="structCDT_1_1detail_1_1SplitMix64RandGen.html">SplitMix64RandGen</a>()</div>
+<div class="line"><a id="l00799" name="l00799"></a><span class="lineno">  799</span>        : m_state(0)</div>
+<div class="line"><a id="l00800" name="l00800"></a><span class="lineno">  800</span>    {}</div>
+<div class="line"><a id="l00801" name="l00801"></a><span class="lineno">  801</span>    uint64 operator()()</div>
+<div class="line"><a id="l00802" name="l00802"></a><span class="lineno">  802</span>    {</div>
+<div class="line"><a id="l00803" name="l00803"></a><span class="lineno">  803</span>        uint64 z = (m_state += 0x9e3779b97f4a7c15);</div>
+<div class="line"><a id="l00804" name="l00804"></a><span class="lineno">  804</span>        z = (z ^ (z &gt;&gt; 30)) * 0xbf58476d1ce4e5b9;</div>
+<div class="line"><a id="l00805" name="l00805"></a><span class="lineno">  805</span>        z = (z ^ (z &gt;&gt; 27)) * 0x94d049bb133111eb;</div>
+<div class="line"><a id="l00806" name="l00806"></a><span class="lineno">  806</span>        <span class="keywordflow">return</span> z ^ (z &gt;&gt; 31);</div>
+<div class="line"><a id="l00807" name="l00807"></a><span class="lineno">  807</span>    }</div>
+<div class="line"><a id="l00808" name="l00808"></a><span class="lineno">  808</span>};</div>
+</div>
+<div class="line"><a id="l00809" name="l00809"></a><span class="lineno">  809</span> </div>
+<div class="line"><a id="l00810" name="l00810"></a><span class="lineno">  810</span><span class="keyword">template</span> &lt;<span class="keyword">class</span> RandomIt&gt;</div>
+<div class="line"><a id="l00811" name="l00811"></a><span class="lineno">  811</span><span class="keywordtype">void</span> random_shuffle(RandomIt first, RandomIt last)</div>
+<div class="line"><a id="l00812" name="l00812"></a><span class="lineno">  812</span>{</div>
+<div class="line"><a id="l00813" name="l00813"></a><span class="lineno">  813</span>    <a class="code hl_struct" href="structCDT_1_1detail_1_1SplitMix64RandGen.html">detail::SplitMix64RandGen</a> prng;</div>
+<div class="line"><a id="l00814" name="l00814"></a><span class="lineno">  814</span>    <span class="keyword">typename</span> std::iterator_traits&lt;RandomIt&gt;::difference_type i, n;</div>
+<div class="line"><a id="l00815" name="l00815"></a><span class="lineno">  815</span>    n = last - first;</div>
+<div class="line"><a id="l00816" name="l00816"></a><span class="lineno">  816</span>    <span class="keywordflow">for</span>(i = n - 1; i &gt; 0; --i)</div>
+<div class="line"><a id="l00817" name="l00817"></a><span class="lineno">  817</span>    {</div>
+<div class="line"><a id="l00818" name="l00818"></a><span class="lineno">  818</span>        std::swap(first[i], first[prng() % (i + 1)]);</div>
+<div class="line"><a id="l00819" name="l00819"></a><span class="lineno">  819</span>    }</div>
+<div class="line"><a id="l00820" name="l00820"></a><span class="lineno">  820</span>}</div>
+<div class="line"><a id="l00821" name="l00821"></a><span class="lineno">  821</span> </div>
+<div class="line"><a id="l00822" name="l00822"></a><span class="lineno">  822</span><span class="comment">// backport from c++11</span></div>
+<div class="line"><a id="l00823" name="l00823"></a><span class="lineno">  823</span><span class="keyword">template</span> &lt;<span class="keyword">class</span> ForwardIt, <span class="keyword">class</span> T&gt;</div>
+<div class="line"><a id="l00824" name="l00824"></a><span class="lineno">  824</span><span class="keywordtype">void</span> iota(ForwardIt first, ForwardIt last, T value)</div>
+<div class="line"><a id="l00825" name="l00825"></a><span class="lineno">  825</span>{</div>
+<div class="line"><a id="l00826" name="l00826"></a><span class="lineno">  826</span>    <span class="keywordflow">while</span>(first != last)</div>
+<div class="line"><a id="l00827" name="l00827"></a><span class="lineno">  827</span>    {</div>
+<div class="line"><a id="l00828" name="l00828"></a><span class="lineno">  828</span>        *first++ = value;</div>
+<div class="line"><a id="l00829" name="l00829"></a><span class="lineno">  829</span>        ++value;</div>
+<div class="line"><a id="l00830" name="l00830"></a><span class="lineno">  830</span>    }</div>
+<div class="line"><a id="l00831" name="l00831"></a><span class="lineno">  831</span>}</div>
+<div class="line"><a id="l00832" name="l00832"></a><span class="lineno">  832</span> </div>
+<div class="line"><a id="l00833" name="l00833"></a><span class="lineno">  833</span>} <span class="comment">// namespace detail</span></div>
+<div class="line"><a id="l00834" name="l00834"></a><span class="lineno">  834</span> </div>
+<div class="line"><a id="l00835" name="l00835"></a><span class="lineno">  835</span><span class="comment">//-----------------------</span></div>
+<div class="line"><a id="l00836" name="l00836"></a><span class="lineno">  836</span><span class="comment">// Triangulation methods</span></div>
+<div class="line"><a id="l00837" name="l00837"></a><span class="lineno">  837</span><span class="comment">//-----------------------</span></div>
+<div class="line"><a id="l00838" name="l00838"></a><span class="lineno">  838</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> TNearPo<span class="keywordtype">int</span>Locator&gt;</div>
+<div class="line"><a id="l00839" name="l00839"></a><span class="lineno">  839</span><span class="keyword">template</span> &lt;</div>
+<div class="line"><a id="l00840" name="l00840"></a><span class="lineno">  840</span>    <span class="keyword">typename</span> TVertexIter,</div>
+<div class="line"><a id="l00841" name="l00841"></a><span class="lineno">  841</span>    <span class="keyword">typename</span> TGetVertexCoordX,</div>
+<div class="line"><a id="l00842" name="l00842"></a><span class="lineno">  842</span>    <span class="keyword">typename</span> TGetVertexCoordY&gt;</div>
+<div class="foldopen" id="foldopen00843" data-start="{" data-end="}">
+<div class="line"><a id="l00843" name="l00843"></a><span class="lineno"><a class="line" href="classCDT_1_1Triangulation.html#a9a549def9b96626bd01d89cc7dc92bda">  843</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classCDT_1_1Triangulation.html#a9a549def9b96626bd01d89cc7dc92bda">Triangulation&lt;T, TNearPointLocator&gt;::insertVertices</a>(</div>
+<div class="line"><a id="l00844" name="l00844"></a><span class="lineno">  844</span>    <span class="keyword">const</span> TVertexIter first,</div>
+<div class="line"><a id="l00845" name="l00845"></a><span class="lineno">  845</span>    <span class="keyword">const</span> TVertexIter last,</div>
+<div class="line"><a id="l00846" name="l00846"></a><span class="lineno">  846</span>    TGetVertexCoordX getX,</div>
+<div class="line"><a id="l00847" name="l00847"></a><span class="lineno">  847</span>    TGetVertexCoordY getY)</div>
+<div class="line"><a id="l00848" name="l00848"></a><span class="lineno">  848</span>{</div>
+<div class="line"><a id="l00849" name="l00849"></a><span class="lineno">  849</span>    <span class="keywordflow">if</span>(isFinalized())</div>
+<div class="line"><a id="l00850" name="l00850"></a><span class="lineno">  850</span>        <span class="keywordflow">throw</span> <a class="code hl_class" href="classCDT_1_1FinalizedError.html">FinalizedError</a>(<a class="code hl_define" href="group__API.html#ga1e013a6fe2061d2ff7c4ee5824fe8057">CDT_SOURCE_LOCATION</a>);</div>
+<div class="line"><a id="l00851" name="l00851"></a><span class="lineno">  851</span> </div>
+<div class="line"><a id="l00852" name="l00852"></a><span class="lineno">  852</span>    <span class="keyword">const</span> <span class="keywordtype">bool</span> isFirstTime = vertices.empty();</div>
+<div class="line"><a id="l00853" name="l00853"></a><span class="lineno">  853</span>    <span class="keyword">const</span> T max = std::numeric_limits&lt;T&gt;::max();</div>
+<div class="line"><a id="l00854" name="l00854"></a><span class="lineno">  854</span>    <a class="code hl_struct" href="structCDT_1_1Box2d.html">Box2d&lt;T&gt;</a> box = {{max, max}, {-max, -max}};</div>
+<div class="line"><a id="l00855" name="l00855"></a><span class="lineno">  855</span>    <span class="keywordflow">if</span>(vertices.empty()) <span class="comment">// called first time</span></div>
+<div class="line"><a id="l00856" name="l00856"></a><span class="lineno">  856</span>    {</div>
+<div class="line"><a id="l00857" name="l00857"></a><span class="lineno">  857</span>        box = <a class="code hl_function" href="namespaceCDT.html#a1bfa57887afce2e867ee4043bd6b736e">envelopBox&lt;T&gt;</a>(first, last, getX, getY);</div>
+<div class="line"><a id="l00858" name="l00858"></a><span class="lineno">  858</span>        addSuperTriangle(box);</div>
+<div class="line"><a id="l00859" name="l00859"></a><span class="lineno">  859</span>    }</div>
+<div class="line"><a id="l00860" name="l00860"></a><span class="lineno">  860</span>    tryInitNearestPointLocator();</div>
+<div class="line"><a id="l00861" name="l00861"></a><span class="lineno">  861</span> </div>
+<div class="line"><a id="l00862" name="l00862"></a><span class="lineno">  862</span>    <span class="keyword">const</span> <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> nExistingVerts = <span class="keyword">static_cast&lt;</span><a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a><span class="keyword">&gt;</span>(vertices.size());</div>
+<div class="line"><a id="l00863" name="l00863"></a><span class="lineno">  863</span>    <span class="keyword">const</span> <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> nVerts =</div>
+<div class="line"><a id="l00864" name="l00864"></a><span class="lineno">  864</span>        <span class="keyword">static_cast&lt;</span><a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a><span class="keyword">&gt;</span>(nExistingVerts + std::distance(first, last));</div>
+<div class="line"><a id="l00865" name="l00865"></a><span class="lineno">  865</span>    <span class="comment">// optimization, try to pre-allocate tris</span></div>
+<div class="line"><a id="l00866" name="l00866"></a><span class="lineno">  866</span>    triangles.reserve(triangles.size() + 2 * nVerts);</div>
+<div class="line"><a id="l00867" name="l00867"></a><span class="lineno">  867</span>    vertices.reserve(nVerts);</div>
+<div class="line"><a id="l00868" name="l00868"></a><span class="lineno">  868</span>    m_vertTris.reserve(nVerts);</div>
+<div class="line"><a id="l00869" name="l00869"></a><span class="lineno">  869</span>    <span class="keywordflow">for</span>(TVertexIter it = first; it != last; ++it)</div>
+<div class="line"><a id="l00870" name="l00870"></a><span class="lineno">  870</span>        addNewVertex(<a class="code hl_struct" href="structCDT_1_1V2d.html">V2d&lt;T&gt;::make</a>(getX(*it), getY(*it)), noNeighbor);</div>
+<div class="line"><a id="l00871" name="l00871"></a><span class="lineno">  871</span> </div>
+<div class="line"><a id="l00872" name="l00872"></a><span class="lineno">  872</span>    <span class="keywordflow">switch</span>(m_vertexInsertionOrder)</div>
+<div class="line"><a id="l00873" name="l00873"></a><span class="lineno">  873</span>    {</div>
+<div class="line"><a id="l00874" name="l00874"></a><span class="lineno">  874</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="structCDT_1_1VertexInsertionOrder.html#a15657aebfc10b7986d4b47dc1247a4aea610ecf7cff2c1e5fb86413188c92f644">VertexInsertionOrder::AsProvided</a>:</div>
+<div class="line"><a id="l00875" name="l00875"></a><span class="lineno">  875</span>        insertVertices_AsProvided(nExistingVerts);</div>
+<div class="line"><a id="l00876" name="l00876"></a><span class="lineno">  876</span>        <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00877" name="l00877"></a><span class="lineno">  877</span>    <span class="keywordflow">case</span> <a class="code hl_enumvalue" href="structCDT_1_1VertexInsertionOrder.html#a15657aebfc10b7986d4b47dc1247a4aea66fc9a83d60682940454cfef737b06dd">VertexInsertionOrder::Auto</a>:</div>
+<div class="line"><a id="l00878" name="l00878"></a><span class="lineno">  878</span>        isFirstTime ? insertVertices_KDTreeBFS(nExistingVerts, box.<a class="code hl_variable" href="structCDT_1_1Box2d.html#ae41bb2b4d6d43bde3dd0f036423de269">min</a>, box.<a class="code hl_variable" href="structCDT_1_1Box2d.html#abb61fe21fd7923956436a383e5187b63">max</a>)</div>
+<div class="line"><a id="l00879" name="l00879"></a><span class="lineno">  879</span>                    : insertVertices_Randomized(nExistingVerts);</div>
+<div class="line"><a id="l00880" name="l00880"></a><span class="lineno">  880</span>        <span class="keywordflow">break</span>;</div>
+<div class="line"><a id="l00881" name="l00881"></a><span class="lineno">  881</span>    }</div>
+<div class="line"><a id="l00882" name="l00882"></a><span class="lineno">  882</span>}</div>
+</div>
+<div class="line"><a id="l00883" name="l00883"></a><span class="lineno">  883</span> </div>
+<div class="line"><a id="l00884" name="l00884"></a><span class="lineno">  884</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> TNearPo<span class="keywordtype">int</span>Locator&gt;</div>
+<div class="line"><a id="l00885" name="l00885"></a><span class="lineno">  885</span><span class="keyword">template</span> &lt;</div>
+<div class="line"><a id="l00886" name="l00886"></a><span class="lineno">  886</span>    <span class="keyword">typename</span> TEdgeIter,</div>
+<div class="line"><a id="l00887" name="l00887"></a><span class="lineno">  887</span>    <span class="keyword">typename</span> TGetEdgeVertexStart,</div>
+<div class="line"><a id="l00888" name="l00888"></a><span class="lineno">  888</span>    <span class="keyword">typename</span> TGetEdgeVertexEnd&gt;</div>
+<div class="foldopen" id="foldopen00889" data-start="{" data-end="}">
+<div class="line"><a id="l00889" name="l00889"></a><span class="lineno"><a class="line" href="classCDT_1_1Triangulation.html#a972f00c83b36c4a775aad30735f918d7">  889</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classCDT_1_1Triangulation.html#a972f00c83b36c4a775aad30735f918d7">Triangulation&lt;T, TNearPointLocator&gt;::insertEdges</a>(</div>
+<div class="line"><a id="l00890" name="l00890"></a><span class="lineno">  890</span>    TEdgeIter first,</div>
+<div class="line"><a id="l00891" name="l00891"></a><span class="lineno">  891</span>    <span class="keyword">const</span> TEdgeIter last,</div>
+<div class="line"><a id="l00892" name="l00892"></a><span class="lineno">  892</span>    TGetEdgeVertexStart getStart,</div>
+<div class="line"><a id="l00893" name="l00893"></a><span class="lineno">  893</span>    TGetEdgeVertexEnd getEnd)</div>
+<div class="line"><a id="l00894" name="l00894"></a><span class="lineno">  894</span>{</div>
+<div class="line"><a id="l00895" name="l00895"></a><span class="lineno">  895</span>    <span class="keywordflow">if</span>(isFinalized())</div>
+<div class="line"><a id="l00896" name="l00896"></a><span class="lineno">  896</span>        <span class="keywordflow">throw</span> <a class="code hl_class" href="classCDT_1_1FinalizedError.html">FinalizedError</a>(<a class="code hl_define" href="group__API.html#ga1e013a6fe2061d2ff7c4ee5824fe8057">CDT_SOURCE_LOCATION</a>);</div>
+<div class="line"><a id="l00897" name="l00897"></a><span class="lineno">  897</span> </div>
+<div class="line"><a id="l00898" name="l00898"></a><span class="lineno">  898</span>    std::vector&lt;TriangulatePseudoPolygonTask&gt; tppIterations;</div>
+<div class="line"><a id="l00899" name="l00899"></a><span class="lineno">  899</span>    <a class="code hl_typedef" href="namespaceCDT.html#a00ecb94ef8a4604d2afcd2be323ea5fe">EdgeVec</a> remaining;</div>
+<div class="line"><a id="l00900" name="l00900"></a><span class="lineno">  900</span>    <span class="keywordflow">for</span>(; first != last; ++first)</div>
+<div class="line"><a id="l00901" name="l00901"></a><span class="lineno">  901</span>    {</div>
+<div class="line"><a id="l00902" name="l00902"></a><span class="lineno">  902</span>        <span class="comment">// +3 to account for super-triangle vertices</span></div>
+<div class="line"><a id="l00903" name="l00903"></a><span class="lineno">  903</span>        <span class="keyword">const</span> <a class="code hl_struct" href="structCDT_1_1Edge.html">Edge</a> edge(</div>
+<div class="line"><a id="l00904" name="l00904"></a><span class="lineno">  904</span>            <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a>(getStart(*first) + m_nTargetVerts),</div>
+<div class="line"><a id="l00905" name="l00905"></a><span class="lineno">  905</span>            <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a>(getEnd(*first) + m_nTargetVerts));</div>
+<div class="line"><a id="l00906" name="l00906"></a><span class="lineno">  906</span>        insertEdge(edge, edge, remaining, tppIterations);</div>
+<div class="line"><a id="l00907" name="l00907"></a><span class="lineno">  907</span>    }</div>
+<div class="line"><a id="l00908" name="l00908"></a><span class="lineno">  908</span>    eraseDummies();</div>
+<div class="line"><a id="l00909" name="l00909"></a><span class="lineno">  909</span>}</div>
+</div>
+<div class="line"><a id="l00910" name="l00910"></a><span class="lineno">  910</span> </div>
+<div class="line"><a id="l00911" name="l00911"></a><span class="lineno">  911</span><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> TNearPo<span class="keywordtype">int</span>Locator&gt;</div>
+<div class="line"><a id="l00912" name="l00912"></a><span class="lineno">  912</span><span class="keyword">template</span> &lt;</div>
+<div class="line"><a id="l00913" name="l00913"></a><span class="lineno">  913</span>    <span class="keyword">typename</span> TEdgeIter,</div>
+<div class="line"><a id="l00914" name="l00914"></a><span class="lineno">  914</span>    <span class="keyword">typename</span> TGetEdgeVertexStart,</div>
+<div class="line"><a id="l00915" name="l00915"></a><span class="lineno">  915</span>    <span class="keyword">typename</span> TGetEdgeVertexEnd&gt;</div>
+<div class="foldopen" id="foldopen00916" data-start="{" data-end="}">
+<div class="line"><a id="l00916" name="l00916"></a><span class="lineno"><a class="line" href="classCDT_1_1Triangulation.html#a1529c0a2bc7de096a1251da55c7b3967">  916</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="classCDT_1_1Triangulation.html#a1529c0a2bc7de096a1251da55c7b3967">Triangulation&lt;T, TNearPointLocator&gt;::conformToEdges</a>(</div>
+<div class="line"><a id="l00917" name="l00917"></a><span class="lineno">  917</span>    TEdgeIter first,</div>
+<div class="line"><a id="l00918" name="l00918"></a><span class="lineno">  918</span>    <span class="keyword">const</span> TEdgeIter last,</div>
+<div class="line"><a id="l00919" name="l00919"></a><span class="lineno">  919</span>    TGetEdgeVertexStart getStart,</div>
+<div class="line"><a id="l00920" name="l00920"></a><span class="lineno">  920</span>    TGetEdgeVertexEnd getEnd)</div>
+<div class="line"><a id="l00921" name="l00921"></a><span class="lineno">  921</span>{</div>
+<div class="line"><a id="l00922" name="l00922"></a><span class="lineno">  922</span>    <span class="keywordflow">if</span>(isFinalized())</div>
+<div class="line"><a id="l00923" name="l00923"></a><span class="lineno">  923</span>        <span class="keywordflow">throw</span> <a class="code hl_class" href="classCDT_1_1FinalizedError.html">FinalizedError</a>(<a class="code hl_define" href="group__API.html#ga1e013a6fe2061d2ff7c4ee5824fe8057">CDT_SOURCE_LOCATION</a>);</div>
+<div class="line"><a id="l00924" name="l00924"></a><span class="lineno">  924</span> </div>
+<div class="line"><a id="l00925" name="l00925"></a><span class="lineno">  925</span>    tryInitNearestPointLocator();</div>
+<div class="line"><a id="l00926" name="l00926"></a><span class="lineno">  926</span>    <span class="comment">// state shared between different runs for performance gains</span></div>
+<div class="line"><a id="l00927" name="l00927"></a><span class="lineno">  927</span>    std::vector&lt;ConformToEdgeTask&gt; remaining;</div>
+<div class="line"><a id="l00928" name="l00928"></a><span class="lineno">  928</span>    <span class="keywordflow">for</span>(; first != last; ++first)</div>
+<div class="line"><a id="l00929" name="l00929"></a><span class="lineno">  929</span>    {</div>
+<div class="line"><a id="l00930" name="l00930"></a><span class="lineno">  930</span>        <span class="comment">// +3 to account for super-triangle vertices</span></div>
+<div class="line"><a id="l00931" name="l00931"></a><span class="lineno">  931</span>        <span class="keyword">const</span> <a class="code hl_struct" href="structCDT_1_1Edge.html">Edge</a> e(</div>
+<div class="line"><a id="l00932" name="l00932"></a><span class="lineno">  932</span>            <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a>(getStart(*first) + m_nTargetVerts),</div>
+<div class="line"><a id="l00933" name="l00933"></a><span class="lineno">  933</span>            <a class="code hl_typedef" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a>(getEnd(*first) + m_nTargetVerts));</div>
+<div class="line"><a id="l00934" name="l00934"></a><span class="lineno">  934</span>        conformToEdge(e, <a class="code hl_typedef" href="namespaceCDT.html#a00ecb94ef8a4604d2afcd2be323ea5fe">EdgeVec</a>(1, e), 0, remaining);</div>
+<div class="line"><a id="l00935" name="l00935"></a><span class="lineno">  935</span>    }</div>
+<div class="line"><a id="l00936" name="l00936"></a><span class="lineno">  936</span>    eraseDummies();</div>
+<div class="line"><a id="l00937" name="l00937"></a><span class="lineno">  937</span>}</div>
+</div>
+<div class="line"><a id="l00938" name="l00938"></a><span class="lineno">  938</span> </div>
+<div class="line"><a id="l00939" name="l00939"></a><span class="lineno">  939</span>} <span class="comment">// namespace CDT</span></div>
+<div class="line"><a id="l00940" name="l00940"></a><span class="lineno">  940</span> </div>
+<div class="line"><a id="l00941" name="l00941"></a><span class="lineno">  941</span><span class="preprocessor">#ifndef CDT_USE_AS_COMPILED_LIBRARY</span></div>
+<div class="line"><a id="l00942" name="l00942"></a><span class="lineno">  942</span><span class="preprocessor">#include &quot;<a class="code" href="Triangulation_8hpp.html">Triangulation.hpp</a>&quot;</span></div>
+<div class="line"><a id="l00943" name="l00943"></a><span class="lineno">  943</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00944" name="l00944"></a><span class="lineno">  944</span> </div>
+<div class="line"><a id="l00945" name="l00945"></a><span class="lineno">  945</span><span class="preprocessor">#endif </span><span class="comment">// header-guard</span></div>
+<div class="ttc" id="aCDTUtils_8h_html"><div class="ttname"><a href="CDTUtils_8h.html">CDTUtils.h</a></div><div class="ttdoc">Utilities and helpers.</div></div>
+<div class="ttc" id="aCDTUtils_8h_html_a95e63ccd7c7f2156d2926a8eec3a5c88"><div class="ttname"><a href="CDTUtils_8h.html#a95e63ccd7c7f2156d2926a8eec3a5c88">CDT_EXPORT</a></div><div class="ttdeci">#define CDT_EXPORT</div><div class="ttdoc">Export not needed in header-only mode.</div><div class="ttdef"><b>Definition</b> <a href="CDTUtils_8h_source.html#l00040">CDTUtils.h:40</a></div></div>
+<div class="ttc" id="aLocatorKDTree_8h_html"><div class="ttname"><a href="LocatorKDTree_8h.html">LocatorKDTree.h</a></div><div class="ttdoc">Adapter between for KDTree and CDT.</div></div>
+<div class="ttc" id="aTriangulation_8hpp_html"><div class="ttname"><a href="Triangulation_8hpp.html">Triangulation.hpp</a></div><div class="ttdoc">Triangulation class - implementation.</div></div>
+<div class="ttc" id="aclassCDT_1_1DuplicateVertexError_html"><div class="ttname"><a href="classCDT_1_1DuplicateVertexError.html">CDT::DuplicateVertexError</a></div><div class="ttdoc">Error thrown when duplicate vertex is detected during vertex insertion.</div><div class="ttdef"><b>Definition</b> <a href="#l00183">Triangulation.h:184</a></div></div>
+<div class="ttc" id="aclassCDT_1_1Error_html"><div class="ttname"><a href="classCDT_1_1Error.html">CDT::Error</a></div><div class="ttdoc">Base class for errors.</div><div class="ttdef"><b>Definition</b> <a href="#l00138">Triangulation.h:139</a></div></div>
+<div class="ttc" id="aclassCDT_1_1Error_html_a5f3dde2e934df710fbf4cebdf6825a08"><div class="ttname"><a href="classCDT_1_1Error.html#a5f3dde2e934df710fbf4cebdf6825a08">CDT::Error::sourceLocation</a></div><div class="ttdeci">const SourceLocation &amp; sourceLocation() const</div><div class="ttdoc">Get source location from where the error was thrown.</div><div class="ttdef"><b>Definition</b> <a href="#l00155">Triangulation.h:155</a></div></div>
+<div class="ttc" id="aclassCDT_1_1Error_html_a818c8c5b4e046e7ce5aa410820f1848b"><div class="ttname"><a href="classCDT_1_1Error.html#a818c8c5b4e046e7ce5aa410820f1848b">CDT::Error::Error</a></div><div class="ttdeci">Error(const std::string &amp;description, const SourceLocation &amp;srcLoc)</div><div class="ttdoc">Constructor.</div><div class="ttdef"><b>Definition</b> <a href="#l00142">Triangulation.h:142</a></div></div>
+<div class="ttc" id="aclassCDT_1_1Error_html_ad2f3e586200bb201a9e268703d77ad14"><div class="ttname"><a href="classCDT_1_1Error.html#ad2f3e586200bb201a9e268703d77ad14">CDT::Error::description</a></div><div class="ttdeci">const std::string &amp; description() const</div><div class="ttdoc">Get error description.</div><div class="ttdef"><b>Definition</b> <a href="#l00150">Triangulation.h:150</a></div></div>
+<div class="ttc" id="aclassCDT_1_1FinalizedError_html"><div class="ttname"><a href="classCDT_1_1FinalizedError.html">CDT::FinalizedError</a></div><div class="ttdoc">Error thrown when triangulation modification is attempted after it was finalized.</div><div class="ttdef"><b>Definition</b> <a href="#l00169">Triangulation.h:170</a></div></div>
+<div class="ttc" id="aclassCDT_1_1IntersectingConstraintsError_html"><div class="ttname"><a href="classCDT_1_1IntersectingConstraintsError.html">CDT::IntersectingConstraintsError</a></div><div class="ttdoc">Error thrown when intersecting constraint edges are detected, but triangulation is not configured to ...</div><div class="ttdef"><b>Definition</b> <a href="#l00214">Triangulation.h:215</a></div></div>
+<div class="ttc" id="aclassCDT_1_1SourceLocation_html"><div class="ttname"><a href="classCDT_1_1SourceLocation.html">CDT::SourceLocation</a></div><div class="ttdoc">Contains source location info: file, function, line.</div><div class="ttdef"><b>Definition</b> <a href="#l00103">Triangulation.h:104</a></div></div>
+<div class="ttc" id="aclassCDT_1_1Triangulation_html"><div class="ttname"><a href="classCDT_1_1Triangulation.html">CDT::Triangulation</a></div><div class="ttdoc">Data structure representing a 2D constrained Delaunay triangulation.</div><div class="ttdef"><b>Definition</b> <a href="#l00258">Triangulation.h:259</a></div></div>
+<div class="ttc" id="aclassCDT_1_1Triangulation_html_a0b21ff0171d79da1e372fa9f7a19c95a"><div class="ttname"><a href="classCDT_1_1Triangulation.html#a0b21ff0171d79da1e372fa9f7a19c95a">CDT::Triangulation::fixedEdges</a></div><div class="ttdeci">EdgeUSet fixedEdges</div><div class="ttdoc">triangulation's constraints (fixed edges)</div><div class="ttdef"><b>Definition</b> <a href="#l00264">Triangulation.h:264</a></div></div>
+<div class="ttc" id="aclassCDT_1_1Triangulation_html_a1529c0a2bc7de096a1251da55c7b3967"><div class="ttname"><a href="classCDT_1_1Triangulation.html#a1529c0a2bc7de096a1251da55c7b3967">CDT::Triangulation::conformToEdges</a></div><div class="ttdeci">void conformToEdges(TEdgeIter first, TEdgeIter last, TGetEdgeVertexStart getStart, TGetEdgeVertexEnd getEnd)</div><div class="ttdoc">Insert constraint edges into triangulation for Conforming Delaunay Triangulation (for example see fig...</div><div class="ttdef"><b>Definition</b> <a href="#l00916">Triangulation.h:916</a></div></div>
+<div class="ttc" id="aclassCDT_1_1Triangulation_html_a3b2f90ccbb7c23ae0ec45e57bad1cf05"><div class="ttname"><a href="classCDT_1_1Triangulation.html#a3b2f90ccbb7c23ae0ec45e57bad1cf05">CDT::Triangulation::V2dVec</a></div><div class="ttdeci">std::vector&lt; V2d&lt; T &gt; &gt; V2dVec</div><div class="ttdoc">Vertices vector.</div><div class="ttdef"><b>Definition</b> <a href="#l00261">Triangulation.h:261</a></div></div>
+<div class="ttc" id="aclassCDT_1_1Triangulation_html_a808c84638b7572fc2b2b2bd6cf592baa"><div class="ttname"><a href="classCDT_1_1Triangulation.html#a808c84638b7572fc2b2b2bd6cf592baa">CDT::Triangulation::vertices</a></div><div class="ttdeci">V2dVec vertices</div><div class="ttdoc">triangulation's vertices</div><div class="ttdef"><b>Definition</b> <a href="#l00262">Triangulation.h:262</a></div></div>
+<div class="ttc" id="aclassCDT_1_1Triangulation_html_a972f00c83b36c4a775aad30735f918d7"><div class="ttname"><a href="classCDT_1_1Triangulation.html#a972f00c83b36c4a775aad30735f918d7">CDT::Triangulation::insertEdges</a></div><div class="ttdeci">void insertEdges(TEdgeIter first, TEdgeIter last, TGetEdgeVertexStart getStart, TGetEdgeVertexEnd getEnd)</div><div class="ttdoc">Insert constraint edges into triangulation for Constrained Delaunay Triangulation (for example see fi...</div><div class="ttdef"><b>Definition</b> <a href="#l00889">Triangulation.h:889</a></div></div>
+<div class="ttc" id="aclassCDT_1_1Triangulation_html_a9a549def9b96626bd01d89cc7dc92bda"><div class="ttname"><a href="classCDT_1_1Triangulation.html#a9a549def9b96626bd01d89cc7dc92bda">CDT::Triangulation::insertVertices</a></div><div class="ttdeci">void insertVertices(TVertexIter first, TVertexIter last, TGetVertexCoordX getX, TGetVertexCoordY getY)</div><div class="ttdoc">Insert custom point-types specified by iterator range and X/Y-getters.</div><div class="ttdef"><b>Definition</b> <a href="#l00843">Triangulation.h:843</a></div></div>
+<div class="ttc" id="aclassCDT_1_1Triangulation_html_aceae79cb3fdce9d47caa0ea129ee4f8e"><div class="ttname"><a href="classCDT_1_1Triangulation.html#aceae79cb3fdce9d47caa0ea129ee4f8e">CDT::Triangulation::pieceToOriginals</a></div><div class="ttdeci">unordered_map&lt; Edge, EdgeVec &gt; pieceToOriginals</div><div class="ttdoc">Stores list of original edges represented by a given fixed edge.</div><div class="ttdef"><b>Definition</b> <a href="#l00280">Triangulation.h:280</a></div></div>
+<div class="ttc" id="aclassCDT_1_1Triangulation_html_add086b08342f04708817727afa0739b9"><div class="ttname"><a href="classCDT_1_1Triangulation.html#add086b08342f04708817727afa0739b9">CDT::Triangulation::overlapCount</a></div><div class="ttdeci">unordered_map&lt; Edge, BoundaryOverlapCount &gt; overlapCount</div><div class="ttdoc">Stores count of overlapping boundaries for a fixed edge.</div><div class="ttdef"><b>Definition</b> <a href="#l00273">Triangulation.h:273</a></div></div>
+<div class="ttc" id="aclassCDT_1_1Triangulation_html_ae77d983cdcaa9cba8636a93c364540cb"><div class="ttname"><a href="classCDT_1_1Triangulation.html#ae77d983cdcaa9cba8636a93c364540cb">CDT::Triangulation::triangles</a></div><div class="ttdeci">TriangleVec triangles</div><div class="ttdoc">triangulation's triangles</div><div class="ttdef"><b>Definition</b> <a href="#l00263">Triangulation.h:263</a></div></div>
+<div class="ttc" id="agroup__API_html_ga0e7ee5426a4c4652ef99a6df4d76ac2c"><div class="ttname"><a href="group__API.html#ga0e7ee5426a4c4652ef99a6df4d76ac2c">CDT::LayerDepth</a></div><div class="ttdeci">unsigned short LayerDepth</div><div class="ttdoc">Type used for storing layer depths for triangles.</div><div class="ttdef"><b>Definition</b> <a href="CDT_8h_source.html#l00040">CDT.h:40</a></div></div>
+<div class="ttc" id="agroup__API_html_ga1e013a6fe2061d2ff7c4ee5824fe8057"><div class="ttname"><a href="group__API.html#ga1e013a6fe2061d2ff7c4ee5824fe8057">CDT_SOURCE_LOCATION</a></div><div class="ttdeci">#define CDT_SOURCE_LOCATION</div><div class="ttdoc">Macro for getting source location.</div><div class="ttdef"><b>Definition</b> <a href="#l00131">Triangulation.h:131</a></div></div>
+<div class="ttc" id="anamespaceCDT_html"><div class="ttname"><a href="namespaceCDT.html">CDT</a></div><div class="ttdoc">Namespace containing triangulation functionality.</div><div class="ttdef"><b>Definition</b> <a href="InitializeWithGrid_8h_source.html#l00024">InitializeWithGrid.h:25</a></div></div>
+<div class="ttc" id="anamespaceCDT_html_a00ecb94ef8a4604d2afcd2be323ea5fe"><div class="ttname"><a href="namespaceCDT.html#a00ecb94ef8a4604d2afcd2be323ea5fe">CDT::EdgeVec</a></div><div class="ttdeci">std::vector&lt; Edge &gt; EdgeVec</div><div class="ttdoc">Vector of edges.</div><div class="ttdef"><b>Definition</b> <a href="CDTUtils_8h_source.html#l00245">CDTUtils.h:245</a></div></div>
+<div class="ttc" id="anamespaceCDT_html_a062e6b7c0b1f0eddf4f449e6bf6d9011"><div class="ttname"><a href="namespaceCDT.html#a062e6b7c0b1f0eddf4f449e6bf6d9011">CDT::EdgeUSet</a></div><div class="ttdeci">unordered_set&lt; Edge &gt; EdgeUSet</div><div class="ttdoc">Hash table of edges.</div><div class="ttdef"><b>Definition</b> <a href="CDTUtils_8h_source.html#l00246">CDTUtils.h:246</a></div></div>
+<div class="ttc" id="anamespaceCDT_html_a1a1459b39577a311a7378379243d056f"><div class="ttname"><a href="namespaceCDT.html#a1a1459b39577a311a7378379243d056f">CDT::TriIndVec</a></div><div class="ttdeci">std::vector&lt; TriInd &gt; TriIndVec</div><div class="ttdoc">Vector of triangle indices.</div><div class="ttdef"><b>Definition</b> <a href="CDTUtils_8h_source.html#l00155">CDTUtils.h:155</a></div></div>
+<div class="ttc" id="anamespaceCDT_html_a1bfa57887afce2e867ee4043bd6b736e"><div class="ttname"><a href="namespaceCDT.html#a1bfa57887afce2e867ee4043bd6b736e">CDT::envelopBox</a></div><div class="ttdeci">Box2d&lt; T &gt; envelopBox(TVertexIter first, TVertexIter last, TGetVertexCoordX getX, TGetVertexCoordY getY)</div><div class="ttdoc">Bounding box of a collection of custom 2D points given coordinate getters.</div><div class="ttdef"><b>Definition</b> <a href="CDTUtils_8h_source.html#l00187">CDTUtils.h:187</a></div></div>
+<div class="ttc" id="anamespaceCDT_html_a342cf6dfcbc2a0ce90809874c4ce8fca"><div class="ttname"><a href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">CDT::VertInd</a></div><div class="ttdeci">IndexSizeType VertInd</div><div class="ttdoc">Vertex index.</div><div class="ttdef"><b>Definition</b> <a href="CDTUtils_8h_source.html#l00142">CDTUtils.h:142</a></div></div>
+<div class="ttc" id="anamespaceCDT_html_a6c946be7165a2ac3e3c69d6492a2ab98"><div class="ttname"><a href="namespaceCDT.html#a6c946be7165a2ac3e3c69d6492a2ab98">CDT::TriIndUSet</a></div><div class="ttdeci">unordered_set&lt; TriInd &gt; TriIndUSet</div><div class="ttdoc">Hash table of triangles.</div><div class="ttdef"><b>Definition</b> <a href="CDTUtils_8h_source.html#l00247">CDTUtils.h:247</a></div></div>
+<div class="ttc" id="anamespaceCDT_html_adad7d838934038a6d71d9fa3fddafaa3"><div class="ttname"><a href="namespaceCDT.html#adad7d838934038a6d71d9fa3fddafaa3">CDT::TriInd</a></div><div class="ttdeci">IndexSizeType TriInd</div><div class="ttdoc">Triangle index.</div><div class="ttdef"><b>Definition</b> <a href="CDTUtils_8h_source.html#l00144">CDTUtils.h:144</a></div></div>
+<div class="ttc" id="anamespaceCDT_html_adcc7f3c0f0573a300a4d298b90252f1d"><div class="ttname"><a href="namespaceCDT.html#adcc7f3c0f0573a300a4d298b90252f1d">CDT::TriangleVec</a></div><div class="ttdeci">std::vector&lt; Triangle &gt; TriangleVec</div><div class="ttdoc">Vector of triangles.</div><div class="ttdef"><b>Definition</b> <a href="CDTUtils_8h_source.html#l00308">CDTUtils.h:308</a></div></div>
+<div class="ttc" id="astructCDT_1_1Box2d_html"><div class="ttname"><a href="structCDT_1_1Box2d.html">CDT::Box2d</a></div><div class="ttdoc">2D bounding box</div><div class="ttdef"><b>Definition</b> <a href="CDTUtils_8h_source.html#l00161">CDTUtils.h:162</a></div></div>
+<div class="ttc" id="astructCDT_1_1Box2d_html_abb61fe21fd7923956436a383e5187b63"><div class="ttname"><a href="structCDT_1_1Box2d.html#abb61fe21fd7923956436a383e5187b63">CDT::Box2d::max</a></div><div class="ttdeci">V2d&lt; T &gt; max</div><div class="ttdoc">max box corner</div><div class="ttdef"><b>Definition</b> <a href="CDTUtils_8h_source.html#l00164">CDTUtils.h:164</a></div></div>
+<div class="ttc" id="astructCDT_1_1Box2d_html_ae41bb2b4d6d43bde3dd0f036423de269"><div class="ttname"><a href="structCDT_1_1Box2d.html#ae41bb2b4d6d43bde3dd0f036423de269">CDT::Box2d::min</a></div><div class="ttdeci">V2d&lt; T &gt; min</div><div class="ttdoc">min box corner</div><div class="ttdef"><b>Definition</b> <a href="CDTUtils_8h_source.html#l00163">CDTUtils.h:163</a></div></div>
+<div class="ttc" id="astructCDT_1_1Edge_html"><div class="ttname"><a href="structCDT_1_1Edge.html">CDT::Edge</a></div><div class="ttdoc">Edge connecting two vertices: vertex with smaller index is always first.</div><div class="ttdef"><b>Definition</b> <a href="CDTUtils_8h_source.html#l00208">CDTUtils.h:209</a></div></div>
+<div class="ttc" id="astructCDT_1_1Edge_html_a995bb5f916b7bdfb68cb1468d515c8f8"><div class="ttname"><a href="structCDT_1_1Edge.html#a995bb5f916b7bdfb68cb1468d515c8f8">CDT::Edge::v2</a></div><div class="ttdeci">VertInd v2() const</div><div class="ttdoc">V2 getter.</div><div class="ttdef"><b>Definition</b> <a href="CDTUtils_8hpp_source.html#l00062">CDTUtils.hpp:62</a></div></div>
+<div class="ttc" id="astructCDT_1_1Edge_html_ab0da8b6072d360b599d206e2d068efd8"><div class="ttname"><a href="structCDT_1_1Edge.html#ab0da8b6072d360b599d206e2d068efd8">CDT::Edge::v1</a></div><div class="ttdeci">VertInd v1() const</div><div class="ttdoc">V1 getter.</div><div class="ttdef"><b>Definition</b> <a href="CDTUtils_8hpp_source.html#l00057">CDTUtils.hpp:57</a></div></div>
+<div class="ttc" id="astructCDT_1_1IntersectingConstraintEdges_html"><div class="ttname"><a href="structCDT_1_1IntersectingConstraintEdges.html">CDT::IntersectingConstraintEdges</a></div><div class="ttdoc">Enum of strategies for treating intersecting constraint edges.</div><div class="ttdef"><b>Definition</b> <a href="#l00074">Triangulation.h:75</a></div></div>
+<div class="ttc" id="astructCDT_1_1IntersectingConstraintEdges_html_afd50ae5a48b442fc2f4d3800dd29f968"><div class="ttname"><a href="structCDT_1_1IntersectingConstraintEdges.html#afd50ae5a48b442fc2f4d3800dd29f968">CDT::IntersectingConstraintEdges::Enum</a></div><div class="ttdeci">Enum</div><div class="ttdoc">The Enum itself.</div><div class="ttdef"><b>Definition</b> <a href="#l00080">Triangulation.h:81</a></div></div>
+<div class="ttc" id="astructCDT_1_1IntersectingConstraintEdges_html_afd50ae5a48b442fc2f4d3800dd29f968a0aa540b11f4de6383147db9a12fbbc25"><div class="ttname"><a href="structCDT_1_1IntersectingConstraintEdges.html#afd50ae5a48b442fc2f4d3800dd29f968a0aa540b11f4de6383147db9a12fbbc25">CDT::IntersectingConstraintEdges::TryResolve</a></div><div class="ttdeci">@ TryResolve</div><div class="ttdoc">attempt to resolve constraint edge intersections</div><div class="ttdef"><b>Definition</b> <a href="#l00083">Triangulation.h:83</a></div></div>
+<div class="ttc" id="astructCDT_1_1IntersectingConstraintEdges_html_afd50ae5a48b442fc2f4d3800dd29f968a4da7e66d6bca807d0325d5cea89f4e82"><div class="ttname"><a href="structCDT_1_1IntersectingConstraintEdges.html#afd50ae5a48b442fc2f4d3800dd29f968a4da7e66d6bca807d0325d5cea89f4e82">CDT::IntersectingConstraintEdges::NotAllowed</a></div><div class="ttdeci">@ NotAllowed</div><div class="ttdoc">constraint edge intersections are not allowed</div><div class="ttdef"><b>Definition</b> <a href="#l00082">Triangulation.h:82</a></div></div>
+<div class="ttc" id="astructCDT_1_1IntersectingConstraintEdges_html_afd50ae5a48b442fc2f4d3800dd29f968a5dc652c27b8cb5bd767e4e4680e814d1"><div class="ttname"><a href="structCDT_1_1IntersectingConstraintEdges.html#afd50ae5a48b442fc2f4d3800dd29f968a5dc652c27b8cb5bd767e4e4680e814d1">CDT::IntersectingConstraintEdges::DontCheck</a></div><div class="ttdeci">@ DontCheck</div><div class="ttdoc">No checks: slightly faster but less safe.</div><div class="ttdef"><b>Definition</b> <a href="#l00088">Triangulation.h:88</a></div></div>
+<div class="ttc" id="astructCDT_1_1SuperGeometryType_html"><div class="ttname"><a href="structCDT_1_1SuperGeometryType.html">CDT::SuperGeometryType</a></div><div class="ttdoc">Enum of what type of geometry used to embed triangulation into.</div><div class="ttdef"><b>Definition</b> <a href="#l00058">Triangulation.h:59</a></div></div>
+<div class="ttc" id="astructCDT_1_1SuperGeometryType_html_a8515cbcfc5a7a1044c2dd2644676f310"><div class="ttname"><a href="structCDT_1_1SuperGeometryType.html#a8515cbcfc5a7a1044c2dd2644676f310">CDT::SuperGeometryType::Enum</a></div><div class="ttdeci">Enum</div><div class="ttdoc">The Enum itself.</div><div class="ttdef"><b>Definition</b> <a href="#l00064">Triangulation.h:65</a></div></div>
+<div class="ttc" id="astructCDT_1_1SuperGeometryType_html_a8515cbcfc5a7a1044c2dd2644676f310a09faef5876d8831f83051525569a4a2e"><div class="ttname"><a href="structCDT_1_1SuperGeometryType.html#a8515cbcfc5a7a1044c2dd2644676f310a09faef5876d8831f83051525569a4a2e">CDT::SuperGeometryType::SuperTriangle</a></div><div class="ttdeci">@ SuperTriangle</div><div class="ttdoc">conventional super-triangle</div><div class="ttdef"><b>Definition</b> <a href="#l00066">Triangulation.h:66</a></div></div>
+<div class="ttc" id="astructCDT_1_1SuperGeometryType_html_a8515cbcfc5a7a1044c2dd2644676f310a248c327ba47b19a0eab495cc87e2d592"><div class="ttname"><a href="structCDT_1_1SuperGeometryType.html#a8515cbcfc5a7a1044c2dd2644676f310a248c327ba47b19a0eab495cc87e2d592">CDT::SuperGeometryType::Custom</a></div><div class="ttdeci">@ Custom</div><div class="ttdoc">user-specified custom geometry (e.g., grid)</div><div class="ttdef"><b>Definition</b> <a href="#l00067">Triangulation.h:67</a></div></div>
+<div class="ttc" id="astructCDT_1_1Triangle_html"><div class="ttname"><a href="structCDT_1_1Triangle.html">CDT::Triangle</a></div><div class="ttdoc">Triangulation triangle (counter-clockwise winding)</div><div class="ttdef"><b>Definition</b> <a href="CDTUtils_8h_source.html#l00258">CDTUtils.h:259</a></div></div>
+<div class="ttc" id="astructCDT_1_1V2d_html"><div class="ttname"><a href="structCDT_1_1V2d.html">CDT::V2d</a></div><div class="ttdoc">2D vector</div><div class="ttdef"><b>Definition</b> <a href="CDTUtils_8h_source.html#l00095">CDTUtils.h:96</a></div></div>
+<div class="ttc" id="astructCDT_1_1VertexInsertionOrder_html"><div class="ttname"><a href="structCDT_1_1VertexInsertionOrder.html">CDT::VertexInsertionOrder</a></div><div class="ttdoc">Enum of strategies specifying order in which a range of vertices is inserted.</div><div class="ttdef"><b>Definition</b> <a href="#l00038">Triangulation.h:39</a></div></div>
+<div class="ttc" id="astructCDT_1_1VertexInsertionOrder_html_a15657aebfc10b7986d4b47dc1247a4ae"><div class="ttname"><a href="structCDT_1_1VertexInsertionOrder.html#a15657aebfc10b7986d4b47dc1247a4ae">CDT::VertexInsertionOrder::Enum</a></div><div class="ttdeci">Enum</div><div class="ttdoc">The Enum itself.</div><div class="ttdef"><b>Definition</b> <a href="#l00044">Triangulation.h:45</a></div></div>
+<div class="ttc" id="astructCDT_1_1VertexInsertionOrder_html_a15657aebfc10b7986d4b47dc1247a4aea610ecf7cff2c1e5fb86413188c92f644"><div class="ttname"><a href="structCDT_1_1VertexInsertionOrder.html#a15657aebfc10b7986d4b47dc1247a4aea610ecf7cff2c1e5fb86413188c92f644">CDT::VertexInsertionOrder::AsProvided</a></div><div class="ttdeci">@ AsProvided</div><div class="ttdoc">insert vertices in same order they are provided</div><div class="ttdef"><b>Definition</b> <a href="#l00053">Triangulation.h:53</a></div></div>
+<div class="ttc" id="astructCDT_1_1VertexInsertionOrder_html_a15657aebfc10b7986d4b47dc1247a4aea66fc9a83d60682940454cfef737b06dd"><div class="ttname"><a href="structCDT_1_1VertexInsertionOrder.html#a15657aebfc10b7986d4b47dc1247a4aea66fc9a83d60682940454cfef737b06dd">CDT::VertexInsertionOrder::Auto</a></div><div class="ttdeci">@ Auto</div><div class="ttdoc">Automatic insertion order optimized for better performance.</div><div class="ttdef"><b>Definition</b> <a href="#l00051">Triangulation.h:51</a></div></div>
+<div class="ttc" id="astructCDT_1_1detail_1_1SplitMix64RandGen_html"><div class="ttname"><a href="structCDT_1_1detail_1_1SplitMix64RandGen.html">CDT::detail::SplitMix64RandGen</a></div><div class="ttdoc">SplitMix64 pseudo-random number generator.</div><div class="ttdef"><b>Definition</b> <a href="#l00791">Triangulation.h:792</a></div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_c9083ae231f9fec5daf3be9340efa1d0.html">include</a></li><li class="navelem"><a class="el" href="Triangulation_8h.html">Triangulation.h</a></li>
+    <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.11.0 </li>
+  </ul>
+</div>
+</body>
+</html>

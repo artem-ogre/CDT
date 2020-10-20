@@ -1,0 +1,11 @@
+<map id="CDT::Error" name="CDT::Error">
+<area shape="rect" id="Node000001" title="Base class for errors." alt="" coords="249,79,336,104"/>
+<area shape="rect" id="Node000003" href="$classCDT_1_1DuplicateVertexError.html" title="Error thrown when duplicate vertex is detected during vertex insertion." alt="" coords="5,159,196,185"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="253,112,130,162,128,157,251,107"/>
+<area shape="rect" id="Node000004" href="$classCDT_1_1FinalizedError.html" title="Error thrown when triangulation modification is attempted after it was finalized." alt="" coords="220,159,365,185"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="295,118,295,159,290,159,290,118"/>
+<area shape="rect" id="Node000005" href="$classCDT_1_1IntersectingConstraintsError.html" title="Error thrown when intersecting constraint edges are detected, but triangulation is not configured to ..." alt="" coords="389,152,596,192"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="335,106,446,149,444,154,333,111"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="223,5,362,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="295,44,295,79,290,79,290,44"/>
+</map>

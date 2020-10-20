@@ -1,0 +1,402 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.11.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- BEGIN opengraph metadata -->
+<meta property="og:title" content="CDT" />
+<meta property="og:image" content="https://repository-images.githubusercontent.com/179470761/87cff280-184e-11eb-8837-b1ad740baf8a" />
+<meta property="og:description" content="C++ library for constrained and conforming Delaunay triangulations" />
+<meta property="og:url" content="https://artem-ogre.github.io/CDT/" />
+<!-- END opengraph metadata -->
+<!-- BEGIN twitter metadata -->
+<meta name="twitter:image:src" content="https://repository-images.githubusercontent.com/179470761/87cff280-184e-11eb-8837-b1ad740baf8a" />
+<meta name="twitter:title" content="CDT" />
+<meta name="twitter:description" content="C++ library for constrained and conforming Delaunay triangulations" />
+<!-- END twitter metadata -->
+<title>CDT: extras/InitializeWithGrid.h File Reference</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<!--favicon-->
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="logo.svg"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="manifest" href="site.webmanifest" />
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript" src="doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="toggle-alternative-theme.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init()
+    DoxygenAwesomeDarkModeToggle.init()
+    DoxygenAwesomeParagraphLink.init()
+</script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only-darkmode-toggle.css" rel="stylesheet" type="text/css"/>
+<link href="custom.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<!-- https://tholman.com/github-corners/ -->
+<a href="https://github.com/artem-ogre/CDT" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">CDT
+   &#160;<span id="projectnumber">1.4.1</span>
+   </div>
+   <div id="projectbrief">C++ library for constrained Delaunay triangulation</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.11.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() { codefold.init(0); });
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','Search',true);
+  $(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('InitializeWithGrid_8h.html',''); initResizable(true); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Loading...</div>
+<div class="SRStatus" id="Searching">Searching...</div>
+<div class="SRStatus" id="NoMatches">No Matches</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#func-members">Functions</a>  </div>
+  <div class="headertitle"><div class="title">InitializeWithGrid.h File Reference</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>Helper function to initialize triangulation with regular grid instead of super-triangle.  
+<a href="#details">More...</a></p>
+<div class="textblock"><code>#include &lt;<a class="el" href="CDT_8h_source.html">CDT.h</a>&gt;</code><br />
+<code>#include &lt;<a class="el" href="CDTUtils_8h_source.html">CDTUtils.h</a>&gt;</code><br />
+<code>#include &lt;cstddef&gt;</code><br />
+<code>#include &lt;iterator&gt;</code><br />
+<code>#include &lt;vector&gt;</code><br />
+</div><div class="textblock"><div class="dynheader">
+Include dependency graph for InitializeWithGrid.h:</div>
+<div class="dyncontent">
+<div class="center"><img src="InitializeWithGrid_8h__incl.png" border="0" usemap="#aextras_2InitializeWithGrid_8h" alt=""/></div>
+<map name="aextras_2InitializeWithGrid_8h" id="aextras_2InitializeWithGrid_8h">
+<area shape="rect" title="Helper function to initialize triangulation with regular grid instead of super&#45;triangle." alt="" coords="1662,5,1854,31"/>
+<area shape="rect" href="CDT_8h.html" title="Public API." alt="" coords="1728,79,1788,104"/>
+<area shape="poly" title=" " alt="" coords="1761,31,1761,65,1755,65,1755,31"/>
+<area shape="rect" href="CDTUtils_8h.html" title="Utilities and helpers." alt="" coords="941,372,1031,397"/>
+<area shape="poly" title=" " alt="" coords="1662,27,1433,43,1159,70,1034,89,931,111,891,123,861,136,843,150,837,164,837,239,840,261,847,281,875,315,910,343,946,364,944,368,907,348,871,319,843,283,834,262,831,240,831,163,839,147,859,132,889,118,929,106,1033,84,1159,65,1432,37,1662,22"/>
+<area shape="rect" title=" " alt="" coords="5,453,68,478"/>
+<area shape="poly" title=" " alt="" coords="1662,26,1292,43,808,74,578,93,387,115,257,139,221,152,213,158,210,164,210,313,206,329,194,346,157,383,111,418,69,447,66,443,108,414,154,379,190,343,201,327,205,312,205,163,208,155,219,147,255,134,387,110,578,88,807,68,1291,38,1661,21"/>
+<area shape="rect" title=" " alt="" coords="2221,453,2292,478"/>
+<area shape="poly" title=" " alt="" coords="1855,20,2005,31,2089,41,2170,55,2244,74,2304,97,2328,111,2345,127,2357,144,2361,163,2361,313,2353,353,2333,390,2308,422,2284,446,2280,442,2304,418,2329,387,2348,352,2355,312,2355,164,2352,146,2341,130,2324,115,2302,102,2243,79,2169,60,2088,47,2004,37,1854,25"/>
+<area shape="rect" title=" " alt="" coords="2396,79,2467,104"/>
+<area shape="poly" title=" " alt="" coords="1855,23,2093,42,2235,57,2377,76,2382,77,2381,82,2376,81,2234,62,2092,47,1854,28"/>
+<area shape="poly" title=" " alt="" coords="1728,96,1568,98,1343,107,1231,115,1133,125,1059,138,1034,146,1020,154,1002,176,989,201,981,229,977,257,977,313,983,358,978,358,972,313,972,257,976,228,984,199,997,173,1016,150,1032,141,1057,133,1132,119,1230,109,1343,102,1568,93,1728,90"/>
+<area shape="rect" title=" " alt="" coords="1507,453,1593,478"/>
+<area shape="poly" title=" " alt="" coords="1789,93,1852,104,1889,115,1926,129,1960,147,1988,171,2007,201,2014,236,2014,313,2011,342,2000,364,1983,382,1958,400,1911,425,1868,438,1828,443,1789,442,1707,437,1660,439,1607,448,1595,451,1593,446,1605,443,1659,434,1707,432,1789,437,1828,438,1867,433,1909,420,1955,395,1979,378,1996,361,2006,341,2009,313,2009,237,2002,203,1984,175,1957,152,1924,134,1887,120,1851,110,1788,98"/>
+<area shape="rect" title=" " alt="" coords="1281,453,1350,478"/>
+<area shape="poly" title=" " alt="" coords="1728,97,1594,106,1406,128,1312,145,1226,167,1158,194,1133,210,1115,227,1105,242,1100,258,1099,274,1102,289,1118,321,1145,351,1178,379,1214,405,1281,444,1278,449,1211,409,1175,384,1141,355,1114,324,1097,291,1094,274,1095,257,1100,240,1111,224,1130,206,1156,189,1225,162,1311,139,1406,122,1593,100,1728,91"/>
+<area shape="poly" title=" " alt="" coords="1728,96,1478,104,1296,112,1104,126,919,144,763,169,702,183,656,200,626,218,619,227,617,237,617,313,613,354,603,387,586,411,564,428,537,439,506,444,433,444,261,428,169,430,124,436,80,448,74,450,73,445,79,443,123,431,169,424,261,423,434,439,506,439,536,433,562,423,583,407,598,384,608,353,611,313,611,236,614,225,623,214,653,195,701,178,762,163,919,139,1103,120,1296,107,1478,98,1728,91"/>
+<area shape="rect" href="Triangulation_8h.html" title="Triangulation class." alt="" coords="1449,152,1568,177"/>
+<area shape="poly" title=" " alt="" coords="1729,104,1562,151,1561,146,1727,99"/>
+<area shape="rect" title=" " alt="" coords="1769,225,1835,251"/>
+<area shape="poly" title=" " alt="" coords="1764,104,1797,211,1792,213,1759,105"/>
+<area shape="poly" title=" " alt="" coords="1789,91,1918,101,2004,111,2092,124,2174,143,2243,167,2271,182,2292,198,2305,216,2310,236,2310,313,2306,349,2297,384,2272,442,2267,440,2292,383,2301,348,2305,313,2305,237,2300,218,2288,202,2268,186,2241,172,2173,148,2091,130,2003,116,1918,106,1788,97"/>
+<area shape="rect" title=" " alt="" coords="1688,225,1745,251"/>
+<area shape="poly" title=" " alt="" coords="1757,105,1726,213,1721,211,1752,104"/>
+<area shape="rect" href="remove__at_8hpp_source.html" title=" " alt="" coords="2099,372,2219,397"/>
+<area shape="poly" title=" " alt="" coords="1788,89,1839,90,1902,98,1970,117,2002,131,2032,150,2057,172,2080,198,2115,256,2140,313,2155,358,2150,359,2135,314,2111,258,2075,202,2053,176,2028,154,1999,136,1968,122,1901,104,1838,96,1788,94"/>
+<area shape="rect" title=" " alt="" coords="871,152,949,177"/>
+<area shape="poly" title=" " alt="" coords="1728,96,1419,112,1196,129,968,155,963,155,962,150,967,149,1195,124,1418,107,1728,91"/>
+<area shape="rect" href="CDT_8hpp.html" title="Public API &#45; implementation." alt="" coords="1847,299,1923,324"/>
+<area shape="poly" title=" " alt="" coords="1759,103,1788,151,1814,186,1838,224,1868,285,1863,288,1833,227,1810,189,1784,153,1754,105"/>
+<area shape="poly" title=" " alt="" coords="1032,389,1213,411,1445,443,1494,451,1493,456,1444,448,1212,416,1031,394"/>
+<area shape="poly" title=" " alt="" coords="1032,390,1141,411,1269,443,1277,445,1275,450,1268,448,1140,416,1031,396"/>
+<area shape="rect" title=" " alt="" coords="1193,453,1256,478"/>
+<area shape="poly" title=" " alt="" coords="1029,395,1182,443,1187,445,1185,450,1180,448,1027,400"/>
+<area shape="rect" title=" " alt="" coords="1374,453,1433,478"/>
+<area shape="poly" title=" " alt="" coords="1032,387,1180,404,1272,420,1363,443,1369,445,1368,450,1361,448,1271,425,1180,409,1031,392"/>
+<area shape="poly" title=" " alt="" coords="941,396,913,400,786,410,678,412,493,406,404,405,310,410,204,423,80,448,72,450,71,445,79,443,203,417,310,404,404,400,493,401,678,406,786,404,912,395,940,391"/>
+<area shape="rect" title=" " alt="" coords="1046,453,1169,478"/>
+<area shape="poly" title=" " alt="" coords="1005,395,1080,443,1077,447,1002,400"/>
+<area shape="rect" title=" " alt="" coords="92,453,283,478"/>
+<area shape="poly" title=" " alt="" coords="941,396,913,400,739,416,604,423,469,431,296,448,261,453,260,448,295,443,468,425,604,418,739,411,912,395,940,391"/>
+<area shape="rect" title=" " alt="" coords="307,453,467,478"/>
+<area shape="poly" title=" " alt="" coords="941,396,913,400,791,414,696,422,601,431,480,448,453,453,453,447,479,443,600,426,696,417,791,409,912,395,940,391"/>
+<area shape="rect" title=" " alt="" coords="622,453,814,478"/>
+<area shape="poly" title=" " alt="" coords="948,400,771,451,769,446,946,395"/>
+<area shape="rect" title=" " alt="" coords="839,453,1021,478"/>
+<area shape="poly" title=" " alt="" coords="980,399,948,443,944,440,976,396"/>
+<area shape="rect" href="CDTUtils_8hpp.html" title="Utilities and helpers &#45; implementation." alt="" coords="491,453,598,478"/>
+<area shape="poly" title=" " alt="" coords="941,395,599,448,584,452,582,446,597,443,940,389"/>
+<area shape="poly" title=" " alt="" coords="592,450,621,443,927,394,927,399,623,448,594,455"/>
+<area shape="rect" title=" " alt="" coords="493,533,596,559"/>
+<area shape="poly" title=" " alt="" coords="547,478,547,519,542,519,542,478"/>
+<area shape="rect" title=" " alt="" coords="1603,533,1689,559"/>
+<area shape="poly" title=" " alt="" coords="580,475,610,483,699,494,817,505,1100,522,1589,540,1588,546,1100,527,817,510,699,500,610,488,579,481"/>
+<area shape="poly" title=" " alt="" coords="1449,172,1266,191,1176,207,1140,216,1114,228,1076,257,1043,293,1018,330,1000,361,995,358,1013,327,1039,290,1072,253,1111,223,1138,211,1175,201,1265,185,1449,167"/>
+<area shape="poly" title=" " alt="" coords="1513,177,1531,324,1549,439,1543,439,1526,324,1507,178"/>
+<area shape="poly" title=" " alt="" coords="1450,172,1280,190,1178,206,1076,228,1007,248,950,270,856,316,761,360,703,381,633,400,550,416,479,423,356,422,296,421,233,423,162,431,80,448,72,450,71,445,79,443,162,425,233,417,296,415,356,417,478,417,549,410,632,395,702,376,759,355,853,311,948,265,1005,243,1075,223,1177,201,1280,184,1449,167"/>
+<area shape="poly" title=" " alt="" coords="1506,179,1488,231,1470,311,1466,356,1468,401,1478,444,1498,484,1516,503,1539,518,1590,535,1588,541,1536,523,1512,508,1493,487,1473,446,1463,402,1460,356,1464,310,1482,230,1501,177"/>
+<area shape="rect" href="LocatorKDTree_8h.html" title="Adapter between for KDTree and CDT." alt="" coords="1293,225,1421,251"/>
+<area shape="poly" title=" " alt="" coords="1485,180,1395,222,1393,217,1483,175"/>
+<area shape="poly" title=" " alt="" coords="1559,175,1756,222,1755,227,1557,180"/>
+<area shape="poly" title=" " alt="" coords="1528,175,1593,211,1678,248,1762,269,1839,276,1976,273,2040,275,2103,288,2135,300,2167,317,2200,340,2233,370,2245,386,2253,404,2259,439,2254,440,2247,405,2240,388,2229,374,2196,345,2164,322,2132,305,2101,293,2039,280,1976,278,1839,282,1761,274,1676,253,1590,216,1526,180"/>
+<area shape="poly" title=" " alt="" coords="1543,175,1675,220,1674,225,1541,180"/>
+<area shape="rect" title=" " alt="" coords="1125,225,1183,251"/>
+<area shape="poly" title=" " alt="" coords="1450,179,1337,199,1198,228,1197,223,1336,194,1449,173"/>
+<area shape="rect" title=" " alt="" coords="1208,225,1268,251"/>
+<area shape="poly" title=" " alt="" coords="1465,180,1282,228,1281,223,1464,175"/>
+<area shape="rect" href="Triangulation_8hpp.html" title="Triangulation class &#45; implementation." alt="" coords="1540,299,1675,324"/>
+<area shape="poly" title=" " alt="" coords="1514,176,1546,229,1588,286,1583,289,1542,232,1509,179"/>
+<area shape="poly" title=" " alt="" coords="1324,253,1191,301,1026,369,1024,364,1189,296,1322,248"/>
+<area shape="rect" href="KDTree_8h_source.html" title=" " alt="" coords="1202,299,1282,324"/>
+<area shape="poly" title=" " alt="" coords="1340,253,1274,294,1271,289,1337,248"/>
+<area shape="poly" title=" " alt="" coords="1203,326,1041,371,1040,366,1201,321"/>
+<area shape="poly" title=" " alt="" coords="1239,325,1229,359,1228,378,1232,396,1253,423,1281,444,1278,448,1250,427,1228,399,1222,378,1223,358,1234,323"/>
+<area shape="poly" title=" " alt="" coords="1256,322,1383,441,1379,445,1252,326"/>
+<area shape="poly" title=" " alt="" coords="1604,325,1582,373,1559,440,1554,438,1577,371,1599,323"/>
+<area shape="poly" title=" " alt="" coords="1540,321,1461,338,1421,353,1384,374,1366,389,1351,406,1329,442,1324,439,1347,403,1362,385,1380,370,1419,349,1460,333,1539,316"/>
+<area shape="poly" title=" " alt="" coords="1540,323,1448,341,1398,356,1350,374,1293,409,1248,445,1245,441,1290,404,1347,370,1396,351,1446,336,1539,318"/>
+<area shape="poly" title=" " alt="" coords="1675,312,1709,318,1742,329,1773,346,1799,370,1816,400,1821,428,1815,457,1799,487,1780,508,1756,523,1704,541,1702,535,1753,518,1776,503,1795,484,1810,455,1816,428,1811,402,1795,374,1770,350,1740,334,1707,323,1674,317"/>
+<area shape="poly" title=" " alt="" coords="1602,300,1570,248,1529,190,1533,187,1575,245,1607,297"/>
+<area shape="rect" href="portable__nth__element_8hpp_source.html" title=" " alt="" coords="1591,372,1784,397"/>
+<area shape="poly" title=" " alt="" coords="1622,322,1666,361,1662,365,1618,326"/>
+<area shape="rect" title=" " alt="" coords="1860,372,1923,397"/>
+<area shape="poly" title=" " alt="" coords="1654,321,1848,370,1846,375,1652,327"/>
+<area shape="poly" title=" " alt="" coords="1668,400,1583,448,1581,444,1666,395"/>
+<area shape="poly" title=" " alt="" coords="1770,395,2208,455,2207,460,1770,400"/>
+<area shape="rect" title=" " alt="" coords="1617,445,1784,485"/>
+<area shape="poly" title=" " alt="" coords="1692,397,1698,431,1693,432,1687,398"/>
+<area shape="poly" title=" " alt="" coords="2100,394,1821,422,1606,448,1594,451,1593,446,1606,443,1820,417,2099,389"/>
+<area shape="poly" title=" " alt="" coords="2175,395,2233,442,2230,446,2172,400"/>
+<area shape="poly" title=" " alt="" coords="1886,299,1876,266,1857,227,1834,189,1808,154,1781,116,1785,113,1812,150,1838,186,1862,224,1881,264,1891,297"/>
+<area shape="poly" title=" " alt="" coords="1902,322,1920,338,1936,357,1944,378,1943,389,1937,399,1911,417,1874,429,1829,435,1780,439,1681,441,1606,448,1595,451,1593,446,1606,443,1681,436,1779,433,1829,430,1873,423,1909,412,1933,396,1938,387,1939,379,1931,360,1916,341,1899,326"/>
+<area shape="poly" title=" " alt="" coords="1847,319,1726,337,1653,353,1580,375,1499,410,1434,448,1431,443,1497,406,1578,369,1651,348,1725,332,1846,314"/>
+<area shape="poly" title=" " alt="" coords="1908,322,1930,336,1950,354,1962,375,1963,387,1959,399,1937,431,1908,459,1876,482,1840,500,1768,526,1703,540,1702,535,1767,521,1838,495,1873,477,1905,455,1933,428,1954,396,1958,386,1957,376,1946,357,1927,340,1906,326"/>
+<area shape="poly" title=" " alt="" coords="1888,324,1892,358,1886,359,1883,325"/>
+</map>
+</div>
+</div>
+<p><a href="InitializeWithGrid_8h_source.html">Go to the source code of this file.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html">CDT</a></td></tr>
+<tr class="memdesc:namespaceCDT"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace containing triangulation functionality. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:a6a3e738dbfead96fb0d63acb7a85a9de" id="r_a6a3e738dbfead96fb0d63acb7a85a9de"><td class="memTemplParams" colspan="2">template&lt;typename OutputVertIt , typename OutputTriIt , typename TXCoordIter , typename TYCoordIter &gt; </td></tr>
+<tr class="memitem:a6a3e738dbfead96fb0d63acb7a85a9de"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#a6a3e738dbfead96fb0d63acb7a85a9de">CDT::detail::generateGridVertices</a> (OutputVertIt outVertsFirst, OutputTriIt outTrisFirst, const TXCoordIter xfirst, const TXCoordIter xlast, const TYCoordIter yfirst, const TYCoordIter ylast)</td></tr>
+<tr class="memdesc:a6a3e738dbfead96fb0d63acb7a85a9de"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate grid vertices given of X- and Y-ticks.  <br /></td></tr>
+<tr class="separator:a6a3e738dbfead96fb0d63acb7a85a9de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af9d32d52dd5ed8e797bf632140127cbd" id="r_af9d32d52dd5ed8e797bf632140127cbd"><td class="memTemplParams" colspan="2">template&lt;typename OutputIt &gt; </td></tr>
+<tr class="memitem:af9d32d52dd5ed8e797bf632140127cbd"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="#af9d32d52dd5ed8e797bf632140127cbd">CDT::detail::generateGridTriangles</a> (OutputIt outFirst, const IndexSizeType xres, const IndexSizeType yres)</td></tr>
+<tr class="memdesc:af9d32d52dd5ed8e797bf632140127cbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generate grid triangles.  <br /></td></tr>
+<tr class="separator:af9d32d52dd5ed8e797bf632140127cbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adbc199d6fdb82888f4096b43a975ce13" id="r_adbc199d6fdb82888f4096b43a975ce13"><td class="memTemplParams" colspan="2">template&lt;typename T , typename TNearPointLocator &gt; </td></tr>
+<tr class="memitem:adbc199d6fdb82888f4096b43a975ce13"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#adbc199d6fdb82888f4096b43a975ce13">CDT::initializeWithRegularGrid</a> (const T xmin, const T xmax, const T ymin, const T ymax, const std::size_t xres, const std::size_t yres, <a class="el" href="classCDT_1_1Triangulation.html">Triangulation</a>&lt; T, TNearPointLocator &gt; &amp;out)</td></tr>
+<tr class="memdesc:adbc199d6fdb82888f4096b43a975ce13"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a triangulation that uses regular grid triangles instead of super-triangle.  <br /></td></tr>
+<tr class="separator:adbc199d6fdb82888f4096b43a975ce13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c79fc9627e468d01fc566797d10d119" id="r_a7c79fc9627e468d01fc566797d10d119"><td class="memTemplParams" colspan="2">template&lt;typename T , typename TNearPointLocator , typename TXCoordIter , typename TYCoordIter &gt; </td></tr>
+<tr class="memitem:a7c79fc9627e468d01fc566797d10d119"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a7c79fc9627e468d01fc566797d10d119">CDT::initializeWithIrregularGrid</a> (const TXCoordIter xfirst, const TXCoordIter xlast, const TYCoordIter yfirst, const TYCoordIter ylast, <a class="el" href="classCDT_1_1Triangulation.html">Triangulation</a>&lt; T, TNearPointLocator &gt; &amp;out)</td></tr>
+<tr class="memdesc:a7c79fc9627e468d01fc566797d10d119"><td class="mdescLeft">&#160;</td><td class="mdescRight">Make a triangulation that uses irregular grid triangles instead of super-triangle.  <br /></td></tr>
+<tr class="separator:a7c79fc9627e468d01fc566797d10d119"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Helper function to initialize triangulation with regular grid instead of super-triangle. </p>
+
+<p class="definition">Definition in file <a class="el" href="InitializeWithGrid_8h_source.html">InitializeWithGrid.h</a>.</p>
+</div><h2 class="groupheader">Function Documentation</h2>
+<a id="af9d32d52dd5ed8e797bf632140127cbd" name="af9d32d52dd5ed8e797bf632140127cbd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af9d32d52dd5ed8e797bf632140127cbd">&#9670;&#160;</a></span>generateGridTriangles()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename OutputIt &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void CDT::detail::generateGridTriangles </td>
+          <td>(</td>
+          <td class="paramtype">OutputIt</td>          <td class="paramname"><span class="paramname"><em>outFirst</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const IndexSizeType</td>          <td class="paramname"><span class="paramname"><em>xres</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const IndexSizeType</td>          <td class="paramname"><span class="paramname"><em>yres</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Generate grid triangles. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">OutputIt</td><td>output iterator </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">outFirst</td><td>the beginning of the destination range </td></tr>
+    <tr><td class="paramname">xres</td><td>grid X-resolution </td></tr>
+    <tr><td class="paramname">yres</td><td>grid Y-resolution </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="InitializeWithGrid_8h_source.html#l00109">109</a> of file <a class="el" href="InitializeWithGrid_8h_source.html">InitializeWithGrid.h</a>.</p>
+
+</div>
+</div>
+<a id="a6a3e738dbfead96fb0d63acb7a85a9de" name="a6a3e738dbfead96fb0d63acb7a85a9de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6a3e738dbfead96fb0d63acb7a85a9de">&#9670;&#160;</a></span>generateGridVertices()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename OutputVertIt , typename OutputTriIt , typename TXCoordIter , typename TYCoordIter &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void CDT::detail::generateGridVertices </td>
+          <td>(</td>
+          <td class="paramtype">OutputVertIt</td>          <td class="paramname"><span class="paramname"><em>outVertsFirst</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">OutputTriIt</td>          <td class="paramname"><span class="paramname"><em>outTrisFirst</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const TXCoordIter</td>          <td class="paramname"><span class="paramname"><em>xfirst</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const TXCoordIter</td>          <td class="paramname"><span class="paramname"><em>xlast</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const TYCoordIter</td>          <td class="paramname"><span class="paramname"><em>yfirst</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const TYCoordIter</td>          <td class="paramname"><span class="paramname"><em>ylast</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Generate grid vertices given of X- and Y-ticks. </p>
+<dl class="tparams"><dt>Template Parameters</dt><dd>
+  <table class="tparams">
+    <tr><td class="paramname">OutputVertIt</td><td>output vertices iterator </td></tr>
+    <tr><td class="paramname">OutputTriIt</td><td>output triangles iterator </td></tr>
+    <tr><td class="paramname">TXCoordIter</td><td>iterator dereferencing to X coordinate </td></tr>
+    <tr><td class="paramname">TYCoordIter</td><td>iterator dereferencing to Y coordinate </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">outFirst</td><td>the beginning of the destination range </td></tr>
+    <tr><td class="paramname">xfirst</td><td>beginning of X-ticks range </td></tr>
+    <tr><td class="paramname">xlast</td><td>end of X-ticks range </td></tr>
+    <tr><td class="paramname">yfirst</td><td>beginning of Y-ticks range </td></tr>
+    <tr><td class="paramname">ylast</td><td>end of Y-ticks range </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="InitializeWithGrid_8h_source.html#l00047">47</a> of file <a class="el" href="InitializeWithGrid_8h_source.html">InitializeWithGrid.h</a>.</p>
+
+</div>
+</div>
+</div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_d16c6863d5b501c36c6acbc266136022.html">extras</a></li><li class="navelem"><a class="el" href="InitializeWithGrid_8h.html">InitializeWithGrid.h</a></li>
+    <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.11.0 </li>
+  </ul>
+</div>
+</body>
+</html>

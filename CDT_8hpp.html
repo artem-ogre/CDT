@@ -1,0 +1,300 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.11.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- BEGIN opengraph metadata -->
+<meta property="og:title" content="CDT" />
+<meta property="og:image" content="https://repository-images.githubusercontent.com/179470761/87cff280-184e-11eb-8837-b1ad740baf8a" />
+<meta property="og:description" content="C++ library for constrained and conforming Delaunay triangulations" />
+<meta property="og:url" content="https://artem-ogre.github.io/CDT/" />
+<!-- END opengraph metadata -->
+<!-- BEGIN twitter metadata -->
+<meta name="twitter:image:src" content="https://repository-images.githubusercontent.com/179470761/87cff280-184e-11eb-8837-b1ad740baf8a" />
+<meta name="twitter:title" content="CDT" />
+<meta name="twitter:description" content="C++ library for constrained and conforming Delaunay triangulations" />
+<!-- END twitter metadata -->
+<title>CDT: include/CDT.hpp File Reference</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<!--favicon-->
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="logo.svg"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="manifest" href="site.webmanifest" />
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript" src="doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="toggle-alternative-theme.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init()
+    DoxygenAwesomeDarkModeToggle.init()
+    DoxygenAwesomeParagraphLink.init()
+</script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only-darkmode-toggle.css" rel="stylesheet" type="text/css"/>
+<link href="custom.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<!-- https://tholman.com/github-corners/ -->
+<a href="https://github.com/artem-ogre/CDT" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">CDT
+   &#160;<span id="projectnumber">1.4.1</span>
+   </div>
+   <div id="projectbrief">C++ library for constrained Delaunay triangulation</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.11.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() { codefold.init(0); });
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','Search',true);
+  $(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('CDT_8hpp.html',''); initResizable(true); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Loading...</div>
+<div class="SRStatus" id="Searching">Searching...</div>
+<div class="SRStatus" id="NoMatches">No Matches</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#func-members">Functions</a>  </div>
+  <div class="headertitle"><div class="title">CDT.hpp File Reference</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>Public API - implementation.  
+<a href="#details">More...</a></p>
+<div class="textblock"><code>#include &quot;<a class="el" href="CDT_8h_source.html">CDT.h</a>&quot;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
+<code>#include &lt;deque&gt;</code><br />
+<code>#include &lt;limits&gt;</code><br />
+<code>#include &lt;stdexcept&gt;</code><br />
+</div><div class="textblock"><div class="dynheader">
+Include dependency graph for CDT.hpp:</div>
+<div class="dyncontent">
+<div class="center"><img src="CDT_8hpp__incl.png" border="0" usemap="#ainclude_2CDT_8hpp" alt=""/></div>
+<map name="ainclude_2CDT_8hpp" id="ainclude_2CDT_8hpp">
+<area shape="rect" title="Public API &#45; implementation." alt="" coords="415,5,542,31"/>
+<area shape="rect" href="CDT_8h.html" title="Public API." alt="" coords="449,79,509,104"/>
+<area shape="poly" title=" " alt="" coords="474,31,473,65,467,65,469,31"/>
+<area shape="rect" title=" " alt="" coords="345,460,431,485"/>
+<area shape="poly" title=" " alt="" coords="415,30,310,48,192,76,139,94,97,115,69,138,61,151,59,164,59,313,61,334,66,353,88,385,120,411,159,431,203,446,249,456,332,467,331,472,248,461,202,451,157,436,117,416,84,389,62,355,55,335,53,313,53,163,56,149,65,135,94,111,137,89,190,71,309,43,414,25"/>
+<area shape="rect" title=" " alt="" coords="2176,460,2235,485"/>
+<area shape="poly" title=" " alt="" coords="542,17,863,20,1080,27,1305,38,1518,56,1696,81,1766,97,1820,116,1854,138,1863,150,1867,163,1867,312,1875,325,1899,342,1980,382,2079,422,2164,454,2162,459,2077,427,1978,387,1897,347,1871,329,1861,313,1861,164,1859,152,1850,141,1817,121,1765,103,1695,87,1517,61,1305,43,1080,32,863,25,542,22"/>
+<area shape="rect" title=" " alt="" coords="699,533,786,559"/>
+<area shape="poly" title=" " alt="" coords="415,23,351,27,274,37,193,54,114,81,40,110,27,118,17,129,10,144,8,163,8,393,13,417,29,438,55,457,88,473,176,500,281,518,394,531,506,538,686,542,685,548,506,543,394,536,280,524,174,505,86,478,52,461,26,442,9,419,3,394,3,163,5,142,12,126,23,114,37,105,112,76,191,49,273,32,350,22,415,17"/>
+<area shape="rect" title=" " alt="" coords="1127,299,1190,324"/>
+<area shape="poly" title=" " alt="" coords="543,24,712,48,817,66,926,88,1031,115,1126,147,1201,183,1229,203,1250,224,1256,234,1256,245,1245,264,1225,281,1201,295,1198,290,1222,277,1241,261,1251,244,1250,236,1246,227,1226,207,1198,187,1124,152,1030,120,925,94,816,71,711,53,542,29"/>
+<area shape="poly" title=" " alt="" coords="483,78,485,44,490,45,488,79"/>
+<area shape="rect" href="CDTUtils_8h.html" title="Utilities and helpers." alt="" coords="1189,379,1280,405"/>
+<area shape="poly" title=" " alt="" coords="509,90,667,95,776,101,893,112,1008,129,1112,152,1157,166,1196,183,1227,202,1250,224,1260,241,1266,259,1267,298,1259,336,1248,367,1243,366,1254,335,1262,298,1261,260,1255,243,1246,227,1224,206,1194,188,1156,171,1111,157,1007,134,893,118,776,107,667,100,509,95"/>
+<area shape="poly" title=" " alt="" coords="448,94,408,96,361,105,315,123,295,136,278,154,267,175,258,205,249,281,253,357,259,388,269,411,281,426,297,438,333,456,331,461,294,443,278,430,264,413,254,389,248,357,244,281,253,204,262,173,274,150,292,132,313,118,360,99,408,91,448,89"/>
+<area shape="rect" title=" " alt="" coords="893,460,963,485"/>
+<area shape="poly" title=" " alt="" coords="509,91,568,94,647,104,734,121,820,149,900,177,915,186,927,199,935,215,937,237,937,313,932,446,927,446,932,313,932,237,930,216,923,202,912,191,898,182,818,155,733,126,646,109,568,100,509,96"/>
+<area shape="rect" title=" " alt="" coords="2089,460,2151,485"/>
+<area shape="poly" title=" " alt="" coords="509,91,721,103,1028,130,1179,149,1306,173,1355,186,1394,201,1419,218,1428,236,1428,313,1431,344,1438,369,1450,388,1466,401,1486,410,1509,415,1565,416,1701,403,1774,401,1846,409,2076,457,2075,463,1845,415,1773,406,1701,409,1565,421,1509,420,1484,415,1463,406,1446,391,1433,371,1425,345,1423,313,1423,237,1415,221,1391,206,1354,191,1304,178,1178,154,1028,135,720,109,509,97"/>
+<area shape="rect" href="Triangulation_8h.html" title="Triangulation class." alt="" coords="687,152,806,177"/>
+<area shape="poly" title=" " alt="" coords="510,98,691,146,690,151,508,103"/>
+<area shape="rect" title=" " alt="" coords="349,225,414,251"/>
+<area shape="poly" title=" " alt="" coords="473,106,399,215,395,212,468,103"/>
+<area shape="rect" title=" " alt="" coords="279,379,350,405"/>
+<area shape="poly" title=" " alt="" coords="466,106,395,165,360,199,338,227,325,262,318,300,315,366,310,366,312,299,320,261,334,224,356,196,392,161,462,102"/>
+<area shape="rect" title=" " alt="" coords="438,225,495,251"/>
+<area shape="poly" title=" " alt="" coords="480,104,475,178,472,212,466,212,469,177,475,104"/>
+<area shape="rect" href="remove__at_8hpp_source.html" title=" " alt="" coords="93,299,213,324"/>
+<area shape="poly" title=" " alt="" coords="449,95,403,97,346,106,287,124,259,137,234,154,206,184,185,219,170,255,161,286,156,284,165,254,180,217,202,181,230,150,256,132,285,119,345,100,402,92,448,89"/>
+<area shape="rect" title=" " alt="" coords="288,152,365,177"/>
+<area shape="poly" title=" " alt="" coords="455,106,365,149,363,144,453,102"/>
+<area shape="poly" title=" " alt="" coords="1189,400,444,469,444,464,1189,395"/>
+<area shape="poly" title=" " alt="" coords="1191,407,977,462,975,457,1189,402"/>
+<area shape="rect" title=" " alt="" coords="806,460,869,485"/>
+<area shape="poly" title=" " alt="" coords="1190,404,1056,427,883,463,882,457,1055,422,1189,398"/>
+<area shape="poly" title=" " alt="" coords="1280,393,1707,416,1964,435,2162,458,2162,463,1963,441,1707,422,1280,398"/>
+<area shape="poly" title=" " alt="" coords="1273,402,1306,409,1421,425,1519,432,1688,434,1858,436,1958,443,2076,458,2075,463,1958,448,1858,441,1688,439,1519,438,1420,430,1305,415,1272,407"/>
+<area shape="rect" title=" " alt="" coords="987,460,1109,485"/>
+<area shape="poly" title=" " alt="" coords="1209,407,1089,457,1087,452,1206,402"/>
+<area shape="rect" title=" " alt="" coords="1134,460,1325,485"/>
+<area shape="poly" title=" " alt="" coords="1237,405,1234,446,1228,446,1231,405"/>
+<area shape="rect" title=" " alt="" coords="1349,460,1509,485"/>
+<area shape="poly" title=" " alt="" coords="1264,402,1389,452,1387,457,1262,407"/>
+<area shape="rect" title=" " alt="" coords="1533,460,1725,485"/>
+<area shape="poly" title=" " alt="" coords="1276,402,1306,409,1546,455,1545,460,1305,415,1275,407"/>
+<area shape="rect" title=" " alt="" coords="1750,460,1933,485"/>
+<area shape="poly" title=" " alt="" coords="1274,402,1306,409,1736,457,1736,462,1305,415,1273,407"/>
+<area shape="rect" href="CDTUtils_8hpp.html" title="Utilities and helpers &#45; implementation." alt="" coords="1957,460,2064,485"/>
+<area shape="poly" title=" " alt="" coords="1262,402,1294,409,1390,424,1472,432,1613,438,1754,442,1934,457,1944,459,1943,464,1933,463,1753,447,1613,443,1472,437,1390,429,1293,415,1260,407"/>
+<area shape="poly" title=" " alt="" coords="1957,463,1777,447,1636,443,1496,437,1414,429,1317,415,1293,410,1294,404,1318,409,1414,424,1496,432,1637,438,1777,442,1957,457"/>
+<area shape="rect" title=" " alt="" coords="1959,533,2062,559"/>
+<area shape="poly" title=" " alt="" coords="2013,486,2013,520,2008,520,2008,486"/>
+<area shape="poly" title=" " alt="" coords="1958,486,1946,488,1606,518,1274,535,991,544,800,547,800,542,991,539,1273,530,1606,512,1945,483,1957,481"/>
+<area shape="poly" title=" " alt="" coords="806,164,872,168,950,177,1033,195,1113,223,1143,237,1166,252,1185,271,1205,297,1222,331,1232,365,1227,367,1217,333,1200,300,1181,274,1162,256,1141,242,1111,228,1031,200,949,183,871,173,806,169"/>
+<area shape="poly" title=" " alt="" coords="722,180,568,248,459,301,429,333,409,373,398,411,392,447,387,446,393,410,404,371,424,330,456,297,566,244,720,175"/>
+<area shape="poly" title=" " alt="" coords="806,165,914,170,1043,180,1164,197,1213,209,1249,223,1280,244,1302,268,1317,293,1329,318,1341,344,1357,368,1378,390,1408,410,1466,429,1542,441,1631,448,1727,450,1918,450,2004,452,2075,458,2075,463,2003,457,1918,455,1727,455,1631,453,1542,447,1465,435,1406,414,1374,394,1352,371,1337,346,1324,321,1312,295,1297,271,1277,248,1247,228,1211,214,1163,203,1042,186,913,175,806,170"/>
+<area shape="poly" title=" " alt="" coords="722,180,693,199,680,212,670,226,667,237,668,245,678,260,694,276,709,298,721,341,731,403,743,519,738,520,726,404,716,343,704,300,690,279,674,263,663,247,662,236,666,224,676,208,690,195,720,175"/>
+<area shape="rect" href="LocatorKDTree_8h.html" title="Adapter between for KDTree and CDT." alt="" coords="972,225,1100,251"/>
+<area shape="poly" title=" " alt="" coords="794,175,977,219,975,225,793,180"/>
+<area shape="poly" title=" " alt="" coords="687,179,428,228,427,223,686,173"/>
+<area shape="poly" title=" " alt="" coords="709,180,566,228,509,253,449,273,424,283,395,301,359,334,332,369,328,366,355,331,392,297,422,278,447,268,507,248,564,223,707,175"/>
+<area shape="poly" title=" " alt="" coords="702,180,509,229,508,223,701,175"/>
+<area shape="rect" title=" " alt="" coords="839,225,897,251"/>
+<area shape="poly" title=" " alt="" coords="768,175,838,216,835,221,765,180"/>
+<area shape="rect" title=" " alt="" coords="1175,225,1235,251"/>
+<area shape="poly" title=" " alt="" coords="807,170,965,192,1156,223,1162,224,1161,229,1156,228,964,197,806,176"/>
+<area shape="rect" href="Triangulation_8hpp.html" title="Triangulation class &#45; implementation." alt="" coords="679,225,814,251"/>
+<area shape="poly" title=" " alt="" coords="742,178,741,212,735,212,737,178"/>
+<area shape="poly" title=" " alt="" coords="1047,249,1077,284,1118,322,1158,349,1198,371,1196,376,1155,354,1114,326,1073,287,1043,253"/>
+<area shape="rect" href="KDTree_8h_source.html" title=" " alt="" coords="972,299,1052,324"/>
+<area shape="poly" title=" " alt="" coords="1035,252,1023,286,1018,285,1030,250"/>
+<area shape="poly" title=" " alt="" coords="1045,321,1190,372,1189,377,1043,327"/>
+<area shape="poly" title=" " alt="" coords="1008,325,943,449,938,446,1004,323"/>
+<area shape="poly" title=" " alt="" coords="1053,315,1617,384,1948,426,2163,457,2162,463,1947,432,1617,389,1052,320"/>
+<area shape="poly" title=" " alt="" coords="679,243,634,248,585,259,536,275,491,301,457,334,430,374,411,414,398,448,393,446,406,412,426,371,453,331,488,297,533,271,583,253,633,243,678,238"/>
+<area shape="poly" title=" " alt="" coords="767,249,797,269,827,297,857,335,883,376,920,446,915,449,879,379,853,338,823,300,794,273,764,253"/>
+<area shape="poly" title=" " alt="" coords="763,249,784,270,804,297,819,336,830,377,839,446,834,447,825,378,814,338,799,300,780,273,759,253"/>
+<area shape="poly" title=" " alt="" coords="750,251,753,299,753,412,747,520,742,520,748,412,748,299,745,251"/>
+<area shape="poly" title=" " alt="" coords="751,225,753,191,758,191,756,225"/>
+<area shape="rect" href="portable__nth__element_8hpp_source.html" title=" " alt="" coords="501,299,694,324"/>
+<area shape="poly" title=" " alt="" coords="724,253,635,295,633,290,722,248"/>
+<area shape="poly" title=" " alt="" coords="813,248,1114,300,1113,305,812,253"/>
+<area shape="poly" title=" " alt="" coords="583,326,518,374,415,454,411,449,514,370,579,322"/>
+<area shape="poly" title=" " alt="" coords="557,327,364,380,362,375,556,321"/>
+<area shape="rect" title=" " alt="" coords="527,372,694,412"/>
+<area shape="poly" title=" " alt="" coords="602,324,608,358,603,359,597,325"/>
+<area shape="poly" title=" " alt="" coords="161,323,185,365,203,389,224,410,250,426,278,440,333,458,331,463,276,445,247,431,221,414,199,393,180,368,156,326"/>
+<area shape="poly" title=" " alt="" coords="178,322,280,371,278,376,176,326"/>
+</map>
+</div>
+</div><div class="textblock"><div class="dynheader">
+This graph shows which files directly or indirectly include this file:</div>
+<div class="dyncontent">
+<div class="center"><img src="CDT_8hpp__dep__incl.png" border="0" usemap="#ainclude_2CDT_8hppdep" alt=""/></div>
+<map name="ainclude_2CDT_8hppdep" id="ainclude_2CDT_8hppdep">
+<area shape="rect" title="Public API &#45; implementation." alt="" coords="141,5,267,31"/>
+<area shape="rect" href="CDT_8h.html" title="Public API." alt="" coords="149,79,259,104"/>
+<area shape="poly" title=" " alt="" coords="198,44,200,78,194,79,193,45"/>
+<area shape="poly" title=" " alt="" coords="210,65,208,31,214,31,215,65"/>
+<area shape="rect" href="InitializeWithGrid_8h.html" title="Helper function to initialize triangulation with regular grid instead of super&#45;triangle." alt="" coords="5,152,197,177"/>
+<area shape="poly" title=" " alt="" coords="178,114,120,154,117,150,175,110"/>
+<area shape="rect" href="VerifyTopology_8h.html" title="Helper function to verify if triangulation has no inconsistencies." alt="" coords="222,152,394,177"/>
+<area shape="poly" title=" " alt="" coords="234,110,292,150,289,154,231,114"/>
+</map>
+</div>
+</div>
+<p><a href="CDT_8hpp_source.html">Go to the source code of this file.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html">CDT</a></td></tr>
+<tr class="memdesc:namespaceCDT"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace containing triangulation functionality. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ga2468ee877c798c4d16429d357d89fcae" id="r_ga2468ee877c798c4d16429d357d89fcae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="CDTUtils_8h.html#a95e63ccd7c7f2156d2926a8eec3a5c88">CDT_EXPORT</a> <a class="el" href="group__API.html#gad4e6358ea9efbabe19e5d3efd97d1acf">VerticesTriangles</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__helpers.html#ga2468ee877c798c4d16429d357d89fcae">CDT::calculateTrianglesByVertex</a> (const <a class="el" href="namespaceCDT.html#adcc7f3c0f0573a300a4d298b90252f1d">TriangleVec</a> &amp;triangles, <a class="el" href="namespaceCDT.html#a342cf6dfcbc2a0ce90809874c4ce8fca">VertInd</a> verticesSize)</td></tr>
+<tr class="memdesc:ga2468ee877c798c4d16429d357d89fcae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculate triangles adjacent to vertices (triangles by vertex index)  <br /></td></tr>
+<tr class="separator:ga2468ee877c798c4d16429d357d89fcae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaab061af3b5ddf52a932a2bb1f1e81f47" id="r_gaab061af3b5ddf52a932a2bb1f1e81f47"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:gaab061af3b5ddf52a932a2bb1f1e81f47"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structCDT_1_1DuplicatesInfo.html">DuplicatesInfo</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__helpers.html#gaab061af3b5ddf52a932a2bb1f1e81f47">CDT::RemoveDuplicates</a> (std::vector&lt; <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &gt; &amp;vertices)</td></tr>
+<tr class="memdesc:gaab061af3b5ddf52a932a2bb1f1e81f47"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remove duplicated points in-place.  <br /></td></tr>
+<tr class="separator:gaab061af3b5ddf52a932a2bb1f1e81f47"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5e1bc1f0d135e78f5888fb4a596ad02b" id="r_ga5e1bc1f0d135e78f5888fb4a596ad02b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="CDTUtils_8h.html#a95e63ccd7c7f2156d2926a8eec3a5c88">CDT_EXPORT</a> void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__helpers.html#ga5e1bc1f0d135e78f5888fb4a596ad02b">CDT::RemapEdges</a> (std::vector&lt; <a class="el" href="structCDT_1_1Edge.html">Edge</a> &gt; &amp;edges, const std::vector&lt; std::size_t &gt; &amp;mapping)</td></tr>
+<tr class="memdesc:ga5e1bc1f0d135e78f5888fb4a596ad02b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Remap vertex indices in edges (in-place) using given vertex-index mapping.  <br /></td></tr>
+<tr class="separator:ga5e1bc1f0d135e78f5888fb4a596ad02b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaed3044b5b3c4bb21d1c86227fb90ca09" id="r_gaed3044b5b3c4bb21d1c86227fb90ca09"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:gaed3044b5b3c4bb21d1c86227fb90ca09"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="structCDT_1_1DuplicatesInfo.html">DuplicatesInfo</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group__helpers.html#gaed3044b5b3c4bb21d1c86227fb90ca09">CDT::RemoveDuplicatesAndRemapEdges</a> (std::vector&lt; <a class="el" href="structCDT_1_1V2d.html">V2d</a>&lt; T &gt; &gt; &amp;vertices, std::vector&lt; <a class="el" href="structCDT_1_1Edge.html">Edge</a> &gt; &amp;edges)</td></tr>
+<tr class="memdesc:gaed3044b5b3c4bb21d1c86227fb90ca09"><td class="mdescLeft">&#160;</td><td class="mdescRight">Same as a chained call of <a class="el" href="group__helpers.html#ga288f40e940912032277bfa861c684036" title="Remove duplicates in-place from vector of custom points.">CDT::RemoveDuplicates</a> + <a class="el" href="group__helpers.html#ga001ff21a8eac3bce11c4221ddfc660e4" title="Remap vertex indices in edges (in-place) using given vertex-index mapping.">CDT::RemapEdges</a>.  <br /></td></tr>
+<tr class="separator:gaed3044b5b3c4bb21d1c86227fb90ca09"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab41a7d6ed19670132a9469949ee8b372" id="r_gab41a7d6ed19670132a9469949ee8b372"><td class="memItemLeft" align="right" valign="top"><a class="el" href="CDTUtils_8h.html#a95e63ccd7c7f2156d2926a8eec3a5c88">CDT_EXPORT</a> <a class="el" href="namespaceCDT.html#a062e6b7c0b1f0eddf4f449e6bf6d9011">EdgeUSet</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__helpers.html#gab41a7d6ed19670132a9469949ee8b372">CDT::extractEdgesFromTriangles</a> (const <a class="el" href="namespaceCDT.html#adcc7f3c0f0573a300a4d298b90252f1d">TriangleVec</a> &amp;triangles)</td></tr>
+<tr class="memdesc:gab41a7d6ed19670132a9469949ee8b372"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extract all edges of triangles.  <br /></td></tr>
+<tr class="separator:gab41a7d6ed19670132a9469949ee8b372"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad996fd6631b67aa6fb5732d021ec27da" id="r_gad996fd6631b67aa6fb5732d021ec27da"><td class="memItemLeft" align="right" valign="top"><a class="el" href="CDTUtils_8h.html#a95e63ccd7c7f2156d2926a8eec3a5c88">CDT_EXPORT</a> unordered_map&lt; <a class="el" href="structCDT_1_1Edge.html">Edge</a>, <a class="el" href="namespaceCDT.html#a00ecb94ef8a4604d2afcd2be323ea5fe">EdgeVec</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__helpers.html#gad996fd6631b67aa6fb5732d021ec27da">CDT::EdgeToPiecesMapping</a> (const unordered_map&lt; <a class="el" href="structCDT_1_1Edge.html">Edge</a>, <a class="el" href="namespaceCDT.html#a00ecb94ef8a4604d2afcd2be323ea5fe">EdgeVec</a> &gt; &amp;pieceToOriginals)</td></tr>
+<tr class="separator:gad996fd6631b67aa6fb5732d021ec27da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Public API - implementation. </p>
+
+<p class="definition">Definition in file <a class="el" href="CDT_8hpp_source.html">CDT.hpp</a>.</p>
+</div></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_c9083ae231f9fec5daf3be9340efa1d0.html">include</a></li><li class="navelem"><a class="el" href="CDT_8hpp.html">CDT.hpp</a></li>
+    <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.11.0 </li>
+  </ul>
+</div>
+</body>
+</html>

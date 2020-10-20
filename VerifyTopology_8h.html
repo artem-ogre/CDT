@@ -1,0 +1,274 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=9"/>
+<meta name="generator" content="Doxygen 1.11.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<!-- BEGIN opengraph metadata -->
+<meta property="og:title" content="CDT" />
+<meta property="og:image" content="https://repository-images.githubusercontent.com/179470761/87cff280-184e-11eb-8837-b1ad740baf8a" />
+<meta property="og:description" content="C++ library for constrained and conforming Delaunay triangulations" />
+<meta property="og:url" content="https://artem-ogre.github.io/CDT/" />
+<!-- END opengraph metadata -->
+<!-- BEGIN twitter metadata -->
+<meta name="twitter:image:src" content="https://repository-images.githubusercontent.com/179470761/87cff280-184e-11eb-8837-b1ad740baf8a" />
+<meta name="twitter:title" content="CDT" />
+<meta name="twitter:description" content="C++ library for constrained and conforming Delaunay triangulations" />
+<!-- END twitter metadata -->
+<title>CDT: extras/VerifyTopology.h File Reference</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<!--favicon-->
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="logo.svg"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="manifest" href="site.webmanifest" />
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<script type="text/javascript" src="doxygen-awesome-darkmode-toggle.js"></script>
+<script type="text/javascript" src="doxygen-awesome-fragment-copy-button.js"></script>
+<script type="text/javascript" src="doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="toggle-alternative-theme.js"></script>
+<script type="text/javascript">
+    DoxygenAwesomeFragmentCopyButton.init()
+    DoxygenAwesomeDarkModeToggle.init()
+    DoxygenAwesomeParagraphLink.init()
+</script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="cookie.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-awesome.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only.css" rel="stylesheet" type="text/css"/>
+<link href="doxygen-awesome-sidebar-only-darkmode-toggle.css" rel="stylesheet" type="text/css"/>
+<link href="custom.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<!-- https://tholman.com/github-corners/ -->
+<a href="https://github.com/artem-ogre/CDT" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" style="position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a><style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr style="height: 56px;">
+  <td id="projectalign" style="padding-left: 0.5em;">
+   <div id="projectname">CDT
+   &#160;<span id="projectnumber">1.4.1</span>
+   </div>
+   <div id="projectbrief">C++ library for constrained Delaunay triangulation</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- Generated by Doxygen 1.11.0 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search/",'.html');
+/* @license-end */
+</script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() { codefold.init(0); });
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','Search',true);
+  $(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function(){initNavTree('VerifyTopology_8h.html',''); initResizable(true); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<div id="MSearchResults">
+<div class="SRPage">
+<div id="SRIndex">
+<div id="SRResults"></div>
+<div class="SRStatus" id="Loading">Loading...</div>
+<div class="SRStatus" id="Searching">Searching...</div>
+<div class="SRStatus" id="NoMatches">No Matches</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="header">
+  <div class="summary">
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#func-members">Functions</a>  </div>
+  <div class="headertitle"><div class="title">VerifyTopology.h File Reference</div></div>
+</div><!--header-->
+<div class="contents">
+
+<p>Helper function to verify if triangulation has no inconsistencies.  
+<a href="#details">More...</a></p>
+<div class="textblock"><code>#include &lt;<a class="el" href="CDT_8h_source.html">CDT.h</a>&gt;</code><br />
+<code>#include &lt;algorithm&gt;</code><br />
+</div><div class="textblock"><div class="dynheader">
+Include dependency graph for VerifyTopology.h:</div>
+<div class="dyncontent">
+<div class="center"><img src="VerifyTopology_8h__incl.png" border="0" usemap="#aextras_2VerifyTopology_8h" alt=""/></div>
+<map name="aextras_2VerifyTopology_8h" id="aextras_2VerifyTopology_8h">
+<area shape="rect" title="Helper function to verify if triangulation has no inconsistencies." alt="" coords="1155,5,1327,31"/>
+<area shape="rect" href="CDT_8h.html" title="Public API." alt="" coords="1681,79,1741,104"/>
+<area shape="poly" title=" " alt="" coords="1317,28,1668,81,1667,86,1316,33"/>
+<area shape="rect" title=" " alt="" coords="1593,453,1678,478"/>
+<area shape="poly" title=" " alt="" coords="1246,30,1285,177,1314,264,1329,298,1344,322,1369,348,1397,371,1459,408,1524,434,1580,450,1579,455,1522,439,1457,413,1394,376,1365,352,1340,326,1325,301,1309,266,1280,179,1241,31"/>
+<area shape="rect" href="CDTUtils_8h.html" title="Utilities and helpers." alt="" coords="989,372,1079,397"/>
+<area shape="poly" title=" " alt="" coords="1681,95,1508,96,1260,103,1136,110,1028,121,947,135,921,144,905,154,890,179,888,207,897,236,914,265,961,320,1009,361,1006,365,958,324,910,268,892,238,883,208,885,178,901,150,918,139,946,130,1027,116,1136,105,1260,98,1508,91,1681,90"/>
+<area shape="poly" title=" " alt="" coords="1712,105,1643,440,1638,439,1706,104"/>
+<area shape="rect" title=" " alt="" coords="1194,453,1263,478"/>
+<area shape="poly" title=" " alt="" coords="1681,96,1525,100,1417,107,1301,118,1187,135,1084,158,1040,172,1002,188,971,207,950,227,945,238,950,249,985,284,1055,338,1202,443,1199,447,1052,343,981,288,945,252,940,237,945,224,968,202,999,184,1038,167,1082,153,1186,130,1300,113,1416,102,1525,95,1681,90"/>
+<area shape="rect" title=" " alt="" coords="5,453,68,478"/>
+<area shape="poly" title=" " alt="" coords="1681,96,1507,101,1256,112,1018,129,933,141,884,154,858,170,839,187,827,208,823,237,823,313,817,342,797,366,767,385,728,400,682,410,629,418,511,426,264,431,159,435,116,440,81,448,75,450,73,445,80,443,115,435,158,430,264,425,511,421,628,413,681,405,727,395,765,380,794,362,812,340,818,312,818,236,822,206,835,184,855,166,882,150,932,136,1018,124,1256,107,1507,96,1681,91"/>
+<area shape="rect" href="Triangulation_8h.html" title="Triangulation class." alt="" coords="1399,152,1517,177"/>
+<area shape="poly" title=" " alt="" coords="1682,104,1513,151,1511,146,1681,98"/>
+<area shape="rect" title=" " alt="" coords="960,225,1025,251"/>
+<area shape="poly" title=" " alt="" coords="1681,101,1388,155,1045,228,1039,229,1038,224,1044,223,1387,149,1680,95"/>
+<area shape="rect" title=" " alt="" coords="2080,453,2151,478"/>
+<area shape="poly" title=" " alt="" coords="1742,91,1885,97,1981,105,2081,118,2175,136,2254,161,2285,176,2309,194,2325,214,2330,236,2330,313,2325,342,2313,367,2294,389,2271,408,2217,437,2165,455,2163,450,2215,432,2268,403,2290,385,2308,364,2320,340,2325,312,2325,237,2320,216,2305,198,2282,181,2252,166,2174,141,2080,123,1981,110,1885,102,1741,96"/>
+<area shape="rect" title=" " alt="" coords="1800,225,1857,251"/>
+<area shape="poly" title=" " alt="" coords="1742,93,1797,99,1862,111,1921,127,1944,138,1959,150,1966,164,1964,178,1956,190,1944,200,1909,217,1872,229,1870,224,1907,212,1941,196,1952,186,1959,176,1960,165,1955,154,1941,142,1919,132,1861,116,1796,105,1741,98"/>
+<area shape="rect" href="remove__at_8hpp_source.html" title=" " alt="" coords="2018,372,2138,397"/>
+<area shape="poly" title=" " alt="" coords="1742,93,1870,113,1935,129,1961,139,1980,150,2003,173,2022,199,2050,256,2068,313,2077,358,2072,359,2063,314,2045,258,2017,202,1999,176,1976,154,1959,144,1934,134,1869,118,1741,99"/>
+<area shape="rect" title=" " alt="" coords="1867,152,1945,177"/>
+<area shape="poly" title=" " alt="" coords="1743,101,1863,145,1861,150,1741,106"/>
+<area shape="rect" href="CDT_8hpp.html" title="Public API &#45; implementation." alt="" coords="1845,299,1921,324"/>
+<area shape="poly" title=" " alt="" coords="1728,102,1793,148,1830,183,1860,224,1871,255,1877,285,1871,285,1866,256,1856,227,1826,187,1790,153,1725,106"/>
+<area shape="poly" title=" " alt="" coords="1080,389,1580,454,1579,459,1079,395"/>
+<area shape="poly" title=" " alt="" coords="1063,395,1189,445,1187,450,1061,400"/>
+<area shape="rect" title=" " alt="" coords="1288,453,1351,478"/>
+<area shape="poly" title=" " alt="" coords="1080,392,1171,413,1276,443,1283,445,1281,450,1275,448,1170,418,1079,398"/>
+<area shape="rect" title=" " alt="" coords="1375,453,1434,478"/>
+<area shape="poly" title=" " alt="" coords="1080,388,1208,407,1286,423,1363,443,1369,445,1368,450,1361,448,1285,428,1207,412,1079,393"/>
+<area shape="poly" title=" " alt="" coords="989,397,970,400,835,411,719,414,522,407,428,406,327,409,214,422,81,448,73,450,71,445,80,443,213,417,327,404,428,400,523,402,719,409,835,406,970,395,988,392"/>
+<area shape="rect" title=" " alt="" coords="831,453,954,478"/>
+<area shape="poly" title=" " alt="" coords="1014,400,927,448,924,444,1012,395"/>
+<area shape="rect" title=" " alt="" coords="979,453,1169,478"/>
+<area shape="poly" title=" " alt="" coords="1042,396,1064,439,1060,442,1038,399"/>
+<area shape="rect" title=" " alt="" coords="223,453,383,478"/>
+<area shape="poly" title=" " alt="" coords="989,397,970,400,809,416,683,423,557,430,396,448,368,453,367,447,395,443,556,425,682,417,808,411,970,395,988,392"/>
+<area shape="rect" title=" " alt="" coords="407,453,599,478"/>
+<area shape="poly" title=" " alt="" coords="989,397,970,400,791,424,612,448,580,453,579,448,611,443,790,419,970,395,988,392"/>
+<area shape="rect" title=" " alt="" coords="624,453,807,478"/>
+<area shape="poly" title=" " alt="" coords="989,400,776,452,774,447,988,395"/>
+<area shape="rect" href="CDTUtils_8hpp.html" title="Utilities and helpers &#45; implementation." alt="" coords="93,453,199,478"/>
+<area shape="poly" title=" " alt="" coords="989,395,958,400,843,411,745,416,578,418,411,422,314,431,200,448,183,451,182,446,199,443,313,426,411,417,578,412,745,411,843,406,958,395,988,390"/>
+<area shape="poly" title=" " alt="" coords="192,450,223,443,336,426,433,417,598,412,764,411,861,406,975,395,975,401,861,411,764,416,598,417,433,422,337,431,224,448,193,455"/>
+<area shape="rect" title=" " alt="" coords="95,533,197,559"/>
+<area shape="poly" title=" " alt="" coords="149,478,149,519,143,519,143,478"/>
+<area shape="rect" title=" " alt="" coords="1805,533,1892,559"/>
+<area shape="poly" title=" " alt="" coords="180,475,212,483,359,499,556,513,1025,530,1483,539,1792,542,1792,547,1483,544,1025,536,555,518,359,505,211,488,179,481"/>
+<area shape="poly" title=" " alt="" coords="1399,174,1255,194,1187,209,1141,228,1107,257,1080,293,1060,329,1045,360,1041,358,1055,327,1076,290,1103,253,1138,223,1185,204,1254,189,1398,169"/>
+<area shape="poly" title=" " alt="" coords="1508,175,1550,193,1570,207,1587,224,1604,250,1617,278,1633,338,1639,394,1640,439,1634,439,1634,395,1628,339,1612,280,1599,252,1583,227,1566,211,1547,198,1506,180"/>
+<area shape="poly" title=" " alt="" coords="1399,176,1240,198,1162,213,1107,228,1064,248,1029,270,975,316,921,361,885,382,840,400,729,429,632,441,545,441,463,434,380,426,293,423,195,428,81,448,73,450,71,445,80,443,194,423,293,417,381,421,463,429,545,436,631,436,728,424,838,395,883,377,918,357,972,312,1026,265,1061,243,1105,223,1161,208,1239,193,1398,170"/>
+<area shape="poly" title=" " alt="" coords="1504,175,1915,282,2122,339,2216,370,2228,394,2230,424,2220,455,2196,487,2175,501,2145,512,2068,529,1982,540,1906,545,1906,540,1982,534,2067,524,2143,507,2172,496,2192,483,2216,453,2225,423,2223,396,2212,374,2120,344,1914,287,1502,180"/>
+<area shape="rect" href="LocatorKDTree_8h.html" title="Adapter between for KDTree and CDT." alt="" coords="1151,225,1279,251"/>
+<area shape="poly" title=" " alt="" coords="1420,180,1268,224,1267,219,1418,175"/>
+<area shape="poly" title=" " alt="" coords="1399,176,1239,197,1045,228,1039,229,1038,224,1044,223,1238,192,1398,171"/>
+<area shape="poly" title=" " alt="" coords="1490,175,1612,223,1675,252,1722,276,1770,299,1835,321,1866,327,1906,330,2000,333,2048,336,2091,342,2127,353,2152,370,2160,388,2157,408,2149,427,2137,443,2133,440,2144,424,2152,406,2155,389,2148,374,2125,358,2090,347,2047,341,2000,338,1905,335,1865,332,1833,327,1768,304,1720,281,1673,256,1610,228,1488,180"/>
+<area shape="poly" title=" " alt="" coords="1518,173,1781,223,1787,224,1786,229,1780,228,1517,179"/>
+<area shape="rect" title=" " alt="" coords="1429,225,1487,251"/>
+<area shape="poly" title=" " alt="" coords="1461,178,1461,212,1455,212,1455,178"/>
+<area shape="rect" title=" " alt="" coords="1512,225,1572,251"/>
+<area shape="poly" title=" " alt="" coords="1473,175,1519,214,1516,218,1470,179"/>
+<area shape="rect" href="Triangulation_8hpp.html" title="Triangulation class &#45; implementation." alt="" coords="1355,299,1489,324"/>
+<area shape="poly" title=" " alt="" coords="1439,179,1421,200,1407,226,1404,256,1408,285,1403,286,1398,256,1402,225,1416,197,1435,176"/>
+<area shape="poly" title=" " alt="" coords="1202,253,1061,365,1058,361,1199,249"/>
+<area shape="rect" href="KDTree_8h_source.html" title=" " alt="" coords="1165,299,1245,324"/>
+<area shape="poly" title=" " alt="" coords="1216,251,1211,286,1206,285,1211,251"/>
+<area shape="poly" title=" " alt="" coords="1178,326,1075,369,1073,364,1176,322"/>
+<area shape="poly" title=" " alt="" coords="1205,325,1200,357,1202,397,1218,439,1213,441,1197,398,1195,357,1199,324"/>
+<area shape="poly" title=" " alt="" coords="1221,322,1380,442,1377,446,1218,326"/>
+<area shape="poly" title=" " alt="" coords="1432,323,1460,358,1500,395,1546,424,1592,445,1590,450,1543,428,1496,399,1456,361,1428,326"/>
+<area shape="poly" title=" " alt="" coords="1409,326,1256,446,1253,442,1406,322"/>
+<area shape="poly" title=" " alt="" coords="1416,326,1337,443,1332,440,1412,323"/>
+<area shape="poly" title=" " alt="" coords="1428,323,1443,357,1467,396,1494,426,1518,448,1545,465,1582,483,1636,504,1691,519,1792,537,1791,542,1690,524,1634,509,1580,488,1542,469,1515,452,1490,430,1463,399,1438,360,1423,325"/>
+<area shape="poly" title=" " alt="" coords="1424,298,1422,265,1426,225,1446,188,1451,190,1431,226,1427,265,1429,298"/>
+<area shape="rect" href="portable__nth__element_8hpp_source.html" title=" " alt="" coords="1800,372,1993,397"/>
+<area shape="poly" title=" " alt="" coords="1490,320,1808,367,1807,373,1489,325"/>
+<area shape="rect" title=" " alt="" coords="1509,372,1572,397"/>
+<area shape="poly" title=" " alt="" coords="1442,322,1511,362,1508,367,1440,326"/>
+<area shape="poly" title=" " alt="" coords="1859,400,1687,451,1686,446,1858,395"/>
+<area shape="poly" title=" " alt="" coords="1929,395,2071,446,2070,451,1928,400"/>
+<area shape="rect" title=" " alt="" coords="1813,445,1980,485"/>
+<area shape="poly" title=" " alt="" coords="1899,398,1899,432,1894,432,1894,398"/>
+<area shape="poly" title=" " alt="" coords="2018,399,1692,457,1691,452,2017,394"/>
+<area shape="poly" title=" " alt="" coords="2086,396,2106,439,2102,441,2081,399"/>
+<area shape="poly" title=" " alt="" coords="1889,298,1891,264,1887,245,1880,227,1853,190,1820,158,1785,132,1752,113,1754,108,1788,128,1823,154,1857,187,1884,224,1892,243,1896,264,1894,298"/>
+<area shape="poly" title=" " alt="" coords="1866,326,1667,448,1664,443,1863,322"/>
+<area shape="poly" title=" " alt="" coords="1848,327,1448,453,1446,448,1847,321"/>
+<area shape="poly" title=" " alt="" coords="1922,311,1991,316,2074,326,2148,343,2177,355,2196,370,2200,384,2197,398,2190,447,2183,467,2165,487,2146,499,2119,509,2051,525,1975,536,1906,543,1905,538,1974,531,2050,520,2118,504,2144,494,2162,483,2178,465,2185,446,2191,397,2195,384,2192,374,2174,360,2147,349,2073,332,1991,322,1921,317"/>
+<area shape="poly" title=" " alt="" coords="1845,323,1586,377,1585,372,1844,318"/>
+</map>
+</div>
+</div>
+<p><a href="VerifyTopology_8h_source.html">Go to the source code of this file.</a></p>
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="namespaces" name="namespaces"></a>
+Namespaces</h2></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">namespace &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceCDT.html">CDT</a></td></tr>
+<tr class="memdesc:namespaceCDT"><td class="mdescLeft">&#160;</td><td class="mdescRight">Namespace containing triangulation functionality. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="func-members" name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:a1217c6f3e0865efec4343bc698a28d9f" id="r_a1217c6f3e0865efec4343bc698a28d9f"><td class="memTemplParams" colspan="2">template&lt;typename T , typename TNearPointLocator &gt; </td></tr>
+<tr class="memitem:a1217c6f3e0865efec4343bc698a28d9f"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#a1217c6f3e0865efec4343bc698a28d9f">CDT::verifyTopology</a> (const <a class="el" href="classCDT_1_1Triangulation.html">CDT::Triangulation</a>&lt; T, TNearPointLocator &gt; &amp;cdt)</td></tr>
+<tr class="memdesc:a1217c6f3e0865efec4343bc698a28d9f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verify that triangulation topology is consistent.  <br /></td></tr>
+<tr class="separator:a1217c6f3e0865efec4343bc698a28d9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af317096c114338aa2951f11afb806894" id="r_af317096c114338aa2951f11afb806894"><td class="memTemplParams" colspan="2">template&lt;typename T , typename TNearPointLocator &gt; </td></tr>
+<tr class="memitem:af317096c114338aa2951f11afb806894"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceCDT.html#af317096c114338aa2951f11afb806894">CDT::eachVertexHasNeighborTriangle</a> (const <a class="el" href="classCDT_1_1Triangulation.html">CDT::Triangulation</a>&lt; T, TNearPointLocator &gt; &amp;cdt)</td></tr>
+<tr class="memdesc:af317096c114338aa2951f11afb806894"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check that each vertex has a neighbor triangle.  <br /></td></tr>
+<tr class="separator:af317096c114338aa2951f11afb806894"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Helper function to verify if triangulation has no inconsistencies. </p>
+
+<p class="definition">Definition in file <a class="el" href="VerifyTopology_8h_source.html">VerifyTopology.h</a>.</p>
+</div></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_d16c6863d5b501c36c6acbc266136022.html">extras</a></li><li class="navelem"><a class="el" href="VerifyTopology_8h.html">VerifyTopology.h</a></li>
+    <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.11.0 </li>
+  </ul>
+</div>
+</body>
+</html>

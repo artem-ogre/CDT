@@ -1,0 +1,30 @@
+<map id="include/CDTUtils.h" name="include/CDTUtils.h">
+<area shape="rect" id="Node000001" title="Utilities and helpers." alt="" coords="547,5,690,31"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,79,91,104"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="547,28,352,48,105,81,104,76,351,43,547,23"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="115,79,184,104"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="548,30,391,50,198,81,197,76,390,45,547,25"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="209,79,271,104"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="548,33,429,53,285,81,284,76,428,48,547,28"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="296,79,355,104"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="568,33,369,81,368,76,567,28"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="379,79,442,104"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="586,33,456,77,454,72,584,28"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="467,79,589,104"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="606,33,555,72,552,68,602,29"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="614,79,805,104"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="635,29,685,68,682,72,632,33"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="829,79,989,104"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="666,28,850,73,849,78,665,33"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="1013,79,1205,104"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="690,27,1017,74,1017,79,690,32"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="1230,79,1413,104"/>
+<area shape="poly" id="edge10_Node000001_Node000011" title=" " alt="" coords="690,24,1216,76,1216,81,690,29"/>
+<area shape="rect" id="Node000012" href="$CDTUtils_8hpp.html" title="Utilities and helpers &#45; implementation." alt="" coords="1437,79,1544,104"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="690,20,1005,38,1208,54,1414,76,1424,77,1423,83,1413,81,1208,60,1004,43,690,25"/>
+<area shape="poly" id="edge12_Node000012_Node000001" title=" " alt="" coords="1437,81,1231,60,1026,43,704,25,704,20,1027,38,1231,54,1437,76"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="1379,152,1482,177"/>
+<area shape="poly" id="edge13_Node000012_Node000013" title=" " alt="" coords="1483,106,1451,143,1447,140,1479,103"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="1506,152,1593,177"/>
+<area shape="poly" id="edge14_Node000012_Node000014" title=" " alt="" coords="1502,103,1533,140,1529,143,1498,106"/>
+</map>
