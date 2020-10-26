@@ -135,7 +135,6 @@ namespace  predicates {
 	#define PREDICATES_CXX11_IS_SUPPORTED
 #endif
 
-namespace  predicates {
 // choose to use c++11 features or their backports
 #ifdef PREDICATES_CXX11_IS_SUPPORTED
 #include <array>
@@ -144,11 +143,13 @@ namespace  predicates {
 #define PREDICATES_TOKEN_TO_STRING1(x)  #x
 #define PREDICATES_TOKEN_TO_STRING(x)  PREDICATES_TOKEN_TO_STRING1(x)
 #define PREDICATES_PORTABLE_STATIC_ASSERT(condition, message) static_assert(condition, PREDICATES_TOKEN_TO_STRING(message))
+namespace  predicates {
 namespace stdx {
 	using std::array;
 	using std::copy_n;
 }
 #else
+namespace  predicates {
 namespace stdx {
 	// array
 	template<typename T, size_t N>
