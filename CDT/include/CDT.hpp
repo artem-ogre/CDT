@@ -233,9 +233,8 @@ TriInd Triangulation<T>::addTriangle()
 {
     if(m_dummyTris.empty())
     {
-        const Triangle dummy = {
-            {noVertex, noVertex, noVertex},
-            {noNeighbor, noNeighbor, noNeighbor}};
+        const Triangle dummy = {{noVertex, noVertex, noVertex},
+                                {noNeighbor, noNeighbor, noNeighbor}};
         triangles.push_back(dummy);
         return TriInd(triangles.size() - 1);
     }
@@ -373,8 +372,8 @@ tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
 template <typename T>
 void Triangulation<T>::addSuperTriangle(const Box2d<T>& box)
 {
-    const V2d<T> center = {
-        (box.min.x + box.max.x) / T(2), (box.min.y + box.max.y) / T(2)};
+    const V2d<T> center = {(box.min.x + box.max.x) / T(2),
+                           (box.min.y + box.max.y) / T(2)};
     const T w = box.max.x - box.min.x;
     const T h = box.max.y - box.min.y;
     T r = std::sqrt(w * w + h * h) / 2.0; // incircle radius
@@ -387,9 +386,8 @@ void Triangulation<T>::addSuperTriangle(const Box2d<T>& box)
     vertices.push_back(Vertex<T>::make(posV1, TriInd(0)));
     vertices.push_back(Vertex<T>::make(posV2, TriInd(0)));
     vertices.push_back(Vertex<T>::make(posV3, TriInd(0)));
-    const Triangle superTri = {
-        {VertInd(0), VertInd(1), VertInd(2)},
-        {noNeighbor, noNeighbor, noNeighbor}};
+    const Triangle superTri = {{VertInd(0), VertInd(1), VertInd(2)},
+                               {noNeighbor, noNeighbor, noNeighbor}};
     addTriangle(superTri);
 #ifdef CDT_USE_BOOST
     if(m_closestPtMode == FindingClosestPoint::BoostRTree)
@@ -930,7 +928,7 @@ DuplicatesInfo RemoveDuplicatesAndRemapEdges(
     return duplicateVertices;
 }
 
-template <typename T>
+CDT_INLINE_IF_HEADER_ONLY
 TriIndUSet PeelLayer(
     std::stack<TriInd> seeds,
     const TriangleVec& triangles,
@@ -978,7 +976,7 @@ std::vector<unsigned short> CalculateTriangleDepths(
     do
     {
         const TriIndUSet& newSeeds =
-            PeelLayer<T>(seeds, triangles, fixedEdges, layerDepth++, triDepths);
+            PeelLayer(seeds, triangles, fixedEdges, layerDepth++, triDepths);
         seeds = std::stack<TriInd>(TriDeque(newSeeds.begin(), newSeeds.end()));
     } while(!seeds.empty());
 

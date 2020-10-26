@@ -67,6 +67,27 @@ if(CDT_USE_AS_COMPILED_LIBRARY)
         include/predicates.h
     )
     add_library(${PROJECT_NAME} ${cdt_sources} ${cdt_headers})
+    # Set symbols visibility to hidden by default
+    set_target_properties(
+        ${PROJECT_NAME}
+        PROPERTIES
+            VERSION ${PROJECT_VERSION}
+            SOVERSION ${PROJECT_VERSION}
+            CXX_VISIBILITY_PRESET hidden
+            VISIBILITY_INLINES_HIDDEN 1
+    )
+    # Generate export header and add it to include directories
+    include(GenerateExportHeader)
+    generate_export_header(${PROJECT_NAME})
+    target_include_directories(
+        ${PROJECT_NAME} ${cdt_scope}
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    )
+    target_sources(
+        ${PROJECT_NAME} ${cdt_scope}
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/cdt_export.h>
+    )
+
 else()
     set(cdt_scope INTERFACE)
     add_library(${PROJECT_NAME} INTERFACE)
@@ -116,6 +137,12 @@ install(
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+install(
+  FILES
+      $<$<BOOL:${CDT_USE_AS_COMPILED_LIBRARY}>:${CMAKE_BINARY_DIR}/cdt_export.h>
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 install(EXPORT ${PROJECT_NAME}Config NAMESPACE CDT:: DESTINATION cmake)

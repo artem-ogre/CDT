@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
- /**
+/**
  * @file
  * Explicit template instantiations for `float` and `double` coordinate types.
  *
@@ -16,25 +16,37 @@
 #include "CDT.hpp"
 #include "CDTUtils.hpp"
 
-template class CDT::Triangulation<float>;
-template class CDT::Triangulation<double>;
-template struct CDT::V2d<float>;
-template struct CDT::V2d<double>;
-template struct CDT::Box2d<float>;
-template struct CDT::Box2d<double>;
-template struct CDT::Vertex<float>;
-template struct CDT::Vertex<double>;
+namespace CDT
+{
 
-template std::vector<std::size_t>
-CDT::RemoveDuplicates<float>(std::vector<V2d<float> >&);
-template std::vector<std::size_t>
-CDT::RemoveDuplicates<double>(std::vector<V2d<double> >&);
+template class Triangulation<float>;
+template class Triangulation<double>;
+template struct V2d<float>;
+template struct V2d<double>;
+template struct Box2d<float>;
+template struct Box2d<double>;
+template struct Vertex<float>;
+template struct Vertex<double>;
 
-template std::vector<std::size_t> CDT::RemoveDuplicatesAndRemapEdges<float>(
-    std::vector<CDT::V2d<float> >&,
-    std::vector<CDT::Edge>&);
-template std::vector<std::size_t> CDT::RemoveDuplicatesAndRemapEdges<double>(
-    std::vector<CDT::V2d<double> >&,
-    std::vector<CDT::Edge>&);
+template DuplicatesInfo RemoveDuplicates<float>(std::vector<V2d<float> >&);
+template DuplicatesInfo RemoveDuplicates<double>(std::vector<V2d<double> >&);
+
+template DuplicatesInfo RemoveDuplicatesAndRemapEdges<float>(
+    std::vector<V2d<float> >&,
+    std::vector<Edge>&);
+template DuplicatesInfo RemoveDuplicatesAndRemapEdges<double>(
+    std::vector<V2d<double> >&,
+    std::vector<Edge>&);
+
+template std::vector<unsigned short> CalculateTriangleDepths(
+    const std::vector<Vertex<float> >& vertices,
+    const TriangleVec& triangles,
+    const EdgeUSet& fixedEdges);
+template std::vector<unsigned short> CalculateTriangleDepths(
+    const std::vector<CDT::Vertex<double> >& vertices,
+    const TriangleVec& triangles,
+    const EdgeUSet& fixedEdges);
+
+} // namespace CDT
 
 #endif
