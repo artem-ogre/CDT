@@ -36,7 +36,7 @@ typedef char couldnt_parse_cxx_standard[-1]; ///< Error: couldn't parse standard
  * avoid multiple declaration errors.
  */
 #define CDT_INLINE_IF_HEADER_ONLY inline
-// Export not needed in header-only mode
+/// Export not needed in header-only mode
 #define CDT_EXPORT
 #endif
 
