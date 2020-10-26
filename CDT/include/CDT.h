@@ -26,7 +26,7 @@ namespace CDT
 {
 
 /// Enum of strategies for finding closest point to the newly inserted one
-struct FindingClosestPoint
+struct CDT_EXPORT FindingClosestPoint
 {
     /**
      * The Enum itself
@@ -52,7 +52,7 @@ const static VertInd noVertex(std::numeric_limits<std::size_t>::max());
  * @tparam T type of vertex coordinates (e.g., float, double)
  */
 template <typename T>
-class Triangulation
+class CDT_EXPORT Triangulation
 {
 public:
     typedef std::vector<Vertex<T> > VertexVec; ///< Vertices vector
@@ -154,7 +154,7 @@ private:
  * @note vertices {0,1,2,3,4} where 0 and 3 are the same will produce mapping
  *       {0,1,2,0,3} (to new vertices {0,1,2,3}) and duplicates {3}
  */
-struct DuplicatesInfo
+struct CDT_EXPORT DuplicatesInfo
 {
     std::vector<std::size_t> mapping;    ///< vertex index mapping
     std::vector<std::size_t> duplicates; ///< duplicates' indices
@@ -162,13 +162,13 @@ struct DuplicatesInfo
 
 /**
  * Remove duplicated points in-place
- * 
+ *
  * @tparam T type of vertex coordinates (e.g., float, double)
  * @param[in, out] vertices collection of vertices to remove duplicates from
  * @returns information about duplicated vertices that were removed.
  */
 template <typename T>
-DuplicatesInfo RemoveDuplicates(std::vector<V2d<T> >& vertices);
+CDT_EXPORT DuplicatesInfo RemoveDuplicates(std::vector<V2d<T> >& vertices);
 
 /**
  * Remap vertex indices in edges (in-place) using given vertex-index mapping.
@@ -177,9 +177,8 @@ DuplicatesInfo RemoveDuplicates(std::vector<V2d<T> >& vertices);
  * @param[in,out] edges collection of edges to remap
  * @param mapping vertex-index mapping
  */
-void RemapEdges(
-    std::vector<Edge>& edges,
-    const std::vector<std::size_t>& mapping);
+CDT_EXPORT void
+RemapEdges(std::vector<Edge>& edges, const std::vector<std::size_t>& mapping);
 
 /**
  * Same as a chained call of @ref RemoveDuplicates + @ref RemapEdges
@@ -189,7 +188,7 @@ void RemapEdges(
  * @param[in,out] edges collection of edges to remap
  */
 template <typename T>
-DuplicatesInfo RemoveDuplicatesAndRemapEdges(
+CDT_EXPORT DuplicatesInfo RemoveDuplicatesAndRemapEdges(
     std::vector<V2d<T> >& vertices,
     std::vector<Edge>& edges);
 
@@ -211,7 +210,7 @@ DuplicatesInfo RemoveDuplicatesAndRemapEdges(
  * @return vector where element at index i stores depth of i-th triangle
  */
 template <typename T>
-std::vector<unsigned short> CalculateTriangleDepths(
+CDT_EXPORT std::vector<unsigned short> CalculateTriangleDepths(
     const std::vector<Vertex<T> >& vertices,
     const TriangleVec& triangles,
     const EdgeUSet& fixedEdges);
@@ -233,7 +232,7 @@ std::vector<unsigned short> CalculateTriangleDepths(
  * @return triangles of the next layer that are adjacent to the peeled layer.
  *         To be used as seeds when peeling the next layer.
  */
-template <typename T>
+CDT_EXPORT
 TriIndUSet PeelLayer(
     std::stack<TriInd> seeds,
     const TriangleVec& triangles,
