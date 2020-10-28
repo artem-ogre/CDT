@@ -78,6 +78,3 @@ moc_*.h
 
 # CLion
 *.idea*
-
-# CMake build
-*build*

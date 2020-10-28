@@ -33,6 +33,7 @@ class CDTConan(ConanFile):
         cmake = CMake(self)
         cmake.definitions["CDT_USE_BOOST"] = self.options.use_boost
         cmake.definitions["CDT_USE_AS_COMPILED_LIBRARY"] = self.options.as_compiled_library
+        cmake.definitions["CMAKE_PROJECT_CDT_INCLUDE"] = "conan_basic_setup.cmake"
         cmake.configure()
         return cmake
 

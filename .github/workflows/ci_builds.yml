@@ -1,0 +1,51 @@
+name: CI Builds
+
+on: [push]
+
+jobs:
+  ci_workflow_test:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: "Windows", 
+            os: windows-latest
+          }
+        - {
+            name: "Ubuntu", 
+            os: ubuntu-latest
+          }
+        - {
+            name: "macOS", 
+            os: macos-latest
+          }
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install Conan
+      run: |
+        python -m pip install --upgrade pip
+        pip install conan
+        conan --version
+    
+    - name: "Build: compiled, shared, boost"
+      run: conan create CDT/ -o as_compiled_library=True -o shared=True -o use_boost=True
+    - name: "Build: compiled, shared, without boost"
+      run: conan create CDT/ -o as_compiled_library=True -o shared=True -o use_boost=False
+    - name: "Build: compiled, static, boost"
+      run: conan create CDT/ -o as_compiled_library=True -o use_boost=True
+    - name: "Build: compiled, static, without boost"
+      run: conan create CDT/ -o as_compiled_library=True -o use_boost=False
+    - name: "Build: header-only, boost"
+      run: conan create CDT/ -o use_boost=True
+    - name: "Build: header-only, without boost"
+      run: conan create CDT/ -o use_boost=False
