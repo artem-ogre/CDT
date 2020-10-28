@@ -28,16 +28,17 @@ option(CDT_USE_AS_COMPILED_LIBRARY
 
 # check if Boost is needed
 if(cxx_std_11 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
-    # options
-    option(CDT_USE_BOOST
-        "If enabled Boost::rtree can be used for finding the nearest point; boost::flat_set is used for better performance"
-        OFF)
-    message(STATUS "CDT_USE_BOOST is ${CDT_USE_BOOST}")
+    # Work-around as AppleClang 11 defaults to c++98 by default
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+        message(STATUS "AppleClang work-around: set CMAKE_CXX_STANDARD to 11")
+        set(CMAKE_CXX_STANDARD 11)
+    endif (APPLE)
 else()
     message(STATUS "Compiler does not support C++11: falling back to Boost")
     set(CDT_USE_BOOST ON)
 endif()
 
+message(STATUS "CDT_USE_BOOST is ${CDT_USE_BOOST}")
 message(STATUS "CDT_USE_AS_COMPILED_LIBRARY is ${CDT_USE_AS_COMPILED_LIBRARY}")
 
 # Use boost for c++98 versions of c++11 containers or for Boost::rtree

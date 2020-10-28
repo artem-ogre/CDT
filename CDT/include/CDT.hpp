@@ -10,6 +10,7 @@
 #include "CDT.h"
 
 #include "remove_at.hpp"
+#include <stdexcept>
 #include <algorithm>
 
 #ifdef CDT_CXX11_IS_SUPPORTED

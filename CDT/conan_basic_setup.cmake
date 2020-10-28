@@ -1,0 +1,5 @@
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/conanbuildinfo.cmake")
+    message(STATUS "Detected Conan build: perform conan setup")
+    include("${CMAKE_CURRENT_SOURCE_DIR}/conanbuildinfo.cmake")
+    conan_basic_setup()
+endif()
