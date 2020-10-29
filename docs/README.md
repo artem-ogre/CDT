@@ -2,12 +2,14 @@
 
 # CDT: Constrained Delaunay Triangulation
 
+![CI Builds](https://github.com/artem-ogre/CDT/workflows/CI%20Builds/badge.svg)
+
 Numerically robust C++ implementation of constrained Delaunay triangulation (CDT)
 - uses robust geometric predicates for numerical robustness
 - can be consumed as header-only (default) or compiled (if `CDT_USE_AS_COMPILED_LIBRARY` is defined)
 - permissively-licensed (MPL-2.0)
 - backwards-compatible with C++03
-- cross-platform: tested on Windows and Linux
+- cross-platform: tested on Windows, Linux (Ubuntu), and macOS
 
 **Please ★ this repository if it helped. This means a lot to the authors :)**
 
@@ -69,6 +71,11 @@ cmake --build . && cmake --install .
 # In consuming CMakeLists.txt
 find_package(CDT REQUIRED CONFIG)
 ```
+
+**Consume as [Conan](https://conan.io/) package**
+
+There's a `conanfile.py` recipe provided. 
+Note that it might need small adjustments like changing boost version to fit your needs.
 
 ## <a name="details"/>Details</a>
 
