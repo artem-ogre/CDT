@@ -377,10 +377,10 @@ void Triangulation<T>::addSuperTriangle(const Box2d<T>& box)
                            (box.min.y + box.max.y) / T(2)};
     const T w = box.max.x - box.min.x;
     const T h = box.max.y - box.min.y;
-    T r = std::sqrt(w * w + h * h) / 2.0; // incircle radius
-    r *= 1.1;
-    const T R = 2.0 * r;                        // excircle radius
-    const T shiftX = R * std::sqrt(T(3)) / 2.0; // R * cos(30 deg)
+    T r = std::sqrt(w * w + h * h) / T(2); // incircle radius
+    r *= T(1.1);
+    const T R = T(2) * r;                        // excircle radius
+    const T shiftX = R * std::sqrt(T(3)) / T(2); // R * cos(30 deg)
     const V2d<T> posV1 = {center.x - shiftX, center.y - r};
     const V2d<T> posV2 = {center.x + shiftX, center.y - r};
     const V2d<T> posV3 = {center.x, center.y + R};
