@@ -27,7 +27,11 @@ class CDTConan(ConanFile):
 
     def requirements(self):
         if self.options.use_boost:
-            self.requires.add("boost/1.69.0")
+            self.requires.add("boost/1.71.0")
+
+    def configure(self):
+        if self.options.use_boost:
+            self.options["boost"].header_only = True
 
     def _configure_cmake(self):
         cmake = CMake(self)
