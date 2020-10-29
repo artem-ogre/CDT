@@ -2,7 +2,7 @@
 
 # CDT: Constrained Delaunay Triangulation
 
-![CI Builds](https://github.com/artem-ogre/CDT/workflows/CI%20Builds/badge.svg)
+[![CI Builds](https://github.com/artem-ogre/CDT/workflows/CI%20Builds/badge.svg)](https://github.com/artem-ogre/CDT/actions/)
 
 Numerically robust C++ implementation of constrained Delaunay triangulation (CDT)
 - uses robust geometric predicates for numerical robustness
