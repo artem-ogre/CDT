@@ -40,12 +40,36 @@ namespace  predicates {
 	//@note : these are provided primarily for illustrative purposes and adaptive routines should be preferred
 	namespace exact {
 		//@brief   : determine if the 2d point c is above, on, or below the line defined by a and b
+		//@param ax: X-coordinate of a
+		//@param ay: Y-coordinate of a
+		//@param bx: X-coordinate of b
+		//@param by: Y-coordinate of b
+		//@param cx: X-coordinate of c
+		//@param cy: Y-coordinate of c
+		//@return  : determinant of {{ax - cx, ay - cy}, {bx - cx, by - cy}}
+		//@note    : positive, 0, negative result for c above, on, or below the line defined by a -> b
+		template <typename T> T orient2d(T const ax, T const ay, T const bx, T const by, T const cx, T const cy);
+
+		//@brief   : determine if the 2d point c is above, on, or below the line defined by a and b
 		//@param pa: pointer to a as {x, y}
 		//@param pb: pointer to b as {x, y}
 		//@param pc: pointer to c as {x, y}
 		//@return  : determinant of {{ax - cx, ay - cy}, {bx - cx, by - cy}}
 		//@note    : positive, 0, negative result for c above, on, or below the line defined by a -> b
 		template <typename T> T orient2d(T const*const pa, T const*const pb, T const*const pc);
+
+		//@brief   : determine if the 2d point d is inside, on, or outside the circle defined by a, b, and c
+		//@param ax: X-coordinate of a
+		//@param ay: Y-coordinate of a
+		//@param bx: X-coordinate of b
+		//@param by: Y-coordinate of b
+		//@param cx: X-coordinate of c
+		//@param cy: Y-coordinate of c
+		//@param dx: X-coordinate of d
+		//@param dy: Y-coordinate of d
+		//@return  : determinant of {{ax - dx, ay - dy, (ax - dx)^2 + (ay - dy)^2}, {bx - dx, by - dy, (bx - dx)^2 + (by - dy)^2}, {cx - dx, cy - dy, (cx - dx)^2 + (cy - dy)^2}}
+		//@note    : positive, 0, negative result for d inside, on, or outside the circle defined by a, b, and c
+		template <typename T> T incircle(T const ax, T const ay, T const bx, T const by, T const cx, T const cy, T const dx, T const dy);
 
 		//@brief   : determine if the 2d point d is inside, on, or outside the circle defined by a, b, and c
 		//@param pa: pointer to a as {x, y}
@@ -80,12 +104,36 @@ namespace  predicates {
 	//@note : these should have the same accuracy but are significantly faster when determinants are large
 	namespace adaptive {
 		//@brief   : determine if the 2d point c is above, on, or below the line defined by a and b
+		//@param ax: X-coordinate of a
+		//@param ay: Y-coordinate of a
+		//@param bx: X-coordinate of b
+		//@param by: Y-coordinate of b
+		//@param cx: X-coordinate of c
+		//@param cy: Y-coordinate of c
+		//@return  : determinant of {{ax - cx, ay - cy}, {bx - cx, by - cy}}
+		//@note    : positive, 0, negative result for c above, on, or below the line defined by a -> b
+		template <typename T> T orient2d(T const ax, T const ay, T const bx, T const by, T const cx, T const cy);
+
+		//@brief   : determine if the 2d point c is above, on, or below the line defined by a and b
 		//@param pa: pointer to a as {x, y}
 		//@param pb: pointer to b as {x, y}
 		//@param pc: pointer to c as {x, y}
 		//@return  : determinant of {{ax - cx, ay - cy}, {bx - cx, by - cy}}
 		//@note    : positive, 0, negative result for c above, on, or below the line defined by a -> b
 		template <typename T> T orient2d(T const*const pa, T const*const pb, T const*const pc);
+
+		//@brief   : determine if the 2d point d is inside, on, or outside the circle defined by a, b, and c
+		//@param ax: X-coordinate of a
+		//@param ay: Y-coordinate of a
+		//@param bx: X-coordinate of b
+		//@param by: Y-coordinate of b
+		//@param cx: X-coordinate of c
+		//@param cy: Y-coordinate of c
+		//@param dx: X-coordinate of d
+		//@param dy: Y-coordinate of d
+		//@return  : determinant of {{ax - dx, ay - dy, (ax - dx)^2 + (ay - dy)^2}, {bx - dx, by - dy, (bx - dx)^2 + (by - dy)^2}, {cx - dx, cy - dy, (cx - dx)^2 + (cy - dy)^2}}
+		//@note    : positive, 0, negative result for d inside, on, or outside the circle defined by a, b, and c
+		template <typename T> T incircle(T const ax, T const ay, T const bx, T const by, T const cx, T const cy, T const dx, T const dy);
 
 		//@brief   : determine if the 2d point d is inside, on, or outside the circle defined by a, b, and c
 		//@param pa: pointer to a as {x, y}
@@ -434,47 +482,43 @@ namespace detail {
 }
 
 	namespace exact {
-		//@brief   : determine if the 2d point c is above, on, or below the line defined by a and b
-		//@param pa: pointer to a as {x, y}
-		//@param pb: pointer to b as {x, y}
-		//@param pc: pointer to c as {x, y}
-		//@return  : determinant of {{ax - cx, ay - cy}, {bx - cx, by - cy}}
-		//@note    : positive, 0, negative result for c above, on, or below the line defined by a -> b
-		template <typename T> T orient2d(T const*const pa, T const*const pb, T const*const pc) {
-			const detail::Expansion<T, 4> aterms = detail::ExpansionBase<T>::TwoTwoDiff(pa[0], pb[1], pa[0], pc[1]);
-			const detail::Expansion<T, 4> bterms = detail::ExpansionBase<T>::TwoTwoDiff(pb[0], pc[1], pb[0], pa[1]);
-			const detail::Expansion<T, 4> cterms = detail::ExpansionBase<T>::TwoTwoDiff(pc[0], pa[1], pc[0], pb[1]);
+		template <typename T> T orient2d(T const ax, T const ay, T const bx, T const by, T const cx, T const cy)
+		{
+			const detail::Expansion<T, 4> aterms = detail::ExpansionBase<T>::TwoTwoDiff(ax, by, ax, cy);
+			const detail::Expansion<T, 4> bterms = detail::ExpansionBase<T>::TwoTwoDiff(bx, cy, bx, ay);
+			const detail::Expansion<T, 4> cterms = detail::ExpansionBase<T>::TwoTwoDiff(cx, ay, cx, by);
 			const detail::Expansion<T, 12> w = aterms + bterms + cterms;
 			return w.mostSignificant();
 		}
 
-		//@brief   : determine if the 2d point d is inside, on, or outside the circle defined by a, b, and c
-		//@param pa: pointer to a as {x, y}
-		//@param pb: pointer to b as {x, y}
-		//@param pc: pointer to c as {x, y}
-		//@param pc: pointer to d as {x, y}
-		//@return  : determinant of {{ax - dx, ay - dy, (ax - dx)^2 + (ay - dy)^2}, {bx - dx, by - dy, (bx - dx)^2 + (by - dy)^2}, {cx - dx, cy - dy, (cx - dx)^2 + (cy - dy)^2}}
-		//@note    : positive, 0, negative result for d inside, on, or outside the circle defined by a, b, and c
-		template <typename T> T incircle(T const*const pa, T const*const pb, T const*const pc, T const*const pd) {
-			const detail::Expansion<T, 4> ab = detail::ExpansionBase<T>::TwoTwoDiff(pa[0], pb[1], pb[0], pa[1]);
-			const detail::Expansion<T, 4> bc = detail::ExpansionBase<T>::TwoTwoDiff(pb[0], pc[1], pc[0], pb[1]);
-			const detail::Expansion<T, 4> cd = detail::ExpansionBase<T>::TwoTwoDiff(pc[0], pd[1], pd[0], pc[1]);
-			const detail::Expansion<T, 4> da = detail::ExpansionBase<T>::TwoTwoDiff(pd[0], pa[1], pa[0], pd[1]);
-			const detail::Expansion<T, 4> ac = detail::ExpansionBase<T>::TwoTwoDiff(pa[0], pc[1], pc[0], pa[1]);
-			const detail::Expansion<T, 4> bd = detail::ExpansionBase<T>::TwoTwoDiff(pb[0], pd[1], pd[0], pb[1]);
+		template <typename T> T orient2d(T const*const pa, T const*const pb, T const*const pc) {
+			return orient2d(pa[0], pa[1], pb[0], pb[1], pc[0], pc[1]);
+		}
+
+		template <typename T> T incircle(T const ax, T const ay, T const bx, T const by, T const cx, T const cy, T const dx, T const dy) {
+			const detail::Expansion<T, 4> ab = detail::ExpansionBase<T>::TwoTwoDiff(ax, by, bx, ay);
+			const detail::Expansion<T, 4> bc = detail::ExpansionBase<T>::TwoTwoDiff(bx, cy, cx, by);
+			const detail::Expansion<T, 4> cd = detail::ExpansionBase<T>::TwoTwoDiff(cx, dy, dx, cy);
+			const detail::Expansion<T, 4> da = detail::ExpansionBase<T>::TwoTwoDiff(dx, ay, ax, dy);
+			const detail::Expansion<T, 4> ac = detail::ExpansionBase<T>::TwoTwoDiff(ax, cy, cx, ay);
+			const detail::Expansion<T, 4> bd = detail::ExpansionBase<T>::TwoTwoDiff(bx, dy, dx, by);
 
 			const detail::Expansion<T, 12> abc = ab + bc - ac;
 			const detail::Expansion<T, 12> bcd = bc + cd - bd;
 			const detail::Expansion<T, 12> cda = cd + da + ac;
 			const detail::Expansion<T, 12> dab = da + ab + bd;
 
-			const detail::Expansion<T, 96> adet = bcd * pa[0] *  pa[0] + bcd * pa[1] *  pa[1];
-			const detail::Expansion<T, 96> bdet = cda * pb[0] * -pb[0] + cda * pb[1] * -pb[1];
-			const detail::Expansion<T, 96> cdet = dab * pc[0] *  pc[0] + dab * pc[1] *  pc[1];
-			const detail::Expansion<T, 96> ddet = abc * pd[0] * -pd[0] + abc * pd[1] * -pd[1];
+			const detail::Expansion<T, 96> adet = bcd * ax *  ax + bcd * ay *  ay;
+			const detail::Expansion<T, 96> bdet = cda * bx * -bx + cda * by * -by;
+			const detail::Expansion<T, 96> cdet = dab * cx *  cx + dab * cy *  cy;
+			const detail::Expansion<T, 96> ddet = abc * dx * -dx + abc * dy * -dy;
 
 			const detail::Expansion<T, 384> deter = (adet + bdet) + (cdet + ddet);
 			return deter.mostSignificant();
+		}
+
+		template <typename T> T incircle(T const*const pa, T const*const pb, T const*const pc, T const*const pd) {
+			return incircle(pa[0], pa[1], pb[0], pb[1], pc[0], pc[1], pd[0], pd[1]);
 		}
 
 		//@brief   : determine if the 3d point d is above, on, or below the plane defined by a, b, and c
@@ -592,17 +636,11 @@ namespace detail {
 	template <typename T> const T Constants<T>::isperrboundC   = (T(71) + T(1408) * Epsilon<T>()) * Epsilon<T>() * Epsilon<T>();
 
 	namespace adaptive {
-		//@brief   : determine if the 2d point c is above, on, or below the line defined by a and b
-		//@param pa: pointer to a as {x, y}
-		//@param pb: pointer to b as {x, y}
-		//@param pc: pointer to c as {x, y}
-		//@return  : determinant of {{ax - cx, ay - cy}, {bx - cx, by - cy}}
-		//@note    : positive, 0, negative result for c above, on, or below the line defined by a -> b
-		template <typename T> T orient2d(T const*const pa, T const*const pb, T const*const pc) {
-			const T acx = pa[0] - pc[0];
-			const T bcx = pb[0] - pc[0];
-			const T acy = pa[1] - pc[1];
-			const T bcy = pb[1] - pc[1];
+		template <typename T> T orient2d(T const ax, T const ay, T const bx, T const by, T const cx, T const cy) {
+			const T acx = ax - cx;
+			const T bcx = bx - cx;
+			const T acy = ay - cy;
+			const T bcy = by - cy;
 			const T detleft = acx * bcy;
 			const T detright = acy * bcx;
 			T det = detleft - detright;
@@ -618,10 +656,10 @@ namespace detail {
 			errbound = Constants<T>::ccwerrboundB * detsum;
 			if(std::abs(det) >= std::abs(errbound)) return det;
 
-			const T acxtail = detail::ExpansionBase<T>::MinusTail(pa[0], pc[0], acx);
-			const T bcxtail = detail::ExpansionBase<T>::MinusTail(pb[0], pc[0], bcx);
-			const T acytail = detail::ExpansionBase<T>::MinusTail(pa[1], pc[1], acy);
-			const T bcytail = detail::ExpansionBase<T>::MinusTail(pb[1], pc[1], bcy);
+			const T acxtail = detail::ExpansionBase<T>::MinusTail(ax, cx, acx);
+			const T bcxtail = detail::ExpansionBase<T>::MinusTail(bx, cx, bcx);
+			const T acytail = detail::ExpansionBase<T>::MinusTail(ay, cy, acy);
+			const T bcytail = detail::ExpansionBase<T>::MinusTail(by, cy, bcy);
 			if(T(0) == acxtail && T(0) == bcxtail && T(0) == acytail && T(0) == bcytail) return det;
 
 			errbound = Constants<T>::ccwerrboundC * detsum + Constants<T>::resulterrbound * std::abs(det);
@@ -632,20 +670,17 @@ namespace detail {
 			return D.mostSignificant();
 		}
 
-		//@brief   : determine if the 2d point d is inside, on, or outside the circle defined by a, b, and c
-		//@param pa: pointer to a as {x, y}
-		//@param pb: pointer to b as {x, y}
-		//@param pc: pointer to c as {x, y}
-		//@param pc: pointer to d as {x, y}
-		//@return  : determinant of {{ax - dx, ay - dy, (ax - dx)^2 + (ay - dy)^2}, {bx - dx, by - dy, (bx - dx)^2 + (by - dy)^2}, {cx - dx, cy - dy, (cx - dx)^2 + (cy - dy)^2}}
-		//@note    : positive, 0, negative result for d inside, on, or outside the circle defined by a, b, and c
-		template <typename T> T incircle(T const*const pa, T const*const pb, T const*const pc, T const*const pd) {
-			const T adx = pa[0] - pd[0];
-			const T bdx = pb[0] - pd[0];
-			const T cdx = pc[0] - pd[0];
-			const T ady = pa[1] - pd[1];
-			const T bdy = pb[1] - pd[1];
-			const T cdy = pc[1] - pd[1];
+		template <typename T> T orient2d(T const*const pa, T const*const pb, T const*const pc) {
+			return orient2d(pa[0], pa[1], pb[0], pb[1], pc[0], pc[1]);
+		}
+
+		template <typename T> T incircle(T const ax, T const ay, T const bx, T const by, T const cx, T const cy, T const dx, T const dy) {
+			const T adx = ax - dx;
+			const T bdx = bx - dx;
+			const T cdx = cx - dx;
+			const T ady = ay - dy;
+			const T bdy = by - dy;
+			const T cdy = cy - dy;
 			const T bdxcdy = bdx * cdy;
 			const T cdxbdy = cdx * bdy;
 			const T cdxady = cdx * ady;
@@ -673,12 +708,12 @@ namespace detail {
 			errbound = Constants<T>::iccerrboundB * permanent;
 			if(std::abs(det) >= std::abs(errbound)) return det;
 
-			const T adxtail = detail::ExpansionBase<T>::MinusTail(pa[0], pd[0], adx);
-			const T adytail = detail::ExpansionBase<T>::MinusTail(pa[1], pd[1], ady);
-			const T bdxtail = detail::ExpansionBase<T>::MinusTail(pb[0], pd[0], bdx);
-			const T bdytail = detail::ExpansionBase<T>::MinusTail(pb[1], pd[1], bdy);
-			const T cdxtail = detail::ExpansionBase<T>::MinusTail(pc[0], pd[0], cdx);
-			const T cdytail = detail::ExpansionBase<T>::MinusTail(pc[1], pd[1], cdy);
+			const T adxtail = detail::ExpansionBase<T>::MinusTail(ax, dx, adx);
+			const T adytail = detail::ExpansionBase<T>::MinusTail(ay, dy, ady);
+			const T bdxtail = detail::ExpansionBase<T>::MinusTail(bx, dx, bdx);
+			const T bdytail = detail::ExpansionBase<T>::MinusTail(by, dy, bdy);
+			const T cdxtail = detail::ExpansionBase<T>::MinusTail(cx, dx, cdx);
+			const T cdytail = detail::ExpansionBase<T>::MinusTail(cy, dy, cdy);
 			if(T(0) == adxtail && T(0) == bdxtail && T(0) == cdxtail && T(0) == adytail && T(0) == bdytail && T(0) == cdytail) return det;
 
 			errbound = Constants<T>::iccerrboundC * permanent + Constants<T>::resulterrbound * std::abs(det);
@@ -689,7 +724,11 @@ namespace detail {
 			    +  ((cdx * cdx + cdy * cdy) * ((adx * bdytail + bdy * adxtail) - (ady * bdxtail + bdx * adytail))
 			    +   (adx * bdy - ady * bdx) *  (cdx * cdxtail + cdy * cdytail) * T(2));
 			if(std::abs(det) >= std::abs(errbound)) return det;
-			return exact::incircle(pa, pb, pc, pd);
+			return exact::incircle(ax, ay, bx, by, cx, cy, dx, dy);
+		}
+
+		template <typename T> T incircle(T const*const pa, T const*const pb, T const*const pc, T const*const pd) {
+			return incircle(pa[0], pa[1], pb[0], pb[1], pc[0], pc[1], pd[0], pd[1]);
 		}
 
 		//@brief   : determine if the 3d point d is above, on, or below the plane defined by a, b, and c
