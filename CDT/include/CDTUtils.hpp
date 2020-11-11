@@ -20,12 +20,6 @@ namespace CDT
 // V2d
 //*****************************************************************************
 template <typename T>
-const T* V2d<T>::raw() const
-{
-    return &x;
-}
-
-template <typename T>
 V2d<T> V2d<T>::make(const T x, const T y)
 {
     V2d<T> out = {x, y};
@@ -156,7 +150,7 @@ PtLineLocation::Enum
 locatePointLine(const V2d<T>& p, const V2d<T>& v1, const V2d<T>& v2)
 {
     using namespace predicates::adaptive;
-    const T orientation = orient2d(v1.raw(), v2.raw(), p.raw());
+    const T orientation = orient2d(v1.x, v1.y, v2.x, v2.y, p.x, p.y);
     if(orientation < T(0))
         return PtLineLocation::Right;
     if(orientation == T(0))
@@ -283,7 +277,7 @@ bool isInCircumcircle(
     const V2d<T>& v3)
 {
     using namespace predicates::adaptive;
-    return incircle(v1.raw(), v2.raw(), v3.raw(), p.raw()) > T(0);
+    return incircle(v1.x, v1.y, v2.x, v2.y, v3.x, v3.y, p.x, p.y) > T(0);
 }
 
 template <typename T>

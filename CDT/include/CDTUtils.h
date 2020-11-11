@@ -98,8 +98,6 @@ struct CDT_EXPORT V2d
     T x; ///< X-coordinate
     T y; ///< Y-coordinate
 
-    /// Raw address getter to use as plain array T[3]
-    const T* raw() const;
     /// Create vector from X and Y coordinates
     static V2d make(const T x, const T y);
 };
