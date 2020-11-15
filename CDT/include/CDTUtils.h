@@ -102,12 +102,14 @@ struct CDT_EXPORT V2d
     static V2d make(const T x, const T y);
 };
 
+/// X- coordinate getter for V2d
 template <typename T>
 const T& getX_V2d(const V2d<T>& v)
 {
     return v.x;
 }
 
+/// Y-coordinate getter for V2d
 template <typename T>
 const T& getY_V2d(const V2d<T>& v)
 {
@@ -203,6 +205,18 @@ struct CDT_EXPORT Edge
 private:
     std::pair<VertInd, VertInd> m_vertices;
 };
+
+/// Get edge first vertex
+inline VertInd edge_get_v1(const Edge& e)
+{
+    return e.v1();
+}
+
+/// Get edge second vertex
+inline VertInd edge_get_v2(const Edge& e)
+{
+    return e.v2();
+}
 
 typedef unordered_set<Edge> EdgeUSet;             ///< Hash table of edges
 typedef unordered_set<TriInd> TriIndUSet;         ///< Hash table of triangles
