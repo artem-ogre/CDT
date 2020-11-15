@@ -9,26 +9,10 @@
 
 #include "CDT.h"
 
-#include "remove_at.hpp"
+#include "CDTUtils.h"
 #include <algorithm>
+#include <iterator>
 #include <stdexcept>
-
-#ifdef CDT_CXX11_IS_SUPPORTED
-namespace std
-{
-
-template <typename T>
-struct hash<CDT::V2d<T> >
-{
-    size_t operator()(const CDT::V2d<T>& xy) const
-    {
-        return hash<T>()(xy.x) ^ hash<T>()(xy.y);
-    }
-};
-
-} // namespace std
-
-#endif
 
 namespace CDT
 {
@@ -868,48 +852,17 @@ TriInd Triangulation<T>::pseudopolyOuterTriangle(
 template <typename T>
 void Triangulation<T>::insertVertices(const std::vector<V2d<T> >& newVertices)
 {
-    if(vertices.empty())
-        addSuperTriangle(Box2d<T>::envelop(newVertices));
-    vertices.reserve(vertices.size() + newVertices.size());
-    typedef typename std::vector<V2d<T> >::const_iterator Cit;
-    for(Cit it = newVertices.begin(); it != newVertices.end(); ++it)
-        insertVertex(*it);
+    return insertVertices(
+        newVertices.begin(), newVertices.end(), getX_V2d<T>, getY_V2d<T>);
 }
 
 template <typename T>
 DuplicatesInfo RemoveDuplicates(std::vector<V2d<T> >& vertices)
 {
-    typedef unordered_map<V2d<T>, std::size_t> PosToIndex;
-    PosToIndex uniqueVerts;
-    std::vector<std::size_t> mapping(vertices.size());
-    std::vector<std::size_t> removedDuplicateIndices;
-
-    for(std::size_t iIn = 0, iOut = iIn; iIn < vertices.size(); ++iIn)
-    {
-        typename PosToIndex::const_iterator it;
-        bool isUnique;
-        tie(it, isUnique) =
-            uniqueVerts.insert(std::make_pair(vertices[iIn], iOut));
-        if(isUnique)
-        {
-            mapping[iIn] = iOut++;
-            continue;
-        }
-        mapping[iIn] = it->second; // found a duplicate
-        removedDuplicateIndices.push_back(iIn);
-    }
-
-    // remove detected duplicates
-    vertices.erase(
-        remove_at(
-            vertices.begin(),
-            vertices.end(),
-            removedDuplicateIndices.begin(),
-            removedDuplicateIndices.end()),
-        vertices.end());
-
-    const DuplicatesInfo duplicateVertices = {mapping, removedDuplicateIndices};
-    return duplicateVertices;
+    const DuplicatesInfo di = FindDuplicates<T>(
+        vertices.begin(), vertices.end(), getX_V2d<T>, getY_V2d<T>);
+    RemoveDuplicates(vertices, di.duplicates);
+    return di;
 }
 
 CDT_INLINE_IF_HEADER_ONLY void
@@ -926,9 +879,8 @@ DuplicatesInfo RemoveDuplicatesAndRemapEdges(
     std::vector<V2d<T> >& vertices,
     std::vector<Edge>& edges)
 {
-    const DuplicatesInfo duplicateVertices = RemoveDuplicates(vertices);
-    RemapEdges(edges, duplicateVertices.mapping);
-    return duplicateVertices;
+    return RemoveDuplicatesAndRemapEdges<T>(
+        vertices, edges, getX_V2d<T>, getY_V2d<T>);
 }
 
 CDT_INLINE_IF_HEADER_ONLY

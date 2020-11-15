@@ -102,6 +102,18 @@ struct CDT_EXPORT V2d
     static V2d make(const T x, const T y);
 };
 
+template <typename T>
+const T& getX_V2d(const V2d<T>& v)
+{
+    return v.x;
+}
+
+template <typename T>
+const T& getY_V2d(const V2d<T>& v)
+{
+    return v.y;
+}
+
 /// If two 2D vectors are exactly equal
 template <typename T>
 CDT_EXPORT bool operator==(const CDT::V2d<T>& lhs, const CDT::V2d<T>& rhs)
@@ -135,10 +147,19 @@ struct CDT_EXPORT Box2d
 {
     V2d<T> min; ///< min box corner
     V2d<T> max; ///< max box corner
-
-    /// Bounding box of a collection of 2D points
-    static Box2d envelop(const std::vector<V2d<T> >& vertices);
 };
+
+/// Bounding box of a collection of custom 2D points given coordinate getters
+template <typename T, typename TVertexIter, typename TGetVertexCoord>
+Box2d<T> envelopBox(
+    TVertexIter first,
+    TVertexIter last,
+    TGetVertexCoord getX,
+    TGetVertexCoord getY);
+
+/// Bounding box of a collection of 2D points
+template <typename T>
+Box2d<T> envelopBox(const std::vector<V2d<T> >& vertices);
 
 /// Triangulation vertex
 template <typename T>
