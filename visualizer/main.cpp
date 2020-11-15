@@ -125,7 +125,7 @@ public slots:
         fout << m_cdt.vertices.size() << ' ' << m_cdt.triangles.size()
              << " 0\n";
         // Write vertices
-        const Box2d box = Box2d::envelop(m_points);
+        const Box2d box = envelopBox(m_points);
         const CoordType stZ =
             -std::fmax(box.max.x - box.min.x, box.max.y - box.min.y);
         std::size_t counter = 0;
@@ -251,7 +251,7 @@ private:
     }
     void initTransform()
     {
-        m_sceneBox = Box2d::envelop(m_points);
+        m_sceneBox = envelopBox(m_points);
         QPointF sceneCenter(
             (m_sceneBox.min.x + m_sceneBox.max.x) / CoordType(2),
             (m_sceneBox.min.y + m_sceneBox.max.y) / CoordType(2));

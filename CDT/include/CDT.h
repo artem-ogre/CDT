@@ -15,9 +15,12 @@
 #include "PointRTree.h"
 #endif
 
+#include "remove_at.hpp"
+
 #include <cassert>
 #include <cstdlib>
 #include <limits>
+#include <memory>
 #include <stack>
 #include <utility>
 #include <vector>
@@ -65,6 +68,22 @@ public:
     Triangulation(
         const FindingClosestPoint::Enum closestPtMode,
         const size_t nRandSamples = 10);
+    /**
+     * Insert custom point-types specified by iterator range and X/Y-getters
+     * @tparam TVertexIter iterator that dereferences to custom point type
+     * @tparam TGetVertexCoord function object getting coordinate from* vertex.
+     * Getter signature: const TVertexIter::value_type& -> T
+     * @param first beginning of the range of vertices to add
+     * @param last end of the range of vertices to add
+     * @param getX getter of X-coordinate
+     * @param getY getter of Y-coordinate
+     */
+    template <typename TVertexIter, typename TGetVertexCoord>
+    void insertVertices(
+        TVertexIter first,
+        TVertexIter last,
+        TGetVertexCoord getX,
+        TGetVertexCoord getY);
     /// Insert vertices into triangulation
     void insertVertices(const std::vector<V2d<T> >& vertices);
     /// Insert constraints (fixed edges) into triangulation
@@ -161,6 +180,37 @@ struct CDT_EXPORT DuplicatesInfo
 };
 
 /**
+ * Find duplicates in given custom point-type range
+ * @note duplicates are points with exactly same X and Y coordinates
+ * @tparam TVertexIter iterator that dereferences to custom point type
+ * @tparam TGetVertexCoord function object getting coordinate from* vertex.
+ * Getter signature: const TVertexIter::value_type& -> T
+ * @param first beginning of the range of vertices
+ * @param last end of the range of vertices
+ * @param getX getter of X-coordinate
+ * @param getY getter of Y-coordinate
+ * @returns information about vertex duplicates
+ */
+template <typename T, typename TVertexIter, typename TGetVertexCoord>
+CDT_EXPORT DuplicatesInfo FindDuplicates(
+    TVertexIter first,
+    TVertexIter last,
+    TGetVertexCoord getX,
+    TGetVertexCoord getY);
+
+/**
+ * Remove duplicates in-place from vector of custom points
+ * @tparam TVertexIter iterator that dereferences to custom point type
+ * @tparam TAllocator allocator used by input vector of vertices
+ * @param vertices vertices to remove duplicates from
+ * @param duplicates information about duplicates
+ */
+template <typename TVertex, typename TAllocator>
+CDT_EXPORT void RemoveDuplicates(
+    std::vector<TVertex, TAllocator>& vertices,
+    const std::vector<std::size_t>& duplicates);
+
+/**
  * Remove duplicated points in-place
  *
  * @tparam T type of vertex coordinates (e.g., float, double)
@@ -179,6 +229,32 @@ CDT_EXPORT DuplicatesInfo RemoveDuplicates(std::vector<V2d<T> >& vertices);
  */
 CDT_EXPORT void
 RemapEdges(std::vector<Edge>& edges, const std::vector<std::size_t>& mapping);
+
+/**
+ * Find point duplicates, remove them from vector (in-place) and remap edges
+ * (in-place)
+ * @note Same as a chained call of @ref FindDuplicates, @ref RemoveDuplicates,
+ * and @ref RemapEdges
+ * @tparam TVertexIter iterator that dereferences to custom point type
+ * @tparam TGetVertexCoord function object getting coordinate from* vertex.
+ * Getter signature: const TVertexIter::value_type& -> T
+ * @param[in, out] vertices vertices to remove duplicates from
+ * @param[in, out] edges collection of edges connecting vertices
+ * @param getX getter of X-coordinate
+ * @param getY getter of Y-coordinate
+ * @returns information about vertex duplicates
+ */
+template <
+    typename T,
+    typename TVertex,
+    typename TGetVertexCoord,
+    typename TVertexAllocator,
+    typename TEdgeAllocator>
+CDT_EXPORT DuplicatesInfo RemoveDuplicatesAndRemapEdges(
+    std::vector<TVertex, TVertexAllocator>& vertices,
+    std::vector<Edge, TEdgeAllocator>& edges,
+    TGetVertexCoord getX,
+    TGetVertexCoord getY);
 
 /**
  * Same as a chained call of @ref RemoveDuplicates + @ref RemapEdges
@@ -239,6 +315,113 @@ TriIndUSet PeelLayer(
     const EdgeUSet& fixedEdges,
     const unsigned short layerDepth,
     std::vector<unsigned short>& triDepths);
+
+} // namespace CDT
+
+//*****************************************************************************
+// Implementations of template functionlity
+//*****************************************************************************
+// hash for CDT::V2d<T>
+#ifdef CDT_CXX11_IS_SUPPORTED
+namespace std
+{
+template <typename T>
+struct hash<CDT::V2d<T> >
+{
+    size_t operator()(const CDT::V2d<T>& xy) const
+    {
+        return hash<T>()(xy.x) ^ hash<T>()(xy.y);
+    }
+};
+} // namespace std
+#endif
+
+namespace CDT
+{
+
+//-----------------------
+// Triangulation methods
+//-----------------------
+template <typename T>
+template <typename TVertexIter, typename TGetVertexCoord>
+void Triangulation<T>::insertVertices(
+    TVertexIter first,
+    const TVertexIter last,
+    TGetVertexCoord getX,
+    TGetVertexCoord getY)
+{
+    if(vertices.empty())
+        addSuperTriangle(envelopBox<T>(first, last, getX_V2d<T>, getY_V2d<T>));
+    vertices.reserve(vertices.size() + std::distance(first, last));
+    typedef typename std::vector<V2d<T> >::const_iterator Cit;
+    for(; first != last; ++first)
+        insertVertex(V2d<T>::make(getX(*first), getY(*first)));
+}
+
+//-----
+// API
+//-----
+template <typename T, typename TVertexIter, typename TGetVertexCoord>
+DuplicatesInfo FindDuplicates(
+    TVertexIter first,
+    TVertexIter last,
+    TGetVertexCoord getX,
+    TGetVertexCoord getY)
+{
+    typedef unordered_map<V2d<T>, std::size_t> PosToIndex;
+    PosToIndex uniqueVerts;
+    const std::size_t verticesSize = std::distance(first, last);
+    DuplicatesInfo di = {
+        std::vector<std::size_t>(verticesSize), std::vector<std::size_t>()};
+    for(std::size_t iIn = 0, iOut = iIn; iIn < verticesSize; ++iIn, ++first)
+    {
+        typename PosToIndex::const_iterator it;
+        bool isUnique;
+        tie(it, isUnique) = uniqueVerts.insert(
+            std::make_pair(V2d<T>::make(getX(*first), getY(*first)), iOut));
+        if(isUnique)
+        {
+            di.mapping[iIn] = iOut++;
+            continue;
+        }
+        di.mapping[iIn] = it->second; // found a duplicate
+        di.duplicates.push_back(iIn);
+    }
+    return di;
+}
+
+template <typename TVertex, typename TAllocator>
+void RemoveDuplicates(
+    std::vector<TVertex, TAllocator>& vertices,
+    const std::vector<std::size_t>& duplicates)
+{
+    vertices.erase(
+        remove_at(
+            vertices.begin(),
+            vertices.end(),
+            duplicates.begin(),
+            duplicates.end()),
+        vertices.end());
+}
+
+template <
+    typename T,
+    typename TVertex,
+    typename TGetVertexCoord,
+    typename TVertexAllocator,
+    typename TEdgeAllocator>
+DuplicatesInfo RemoveDuplicatesAndRemapEdges(
+    std::vector<TVertex, TVertexAllocator>& vertices,
+    std::vector<Edge, TEdgeAllocator>& edges,
+    TGetVertexCoord getX,
+    TGetVertexCoord getY)
+{
+    const DuplicatesInfo di =
+        FindDuplicates<T>(vertices.begin(), vertices.end(), getX, getY);
+    RemoveDuplicates(vertices, di.duplicates);
+    RemapEdges(edges, di.mapping);
+    return di;
+}
 
 } // namespace CDT
 

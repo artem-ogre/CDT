@@ -29,21 +29,31 @@ V2d<T> V2d<T>::make(const T x, const T y)
 //*****************************************************************************
 // Box2d
 //*****************************************************************************
-template <typename T>
-Box2d<T> Box2d<T>::envelop(const std::vector<V2d<T> >& vertices)
+
+template <typename T, typename TVertexIter, typename TGetVertexCoord>
+Box2d<T> envelopBox(
+    TVertexIter first,
+    TVertexIter last,
+    TGetVertexCoord getX,
+    TGetVertexCoord getY)
 {
     const T max = std::numeric_limits<T>::max();
     Box2d<T> box = {{max, max}, {-max, -max}};
-    typedef typename std::vector<V2d<T> >::const_iterator Cit;
-    for(Cit it = vertices.begin(); it != vertices.end(); ++it)
+    for(; first != last; ++first)
     {
-        const V2d<T>& v = *it;
-        box.min.x = std::min(v.x, box.min.x);
-        box.max.x = std::max(v.x, box.max.x);
-        box.min.y = std::min(v.y, box.min.y);
-        box.max.y = std::max(v.y, box.max.y);
+        box.min.x = std::min(getX(*first), box.min.x);
+        box.max.x = std::max(getX(*first), box.max.x);
+        box.min.y = std::min(getY(*first), box.min.y);
+        box.max.y = std::max(getY(*first), box.max.y);
     }
     return box;
+}
+
+template <typename T>
+Box2d<T> envelopBox(const std::vector<V2d<T> >& vertices)
+{
+    return envelopBox<T>(
+        vertices.begin(), vertices.end(), getX_V2d<T>, getY_V2d<T>);
 }
 
 //*****************************************************************************
