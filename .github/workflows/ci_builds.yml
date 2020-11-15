@@ -38,14 +38,14 @@ jobs:
         conan --version
     
     - name: "Build: compiled, shared, boost"
-      run: conan create CDT/ -o as_compiled_library=True -o shared=True -o use_boost=True
+      run: conan create CDT/ -o as_compiled_library=True -o shared=True -o use_boost=True --build missing
     - name: "Build: compiled, shared, without boost"
       run: conan create CDT/ -o as_compiled_library=True -o shared=True -o use_boost=False
     - name: "Build: compiled, static, boost"
-      run: conan create CDT/ -o as_compiled_library=True -o use_boost=True
+      run: conan create CDT/ -o as_compiled_library=True -o use_boost=True --build missing
     - name: "Build: compiled, static, without boost"
       run: conan create CDT/ -o as_compiled_library=True -o use_boost=False
     - name: "Build: header-only, boost"
-      run: conan create CDT/ -o use_boost=True
+      run: conan create CDT/ -o use_boost=True --build missing
     - name: "Build: header-only, without boost"
       run: conan create CDT/ -o use_boost=False
