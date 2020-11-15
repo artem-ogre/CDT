@@ -19,6 +19,7 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <iterator>
 #include <limits>
 #include <memory>
 #include <stack>
