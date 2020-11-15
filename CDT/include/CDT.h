@@ -87,6 +87,22 @@ public:
         TGetVertexCoord getY);
     /// Insert vertices into triangulation
     void insertVertices(const std::vector<V2d<T> >& vertices);
+    /**
+     * Insert constraints (custom-type fixed edges) into triangulation
+     * @tparam TEdgeIter iterator that dereferences to custom edge type
+     * @tparam TGetEdgeVertex function object getting coordinate from* vertex.
+     * Getter signature: const TEdgeIter::value_type& -> CDT::VertInd
+     * @param first beginning of the range of edges to add
+     * @param last end of the range of edges to add
+     * @param getStart getter of edge start vertex index
+     * @param getEnd getter of edge end vertex index
+     */
+    template <typename TEdgeIter, typename TGetEdgeVertex>
+    void insertEdges(
+        TEdgeIter first,
+        TEdgeIter last,
+        TGetEdgeVertex getStart,
+        TGetEdgeVertex getEnd);
     /// Insert constraints (fixed edges) into triangulation
     void insertEdges(const std::vector<Edge>& edges);
     /// Erase triangles adjacent to super triangle
@@ -357,6 +373,23 @@ void Triangulation<T>::insertVertices(
     typedef typename std::vector<V2d<T> >::const_iterator Cit;
     for(; first != last; ++first)
         insertVertex(V2d<T>::make(getX(*first), getY(*first)));
+}
+
+template <typename T>
+template <typename TEdgeIter, typename TGetEdgeVertex>
+void Triangulation<T>::insertEdges(
+    TEdgeIter first,
+    const TEdgeIter last,
+    TGetEdgeVertex getStart,
+    TGetEdgeVertex getEnd)
+{
+    for(; first != last; ++first)
+    {
+        // +3 to account for super-triangle vertices
+        insertEdge(
+            Edge(VertInd(getStart(*first) + 3), VertInd(getEnd(*first) + 3)));
+    }
+    eraseDummies();
 }
 
 //-----
