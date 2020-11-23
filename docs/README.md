@@ -104,36 +104,49 @@ Note that it might need small adjustments like changing boost version to fit you
 namespace CDT
 {
 
+/// Enum of strategies for finding closest point to the newly inserted one
 struct FindingClosestPoint
 {
     enum Enum
     {
 #ifdef CDT_USE_BOOST
-        BoostRTree,
+        BoostRTree, ///< use boost::geometry::rtree
 #endif
-        ClosestRandom,
+        ClosestRandom, ///< pick closest from few randomly selected candidates
     };
 };
 
 template <typename T>
-class Triangulation
+class CDT_EXPORT Triangulation
 {
 public:
-    /*____ Data ____*/
-    std::vector<Vertex<T> > vertices;
-    std::vector<Triangle> triangles;
-    EdgeUSet fixedEdges;
+    typedef std::vector<Vertex<T> > VertexVec; ///< Vertices vector
+    VertexVec vertices;                        ///< triangulation's vertices
+    TriangleVec triangles;                     ///< triangulation's triangles
+    EdgeUSet fixedEdges; ///<  triangulation's constraints (fixed edges)
+
     /*____ API _____*/
     Triangulation(
         const FindingClosestPoint::Enum closestPtMode,
         const size_t nRandSamples = 10);
+    template <typename TVertexIter, typename TGetVertexCoord>
+    void insertVertices(
+        TVertexIter first,
+        TVertexIter last,
+        TGetVertexCoord getX,
+        TGetVertexCoord getY);
     void insertVertices(const std::vector<V2d<T> >& vertices);
+    template <typename TEdgeIter, typename TGetEdgeVertex>
+    void insertEdges(
+        TEdgeIter first,
+        TEdgeIter last,
+        TGetEdgeVertex getStart,
+        TGetEdgeVertex getEnd);
     void insertEdges(const std::vector<Edge>& edges);
     void eraseSuperTriangle();
     void eraseOuterTriangles();
     void eraseOuterTrianglesAndHoles();
-    // ...
-}
+};
 
 struct DuplicatesInfo
 {
@@ -141,12 +154,34 @@ struct DuplicatesInfo
     std::vector<std::size_t> duplicates; ///< duplicates' indices
 };
 
+template <typename T, typename TVertexIter, typename TGetVertexCoord>
+DuplicatesInfo FindDuplicates(
+    TVertexIter first,
+    TVertexIter last,
+    TGetVertexCoord getX,
+    TGetVertexCoord getY);
+
+template <typename TVertex, typename TAllocator>
+void RemoveDuplicates(
+    std::vector<TVertex, TAllocator>& vertices,
+    const std::vector<std::size_t>& duplicates);
+
 template <typename T>
 DuplicatesInfo RemoveDuplicates(std::vector<V2d<T> >& vertices);
 
-void RemapEdges(
-    std::vector<Edge>& edges,
-    const std::vector<std::size_t>& mapping);
+void RemapEdges(std::vector<Edge>& edges, const std::vector<std::size_t>& mapping);
+
+template <
+    typename T,
+    typename TVertex,
+    typename TGetVertexCoord,
+    typename TVertexAllocator,
+    typename TEdgeAllocator>
+DuplicatesInfo RemoveDuplicatesAndRemapEdges(
+    std::vector<TVertex, TVertexAllocator>& vertices,
+    std::vector<Edge, TEdgeAllocator>& edges,
+    TGetVertexCoord getX,
+    TGetVertexCoord getY);
 
 template <typename T>
 DuplicatesInfo RemoveDuplicatesAndRemapEdges(
@@ -159,7 +194,6 @@ std::vector<unsigned short> CalculateTriangleDepths(
     const TriangleVec& triangles,
     const EdgeUSet& fixedEdges);
 
-template <typename T>
 TriIndUSet PeelLayer(
     std::stack<TriInd> seeds,
     const TriangleVec& triangles,
@@ -196,6 +230,44 @@ cdt.insertEdges(/* boundary edges */);
 cdt.eraseOuterTriangles();
 /* ... */ = cdt.vertices;
 /* ... */ = cdt.edges;
+```
+
+**Custom point type**
+
+```c++
+struct CustomPoint2D
+{
+    double data[2];
+};
+
+std::vector<CustomPoint2D> points = ...; // containers other than std::vector will work too
+triangulation = CDT::Triangulation<double>(...);
+triangulation.insertVertices(
+    points.begin(),
+    points.end(),
+    [](const CustomPoint2D& p){ return p.data[0]; }, 
+    [](const CustomPoint2D& p){ return p.data[1]; }
+);
+```
+
+**Custom edge type**
+```c++
+struct CustomEdge
+{
+    std::pair<std::size_t, std::size_t> vertices;
+};
+
+std::vector<CustomEdge> edges = ...; // containers other than std::vector will work too
+
+std::list<CustomEdge> edges = ...;
+triangulation = CDT::Triangulation<double>(...);
+triangulation.insertVertices(...);
+triangulation.insertVertices(
+    edges.begin(),
+    edges.end(),
+    [](const CustomEdge& e){ return e.vertices.first; }, 
+    [](const CustomEdge& e){ return e.vertices.second; }
+);
 ```
 ## <a name="contributors"/>Contributors</a>
 - [Artem Amirkhanov](https://github.com/artem-ogre)
