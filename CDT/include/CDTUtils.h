@@ -153,7 +153,7 @@ struct CDT_EXPORT Box2d
 
 /// Bounding box of a collection of custom 2D points given coordinate getters
 template <typename T, typename TVertexIter, typename TGetVertexCoord>
-Box2d<T> envelopBox(
+CDT_EXPORT Box2d<T> envelopBox(
     TVertexIter first,
     TVertexIter last,
     TGetVertexCoord getX,
@@ -161,7 +161,7 @@ Box2d<T> envelopBox(
 
 /// Bounding box of a collection of 2D points
 template <typename T>
-Box2d<T> envelopBox(const std::vector<V2d<T> >& vertices);
+CDT_EXPORT Box2d<T> envelopBox(const std::vector<V2d<T> >& vertices);
 
 /// Triangulation vertex
 template <typename T>

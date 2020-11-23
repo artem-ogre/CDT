@@ -28,6 +28,9 @@ template struct Box2d<double>;
 template struct Vertex<float>;
 template struct Vertex<double>;
 
+template Box2d<float> envelopBox<float>(const std::vector<V2d<float> >&);
+template Box2d<double> envelopBox<double>(const std::vector<V2d<double> >&);
+
 template DuplicatesInfo RemoveDuplicates<float>(std::vector<V2d<float> >&);
 template DuplicatesInfo RemoveDuplicates<double>(std::vector<V2d<double> >&);
 
