@@ -258,8 +258,6 @@ struct CustomEdge
 };
 
 std::vector<CustomEdge> edges = ...; // containers other than std::vector will work too
-
-std::list<CustomEdge> edges = ...;
 triangulation = CDT::Triangulation<double>(...);
 triangulation.insertVertices(...);
 triangulation.insertEdges(
