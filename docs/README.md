@@ -262,7 +262,7 @@ std::vector<CustomEdge> edges = ...; // containers other than std::vector will w
 std::list<CustomEdge> edges = ...;
 triangulation = CDT::Triangulation<double>(...);
 triangulation.insertVertices(...);
-triangulation.insertVertices(
+triangulation.insertEdges(
     edges.begin(),
     edges.end(),
     [](const CustomEdge& e){ return e.vertices.first; }, 
