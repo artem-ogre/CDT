@@ -74,13 +74,13 @@ find_package(CDT REQUIRED CONFIG)
 
 **Consume as [Conan](https://conan.io/) package**
 
-There's a `conanfile.py` recipe provided. 
+There's a `conanfile.py` recipe provided.
 Note that it might need small adjustments like changing boost version to fit your needs.
 
 ## <a name="details"/>Details</a>
 
-- Supports three ways of removing outer triangles: 
-    - `eraseSuperTriangle`: produce a convex-hull  
+- Supports three ways of removing outer triangles:
+    - `eraseSuperTriangle`: produce a convex-hull
     - `eraseOuterTriangles`: remove all outer triangles until a boundary defined by constraint edges
     - `eraseOuterTrianglesAndHoles`: remove outer triangles and automatically detected holes. Starts from super-triangle and traverses triangles until outer boundary. Triangles outside outer boundary will be removed. Then traversal continues until next boundary. Triangles between two boundaries will be kept. Traversal to next boundary continues (this time removing triangles). Stops when all triangles are traversed.
 
@@ -129,19 +129,19 @@ public:
     Triangulation(
         const FindingClosestPoint::Enum closestPtMode,
         const size_t nRandSamples = 10);
-    template <typename TVertexIter, typename TGetVertexCoord>
+    template <typename TVertexIter, typename TGetVertexCoordX, typename TGetVertexCoordY>
     void insertVertices(
         TVertexIter first,
         TVertexIter last,
-        TGetVertexCoord getX,
-        TGetVertexCoord getY);
+        TGetVertexCoordX getX,
+        TGetVertexCoordY getY);
     void insertVertices(const std::vector<V2d<T> >& vertices);
-    template <typename TEdgeIter, typename TGetEdgeVertex>
+    template <typename TEdgeIter, typename TGetEdgeVertexStart, typename TGetEdgeVertexEnd>
     void insertEdges(
         TEdgeIter first,
         TEdgeIter last,
-        TGetEdgeVertex getStart,
-        TGetEdgeVertex getEnd);
+        TGetEdgeVertexStart getStart,
+        TGetEdgeVertexEnd getEnd);
     void insertEdges(const std::vector<Edge>& edges);
     void eraseSuperTriangle();
     void eraseOuterTriangles();
@@ -154,12 +154,12 @@ struct DuplicatesInfo
     std::vector<std::size_t> duplicates; ///< duplicates' indices
 };
 
-template <typename T, typename TVertexIter, typename TGetVertexCoord>
+template <typename T, typename TVertexIter, typename TGetVertexCoordX, typename TGetVertexCoordY>
 DuplicatesInfo FindDuplicates(
     TVertexIter first,
     TVertexIter last,
-    TGetVertexCoord getX,
-    TGetVertexCoord getY);
+    TGetVertexCoordX getX,
+    TGetVertexCoordY getY);
 
 template <typename TVertex, typename TAllocator>
 void RemoveDuplicates(
@@ -174,14 +174,15 @@ void RemapEdges(std::vector<Edge>& edges, const std::vector<std::size_t>& mappin
 template <
     typename T,
     typename TVertex,
-    typename TGetVertexCoord,
+    typename TGetVertexCoordX,
+    typename TGetVertexCoordY,
     typename TVertexAllocator,
     typename TEdgeAllocator>
 DuplicatesInfo RemoveDuplicatesAndRemapEdges(
     std::vector<TVertex, TVertexAllocator>& vertices,
     std::vector<Edge, TEdgeAllocator>& edges,
-    TGetVertexCoord getX,
-    TGetVertexCoord getY);
+    TGetVertexCoordX getX,
+    TGetVertexCoordY getY);
 
 template <typename T>
 DuplicatesInfo RemoveDuplicatesAndRemapEdges(
@@ -210,9 +211,9 @@ TriIndUSet PeelLayer(
 #include "CDT.h"
 using Triangulation = CDT::Triangulation<float>;
 
-Triangulation cdt = 
+Triangulation cdt =
     Triangulation(CDT::FindingClosestPoint::BoostRTree);
-/* 
+/*
   // Without boost::rtree:
   Triangulation(CDT::FindingClosestPoint::ClosestRandom, 10);
 */
@@ -245,7 +246,7 @@ triangulation = CDT::Triangulation<double>(...);
 triangulation.insertVertices(
     points.begin(),
     points.end(),
-    [](const CustomPoint2D& p){ return p.data[0]; }, 
+    [](const CustomPoint2D& p){ return p.data[0]; },
     [](const CustomPoint2D& p){ return p.data[1]; }
 );
 ```
@@ -263,7 +264,7 @@ triangulation.insertVertices(...);
 triangulation.insertEdges(
     edges.begin(),
     edges.end(),
-    [](const CustomEdge& e){ return e.vertices.first; }, 
+    [](const CustomEdge& e){ return e.vertices.first; },
     [](const CustomEdge& e){ return e.vertices.second; }
 );
 ```
