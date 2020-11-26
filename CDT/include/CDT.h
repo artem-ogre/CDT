@@ -72,8 +72,8 @@ public:
     /**
      * Insert custom point-types specified by iterator range and X/Y-getters
      * @tparam TVertexIter iterator that dereferences to custom point type
-     * @tparam TGetVertexCoordX function object getting x coordinate from* vertex.
-     * @tparam TGetVertexCoordY function object getting y coordinate from* vertex.
+     * @tparam TGetVertexCoordX function object getting x coordinate from vertex.
+     * @tparam TGetVertexCoordY function object getting y coordinate from vertex.
      * Getter signature: const TVertexIter::value_type& -> T
      * @param first beginning of the range of vertices to add
      * @param last end of the range of vertices to add
@@ -94,8 +94,8 @@ public:
     /**
      * Insert constraints (custom-type fixed edges) into triangulation
      * @tparam TEdgeIter iterator that dereferences to custom edge type
-     * @tparam TGetEdgeVertexStart function object getting first coordinate from* vertex.
-     * @tparam TGetEdgeVertexEnd function object getting last coordinate from* vertex.
+     * @tparam TGetEdgeVertexStart function object getting start vertex index from an edge.
+     * @tparam TGetEdgeVertexEnd function object getting end vertex index from an edge.
      * Getter signature: const TEdgeIter::value_type& -> CDT::VertInd
      * @param first beginning of the range of edges to add
      * @param last end of the range of edges to add
@@ -208,8 +208,8 @@ struct CDT_EXPORT DuplicatesInfo
  * Find duplicates in given custom point-type range
  * @note duplicates are points with exactly same X and Y coordinates
  * @tparam TVertexIter iterator that dereferences to custom point type
- * @tparam TGetVertexCoordX function object getting x coordinate from* vertex.
- * @tparam TGetVertexCoordY function object getting y coordinate from* vertex.
+ * @tparam TGetVertexCoordX function object getting x coordinate from vertex.
+ * @tparam TGetVertexCoordY function object getting y coordinate from vertex.
  * Getter signature: const TVertexIter::value_type& -> T
  * @param first beginning of the range of vertices
  * @param last end of the range of vertices
@@ -266,8 +266,8 @@ RemapEdges(std::vector<Edge>& edges, const std::vector<std::size_t>& mapping);
  * @note Same as a chained call of @ref FindDuplicates, @ref RemoveDuplicates,
  * and @ref RemapEdges
  * @tparam TVertexIter iterator that dereferences to custom point type
- * @tparam TGetVertexCoordX function object getting x coordinate from* vertex.
- * @tparam TGetVertexCoordY function object getting y coordinate from* vertex.
+ * @tparam TGetVertexCoordX function object getting x coordinate from vertex.
+ * @tparam TGetVertexCoordY function object getting y coordinate from vertex.
  * Getter signature: const TVertexIter::value_type& -> T
  * @param[in, out] vertices vertices to remove duplicates from
  * @param[in, out] edges collection of edges connecting vertices
