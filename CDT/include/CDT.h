@@ -214,12 +214,16 @@ struct CDT_EXPORT DuplicatesInfo
  * @param getY getter of Y-coordinate
  * @returns information about vertex duplicates
  */
-template <typename T, typename TVertexIter, typename TGetVertexCoord>
+template <
+    typename T,
+    typename TVertexIter,
+    typename TGetVertexCoordX,
+    typename TGetVertexCoordY>
 CDT_EXPORT DuplicatesInfo FindDuplicates(
     TVertexIter first,
     TVertexIter last,
-    TGetVertexCoord getX,
-    TGetVertexCoord getY);
+    TGetVertexCoordX getX,
+    TGetVertexCoordY getY);
 
 /**
  * Remove duplicates in-place from vector of custom points
@@ -270,14 +274,15 @@ RemapEdges(std::vector<Edge>& edges, const std::vector<std::size_t>& mapping);
 template <
     typename T,
     typename TVertex,
-    typename TGetVertexCoord,
+    typename TGetVertexCoordX,
+    typename TGetVertexCoordY,
     typename TVertexAllocator,
     typename TEdgeAllocator>
 CDT_EXPORT DuplicatesInfo RemoveDuplicatesAndRemapEdges(
     std::vector<TVertex, TVertexAllocator>& vertices,
     std::vector<Edge, TEdgeAllocator>& edges,
-    TGetVertexCoord getX,
-    TGetVertexCoord getY);
+    TGetVertexCoordX getX,
+    TGetVertexCoordY getY);
 
 /**
  * Same as a chained call of @ref RemoveDuplicates + @ref RemapEdges
