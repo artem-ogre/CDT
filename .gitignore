@@ -1,6 +1,7 @@
 # This file is used to ignore files which are generated
 # ----------------------------------------------------------------------------
 
+build/
 *~
 *.autosave
 *.a
@@ -78,3 +79,7 @@ moc_*.h
 
 # CLion
 *.idea*
+
+# Visual code files
+*.code-workspace
+*.vscode

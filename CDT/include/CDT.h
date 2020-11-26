@@ -79,12 +79,15 @@ public:
      * @param getX getter of X-coordinate
      * @param getY getter of Y-coordinate
      */
-    template <typename TVertexIter, typename TGetVertexCoord>
+    template <
+        typename TVertexIter,
+        typename TGetVertexCoordX,
+        typename TGetVertexCoordY>
     void insertVertices(
         TVertexIter first,
         TVertexIter last,
-        TGetVertexCoord getX,
-        TGetVertexCoord getY);
+        TGetVertexCoordX getX,
+        TGetVertexCoordY getY);
     /// Insert vertices into triangulation
     void insertVertices(const std::vector<V2d<T> >& vertices);
     /**
@@ -97,12 +100,15 @@ public:
      * @param getStart getter of edge start vertex index
      * @param getEnd getter of edge end vertex index
      */
-    template <typename TEdgeIter, typename TGetEdgeVertex>
+    template <
+        typename TEdgeIter,
+        typename TGetEdgeVertexStart,
+        typename TGetEdgeVertexEnd>
     void insertEdges(
         TEdgeIter first,
         TEdgeIter last,
-        TGetEdgeVertex getStart,
-        TGetEdgeVertex getEnd);
+        TGetEdgeVertexStart getStart,
+        TGetEdgeVertexEnd getEnd);
     /// Insert constraints (fixed edges) into triangulation
     void insertEdges(const std::vector<Edge>& edges);
     /// Erase triangles adjacent to super triangle
@@ -360,12 +366,15 @@ namespace CDT
 // Triangulation methods
 //-----------------------
 template <typename T>
-template <typename TVertexIter, typename TGetVertexCoord>
+template <
+    typename TVertexIter,
+    typename TGetVertexCoordX,
+    typename TGetVertexCoordY>
 void Triangulation<T>::insertVertices(
     TVertexIter first,
     const TVertexIter last,
-    TGetVertexCoord getX,
-    TGetVertexCoord getY)
+    TGetVertexCoordX getX,
+    TGetVertexCoordY getY)
 {
     if(vertices.empty())
         addSuperTriangle(envelopBox<T>(first, last, getX_V2d<T>, getY_V2d<T>));
@@ -376,12 +385,15 @@ void Triangulation<T>::insertVertices(
 }
 
 template <typename T>
-template <typename TEdgeIter, typename TGetEdgeVertex>
+template <
+    typename TEdgeIter,
+    typename TGetEdgeVertexStart,
+    typename TGetEdgeVertexEnd>
 void Triangulation<T>::insertEdges(
     TEdgeIter first,
     const TEdgeIter last,
-    TGetEdgeVertex getStart,
-    TGetEdgeVertex getEnd)
+    TGetEdgeVertexStart getStart,
+    TGetEdgeVertexEnd getEnd)
 {
     for(; first != last; ++first)
     {
@@ -395,12 +407,16 @@ void Triangulation<T>::insertEdges(
 //-----
 // API
 //-----
-template <typename T, typename TVertexIter, typename TGetVertexCoord>
+template <
+    typename T,
+    typename TVertexIter,
+    typename TGetVertexCoordX,
+    typename TGetVertexCoordY>
 DuplicatesInfo FindDuplicates(
     TVertexIter first,
     TVertexIter last,
-    TGetVertexCoord getX,
-    TGetVertexCoord getY)
+    TGetVertexCoordX getX,
+    TGetVertexCoordY getY)
 {
     typedef unordered_map<V2d<T>, std::size_t> PosToIndex;
     PosToIndex uniqueVerts;
@@ -441,14 +457,15 @@ void RemoveDuplicates(
 template <
     typename T,
     typename TVertex,
-    typename TGetVertexCoord,
+    typename TGetVertexCoordX,
+    typename TGetVertexCoordY,
     typename TVertexAllocator,
     typename TEdgeAllocator>
 DuplicatesInfo RemoveDuplicatesAndRemapEdges(
     std::vector<TVertex, TVertexAllocator>& vertices,
     std::vector<Edge, TEdgeAllocator>& edges,
-    TGetVertexCoord getX,
-    TGetVertexCoord getY)
+    TGetVertexCoordX getX,
+    TGetVertexCoordY getY)
 {
     const DuplicatesInfo di =
         FindDuplicates<T>(vertices.begin(), vertices.end(), getX, getY);
