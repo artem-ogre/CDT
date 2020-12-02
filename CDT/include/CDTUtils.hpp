@@ -30,12 +30,16 @@ V2d<T> V2d<T>::make(const T x, const T y)
 // Box2d
 //*****************************************************************************
 
-template <typename T, typename TVertexIter, typename TGetVertexCoord>
+template <
+    typename T,
+    typename TVertexIter,
+    typename TGetVertexCoordX,
+    typename TGetVertexCoordY>
 Box2d<T> envelopBox(
     TVertexIter first,
     TVertexIter last,
-    TGetVertexCoord getX,
-    TGetVertexCoord getY)
+    TGetVertexCoordX getX,
+    TGetVertexCoordY getY)
 {
     const T max = std::numeric_limits<T>::max();
     Box2d<T> box = {{max, max}, {-max, -max}};
