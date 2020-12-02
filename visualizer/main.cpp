@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 #include "CDT.h"
 #include "VerifyTopology.h"
+#include "InitializeWithGrid.h"
 
 #include <fstream>
 #include <iostream>
@@ -192,6 +193,15 @@ private:
                     ? std::vector<V2d>(&m_points[0], &m_points[m_ptLimit])
                     : m_points;
             const CDT::DuplicatesInfo duplInfo = CDT::RemoveDuplicates(pts);
+
+            Box2d bbox = envelopBox(pts);
+            bbox.min.x -= 0.1;
+            bbox.min.y -= 0.1;
+            bbox.max.x += 0.1;
+            bbox.max.y += 0.1;
+            CDT::initializeWithGrid(
+                bbox.min.x, bbox.max.x, bbox.min.y, bbox.max.y, 3, 3, m_cdt);
+
             m_cdt.insertVertices(pts);
             if(m_ptLimit >= m_points.size() && !m_edges.empty())
             {
