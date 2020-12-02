@@ -45,6 +45,21 @@ struct CDT_EXPORT FindingClosestPoint
     };
 };
 
+/// Enum of what type of geometry used to embed triangulation into
+struct CDT_EXPORT SuperGeometryType
+{
+    /**
+     * The Enum itself
+     * @note needed to pre c++11 compilers that don't support 'class enum'
+     */
+    enum Enum
+    {
+        SuperTriangle, ///< conventional super-triangle
+        Custom, ///< user-specified custom geometry (e.g., grid)
+    };
+};
+
+
 /// Constant representing no valid neighbor for a triangle
 const static TriInd noNeighbor(std::numeric_limits<std::size_t>::max());
 /// Constant representing no valid vertex for a triangle
@@ -126,6 +141,11 @@ public:
      * @note detecting holes relies on layer peeling based on layer depth
      */
     void eraseOuterTrianglesAndHoles();
+    /**
+     * Call this method after directly setting custom super-geometry via
+     * vertices and triangles members
+     */
+    void initializedWithCustomSuperGeometry();
 
 private:
     /*____ Detail __*/
@@ -192,6 +212,8 @@ private:
 #endif
     std::size_t m_nRandSamples;
     FindingClosestPoint::Enum m_closestPtMode;
+    std::size_t m_nTargetVerts;
+    SuperGeometryType::Enum m_superGeomType;
 };
 
 /**
@@ -412,8 +434,9 @@ void Triangulation<T>::insertEdges(
     for(; first != last; ++first)
     {
         // +3 to account for super-triangle vertices
-        insertEdge(
-            Edge(VertInd(getStart(*first) + 3), VertInd(getEnd(*first) + 3)));
+        insertEdge(Edge(
+            VertInd(getStart(*first) + m_nTargetVerts),
+            VertInd(getEnd(*first) + m_nTargetVerts)));
     }
     eraseDummies();
 }

@@ -36,6 +36,8 @@ Triangulation<T>::Triangulation(
     const size_t nRandSamples)
     : m_nRandSamples(nRandSamples)
     , m_closestPtMode(closestPtMode)
+    , m_nTargetVerts(0)
+    , m_superGeomType(SuperGeometryType::SuperTriangle)
 {}
 
 template <typename T>
@@ -157,6 +159,18 @@ void Triangulation<T>::eraseTrianglesAtIndices(
     for(; first != last; ++first)
         makeDummy(*first);
     eraseDummies();
+}
+
+template <typename T>
+void Triangulation<T>::initializedWithCustomSuperGeometry()
+{
+#ifdef CDT_USE_BOOST
+    for(std::size_t i = 0; i < vertices.size(); ++i)
+    {
+        m_rtree.addPoint(vertices[i].pos, VertInd(i));
+    }
+#endif
+    m_nTargetVerts = vertices.size();
 }
 
 template <typename T>
@@ -351,6 +365,9 @@ tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
 template <typename T>
 void Triangulation<T>::addSuperTriangle(const Box2d<T>& box)
 {
+    m_nTargetVerts = 3;
+    m_superGeomType = SuperGeometryType::SuperTriangle;
+
     const V2d<T> center = {
         (box.min.x + box.max.x) / T(2), (box.min.y + box.max.y) / T(2)};
     const T w = box.max.x - box.min.x;
@@ -429,17 +446,21 @@ bool Triangulation<T>::isFlipNeeded(
     const Triangle& tOpo = triangles[iTopo];
     const Index i = opposedVertexInd(tOpo, iT);
     const VertInd iVopo = tOpo.vertices[i];
-    if(iVert < 3 && iVopo < 3) // opposed vertices belong to super-triangle
-        return false;          // no flip is needed
+    if(m_superGeomType == SuperGeometryType::SuperTriangle)
+        if(iVert < 3 && iVopo < 3) // opposed vertices belong to super-triangle
+            return false;          // no flip is needed
     const VertInd iVcw = tOpo.vertices[cw(i)];
     const VertInd iVccw = tOpo.vertices[ccw(i)];
     const V2d<T>& v1 = vertices[iVcw].pos;
     const V2d<T>& v2 = vertices[iVopo].pos;
     const V2d<T>& v3 = vertices[iVccw].pos;
-    if(iVcw < 3)
-        return locatePointLine(v1, v2, v3) == locatePointLine(pos, v2, v3);
-    if(iVccw < 3)
-        return locatePointLine(v3, v1, v2) == locatePointLine(pos, v1, v2);
+    if(m_superGeomType == SuperGeometryType::SuperTriangle)
+    {
+        if(iVcw < 3)
+            return locatePointLine(v1, v2, v3) == locatePointLine(pos, v2, v3);
+        if(iVccw < 3)
+            return locatePointLine(v3, v1, v2) == locatePointLine(pos, v1, v2);
+    }
     return isInCircumcircle(pos, v1, v2, v3);
 }
 
