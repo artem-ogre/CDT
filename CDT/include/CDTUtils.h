@@ -152,12 +152,16 @@ struct CDT_EXPORT Box2d
 };
 
 /// Bounding box of a collection of custom 2D points given coordinate getters
-template <typename T, typename TVertexIter, typename TGetVertexCoord>
+template <
+    typename T,
+    typename TVertexIter, 
+    typename TGetVertexCoordX,
+    typename TGetVertexCoordY>
 CDT_EXPORT Box2d<T> envelopBox(
     TVertexIter first,
     TVertexIter last,
-    TGetVertexCoord getX,
-    TGetVertexCoord getY);
+    TGetVertexCoordX getX,
+    TGetVertexCoordY getY);
 
 /// Bounding box of a collection of 2D points
 template <typename T>
