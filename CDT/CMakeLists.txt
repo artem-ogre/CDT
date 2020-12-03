@@ -159,6 +159,7 @@ if(DOXYGEN_FOUND)
     message(STATUS "Doxygen found: adding documentation target.")
     set(DOXYGEN_EXCLUDE_PATTERNS
         */predicates.h
+        conanfile.py
     )
     # doxygen settings can be set here, prefixed with "DOXYGEN_"
     set(DOXYGEN_SOURCE_BROWSER YES)
