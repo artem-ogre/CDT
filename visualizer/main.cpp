@@ -199,7 +199,7 @@ private:
             bbox.min.y -= 0.1;
             bbox.max.x += 0.1;
             bbox.max.y += 0.1;
-            CDT::initializeWithGrid(
+            CDT::initializeWithRegularGrid(
                 bbox.min.x, bbox.max.x, bbox.min.y, bbox.max.y, 3, 3, m_cdt);
 
             m_cdt.insertVertices(pts);
