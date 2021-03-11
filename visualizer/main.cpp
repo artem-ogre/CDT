@@ -319,7 +319,7 @@ private:
             const V2d& v3 = m_cdt.vertices[t->vertices[2]].pos;
             const CDT::array<QPointF, 3> pts = {
                 sceneToScreen(v1), sceneToScreen(v2), sceneToScreen(v3)};
-            p.drawPolygon(pts.begin(), pts.size());
+            p.drawPolygon(pts.data(), pts.size());
         }
         // constraint edges
         pen.setColor(QColor(50, 50, 50));

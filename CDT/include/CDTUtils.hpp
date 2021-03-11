@@ -13,6 +13,8 @@
 #include "predicates.h" // robust predicates: orient, in-circle
 //! @}
 
+#include <stdexcept>
+
 namespace CDT
 {
 
