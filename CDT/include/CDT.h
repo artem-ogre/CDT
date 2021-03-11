@@ -418,7 +418,6 @@ void Triangulation<T>::insertVertices(
     if(vertices.empty())
         addSuperTriangle(envelopBox<T>(first, last, getX, getY));
     vertices.reserve(vertices.size() + std::distance(first, last));
-    typedef typename std::vector<V2d<T> >::const_iterator Cit;
     for(; first != last; ++first)
         insertVertex(V2d<T>::make(getX(*first), getY(*first)));
 }
