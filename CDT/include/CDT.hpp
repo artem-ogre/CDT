@@ -91,6 +91,8 @@ void Triangulation<T>::eraseDummies()
 template <typename T>
 void Triangulation<T>::eraseSuperTriangleVertices()
 {
+    if(m_superGeomType != SuperGeometryType::SuperTriangle)
+        return;
     for(TriangleVec::iterator t = triangles.begin(); t != triangles.end(); ++t)
         for(Index i(0); i < Index(3); ++i)
             t->vertices[i] -= 3;
@@ -110,6 +112,8 @@ void Triangulation<T>::eraseSuperTriangleVertices()
 template <typename T>
 void Triangulation<T>::eraseSuperTriangle()
 {
+    if(m_superGeomType != SuperGeometryType::SuperTriangle)
+        return;
     // make dummy triangles adjacent to super-triangle's vertices
     for(TriInd iT(0); iT < TriInd(triangles.size()); ++iT)
     {
@@ -171,6 +175,7 @@ void Triangulation<T>::initializedWithCustomSuperGeometry()
     }
 #endif
     m_nTargetVerts = vertices.size();
+    m_superGeomType = SuperGeometryType::Custom;
 }
 
 template <typename T>

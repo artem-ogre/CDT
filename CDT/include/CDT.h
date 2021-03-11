@@ -55,10 +55,9 @@ struct CDT_EXPORT SuperGeometryType
     enum Enum
     {
         SuperTriangle, ///< conventional super-triangle
-        Custom, ///< user-specified custom geometry (e.g., grid)
+        Custom,        ///< user-specified custom geometry (e.g., grid)
     };
 };
-
 
 /// Constant representing no valid neighbor for a triangle
 const static TriInd noNeighbor(std::numeric_limits<std::size_t>::max());
@@ -131,7 +130,11 @@ public:
         TGetEdgeVertexEnd getEnd);
     /// Insert constraints (fixed edges) into triangulation
     void insertEdges(const std::vector<Edge>& edges);
-    /// Erase triangles adjacent to super triangle
+    /**
+     * Erase triangles adjacent to super triangle
+     *
+     * @note does nothing if custom geometry is used
+     */
     void eraseSuperTriangle();
     /// Erase triangles outside of constrained boundary using growing
     void eraseOuterTriangles();
@@ -201,7 +204,7 @@ private:
     TriInd addTriangle(); // note: invalidates triangle iterators!
     void makeDummy(const TriInd iT);
     void eraseDummies();
-    void eraseSuperTriangleVertices();
+    void eraseSuperTriangleVertices(); // no effect if custom geometry is used
     template <typename TriIndexIter>
     void eraseTrianglesAtIndices(TriIndexIter first, TriIndexIter last);
     TriIndUSet growToBoundary(std::stack<TriInd> seeds) const;
