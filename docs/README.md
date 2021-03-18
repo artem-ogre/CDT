@@ -272,6 +272,7 @@ triangulation.insertEdges(
 - [Artem Amirkhanov](https://github.com/artem-ogre)
 - [Karl Åkerblom](https://github.com/kalleakerblom)
 - [baiwenlei](https://github.com/baiwenlei): dragging and zooming in the viewer
+- [Bärbel Holm](https://github.com/eisbaerli): removing duplicates and re-mapping edges
 
 ## <a name="contributing"/>Contributing</a>
 Any feedback and contributions are welcome.
