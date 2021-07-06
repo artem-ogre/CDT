@@ -451,9 +451,6 @@ bool Triangulation<T>::isFlipNeeded(
     const Triangle& tOpo = triangles[iTopo];
     const Index i = opposedVertexInd(tOpo, iT);
     const VertInd iVopo = tOpo.vertices[i];
-    if(m_superGeomType == SuperGeometryType::SuperTriangle)
-        if(iVert < 3 && iVopo < 3) // opposed vertices belong to super-triangle
-            return false;          // no flip is needed
     const VertInd iVcw = tOpo.vertices[cw(i)];
     const VertInd iVccw = tOpo.vertices[ccw(i)];
     const V2d<T>& v1 = vertices[iVcw].pos;
@@ -461,6 +458,16 @@ bool Triangulation<T>::isFlipNeeded(
     const V2d<T>& v3 = vertices[iVccw].pos;
     if(m_superGeomType == SuperGeometryType::SuperTriangle)
     {
+        if(iVert < 3 || iVopo < 3) // flip-candidate edge touches super-triangle
+        {
+            if(iVcw < 3 || iVccw < 3) // but so does original edge
+            {
+                // let the normal circumcircle test decide
+                return isInCircumcircle(pos, v1, v2, v3);
+            }
+            return false; // no flip is needed
+        }
+
         if(iVcw < 3)
             return locatePointLine(v1, v2, v3) == locatePointLine(pos, v2, v3);
         if(iVccw < 3)
