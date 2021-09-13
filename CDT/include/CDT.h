@@ -64,6 +64,11 @@ const static TriInd noNeighbor(std::numeric_limits<std::size_t>::max());
 /// Constant representing no valid vertex for a triangle
 const static VertInd noVertex(std::numeric_limits<std::size_t>::max());
 
+/** type used for storing layer depths for triangles
+ * @note LayerDepth should support 60K+ layers, which could be to much or
+ * too little for some use cases. Feel free to re-define this typedef.
+ */
+typedef unsigned short LayerDepth;
 /**
  * Data structure representing a 2D constrained Delaunay triangulation
  *
@@ -77,6 +82,13 @@ public:
     VertexVec vertices;                        ///< triangulation's vertices
     TriangleVec triangles;                     ///< triangulation's triangles
     EdgeUSet fixedEdges; ///<  triangulation's constraints (fixed edges)
+    /** Stores count of overlaps for a fixed edge
+     * @note map only has entries for fixed for edges that represent overlapping
+     * boundaries
+     * @note needed for handling depth calculations and hole-removel in case of
+     * overlapping boundaries
+     */
+    unordered_map<Edge, LayerDepth> overlapCount;
 
     /*____ API _____*/
     /// Constructor
@@ -142,6 +154,7 @@ public:
      * Erase triangles outside of constrained boundary and auto-detected holes
      *
      * @note detecting holes relies on layer peeling based on layer depth
+     * @note supports overlapping or touching boundaries
      */
     void eraseOuterTrianglesAndHoles();
     /**
@@ -208,6 +221,7 @@ private:
     template <typename TriIndexIter>
     void eraseTrianglesAtIndices(TriIndexIter first, TriIndexIter last);
     TriIndUSet growToBoundary(std::stack<TriInd> seeds) const;
+    void fixEdge(const Edge& edge);
 
     std::vector<TriInd> m_dummyTris;
 #ifdef CDT_USE_BOOST
@@ -334,7 +348,7 @@ CDT_EXPORT DuplicatesInfo RemoveDuplicatesAndRemapEdges(
  * Calculate depth of each triangle in constraint triangulation.
  *
  * Perform depth peeling from super triangle to outermost boundary,
- * then to next boundary and so on until all triangles are traversed.@n
+ * then to next boundary and so on until all triangles are traversed.
  * For example depth is:
  *  - 0 for triangles outside outermost boundary
  *  - 1 for triangles inside boundary but outside hole
@@ -348,10 +362,37 @@ CDT_EXPORT DuplicatesInfo RemoveDuplicatesAndRemapEdges(
  * @return vector where element at index i stores depth of i-th triangle
  */
 template <typename T>
-CDT_EXPORT std::vector<unsigned short> CalculateTriangleDepths(
+CDT_EXPORT std::vector<LayerDepth> CalculateTriangleDepths(
     const std::vector<Vertex<T> >& vertices,
     const TriangleVec& triangles,
     const EdgeUSet& fixedEdges);
+
+/**
+ * Calculate depth of each triangle in constraint triangulation. Supports
+ * overlapping boundaries.
+ *
+ * Perform depth peeling from super triangle to outermost boundary,
+ * then to next boundary and so on until all triangles are traversed.@n
+ * For example depth is:
+ *  - 0 for triangles outside outermost boundary
+ *  - 1 for triangles inside boundary but outside hole
+ *  - 2 for triangles in hole
+ *  - 3 for triangles in island and so on...
+ *
+ * @tparam T type of vertex coordinates (e.g., float, double)
+ * @param vertices vertices of triangulation
+ * @param triangles triangles of triangulation
+ * @param fixedEdges constraint edges of triangulation
+ * @param overlapCount count of overlaps for a fixed edges (map has entries only
+ * for edges that overlap)
+ * @return vector where element at index i stores depth of i-th triangle
+ */
+template <typename T>
+CDT_EXPORT std::vector<LayerDepth> CalculateTriangleDepths(
+    const std::vector<Vertex<T> >& vertices,
+    const TriangleVec& triangles,
+    const EdgeUSet& fixedEdges,
+    const unordered_map<Edge, LayerDepth>& overlapCount);
 
 /**
  * Depth-peel a layer in triangulation, used when calculating triangle depths
@@ -367,16 +408,44 @@ CDT_EXPORT std::vector<unsigned short> CalculateTriangleDepths(
  * @param fixedEdges constraint edges of triangulation
  * @param layerDepth current layer's depth to mark triangles with
  * @param[in, out] triDepths depths of triangles
- * @return triangles of the next layer that are adjacent to the peeled layer.
- *         To be used as seeds when peeling the next layer.
+ * @return triangles of the next (deeper) layer that are adjacent to the peeled
+ * layer. To be used as seeds when peeling the next layer.
  */
 CDT_EXPORT
 TriIndUSet PeelLayer(
     std::stack<TriInd> seeds,
     const TriangleVec& triangles,
     const EdgeUSet& fixedEdges,
-    const unsigned short layerDepth,
-    std::vector<unsigned short>& triDepths);
+    const LayerDepth layerDepth,
+    std::vector<LayerDepth>& triDepths);
+
+/**
+ * Depth-peel a layer in triangulation, used when calculating triangle depths
+ *
+ * It takes starting seed triangles, traverses neighboring triangles, and
+ * assigns given layer depth to the traversed triangles. Traversal is blocked by
+ * constraint edges. Triangles behind constraint edges are recorded as seeds of
+ * next layer and returned from the function.
+ *
+ * @tparam T type of vertex coordinates (e.g., float, double)
+ * @param seeds indices of seed triangles
+ * @param triangles triangles of triangulation
+ * @param fixedEdges constraint edges of triangulation
+ * @param overlapCount count of overlaps for a fixed edges (map has entries only
+ * for edges that overlap)
+ * @param layerDepth current layer's depth to mark triangles with
+ * @param[in, out] triDepths depths of triangles
+ * @return triangles of the deeper layers that are adjacent to the peeled layer.
+ *         To be used as seeds when peeling deeper layers.
+ */
+CDT_EXPORT
+unordered_map<TriInd, LayerDepth> PeelLayer(
+    std::stack<TriInd> seeds,
+    const TriangleVec& triangles,
+    const EdgeUSet& fixedEdges,
+    const unordered_map<Edge, LayerDepth>& overlapCount,
+    const LayerDepth layerDepth,
+    std::vector<LayerDepth>& triDepths);
 
 } // namespace CDT
 

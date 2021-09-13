@@ -11,10 +11,13 @@
 
 #include "CDTUtils.h"
 #include <algorithm>
+#include <deque>
 #include <stdexcept>
 
 namespace CDT
 {
+
+typedef std::deque<TriInd> TriDeque;
 
 namespace detail
 {
@@ -139,8 +142,8 @@ void Triangulation<T>::eraseOuterTriangles()
 template <typename T>
 void Triangulation<T>::eraseOuterTrianglesAndHoles()
 {
-    const std::vector<unsigned short> triDepths =
-        CalculateTriangleDepths(vertices, triangles, fixedEdges);
+    const std::vector<LayerDepth> triDepths =
+        CalculateTriangleDepths(vertices, triangles, fixedEdges, overlapCount);
 
     TriIndVec toErase;
     toErase.reserve(triangles.size());
@@ -254,6 +257,15 @@ void Triangulation<T>::insertEdges(const std::vector<Edge>& edges)
 }
 
 template <typename T>
+void Triangulation<T>::fixEdge(const Edge& edge)
+{
+    if(!fixedEdges.insert(edge).second)
+    {
+        ++overlapCount[edge]; // if edge is already fixed bump a counter
+    }
+}
+
+template <typename T>
 void Triangulation<T>::insertEdge(Edge edge)
 {
     const VertInd iA = edge.v1();
@@ -264,7 +276,7 @@ void Triangulation<T>::insertEdge(Edge edge)
     const Vertex<T>& b = vertices[iB];
     if(verticesShareEdge(a, b))
     {
-        fixedEdges.insert(Edge(iA, iB));
+        fixEdge(Edge(iA, iB));
         return;
     }
     TriInd iT;
@@ -274,7 +286,7 @@ void Triangulation<T>::insertEdge(Edge edge)
     // if one of the triangle vertices is on the edge, move edge start
     if(iT == noNeighbor)
     {
-        fixedEdges.insert(Edge(iA, iVleft));
+        fixEdge(Edge(iA, iVleft));
         return insertEdge(Edge(iVleft, iB));
     }
     std::vector<TriInd> intersected(1, iT);
@@ -321,7 +333,7 @@ void Triangulation<T>::insertEdge(Edge edge)
     changeNeighbor(iTleft, noNeighbor, iTright);
     changeNeighbor(iTright, noNeighbor, iTleft);
     // add fixed edge
-    fixedEdges.insert(Edge(iA, iB));
+    fixEdge(Edge(iA, iB));
     if(iB != edge.v2()) // encountered point on the edge
         return insertEdge(Edge(iB, edge.v2()));
 }
@@ -910,12 +922,51 @@ DuplicatesInfo RemoveDuplicatesAndRemapEdges(
 }
 
 CDT_INLINE_IF_HEADER_ONLY
+unordered_map<TriInd, LayerDepth> PeelLayer(
+    std::stack<TriInd> seeds,
+    const TriangleVec& triangles,
+    const EdgeUSet& fixedEdges,
+    const unordered_map<Edge, LayerDepth>& overlapCount,
+    const LayerDepth layerDepth,
+    std::vector<LayerDepth>& triDepths)
+{
+    unordered_map<TriInd, LayerDepth> behindBoundary;
+    while(!seeds.empty())
+    {
+        const TriInd iT = seeds.top();
+        seeds.pop();
+        triDepths[iT] = layerDepth;
+        behindBoundary.erase(iT);
+        const Triangle& t = triangles[iT];
+        for(Index i(0); i < Index(3); ++i)
+        {
+            const Edge opEdge(t.vertices[ccw(i)], t.vertices[cw(i)]);
+            const TriInd iN = t.neighbors[opoNbr(i)];
+            if(iN == noNeighbor || triDepths[iN] <= layerDepth)
+                continue;
+            if(fixedEdges.count(opEdge))
+            {
+                const unordered_map<Edge, LayerDepth>::const_iterator cit =
+                    overlapCount.find(opEdge);
+                const LayerDepth triDepth = cit == overlapCount.end()
+                                                ? layerDepth + 1
+                                                : layerDepth + cit->second + 1;
+                behindBoundary[iN] = triDepth;
+                continue;
+            }
+            seeds.push(iN);
+        }
+    }
+    return behindBoundary;
+}
+
+CDT_INLINE_IF_HEADER_ONLY
 TriIndUSet PeelLayer(
     std::stack<TriInd> seeds,
     const TriangleVec& triangles,
     const EdgeUSet& fixedEdges,
-    const unsigned short layerDepth,
-    std::vector<unsigned short>& triDepths)
+    const LayerDepth layerDepth,
+    std::vector<LayerDepth>& triDepths)
 {
     TriIndUSet behindBoundary;
     while(!seeds.empty())
@@ -943,16 +994,50 @@ TriIndUSet PeelLayer(
 }
 
 template <typename T>
-std::vector<unsigned short> CalculateTriangleDepths(
+std::vector<LayerDepth> CalculateTriangleDepths(
+    const std::vector<Vertex<T> >& vertices,
+    const TriangleVec& triangles,
+    const EdgeUSet& fixedEdges,
+    const unordered_map<Edge, LayerDepth>& overlapCount)
+{
+    std::vector<LayerDepth> triDepths(
+        triangles.size(), std::numeric_limits<LayerDepth>::max());
+    std::stack<TriInd> seeds(TriDeque(1, vertices[0].triangles.front()));
+    LayerDepth layerDepth = 0;
+    LayerDepth deepestSeedDepth = 0;
+
+    unordered_map<LayerDepth, TriIndUSet> seedsByDepth;
+    do
+    {
+        const unordered_map<TriInd, LayerDepth>& newSeeds = PeelLayer(
+            seeds, triangles, fixedEdges, overlapCount, layerDepth, triDepths);
+
+        seedsByDepth.erase(layerDepth);
+        typedef unordered_map<TriInd, LayerDepth>::const_iterator Iter;
+        for(Iter it = newSeeds.begin(); it != newSeeds.end(); ++it)
+        {
+            deepestSeedDepth = std::max(deepestSeedDepth, it->second);
+            seedsByDepth[it->second].insert(it->first);
+        }
+        const TriIndUSet& nextLayerSeeds = seedsByDepth[layerDepth + 1];
+        seeds = std::stack<TriInd>(
+            TriDeque(nextLayerSeeds.begin(), nextLayerSeeds.end()));
+        ++layerDepth;
+    } while(!seeds.empty() || deepestSeedDepth > layerDepth);
+
+    return triDepths;
+}
+
+template <typename T>
+std::vector<LayerDepth> CalculateTriangleDepths(
     const std::vector<Vertex<T> >& vertices,
     const TriangleVec& triangles,
     const EdgeUSet& fixedEdges)
 {
-    std::vector<unsigned short> triDepths(
-        triangles.size(), std::numeric_limits<unsigned short>::max());
-    typedef std::deque<TriInd> TriDeque;
+    std::vector<LayerDepth> triDepths(
+        triangles.size(), std::numeric_limits<LayerDepth>::max());
     std::stack<TriInd> seeds(TriDeque(1, vertices[0].triangles.front()));
-    unsigned short layerDepth = 0;
+    LayerDepth layerDepth = 0;
 
     do
     {
