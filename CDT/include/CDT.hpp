@@ -930,7 +930,7 @@ unordered_map<TriInd, LayerDepth> PeelLayer(
     std::stack<TriInd> seeds,
     const TriangleVec& triangles,
     const EdgeUSet& fixedEdges,
-    const unordered_map<Edge, LayerDepth>& overlapCount,
+    const unordered_map<Edge, BoundaryOverlapCount>& overlapCount,
     const LayerDepth layerDepth,
     std::vector<LayerDepth>& triDepths)
 {
@@ -1002,7 +1002,7 @@ std::vector<LayerDepth> CalculateTriangleDepths(
     const std::vector<Vertex<T> >& vertices,
     const TriangleVec& triangles,
     const EdgeUSet& fixedEdges,
-    const unordered_map<Edge, LayerDepth>& overlapCount)
+    const unordered_map<Edge, BoundaryOverlapCount>& overlapCount)
 {
     std::vector<LayerDepth> triDepths(
         triangles.size(), std::numeric_limits<LayerDepth>::max());
