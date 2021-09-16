@@ -69,6 +69,8 @@ const static VertInd noVertex(std::numeric_limits<std::size_t>::max());
  * too little for some use cases. Feel free to re-define this typedef.
  */
 typedef unsigned short LayerDepth;
+typedef LayerDepth BoundaryOverlapCount;
+
 /**
  * Data structure representing a 2D constrained Delaunay triangulation
  *
@@ -82,13 +84,15 @@ public:
     VertexVec vertices;                        ///< triangulation's vertices
     TriangleVec triangles;                     ///< triangulation's triangles
     EdgeUSet fixedEdges; ///<  triangulation's constraints (fixed edges)
-    /** Stores count of overlaps for a fixed edge
+
+    /** Stores count of overlapping boundaries for a fixed edge. If no entry is
+     * present for an edge: no boundaries overlap.
      * @note map only has entries for fixed for edges that represent overlapping
      * boundaries
      * @note needed for handling depth calculations and hole-removel in case of
      * overlapping boundaries
      */
-    unordered_map<Edge, LayerDepth> overlapCount;
+    unordered_map<Edge, BoundaryOverlapCount> overlapCount;
 
     /*____ API _____*/
     /// Constructor
@@ -120,6 +124,10 @@ public:
     void insertVertices(const std::vector<V2d<T> >& vertices);
     /**
      * Insert constraints (custom-type fixed edges) into triangulation
+     * @note If some edge appears more than once in @ref insertEdges input this
+     * means that multiple boundaries overlap at the edge and impacts
+     * how hole detection algorithm of @ref eraseOuterTrianglesAndHoles works.
+     * <b>Make sure there are no erroneous duplicates.</b>
      * @tparam TEdgeIter iterator that dereferences to custom edge type
      * @tparam TGetEdgeVertexStart function object getting start vertex index
      * from an edge.
@@ -140,7 +148,13 @@ public:
         TEdgeIter last,
         TGetEdgeVertexStart getStart,
         TGetEdgeVertexEnd getEnd);
-    /// Insert constraints (fixed edges) into triangulation
+    /**
+     * Insert constraints (fixed edges) into triangulation
+     * @note If some edge appears more than once in @ref insertEdges input this
+     * means that multiple boundaries overlap at the edge and impacts
+     * how hole detection algorithm of @ref eraseOuterTrianglesAndHoles works.
+     * <b>Make sure there are no erroneous duplicates.</b>
+     */
     void insertEdges(const std::vector<Edge>& edges);
     /**
      * Erase triangles adjacent to super triangle
@@ -383,8 +397,8 @@ CDT_EXPORT std::vector<LayerDepth> CalculateTriangleDepths(
  * @param vertices vertices of triangulation
  * @param triangles triangles of triangulation
  * @param fixedEdges constraint edges of triangulation
- * @param overlapCount count of overlaps for a fixed edges (map has entries only
- * for edges that overlap)
+ * @param overlapCount counts of boundary overlaps at fixed edges (map has
+ * entries only for edges that represent overlapping boundaries)
  * @return vector where element at index i stores depth of i-th triangle
  */
 template <typename T>
@@ -392,7 +406,7 @@ CDT_EXPORT std::vector<LayerDepth> CalculateTriangleDepths(
     const std::vector<Vertex<T> >& vertices,
     const TriangleVec& triangles,
     const EdgeUSet& fixedEdges,
-    const unordered_map<Edge, LayerDepth>& overlapCount);
+    const unordered_map<Edge, BoundaryOverlapCount>& overlapCount);
 
 /**
  * Depth-peel a layer in triangulation, used when calculating triangle depths
@@ -431,8 +445,8 @@ TriIndUSet PeelLayer(
  * @param seeds indices of seed triangles
  * @param triangles triangles of triangulation
  * @param fixedEdges constraint edges of triangulation
- * @param overlapCount count of overlaps for a fixed edges (map has entries only
- * for edges that overlap)
+ * @param overlapCount counts of boundary overlaps at fixed edges (map has
+ * entries only for edges that represent overlapping boundaries)
  * @param layerDepth current layer's depth to mark triangles with
  * @param[in, out] triDepths depths of triangles
  * @return triangles of the deeper layers that are adjacent to the peeled layer.
@@ -443,7 +457,7 @@ unordered_map<TriInd, LayerDepth> PeelLayer(
     std::stack<TriInd> seeds,
     const TriangleVec& triangles,
     const EdgeUSet& fixedEdges,
-    const unordered_map<Edge, LayerDepth>& overlapCount,
+    const unordered_map<Edge, BoundaryOverlapCount>& overlapCount,
     const LayerDepth layerDepth,
     std::vector<LayerDepth>& triDepths);
 
