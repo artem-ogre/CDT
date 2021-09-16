@@ -453,6 +453,10 @@ bool Triangulation<T>::isFlipNeeded(
     const VertInd iVopo = tOpo.vertices[i];
     const VertInd iVcw = tOpo.vertices[cw(i)];
     const VertInd iVccw = tOpo.vertices[ccw(i)];
+
+    if(fixedEdges.count(Edge(iVcw, iVccw)))
+        return false; // flip not needed if the original edge is fixed
+
     const V2d<T>& v1 = vertices[iVcw].pos;
     const V2d<T>& v2 = vertices[iVopo].pos;
     const V2d<T>& v3 = vertices[iVccw].pos;
