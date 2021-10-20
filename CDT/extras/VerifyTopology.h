@@ -27,15 +27,15 @@ namespace CDT
  *
  * @tparam T type of vertex coordinates (e.g., float, double)
  */
-template <typename T>
-inline bool verifyTopology(const CDT::Triangulation<T>& cdt)
+template <typename T, typename TNearPointLocator>
+inline bool verifyTopology(const CDT::Triangulation<T, TNearPointLocator>& cdt)
 {
     // Check if vertices' adjacent triangles contain vertex
     for(VertInd iV(0); iV < VertInd(cdt.vertices.size()); ++iV)
     {
-        const Vertex<T>& v = cdt.vertices[iV];
+        const TriIndVec& vTris = cdt.vertTris[iV];
         typedef TriIndVec::const_iterator TriIndCit;
-        for(TriIndCit it = v.triangles.begin(); it != v.triangles.end(); ++it)
+        for(TriIndCit it = vTris.begin(); it != vTris.end(); ++it)
         {
             const array<VertInd, 3>& vv = cdt.triangles[*it].vertices;
             if(std::find(vv.begin(), vv.end(), iV) == vv.end())
@@ -63,7 +63,7 @@ inline bool verifyTopology(const CDT::Triangulation<T>& cdt)
         typedef VerticesArr3::const_iterator VCit;
         for(VCit it = t.vertices.begin(); it != t.vertices.end(); ++it)
         {
-            const std::vector<TriInd>& tt = cdt.vertices[*it].triangles;
+            const TriIndVec& tt = cdt.vertTris[*it];
             if(std::find(tt.begin(), tt.end(), iT) == tt.end())
                 return false;
         }

@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 #include "CDT.h"
+#include "LocatorKDTree.h"
 #include "VerifyTopology.h"
 
 #include <fstream>
@@ -21,10 +22,10 @@
 #include <QSpinBox>
 #include <QTextStream>
 
-typedef float CoordType;
-typedef CDT::Triangulation<CoordType> Triangulation;
+typedef double CoordType;
+typedef CDT::LocatorKDTree<CoordType> NearPtLocator;
+typedef CDT::Triangulation<CoordType, NearPtLocator> Triangulation;
 typedef CDT::V2d<CoordType> V2d;
-typedef CDT::Vertex<CoordType> Vertex;
 typedef CDT::Triangle Triangle;
 typedef CDT::Box2d<CoordType> Box2d;
 typedef CDT::Edge Edge;
@@ -36,11 +37,6 @@ class CDTWidget : public QWidget
 public:
     explicit CDTWidget(QWidget* parent = NULL)
         : QWidget(parent)
-#ifdef CDT_USE_BOOST
-        , m_cdt(CDT::FindingClosestPoint::BoostRTree)
-#else
-        , m_cdt(CDT::FindingClosestPoint::ClosestRandom, 10)
-#endif
         , m_ptLimit(9999999)
         , m_edgeLimit(9999999)
         , m_isHidePoints(false)
@@ -129,14 +125,14 @@ public slots:
         const CoordType stZ =
             -std::fmax(box.max.x - box.min.x, box.max.y - box.min.y);
         std::size_t counter = 0;
-        typedef Triangulation::VertexVec::const_iterator VCit;
+        typedef Triangulation::V2dVec::const_iterator VCit;
         for(VCit v = m_cdt.vertices.begin(); v != m_cdt.vertices.end(); ++v)
         {
             const CoordType z = !m_isRemoveOuterAndHoles && !m_isRemoveOuter &&
                                         !m_isHideSuperTri && counter < 3
                                     ? stZ
                                     : 0.0;
-            fout << v->pos.x << ' ' << v->pos.y << ' ' << z << "\n";
+            fout << v->x << ' ' << v->y << ' ' << z << "\n";
             counter++;
         }
         // Write faces
@@ -180,11 +176,7 @@ private:
 
     void updateCDT()
     {
-#ifdef CDT_USE_BOOST
-        m_cdt = Triangulation(CDT::FindingClosestPoint::BoostRTree);
-#else
-        m_cdt = Triangulation(CDT::FindingClosestPoint::ClosestRandom, 10);
-#endif
+        m_cdt = Triangulation();
         if(!m_points.empty())
         {
             std::vector<V2d> pts =
@@ -287,9 +279,9 @@ private:
                 if(t->vertices[0] > 2 && t->vertices[1] > 2 &&
                    t->vertices[2] > 2)
                     continue;
-                const V2d& v1 = m_cdt.vertices[t->vertices[0]].pos;
-                const V2d& v2 = m_cdt.vertices[t->vertices[1]].pos;
-                const V2d& v3 = m_cdt.vertices[t->vertices[2]].pos;
+                const V2d& v1 = m_cdt.vertices[t->vertices[0]];
+                const V2d& v2 = m_cdt.vertices[t->vertices[1]];
+                const V2d& v3 = m_cdt.vertices[t->vertices[2]];
                 const QPointF pt1 = sceneToScreen(v1);
                 const QPointF pt2 = sceneToScreen(v2);
                 const QPointF pt3 = sceneToScreen(v3);
@@ -314,9 +306,9 @@ private:
                     continue;
                 }
             }
-            const V2d& v1 = m_cdt.vertices[t->vertices[0]].pos;
-            const V2d& v2 = m_cdt.vertices[t->vertices[1]].pos;
-            const V2d& v3 = m_cdt.vertices[t->vertices[2]].pos;
+            const V2d& v1 = m_cdt.vertices[t->vertices[0]];
+            const V2d& v2 = m_cdt.vertices[t->vertices[1]];
+            const V2d& v3 = m_cdt.vertices[t->vertices[2]];
             const CDT::array<QPointF, 3> pts = {
                 sceneToScreen(v1), sceneToScreen(v2), sceneToScreen(v3)};
             p.drawPolygon(pts.data(), pts.size());
@@ -327,8 +319,8 @@ private:
         typedef CDT::EdgeUSet::const_iterator ECit;
         for(ECit e = m_cdt.fixedEdges.begin(); e != m_cdt.fixedEdges.end(); ++e)
         {
-            const V2d& v1 = m_cdt.vertices[e->v1()].pos;
-            const V2d& v2 = m_cdt.vertices[e->v2()].pos;
+            const V2d& v1 = m_cdt.vertices[e->v1()];
+            const V2d& v2 = m_cdt.vertices[e->v2()];
             p.drawLine(sceneToScreen(v1), sceneToScreen(v2));
         }
 
@@ -340,7 +332,7 @@ private:
         p.setPen(pen);
         for(std::size_t i = 0; i < m_cdt.vertices.size(); ++i)
         {
-            p.drawPoint(sceneToScreen(m_cdt.vertices[i].pos));
+            p.drawPoint(sceneToScreen(m_cdt.vertices[i]));
         }
         // last added point
         if(m_ptLimit <= m_points.size())
@@ -348,8 +340,8 @@ private:
             pen.setColor(QColor(200, 50, 50));
             pen.setWidthF(9.0);
             p.setPen(pen);
-            const Vertex& v = m_cdt.vertices.back();
-            p.drawPoint(sceneToScreen(v.pos));
+            const V2d& v = m_cdt.vertices.back();
+            p.drawPoint(sceneToScreen(v));
         }
     }
 

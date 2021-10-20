@@ -33,18 +33,33 @@ array<T, 3> arr3(const T& v0, const T& v1, const T& v2)
 
 } // namespace detail
 
-template <typename T>
-Triangulation<T>::Triangulation(
-    const FindingClosestPoint::Enum closestPtMode,
-    const size_t nRandSamples)
-    : m_nRandSamples(nRandSamples)
-    , m_closestPtMode(closestPtMode)
-    , m_nTargetVerts(0)
+template <typename T, typename TNearPointLocator>
+Triangulation<T, TNearPointLocator>::Triangulation()
+    : m_nTargetVerts(0)
     , m_superGeomType(SuperGeometryType::SuperTriangle)
+    , m_vertexInsertionOrder(VertexInsertionOrder::Randomized)
 {}
 
-template <typename T>
-void Triangulation<T>::changeNeighbor(
+template <typename T, typename TNearPointLocator>
+Triangulation<T, TNearPointLocator>::Triangulation(
+    const VertexInsertionOrder::Enum vertexInsertionOrder)
+    : m_nTargetVerts(0)
+    , m_superGeomType(SuperGeometryType::SuperTriangle)
+    , m_vertexInsertionOrder(vertexInsertionOrder)
+{}
+
+template <typename T, typename TNearPointLocator>
+Triangulation<T, TNearPointLocator>::Triangulation(
+    VertexInsertionOrder::Enum vertexInsertionOrder,
+    const TNearPointLocator& nearPtLocator)
+    : m_nTargetVerts(0)
+    , m_nearPtLocator(nearPtLocator)
+    , m_superGeomType(SuperGeometryType::SuperTriangle)
+    , m_vertexInsertionOrder(vertexInsertionOrder)
+{}
+
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::changeNeighbor(
     const TriInd iT,
     const VertInd iVedge1,
     const VertInd iVedge2,
@@ -54,8 +69,8 @@ void Triangulation<T>::changeNeighbor(
     t.neighbors[opposedTriangleInd(t, iVedge1, iVedge2)] = newNeighbor;
 }
 
-template <typename T>
-void Triangulation<T>::eraseDummies()
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::eraseDummies()
 {
     if(m_dummyTris.empty())
         return;
@@ -73,11 +88,10 @@ void Triangulation<T>::eraseDummies()
     triangles.erase(triangles.end() - dummySet.size(), triangles.end());
 
     // remap adjacent triangle indices for vertices
-    typedef typename VertexVec::iterator VertIt;
-    for(VertIt v = vertices.begin(); v != vertices.end(); ++v)
+    typedef typename VerticesTriangles::iterator VertTrisIt;
+    for(VertTrisIt vTris = vertTris.begin(); vTris != vertTris.end(); ++vTris)
     {
-        TriIndVec& vTris = v->triangles;
-        for(TriIndVec::iterator iT = vTris.begin(); iT != vTris.end(); ++iT)
+        for(TriIndVec::iterator iT = vTris->begin(); iT != vTris->end(); ++iT)
             *iT = triIndMap[*iT];
     }
     // remap neighbor indices for triangles
@@ -91,8 +105,8 @@ void Triangulation<T>::eraseDummies()
     m_dummyTris = std::vector<TriInd>();
 }
 
-template <typename T>
-void Triangulation<T>::eraseSuperTriangleVertices()
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::eraseSuperTriangleVertices()
 {
     if(m_superGeomType != SuperGeometryType::SuperTriangle)
         return;
@@ -109,11 +123,12 @@ void Triangulation<T>::eraseSuperTriangleVertices()
     }
     fixedEdges = updatedFixedEdges;
 
-    vertices = std::vector<Vertex<T> >(vertices.begin() + 3, vertices.end());
+    vertices = std::vector<V2d<T> >(vertices.begin() + 3, vertices.end());
+    vertTris = VerticesTriangles(vertTris.begin() + 3, vertTris.end());
 }
 
-template <typename T>
-void Triangulation<T>::eraseSuperTriangle()
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::eraseSuperTriangle()
 {
     if(m_superGeomType != SuperGeometryType::SuperTriangle)
         return;
@@ -128,22 +143,21 @@ void Triangulation<T>::eraseSuperTriangle()
     eraseSuperTriangleVertices();
 }
 
-template <typename T>
-void Triangulation<T>::eraseOuterTriangles()
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::eraseOuterTriangles()
 {
     // make dummy triangles adjacent to super-triangle's vertices
-    const std::stack<TriInd> seed(
-        std::deque<TriInd>(1, vertices[0].triangles.front()));
+    const std::stack<TriInd> seed(std::deque<TriInd>(1, vertTris[0].front()));
     const TriIndUSet toErase = growToBoundary(seed);
     eraseTrianglesAtIndices(toErase.begin(), toErase.end());
     eraseSuperTriangleVertices();
 }
 
-template <typename T>
-void Triangulation<T>::eraseOuterTrianglesAndHoles()
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::eraseOuterTrianglesAndHoles()
 {
-    const std::vector<LayerDepth> triDepths =
-        CalculateTriangleDepths(vertices, triangles, fixedEdges, overlapCount);
+    const std::vector<LayerDepth> triDepths = CalculateTriangleDepths(
+        vertTris[0].front(), triangles, fixedEdges, overlapCount);
 
     TriIndVec toErase;
     toErase.reserve(triangles.size());
@@ -157,9 +171,9 @@ void Triangulation<T>::eraseOuterTrianglesAndHoles()
     eraseSuperTriangleVertices();
 }
 
-template <typename T>
+template <typename T, typename TNearPointLocator>
 template <typename TriIndexIter>
-void Triangulation<T>::eraseTrianglesAtIndices(
+void Triangulation<T, TNearPointLocator>::eraseTrianglesAtIndices(
     TriIndexIter first,
     TriIndexIter last)
 {
@@ -168,21 +182,20 @@ void Triangulation<T>::eraseTrianglesAtIndices(
     eraseDummies();
 }
 
-template <typename T>
-void Triangulation<T>::initializedWithCustomSuperGeometry()
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::initializedWithCustomSuperGeometry()
 {
-#ifdef CDT_USE_BOOST
     for(std::size_t i = 0; i < vertices.size(); ++i)
     {
-        m_rtree.addPoint(vertices[i].pos, VertInd(i));
+        m_nearPtLocator.addPoint(VertInd(i), vertices);
     }
-#endif
     m_nTargetVerts = vertices.size();
     m_superGeomType = SuperGeometryType::Custom;
 }
 
-template <typename T>
-TriIndUSet Triangulation<T>::growToBoundary(std::stack<TriInd> seeds) const
+template <typename T, typename TNearPointLocator>
+TriIndUSet Triangulation<T, TNearPointLocator>::growToBoundary(
+    std::stack<TriInd> seeds) const
 {
     TriIndUSet traversed;
     while(!seeds.empty())
@@ -204,8 +217,8 @@ TriIndUSet Triangulation<T>::growToBoundary(std::stack<TriInd> seeds) const
     return traversed;
 }
 
-template <typename T>
-void Triangulation<T>::makeDummy(const TriInd iT)
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::makeDummy(const TriInd iT)
 {
     const Triangle& t = triangles[iT];
 
@@ -220,8 +233,8 @@ void Triangulation<T>::makeDummy(const TriInd iT)
     m_dummyTris.push_back(iT);
 }
 
-template <typename T>
-TriInd Triangulation<T>::addTriangle(const Triangle& t)
+template <typename T, typename TNearPointLocator>
+TriInd Triangulation<T, TNearPointLocator>::addTriangle(const Triangle& t)
 {
     if(m_dummyTris.empty())
     {
@@ -234,8 +247,8 @@ TriInd Triangulation<T>::addTriangle(const Triangle& t)
     return nxtDummy;
 }
 
-template <typename T>
-TriInd Triangulation<T>::addTriangle()
+template <typename T, typename TNearPointLocator>
+TriInd Triangulation<T, TNearPointLocator>::addTriangle()
 {
     if(m_dummyTris.empty())
     {
@@ -250,14 +263,15 @@ TriInd Triangulation<T>::addTriangle()
     return nxtDummy;
 }
 
-template <typename T>
-void Triangulation<T>::insertEdges(const std::vector<Edge>& edges)
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::insertEdges(
+    const std::vector<Edge>& edges)
 {
     insertEdges(edges.begin(), edges.end(), edge_get_v1, edge_get_v2);
 }
 
-template <typename T>
-void Triangulation<T>::fixEdge(const Edge& edge)
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::fixEdge(const Edge& edge)
 {
     if(!fixedEdges.insert(edge).second)
     {
@@ -265,24 +279,25 @@ void Triangulation<T>::fixEdge(const Edge& edge)
     }
 }
 
-template <typename T>
-void Triangulation<T>::insertEdge(Edge edge)
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::insertEdge(Edge edge)
 {
     const VertInd iA = edge.v1();
     VertInd iB = edge.v2();
     if(iA == iB) // edge connects a vertex to itself
         return;
-    const Vertex<T>& a = vertices[iA];
-    const Vertex<T>& b = vertices[iB];
-    if(verticesShareEdge(a, b))
+    const TriIndVec& aTris = vertTris[iA];
+    const TriIndVec& bTris = vertTris[iB];
+    const V2d<T>& a = vertices[iA];
+    const V2d<T>& b = vertices[iB];
+    if(verticesShareEdge(aTris, bTris))
     {
         fixEdge(Edge(iA, iB));
         return;
     }
     TriInd iT;
     VertInd iVleft, iVright;
-    tie(iT, iVleft, iVright) =
-        intersectedTriangle(iA, a.triangles, a.pos, b.pos);
+    tie(iT, iVleft, iVright) = intersectedTriangle(iA, aTris, a, b);
     // if one of the triangle vertices is on the edge, move edge start
     if(iT == noNeighbor)
     {
@@ -300,13 +315,13 @@ void Triangulation<T>::insertEdge(Edge edge)
         const TriInd iTopo = opposedTriangle(t, iV);
         const Triangle& tOpo = triangles[iTopo];
         const VertInd iVopo = opposedVertex(tOpo, iT);
-        const Vertex<T> vOpo = vertices[iVopo];
+        const V2d<T> vOpo = vertices[iVopo];
 
         intersected.push_back(iTopo);
         iT = iTopo;
         t = triangles[iT];
 
-        PtLineLocation::Enum loc = locatePointLine(vOpo.pos, a.pos, b.pos);
+        const PtLineLocation::Enum loc = locatePointLine(vOpo, a, b);
         if(loc == PtLineLocation::Left)
         {
             ptsLeft.push_back(iVopo);
@@ -348,8 +363,9 @@ void Triangulation<T>::insertEdge(Edge edge)
  *  - index of point on the line
  *  - index of point on the right of the line
  */
-template <typename T>
-tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
+template <typename T, typename TNearPointLocator>
+tuple<TriInd, VertInd, VertInd>
+Triangulation<T, TNearPointLocator>::intersectedTriangle(
     const VertInd iA,
     const std::vector<TriInd>& candidates,
     const V2d<T>& a,
@@ -363,10 +379,8 @@ tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
         const Index i = vertexInd(t, iA);
         const VertInd iP1 = t.vertices[cw(i)];
         const VertInd iP2 = t.vertices[ccw(i)];
-        const PtLineLocation::Enum locP1 =
-            locatePointLine(vertices[iP1].pos, a, b);
-        const PtLineLocation::Enum locP2 =
-            locatePointLine(vertices[iP2].pos, a, b);
+        const PtLineLocation::Enum locP1 = locatePointLine(vertices[iP1], a, b);
+        const PtLineLocation::Enum locP2 = locatePointLine(vertices[iP2], a, b);
         if(locP2 == PtLineLocation::Right)
         {
             if(locP1 == PtLineLocation::OnLine)
@@ -379,8 +393,8 @@ tuple<TriInd, VertInd, VertInd> Triangulation<T>::intersectedTriangle(
                              "edge. Note: can be caused by duplicate points.");
 }
 
-template <typename T>
-void Triangulation<T>::addSuperTriangle(const Box2d<T>& box)
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
 {
     m_nTargetVerts = 3;
     m_superGeomType = SuperGeometryType::SuperTriangle;
@@ -396,31 +410,37 @@ void Triangulation<T>::addSuperTriangle(const Box2d<T>& box)
     const V2d<T> posV1 = {center.x - shiftX, center.y - r};
     const V2d<T> posV2 = {center.x + shiftX, center.y - r};
     const V2d<T> posV3 = {center.x, center.y + R};
-    vertices.push_back(Vertex<T>::make(posV1, TriInd(0)));
-    vertices.push_back(Vertex<T>::make(posV2, TriInd(0)));
-    vertices.push_back(Vertex<T>::make(posV3, TriInd(0)));
+    addNexVertex(posV1, TriIndVec(1, TriInd(0)));
+    addNexVertex(posV2, TriIndVec(1, TriInd(0)));
+    addNexVertex(posV3, TriIndVec(1, TriInd(0)));
     const Triangle superTri = {
         {VertInd(0), VertInd(1), VertInd(2)},
         {noNeighbor, noNeighbor, noNeighbor}};
     addTriangle(superTri);
-#ifdef CDT_USE_BOOST
-    if(m_closestPtMode == FindingClosestPoint::BoostRTree)
-    {
-        m_rtree.addPoint(posV1, VertInd(0));
-        m_rtree.addPoint(posV2, VertInd(1));
-        m_rtree.addPoint(posV3, VertInd(2));
-    }
-#endif
+
+    m_nearPtLocator.addPoint(VertInd(0), vertices);
+    m_nearPtLocator.addPoint(VertInd(1), vertices);
+    m_nearPtLocator.addPoint(VertInd(2), vertices);
 }
 
-template <typename T>
-void Triangulation<T>::insertVertex(const V2d<T>& pos)
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::addNexVertex(
+    const V2d<T>& pos,
+    const TriIndVec& tris)
 {
-    const VertInd iVert(vertices.size());
-    array<TriInd, 2> trisAt = walkingSearchTrianglesAt(pos);
+    vertices.push_back(pos);
+    vertTris.push_back(tris);
+}
+
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::insertVertex(const VertInd iVert)
+{
+    const V2d<T>& v = vertices[iVert];
+    array<TriInd, 2> trisAt = walkingSearchTrianglesAt(v);
     std::stack<TriInd> triStack =
-        trisAt[1] == noNeighbor ? insertPointInTriangle(pos, trisAt[0])
-                                : insertPointOnEdge(pos, trisAt[0], trisAt[1]);
+        trisAt[1] == noNeighbor
+            ? insertPointInTriangle(iVert, trisAt[0])
+            : insertPointOnEdge(iVert, trisAt[0], trisAt[1]);
     while(!triStack.empty())
     {
         const TriInd iT = triStack.top();
@@ -430,17 +450,15 @@ void Triangulation<T>::insertVertex(const V2d<T>& pos)
         const TriInd iTopo = opposedTriangle(t, iVert);
         if(iTopo == noNeighbor)
             continue;
-        if(isFlipNeeded(pos, iT, iTopo, iVert))
+        if(isFlipNeeded(v, iT, iTopo, iVert))
         {
             flipEdge(iT, iTopo);
             triStack.push(iT);
             triStack.push(iTopo);
         }
     }
-#ifdef CDT_USE_BOOST
-    if(m_closestPtMode == FindingClosestPoint::BoostRTree)
-        m_rtree.addPoint(pos, iVert);
-#endif
+
+    m_nearPtLocator.addPoint(iVert, vertices);
 }
 
 /*!
@@ -453,8 +471,8 @@ void Triangulation<T>::insertVertex(const V2d<T>& pos)
  *      as the non-super-tri shared vertex
  *  3.  None of the vertices are super-tri: normal circumcircle test
  */
-template <typename T>
-bool Triangulation<T>::isFlipNeeded(
+template <typename T, typename TNearPointLocator>
+bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
     const V2d<T>& pos,
     const TriInd iT,
     const TriInd iTopo,
@@ -465,13 +483,9 @@ bool Triangulation<T>::isFlipNeeded(
     const VertInd iVopo = tOpo.vertices[i];
     const VertInd iVcw = tOpo.vertices[cw(i)];
     const VertInd iVccw = tOpo.vertices[ccw(i)];
-
-    if(fixedEdges.count(Edge(iVcw, iVccw)))
-        return false; // flip not needed if the original edge is fixed
-
-    const V2d<T>& v1 = vertices[iVcw].pos;
-    const V2d<T>& v2 = vertices[iVopo].pos;
-    const V2d<T>& v3 = vertices[iVccw].pos;
+    const V2d<T>& v1 = vertices[iVcw];
+    const V2d<T>& v2 = vertices[iVopo];
+    const V2d<T>& v3 = vertices[iVccw];
     if(m_superGeomType == SuperGeometryType::SuperTriangle)
     {
         if(iVert < 3 || iVopo < 3) // flip-candidate edge touches super-triangle
@@ -508,11 +522,11 @@ bool Triangulation<T>::isFlipNeeded(
  *          v1 ___________________ v2
  *                     n1
  */
-template <typename T>
-std::stack<TriInd>
-Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iT)
+template <typename T, typename TNearPointLocator>
+std::stack<TriInd> Triangulation<T, TNearPointLocator>::insertPointInTriangle(
+    const VertInd v,
+    const TriInd iT)
 {
-    const VertInd v(vertices.size());
     const TriInd iNewT1 = addTriangle();
     const TriInd iNewT2 = addTriangle();
 
@@ -527,7 +541,7 @@ Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iT)
     triangles[iNewT2] = Triangle::make(arr3(v3, v1, v), arr3(n3, iT, iNewT1));
     t = Triangle::make(arr3(v1, v2, v), arr3(n1, iNewT1, iNewT2));
     // make and add a new vertex
-    vertices.push_back(Vertex<T>::makeInTriangle(pos, iT, iNewT1, iNewT2));
+    addAdjacentTriangles(v, iT, iNewT1, iNewT2);
     // adjust lists of adjacent triangles for v1, v2, v3
     addAdjacentTriangle(v1, iNewT2);
     addAdjacentTriangle(v2, iNewT1);
@@ -558,13 +572,12 @@ Triangulation<T>::insertPointInTriangle(const V2d<T>& pos, const TriInd iT)
  *                   \|/
  *   T2 (bottom)      v3
  */
-template <typename T>
-std::stack<TriInd> Triangulation<T>::insertPointOnEdge(
-    const V2d<T>& pos,
+template <typename T, typename TNearPointLocator>
+std::stack<TriInd> Triangulation<T, TNearPointLocator>::insertPointOnEdge(
+    const VertInd v,
     const TriInd iT1,
     const TriInd iT2)
 {
-    const VertInd v(vertices.size());
     const TriInd iTnew1 = addTriangle();
     const TriInd iTnew2 = addTriangle();
 
@@ -587,7 +600,7 @@ std::stack<TriInd> Triangulation<T>::insertPointOnEdge(
     triangles[iTnew1] = Triangle::make(arr3(v1, v, v4), arr3(iT1, iT2, n4));
     triangles[iTnew2] = Triangle::make(arr3(v3, v, v2), arr3(iT2, iT1, n2));
     // make and add new vertex
-    vertices.push_back(Vertex<T>::makeOnEdge(pos, iT1, iTnew2, iT2, iTnew1));
+    addAdjacentTriangles(v, iT1, iTnew2, iT2, iTnew1);
     // adjust neighboring triangles and vertices
     changeNeighbor(n4, iT1, iTnew1);
     changeNeighbor(n2, iT2, iTnew2);
@@ -606,16 +619,17 @@ std::stack<TriInd> Triangulation<T>::insertPointOnEdge(
     return newTriangles;
 }
 
-template <typename T>
-array<TriInd, 2> Triangulation<T>::trianglesAt(const V2d<T>& pos) const
+template <typename T, typename TNearPointLocator>
+array<TriInd, 2>
+Triangulation<T, TNearPointLocator>::trianglesAt(const V2d<T>& pos) const
 {
     array<TriInd, 2> out = {noNeighbor, noNeighbor};
     for(TriInd i = TriInd(0); i < TriInd(triangles.size()); ++i)
     {
         const Triangle& t = triangles[i];
-        const V2d<T> v1 = vertices[t.vertices[0]].pos;
-        const V2d<T> v2 = vertices[t.vertices[1]].pos;
-        const V2d<T> v3 = vertices[t.vertices[2]].pos;
+        const V2d<T>& v1 = vertices[t.vertices[0]];
+        const V2d<T>& v2 = vertices[t.vertices[1]];
+        const V2d<T>& v3 = vertices[t.vertices[2]];
         const PtTriLocation::Enum loc = locatePointTriangle(pos, v1, v2, v3);
         if(loc == PtTriLocation::Outside)
             continue;
@@ -627,13 +641,13 @@ array<TriInd, 2> Triangulation<T>::trianglesAt(const V2d<T>& pos) const
     throw std::runtime_error("No triangle was found at position");
 }
 
-template <typename T>
-TriInd Triangulation<T>::walkTriangles(
+template <typename T, typename TNearPointLocator>
+TriInd Triangulation<T, TNearPointLocator>::walkTriangles(
     const VertInd startVertex,
     const V2d<T>& pos) const
 {
     // begin walk in search of triangle at pos
-    TriInd currTri = vertices[startVertex].triangles[0];
+    TriInd currTri = vertTris[startVertex][0];
 #ifdef CDT_USE_BOOST
     TriIndFlatUSet visited;
 #else
@@ -649,8 +663,8 @@ TriInd Triangulation<T>::walkTriangles(
         for(Index i_(0); i_ < Index(3); ++i_)
         {
             const Index i((i_ + offset) % 3);
-            const V2d<T> vStart = vertices[t.vertices[i]].pos;
-            const V2d<T> vEnd = vertices[t.vertices[ccw(i)]].pos;
+            const V2d<T>& vStart = vertices[t.vertices[i]];
+            const V2d<T>& vEnd = vertices[t.vertices[ccw(i)]];
             const PtLineLocation::Enum edgeCheck =
                 locatePointLine(pos, vStart, vEnd);
             if(edgeCheck == PtLineLocation::Right &&
@@ -666,61 +680,25 @@ TriInd Triangulation<T>::walkTriangles(
     return currTri;
 }
 
-template <typename T>
-array<TriInd, 2>
-Triangulation<T>::walkingSearchTrianglesAt(const V2d<T>& pos) const
+template <typename T, typename TNearPointLocator>
+array<TriInd, 2> Triangulation<T, TNearPointLocator>::walkingSearchTrianglesAt(
+    const V2d<T>& pos) const
 {
     array<TriInd, 2> out = {noNeighbor, noNeighbor};
-    // Query RTree for a vertex close to pos, to start the search
-#ifdef CDT_USE_BOOST
-    const VertInd startVertex =
-        m_closestPtMode == FindingClosestPoint::BoostRTree
-            ? nearestVertexRtree(pos)
-            : nearestVertexRand(pos, m_nRandSamples);
-#else
-    const VertInd startVertex = nearestVertexRand(pos, m_nRandSamples);
-#endif
+    // Query  for a vertex close to pos, to start the search
+    const VertInd startVertex = m_nearPtLocator.nearPoint(pos, vertices);
     const TriInd iT = walkTriangles(startVertex, pos);
     // Finished walk, locate point in current triangle
     const Triangle& t = triangles[iT];
-    const V2d<T> v1 = vertices[t.vertices[0]].pos;
-    const V2d<T> v2 = vertices[t.vertices[1]].pos;
-    const V2d<T> v3 = vertices[t.vertices[2]].pos;
+    const V2d<T>& v1 = vertices[t.vertices[0]];
+    const V2d<T>& v2 = vertices[t.vertices[1]];
+    const V2d<T>& v3 = vertices[t.vertices[2]];
     const PtTriLocation::Enum loc = locatePointTriangle(pos, v1, v2, v3);
     if(loc == PtTriLocation::Outside)
         throw std::runtime_error("No triangle was found at position");
     out[0] = iT;
     if(isOnEdge(loc))
         out[1] = t.neighbors[edgeNeighbor(loc)];
-    return out;
-}
-
-#ifdef CDT_USE_BOOST
-template <typename T>
-VertInd Triangulation<T>::nearestVertexRtree(const V2d<T>& pos) const
-{
-    return m_rtree.nearestPoint(pos);
-}
-#endif
-
-template <typename T>
-VertInd Triangulation<T>::nearestVertexRand(
-    const V2d<T>& pos,
-    const std::size_t nSamples) const
-{
-    // start search at a vertex close to pos based on random sampling
-    VertInd out(detail::randGen() % vertices.size());
-    T minDist = distance(vertices[out].pos, pos);
-    for(std::size_t iSample = 0; iSample < nSamples; ++iSample)
-    {
-        const VertInd candidate(detail::randGen() % vertices.size());
-        const T candidateDist = distance(vertices[candidate].pos, pos);
-        if(candidateDist < minDist)
-        {
-            minDist = candidateDist;
-            out = candidate;
-        }
-    }
     return out;
 }
 
@@ -740,8 +718,10 @@ VertInd Triangulation<T>::nearestVertexRand(
  *               \|/
  *                v2
  */
-template <typename T>
-void Triangulation<T>::flipEdge(const TriInd iT, const TriInd iTopo)
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::flipEdge(
+    const TriInd iT,
+    const TriInd iTopo)
 {
     Triangle& t = triangles[iT];
     Triangle& tOpo = triangles[iTopo];
@@ -773,8 +753,8 @@ void Triangulation<T>::flipEdge(const TriInd iT, const TriInd iTopo)
     removeAdjacentTriangle(v4, iTopo);
 }
 
-template <typename T>
-void Triangulation<T>::changeNeighbor(
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::changeNeighbor(
     const TriInd iT,
     const TriInd oldNeighbor,
     const TriInd newNeighbor)
@@ -785,20 +765,50 @@ void Triangulation<T>::changeNeighbor(
     t.neighbors[neighborInd(t, oldNeighbor)] = newNeighbor;
 }
 
-template <typename T>
-void Triangulation<T>::addAdjacentTriangle(
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::addAdjacentTriangle(
     const VertInd iVertex,
     const TriInd iTriangle)
 {
-    vertices[iVertex].triangles.push_back(iTriangle);
+    vertTris[iVertex].push_back(iTriangle);
 }
 
-template <typename T>
-void Triangulation<T>::removeAdjacentTriangle(
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::addAdjacentTriangles(
+    const VertInd iVertex,
+    const TriInd iT1,
+    const TriInd iT2,
+    const TriInd iT3)
+{
+    TriIndVec& vTris = vertTris[iVertex];
+    vTris.reserve(vTris.size() + 3);
+    vTris.push_back(iT1);
+    vTris.push_back(iT2);
+    vTris.push_back(iT3);
+}
+
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::addAdjacentTriangles(
+    const VertInd iVertex,
+    const TriInd iT1,
+    const TriInd iT2,
+    const TriInd iT3,
+    const TriInd iT4)
+{
+    TriIndVec& vTris = vertTris[iVertex];
+    vTris.reserve(vTris.size() + 4);
+    vTris.push_back(iT1);
+    vTris.push_back(iT2);
+    vTris.push_back(iT3);
+    vTris.push_back(iT4);
+}
+
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::removeAdjacentTriangle(
     const VertInd iVertex,
     const TriInd iTriangle)
 {
-    std::vector<TriInd>& tris = vertices[iVertex].triangles;
+    std::vector<TriInd>& tris = vertTris[iVertex];
     tris.erase(std::find(tris.begin(), tris.end(), iTriangle));
 }
 
@@ -815,8 +825,8 @@ splitPseudopolygon(const VertInd vi, const std::vector<VertInd>& points)
     return out;
 }
 
-template <typename T>
-TriInd Triangulation<T>::triangulatePseudopolygon(
+template <typename T, typename TNearPointLocator>
+TriInd Triangulation<T, TNearPointLocator>::triangulatePseudopolygon(
     const VertInd ia,
     const VertInd ib,
     const std::vector<VertInd>& points)
@@ -854,36 +864,36 @@ TriInd Triangulation<T>::triangulatePseudopolygon(
     return iT;
 }
 
-template <typename T>
-VertInd Triangulation<T>::findDelaunayPoint(
+template <typename T, typename TNearPointLocator>
+VertInd Triangulation<T, TNearPointLocator>::findDelaunayPoint(
     const VertInd ia,
     const VertInd ib,
     const std::vector<VertInd>& points) const
 {
     assert(!points.empty());
-    const V2d<T>& a = vertices[ia].pos;
-    const V2d<T>& b = vertices[ib].pos;
+    const V2d<T>& a = vertices[ia];
+    const V2d<T>& b = vertices[ib];
     VertInd ic = points.front();
-    V2d<T> c = vertices[ic].pos;
+    V2d<T> c = vertices[ic];
     typedef std::vector<VertInd>::const_iterator CIt;
     for(CIt it = points.begin() + 1; it != points.end(); ++it)
     {
-        const V2d<T> v = vertices[*it].pos;
+        const V2d<T> v = vertices[*it];
         if(!isInCircumcircle(v, a, b, c))
             continue;
         ic = *it;
-        c = vertices[ic].pos;
+        c = vertices[ic];
     }
     return ic;
 }
 
-template <typename T>
-TriInd Triangulation<T>::pseudopolyOuterTriangle(
+template <typename T, typename TNearPointLocator>
+TriInd Triangulation<T, TNearPointLocator>::pseudopolyOuterTriangle(
     const VertInd ia,
     const VertInd ib) const
 {
-    const std::vector<TriInd>& aTris = vertices[ia].triangles;
-    const std::vector<TriInd>& bTris = vertices[ib].triangles;
+    const std::vector<TriInd>& aTris = vertTris[ia];
+    const std::vector<TriInd>& bTris = vertTris[ib];
     typedef std::vector<TriInd>::const_iterator TriIndCit;
     for(TriIndCit it = aTris.begin(); it != aTris.end(); ++it)
         if(std::find(bTris.begin(), bTris.end(), *it) != bTris.end())
@@ -891,8 +901,9 @@ TriInd Triangulation<T>::pseudopolyOuterTriangle(
     return noNeighbor;
 }
 
-template <typename T>
-void Triangulation<T>::insertVertices(const std::vector<V2d<T> >& newVertices)
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::insertVertices(
+    const std::vector<V2d<T> >& newVertices)
 {
     return insertVertices(
         newVertices.begin(), newVertices.end(), getX_V2d<T>, getY_V2d<T>);
@@ -997,16 +1008,15 @@ TriIndUSet PeelLayer(
     return behindBoundary;
 }
 
-template <typename T>
 std::vector<LayerDepth> CalculateTriangleDepths(
-    const std::vector<Vertex<T> >& vertices,
+    const TriInd seed,
     const TriangleVec& triangles,
     const EdgeUSet& fixedEdges,
     const unordered_map<Edge, BoundaryOverlapCount>& overlapCount)
 {
     std::vector<LayerDepth> triDepths(
         triangles.size(), std::numeric_limits<LayerDepth>::max());
-    std::stack<TriInd> seeds(TriDeque(1, vertices[0].triangles.front()));
+    std::stack<TriInd> seeds(TriDeque(1, seed));
     LayerDepth layerDepth = 0;
     LayerDepth deepestSeedDepth = 0;
 
@@ -1032,15 +1042,14 @@ std::vector<LayerDepth> CalculateTriangleDepths(
     return triDepths;
 }
 
-template <typename T>
 std::vector<LayerDepth> CalculateTriangleDepths(
-    const std::vector<Vertex<T> >& vertices,
+    const TriInd seed,
     const TriangleVec& triangles,
     const EdgeUSet& fixedEdges)
 {
     std::vector<LayerDepth> triDepths(
         triangles.size(), std::numeric_limits<LayerDepth>::max());
-    std::stack<TriInd> seeds(TriDeque(1, vertices[0].triangles.front()));
+    std::stack<TriInd> seeds(TriDeque(1, seed));
     LayerDepth layerDepth = 0;
 
     do
