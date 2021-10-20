@@ -26,6 +26,10 @@ option(CDT_USE_BOOST
 option(CDT_USE_AS_COMPILED_LIBRARY
     "If enabled templates for float and double will be instantiated and compiled into a library")
 
+option(CDT_USE_64_BIT_INDEX_TYPE
+    "If enabled 64bits are used to store vertex/triangle index types. Otherwise 32bits are used (up to 4.2bn items)"
+    OFF)
+
 # check if Boost is needed
 if(cxx_std_11 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
     # Work-around as AppleClang 11 defaults to c++98 by default
@@ -40,6 +44,7 @@ endif()
 
 message(STATUS "CDT_USE_BOOST is ${CDT_USE_BOOST}")
 message(STATUS "CDT_USE_AS_COMPILED_LIBRARY is ${CDT_USE_AS_COMPILED_LIBRARY}")
+message(STATUS "CDT_USE_64_BIT_INDEX_TYPE is ${CDT_USE_64_BIT_INDEX_TYPE}")
 
 # Use boost for c++98 versions of c++11 containers or for Boost::rtree
 if(CDT_USE_BOOST)
@@ -61,7 +66,10 @@ if(CDT_USE_AS_COMPILED_LIBRARY)
     set(cdt_headers
         include/CDT.h
         include/CDTUtils.h
-        include/PointRTree.h
+        include/KDTree.h
+        include/LocatorBoostRTree.h
+        include/LocatorNearestRandom.h
+        include/LocatorKDTree.h
         include/remove_at.hpp
         include/CDT.hpp
         include/CDTUtils.hpp
@@ -114,6 +122,7 @@ target_compile_definitions(
     ${cdt_scope}
     $<$<BOOL:${CDT_USE_BOOST}>:CDT_USE_BOOST>
     $<$<BOOL:${CDT_USE_AS_COMPILED_LIBRARY}>:CDT_USE_AS_COMPILED_LIBRARY>
+    $<$<BOOL:${CDT_USE_64_BIT_INDEX_TYPE}>:CDT_USE_64_BIT_INDEX_TYPE>
 )
 
 if(CDT_USE_BOOST)

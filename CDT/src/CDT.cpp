@@ -15,18 +15,27 @@
 
 #include "CDT.hpp"
 #include "CDTUtils.hpp"
+#ifdef CDT_USE_BOOST
+#include "LocatorBoostRTree.h"
+#endif
+#include "LocatorKDTree.h"
+#include "LocatorNearestRandom.h"
 
 namespace CDT
 {
 
-template class Triangulation<float>;
-template class Triangulation<double>;
+#ifdef CDT_USE_BOOST
+template class Triangulation<float, LocatorBoostRTree<float> >;
+template class Triangulation<double, LocatorBoostRTree<double> >;
+#endif
+template class Triangulation<float, LocatorNearestRandom<float> >;
+template class Triangulation<double, LocatorNearestRandom<double> >;
+template class Triangulation<float, LocatorKDTree<float> >;
+template class Triangulation<double, LocatorKDTree<double> >;
 template struct V2d<float>;
 template struct V2d<double>;
 template struct Box2d<float>;
 template struct Box2d<double>;
-template struct Vertex<float>;
-template struct Vertex<double>;
 
 template Box2d<float> envelopBox<float>(const std::vector<V2d<float> >&);
 template Box2d<double> envelopBox<double>(const std::vector<V2d<double> >&);
@@ -40,15 +49,6 @@ template DuplicatesInfo RemoveDuplicatesAndRemapEdges<float>(
 template DuplicatesInfo RemoveDuplicatesAndRemapEdges<double>(
     std::vector<V2d<double> >&,
     std::vector<Edge>&);
-
-template std::vector<unsigned short> CalculateTriangleDepths(
-    const std::vector<Vertex<float> >& vertices,
-    const TriangleVec& triangles,
-    const EdgeUSet& fixedEdges);
-template std::vector<unsigned short> CalculateTriangleDepths(
-    const std::vector<CDT::Vertex<double> >& vertices,
-    const TriangleVec& triangles,
-    const EdgeUSet& fixedEdges);
 
 } // namespace CDT
 

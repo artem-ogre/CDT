@@ -123,20 +123,26 @@ CDT_EXPORT bool operator==(const CDT::V2d<T>& lhs, const CDT::V2d<T>& rhs)
     return lhs.x == rhs.x && lhs.y == rhs.y;
 }
 
+#ifdef CDT_USE_64_BIT_INDEX_TYPE
+typedef unsigned long long IndexSizeType;
+#else
+typedef unsigned int IndexSizeType;
+#endif
+
 #ifndef CDT_USE_STRONG_TYPING
 /// Index in triangle
 typedef unsigned char Index;
 /// Vertex index
-typedef std::size_t VertInd;
+typedef IndexSizeType VertInd;
 /// Triangle index
-typedef std::size_t TriInd;
+typedef IndexSizeType TriInd;
 #else
 /// Index in triangle
 BOOST_STRONG_TYPEDEF(unsigned char, Index);
 /// Vertex index
-BOOST_STRONG_TYPEDEF(std::size_t, VertInd);
+BOOST_STRONG_TYPEDEF(IndexSizeType, VertInd);
 /// Triangle index
-BOOST_STRONG_TYPEDEF(std::size_t, TriInd);
+BOOST_STRONG_TYPEDEF(IndexSizeType, TriInd);
 #endif
 
 typedef std::vector<TriInd> TriIndVec;  ///< Vector of triangle indices
@@ -154,7 +160,7 @@ struct CDT_EXPORT Box2d
 /// Bounding box of a collection of custom 2D points given coordinate getters
 template <
     typename T,
-    typename TVertexIter, 
+    typename TVertexIter,
     typename TGetVertexCoordX,
     typename TGetVertexCoordY>
 CDT_EXPORT Box2d<T> envelopBox(
@@ -178,30 +184,6 @@ CDT_EXPORT Box2d<T> envelopBox(
 /// Bounding box of a collection of 2D points
 template <typename T>
 CDT_EXPORT Box2d<T> envelopBox(const std::vector<V2d<T> >& vertices);
-
-/// Triangulation vertex
-template <typename T>
-struct CDT_EXPORT Vertex
-{
-    V2d<T> pos;          ///< vertex position
-    TriIndVec triangles; ///< adjacent triangles
-
-    /// Create vertex
-    static Vertex make(const V2d<T>& pos, const TriInd iTriangle);
-    /// Create vertex in a triangle
-    static Vertex makeInTriangle(
-        const V2d<T>& pos,
-        const TriInd iT1,
-        const TriInd iT2,
-        const TriInd iT3);
-    /// Create vertex on an edge
-    static Vertex makeOnEdge(
-        const V2d<T>& pos,
-        const TriInd iT1,
-        const TriInd iT2,
-        const TriInd iT3,
-        const TriInd iT4);
-};
 
 /// Edge connecting two vertices: vertex with smaller index is always first
 /// \note: hash Edge is specialized at the bottom
@@ -366,12 +348,16 @@ CDT_EXPORT bool isInCircumcircle(
     const V2d<T>& v3);
 
 /// Test if two vertices share at least one common triangle
-template <typename T>
-CDT_EXPORT bool verticesShareEdge(const Vertex<T>& a, const Vertex<T>& b);
+CDT_EXPORT inline bool
+verticesShareEdge(const TriIndVec& aTris, const TriIndVec& bTris);
 
 /// Distance between two 2D points
 template <typename T>
 CDT_EXPORT T distance(const V2d<T>& a, const V2d<T>& b);
+
+/// Squared distance between two 2D points
+template <typename T>
+CDT_EXPORT T distanceSquared(const V2d<T>& a, const V2d<T>& b);
 
 } // namespace CDT
 

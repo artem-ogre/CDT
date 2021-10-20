@@ -11,12 +11,9 @@
 #define CDT_lNrmUayWQaIR5fxnsg9B
 
 #include "CDTUtils.h"
-#ifdef CDT_USE_BOOST
-#include "PointRTree.h"
-#endif
-
 #include "remove_at.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <iterator>
@@ -29,8 +26,13 @@
 namespace CDT
 {
 
-/// Enum of strategies for finding closest point to the newly inserted one
-struct CDT_EXPORT FindingClosestPoint
+/**
+ * Enum of strategies specifying order in which a range of vertices is inserted
+ * @note @ref VertexInsertionOrder::Randomized will only randomize order of
+ * inserting in triangulation, vertex indices will be preserved as they were
+ * specified in the final triangulation
+ */
+struct CDT_EXPORT VertexInsertionOrder
 {
     /**
      * The Enum itself
@@ -38,10 +40,8 @@ struct CDT_EXPORT FindingClosestPoint
      */
     enum Enum
     {
-#ifdef CDT_USE_BOOST
-        BoostRTree, ///< use boost::geometry::rtree
-#endif
-        ClosestRandom, ///< pick closest from few randomly selected candidates
+        Randomized, ///< vertices will be inserted in random order
+        AsProvided, ///< vertices will be inserted in the same order as provided
     };
 };
 
@@ -60,11 +60,12 @@ struct CDT_EXPORT SuperGeometryType
 };
 
 /// Constant representing no valid neighbor for a triangle
-const static TriInd noNeighbor(std::numeric_limits<std::size_t>::max());
+const static TriInd noNeighbor(std::numeric_limits<TriInd>::max());
 /// Constant representing no valid vertex for a triangle
-const static VertInd noVertex(std::numeric_limits<std::size_t>::max());
+const static VertInd noVertex(std::numeric_limits<VertInd>::max());
 
-/** type used for storing layer depths for triangles
+/**
+ * Type used for storing layer depths for triangles
  * @note LayerDepth should support 60K+ layers, which could be to much or
  * too little for some use cases. Feel free to re-define this typedef.
  */
@@ -75,15 +76,20 @@ typedef LayerDepth BoundaryOverlapCount;
  * Data structure representing a 2D constrained Delaunay triangulation
  *
  * @tparam T type of vertex coordinates (e.g., float, double)
+ * @tparam TNearPointLocator class providing locating near point for efficiently
+ * inserting new points. Provides methods: 'addPoint(vPos, iV)' and
+ * 'nearPoint(vPos) -> iV'
  */
-template <typename T>
+template <typename T, typename TNearPointLocator>
 class CDT_EXPORT Triangulation
 {
 public:
-    typedef std::vector<Vertex<T> > VertexVec; ///< Vertices vector
-    VertexVec vertices;                        ///< triangulation's vertices
-    TriangleVec triangles;                     ///< triangulation's triangles
-    EdgeUSet fixedEdges; ///<  triangulation's constraints (fixed edges)
+    typedef std::vector<V2d<T> > V2dVec;              ///< Vertices vector
+    typedef std::vector<TriIndVec> VerticesTriangles; ///< Triangles by vertex
+    V2dVec vertices;            ///< triangulation's vertices
+    TriangleVec triangles;      ///< triangulation's triangles
+    EdgeUSet fixedEdges;        ///<  triangulation's constraints (fixed edges)
+    VerticesTriangles vertTris; ///< triangles adjacent to each vertex
 
     /** Stores count of overlapping boundaries for a fixed edge. If no entry is
      * present for an edge: no boundaries overlap.
@@ -95,10 +101,22 @@ public:
     unordered_map<Edge, BoundaryOverlapCount> overlapCount;
 
     /*____ API _____*/
-    /// Constructor
+    /// Default constructor
+    Triangulation();
+    /**
+     * Constructor
+     * @param vertexInsertionOrder strategy used for ordering vertex insertions
+     */
+    Triangulation(VertexInsertionOrder::Enum vertexInsertionOrder);
+    /**
+     * Constructor
+     * @param vertexInsertionOrder strategy used for ordering vertex insertions
+     * @param nearPtLocator class providing locating near point for efficiently
+     * inserting new points
+     */
     Triangulation(
-        const FindingClosestPoint::Enum closestPtMode,
-        const size_t nRandSamples = 10);
+        VertexInsertionOrder::Enum vertexInsertionOrder,
+        const TNearPointLocator& nearPtLocator);
     /**
      * Insert custom point-types specified by iterator range and X/Y-getters
      * @tparam TVertexIter iterator that dereferences to custom point type
@@ -180,7 +198,8 @@ public:
 private:
     /*____ Detail __*/
     void addSuperTriangle(const Box2d<T>& box);
-    void insertVertex(const V2d<T>& pos);
+    void addNexVertex(const V2d<T>& pos, const TriIndVec& tris);
+    void insertVertex(const VertInd iVert);
     void insertEdge(Edge edge);
     tuple<TriInd, VertInd, VertInd> intersectedTriangle(
         const VertInd iA,
@@ -188,19 +207,13 @@ private:
         const V2d<T>& a,
         const V2d<T>& b) const;
     /// Returns indices of three resulting triangles
-    std::stack<TriInd>
-    insertPointInTriangle(const V2d<T>& pos, const TriInd iT);
+    std::stack<TriInd> insertPointInTriangle(const VertInd v, const TriInd iT);
     /// Returns indices of four resulting triangles
     std::stack<TriInd>
-    insertPointOnEdge(const V2d<T>& pos, const TriInd iT1, const TriInd iT2);
+    insertPointOnEdge(const VertInd v, const TriInd iT1, const TriInd iT2);
     array<TriInd, 2> trianglesAt(const V2d<T>& pos) const;
     array<TriInd, 2> walkingSearchTrianglesAt(const V2d<T>& pos) const;
     TriInd walkTriangles(const VertInd startVertex, const V2d<T>& pos) const;
-    VertInd
-    nearestVertexRand(const V2d<T>& pos, const std::size_t nSamples) const;
-#ifdef CDT_USE_BOOST
-    VertInd nearestVertexRtree(const V2d<T>& pos) const;
-#endif
     bool isFlipNeeded(
         const V2d<T>& pos,
         const TriInd iT,
@@ -217,6 +230,17 @@ private:
         const VertInd iVedge2,
         const TriInd newNeighbor);
     void addAdjacentTriangle(const VertInd iVertex, const TriInd iTriangle);
+    void addAdjacentTriangles(
+        const VertInd iVertex,
+        const TriInd iT1,
+        const TriInd iT2,
+        const TriInd iT3);
+    void addAdjacentTriangles(
+        const VertInd iVertex,
+        const TriInd iT1,
+        const TriInd iT2,
+        const TriInd iT3,
+        const TriInd iT4);
     void removeAdjacentTriangle(const VertInd iVertex, const TriInd iTriangle);
     TriInd triangulatePseudopolygon(
         const VertInd ia,
@@ -238,13 +262,10 @@ private:
     void fixEdge(const Edge& edge);
 
     std::vector<TriInd> m_dummyTris;
-#ifdef CDT_USE_BOOST
-    PointRTree<T> m_rtree;
-#endif
-    std::size_t m_nRandSamples;
-    FindingClosestPoint::Enum m_closestPtMode;
+    TNearPointLocator m_nearPtLocator;
     std::size_t m_nTargetVerts;
     SuperGeometryType::Enum m_superGeomType;
+    VertexInsertionOrder::Enum m_vertexInsertionOrder;
 };
 
 /**
@@ -369,15 +390,13 @@ CDT_EXPORT DuplicatesInfo RemoveDuplicatesAndRemapEdges(
  *  - 2 for triangles in hole
  *  - 3 for triangles in island and so on...
  *
- * @tparam T type of vertex coordinates (e.g., float, double)
- * @param vertices vertices of triangulation
+ * @param seed seed triangle to begin depth-peeling from
  * @param triangles triangles of triangulation
  * @param fixedEdges constraint edges of triangulation
  * @return vector where element at index i stores depth of i-th triangle
  */
-template <typename T>
 CDT_EXPORT std::vector<LayerDepth> CalculateTriangleDepths(
-    const std::vector<Vertex<T> >& vertices,
+    const TriInd seed,
     const TriangleVec& triangles,
     const EdgeUSet& fixedEdges);
 
@@ -393,17 +412,15 @@ CDT_EXPORT std::vector<LayerDepth> CalculateTriangleDepths(
  *  - 2 for triangles in hole
  *  - 3 for triangles in island and so on...
  *
- * @tparam T type of vertex coordinates (e.g., float, double)
- * @param vertices vertices of triangulation
+ * @param seed seed triangle to begin depth-peeling from
  * @param triangles triangles of triangulation
  * @param fixedEdges constraint edges of triangulation
  * @param overlapCount counts of boundary overlaps at fixed edges (map has
  * entries only for edges that represent overlapping boundaries)
  * @return vector where element at index i stores depth of i-th triangle
  */
-template <typename T>
 CDT_EXPORT std::vector<LayerDepth> CalculateTriangleDepths(
-    const std::vector<Vertex<T> >& vertices,
+    const TriInd seed,
     const TriangleVec& triangles,
     const EdgeUSet& fixedEdges,
     const unordered_map<Edge, BoundaryOverlapCount>& overlapCount);
@@ -469,48 +486,84 @@ unordered_map<TriInd, LayerDepth> PeelLayer(
 // hash for CDT::V2d<T>
 #ifdef CDT_CXX11_IS_SUPPORTED
 namespace std
+#else
+namespace boost
+#endif
 {
 template <typename T>
 struct hash<CDT::V2d<T> >
 {
     size_t operator()(const CDT::V2d<T>& xy) const
     {
-        return hash<T>()(xy.x) ^ hash<T>()(xy.y);
+#ifdef CDT_CXX11_IS_SUPPORTED
+        typedef std::hash<T> Hasher;
+#else
+        typedef boost::hash<T> Hasher;
+#endif
+        return Hasher()(xy.x) ^ Hasher()(xy.y);
     }
 };
 } // namespace std
-#endif
 
 namespace CDT
 {
 
+inline size_t randomCDT(const size_t i)
+{
+    static mt19937 g(9001);
+    return g() % i;
+}
+
 //-----------------------
 // Triangulation methods
 //-----------------------
-template <typename T>
+template <typename T, typename TNearPointLocator>
 template <
     typename TVertexIter,
     typename TGetVertexCoordX,
     typename TGetVertexCoordY>
-void Triangulation<T>::insertVertices(
-    TVertexIter first,
+void Triangulation<T, TNearPointLocator>::insertVertices(
+    const TVertexIter first,
     const TVertexIter last,
     TGetVertexCoordX getX,
     TGetVertexCoordY getY)
 {
     if(vertices.empty())
+    {
         addSuperTriangle(envelopBox<T>(first, last, getX, getY));
-    vertices.reserve(vertices.size() + std::distance(first, last));
-    for(; first != last; ++first)
-        insertVertex(V2d<T>::make(getX(*first), getY(*first)));
+    }
+
+    const std::size_t nExistingVerts = vertices.size();
+
+    vertices.reserve(nExistingVerts + std::distance(first, last));
+    for(TVertexIter it = first; it != last; ++it)
+        addNexVertex(V2d<T>::make(getX(*it), getY(*it)), TriIndVec());
+
+    switch(m_vertexInsertionOrder)
+    {
+    case VertexInsertionOrder::AsProvided:
+        for(TVertexIter it = first; it != last; ++it)
+            insertVertex(VertInd(nExistingVerts + std::distance(first, it)));
+        break;
+    case VertexInsertionOrder::Randomized:
+        std::vector<VertInd> ii(std::distance(first, last));
+        typedef std::vector<VertInd>::iterator Iter;
+        VertInd value = nExistingVerts;
+        for(Iter it = ii.begin(); it != ii.end(); ++it, ++value)
+            *it = value;
+        std::random_shuffle(ii.begin(), ii.end(), randomCDT);
+        for(Iter it = ii.begin(); it != ii.end(); ++it)
+            insertVertex(*it);
+        break;
+    }
 }
 
-template <typename T>
+template <typename T, typename TNearPointLocator>
 template <
     typename TEdgeIter,
     typename TGetEdgeVertexStart,
     typename TGetEdgeVertexEnd>
-void Triangulation<T>::insertEdges(
+void Triangulation<T, TNearPointLocator>::insertEdges(
     TEdgeIter first,
     const TEdgeIter last,
     TGetEdgeVertexStart getStart,

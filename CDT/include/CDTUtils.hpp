@@ -39,52 +39,6 @@ Box2d<T> envelopBox(const std::vector<V2d<T> >& vertices)
 }
 
 //*****************************************************************************
-// Vertex
-//*****************************************************************************
-template <typename T>
-Vertex<T> Vertex<T>::make(const V2d<T>& pos, const TriInd iTriangle)
-{
-    Vertex<T> out = {pos, std::vector<TriInd>(1, iTriangle)};
-    return out;
-}
-
-template <typename T>
-Vertex<T> Vertex<T>::makeInTriangle(
-    const V2d<T>& pos,
-    const TriInd iT1,
-    const TriInd iT2,
-    const TriInd iT3)
-{
-    Vertex<T> out;
-    out.pos = pos;
-    TriIndVec& vTris = out.triangles;
-    vTris.reserve(3);
-    vTris.push_back(iT1);
-    vTris.push_back(iT2);
-    vTris.push_back(iT3);
-    return out;
-}
-
-template <typename T>
-Vertex<T> Vertex<T>::makeOnEdge(
-    const V2d<T>& pos,
-    const TriInd iT1,
-    const TriInd iT2,
-    const TriInd iT3,
-    const TriInd iT4)
-{
-    Vertex<T> out;
-    out.pos = pos;
-    TriIndVec& vTris = out.triangles;
-    vTris.reserve(4);
-    vTris.push_back(iT1);
-    vTris.push_back(iT2);
-    vTris.push_back(iT3);
-    vTris.push_back(iT4);
-    return out;
-}
-
-//*****************************************************************************
 // Edge
 //*****************************************************************************
 CDT_INLINE_IF_HEADER_ONLY Edge::Edge(VertInd iV1, VertInd iV2)
@@ -272,11 +226,9 @@ bool isInCircumcircle(
     return incircle(v1.x, v1.y, v2.x, v2.y, v3.x, v3.y, p.x, p.y) > T(0);
 }
 
-template <typename T>
-bool verticesShareEdge(const Vertex<T>& a, const Vertex<T>& b)
+CDT_INLINE_IF_HEADER_ONLY
+bool verticesShareEdge(const TriIndVec& aTris, const TriIndVec& bTris)
 {
-    const std::vector<TriInd>& aTris = a.triangles;
-    const std::vector<TriInd>& bTris = b.triangles;
     for(TriIndVec::const_iterator it = aTris.begin(); it != aTris.end(); ++it)
         if(std::find(bTris.begin(), bTris.end(), *it) != bTris.end())
             return true;
@@ -284,11 +236,29 @@ bool verticesShareEdge(const Vertex<T>& a, const Vertex<T>& b)
 }
 
 template <typename T>
+T distanceSquared(const T ax, const T ay, const T bx, const T by)
+{
+    const T dx = bx - ax;
+    const T dy = by - ay;
+    return dx * dx + dy * dy;
+}
+
+template <typename T>
+T distance(const T ax, const T ay, const T bx, const T by)
+{
+    return std::sqrt(distanceSquared(ax, ay, bx, by));
+}
+
+template <typename T>
 T distance(const V2d<T>& a, const V2d<T>& b)
 {
-    const T dx = b.x - a.x;
-    const T dy = b.y - a.y;
-    return std::sqrt(dx * dx + dy * dy);
+    return distance(a.x, a.y, b.x, b.y);
+}
+
+template <typename T>
+T distanceSquared(const V2d<T>& a, const V2d<T>& b)
+{
+    return distanceSquared(a.x, a.y, b.x, b.y);
 }
 
 } // namespace CDT
