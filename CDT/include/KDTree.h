@@ -8,6 +8,7 @@
 
 #include "CDTUtils.h"
 
+#include <cassert>
 #include <limits>
 
 namespace KDTree
@@ -198,6 +199,7 @@ public:
                 const coord_type toMidSq = distToMid * distToMid;
 
                 const std::size_t iChild = whichChild(point, mid, t.dir);
+                assert((iTask + 2 < MaxStackDepth) && "Tasks stack overflow");
                 // node containing point should end up on top of the stack
                 if(iChild == 0)
                 {
