@@ -30,11 +30,15 @@ struct NodeSplitDirection
 ///          - Does not check for duplicates, expect unique points.
 /// @tparam TCoordType type used for storing point coordinate.
 /// @tparam NumVerticesInLeaf The number of points per leaf.
-/// @tparam MaxStackDepth size of statically allocated stack for nearest query.
+/// @tparam InitialStackDepth initial size of stack depth for nearest query.
+/// Should be at least 1.
+/// @tparam StackDepthIncrement increment of stack depth for nearest query when
+/// stack depth is reached.
 template <
     typename TCoordType,
-    size_t NumVerticesInLeaf = 20,
-    size_t MaxStackDepth = 64>
+    size_t NumVerticesInLeaf = 32,
+    size_t InitialStackDepth = 32,
+    size_t StackDepthIncrement = 32>
 class KDTree
 {
 public:
@@ -81,6 +85,7 @@ public:
               std::numeric_limits<coord_type>::max(),
               std::numeric_limits<coord_type>::max()))
         , m_isRootBoxInitialized(false)
+        , m_tasksStack(InitialStackDepth, NearestTask())
     {
         m_root = addNewNode();
     }
@@ -199,7 +204,11 @@ public:
                 const coord_type toMidSq = distToMid * distToMid;
 
                 const std::size_t iChild = whichChild(point, mid, t.dir);
-                assert((iTask + 2 < MaxStackDepth) && "Tasks stack overflow");
+                if(iTask + 2 >= m_tasksStack.size())
+                {
+                    m_tasksStack.resize(
+                        m_tasksStack.size() + StackDepthIncrement);
+                }
                 // node containing point should end up on top of the stack
                 if(iChild == 0)
                 {
@@ -356,7 +365,7 @@ private:
         {}
     };
     // allocated in class (not in the 'nearest' method) for better performance
-    mutable CDT::array<NearestTask, MaxStackDepth> m_tasksStack;
+    mutable std::vector<NearestTask> m_tasksStack;
 };
 
 } // namespace KDTree
