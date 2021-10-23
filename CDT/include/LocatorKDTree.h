@@ -34,7 +34,7 @@ public:
     }
 
 private:
-    KDTree::KDTree<T, 20> m_kdTree;
+    KDTree::KDTree<T> m_kdTree;
 };
 
 } // namespace CDT
