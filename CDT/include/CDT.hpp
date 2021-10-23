@@ -410,9 +410,9 @@ void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
     const V2d<T> posV1 = {center.x - shiftX, center.y - r};
     const V2d<T> posV2 = {center.x + shiftX, center.y - r};
     const V2d<T> posV3 = {center.x, center.y + R};
-    addNexVertex(posV1, TriIndVec(1, TriInd(0)));
-    addNexVertex(posV2, TriIndVec(1, TriInd(0)));
-    addNexVertex(posV3, TriIndVec(1, TriInd(0)));
+    addNewVertex(posV1, TriIndVec(1, TriInd(0)));
+    addNewVertex(posV2, TriIndVec(1, TriInd(0)));
+    addNewVertex(posV3, TriIndVec(1, TriInd(0)));
     const Triangle superTri = {
         {VertInd(0), VertInd(1), VertInd(2)},
         {noNeighbor, noNeighbor, noNeighbor}};
@@ -424,7 +424,7 @@ void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
 }
 
 template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::addNexVertex(
+void Triangulation<T, TNearPointLocator>::addNewVertex(
     const V2d<T>& pos,
     const TriIndVec& tris)
 {
