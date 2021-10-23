@@ -198,7 +198,7 @@ public:
 private:
     /*____ Detail __*/
     void addSuperTriangle(const Box2d<T>& box);
-    void addNexVertex(const V2d<T>& pos, const TriIndVec& tris);
+    void addNewVertex(const V2d<T>& pos, const TriIndVec& tris);
     void insertVertex(const VertInd iVert);
     void insertEdge(Edge edge);
     tuple<TriInd, VertInd, VertInd> intersectedTriangle(
@@ -537,7 +537,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
 
     vertices.reserve(nExistingVerts + std::distance(first, last));
     for(TVertexIter it = first; it != last; ++it)
-        addNexVertex(V2d<T>::make(getX(*it), getY(*it)), TriIndVec());
+        addNewVertex(V2d<T>::make(getX(*it), getY(*it)), TriIndVec());
 
     switch(m_vertexInsertionOrder)
     {
