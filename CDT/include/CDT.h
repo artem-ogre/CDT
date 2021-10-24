@@ -11,6 +11,7 @@
 #define CDT_lNrmUayWQaIR5fxnsg9B
 
 #include "CDTUtils.h"
+#include "LocatorKDTree.h"
 #include "remove_at.hpp"
 
 #include <algorithm>
@@ -80,7 +81,7 @@ typedef LayerDepth BoundaryOverlapCount;
  * inserting new points. Provides methods: 'addPoint(vPos, iV)' and
  * 'nearPoint(vPos) -> iV'
  */
-template <typename T, typename TNearPointLocator>
+template <typename T, typename TNearPointLocator = LocatorKDTree<T> >
 class CDT_EXPORT Triangulation
 {
 public:

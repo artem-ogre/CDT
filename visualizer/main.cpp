@@ -2,7 +2,6 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 #include "CDT.h"
-#include "LocatorKDTree.h"
 #include "VerifyTopology.h"
 
 #include <fstream>
@@ -23,8 +22,7 @@
 #include <QTextStream>
 
 typedef double CoordType;
-typedef CDT::LocatorKDTree<CoordType> NearPtLocator;
-typedef CDT::Triangulation<CoordType, NearPtLocator> Triangulation;
+typedef CDT::Triangulation<CoordType> Triangulation;
 typedef CDT::V2d<CoordType> V2d;
 typedef CDT::Triangle Triangle;
 typedef CDT::Box2d<CoordType> Box2d;
