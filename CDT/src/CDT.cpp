@@ -15,23 +15,12 @@
 
 #include "CDT.hpp"
 #include "CDTUtils.hpp"
-#ifdef CDT_USE_BOOST
-#include "LocatorBoostRTree.h"
-#endif
-#include "LocatorKDTree.h"
-#include "LocatorNearestRandom.h"
 
 namespace CDT
 {
 
-#ifdef CDT_USE_BOOST
-template class Triangulation<float, LocatorBoostRTree<float> >;
-template class Triangulation<double, LocatorBoostRTree<double> >;
-#endif
-template class Triangulation<float, LocatorNearestRandom<float> >;
-template class Triangulation<double, LocatorNearestRandom<double> >;
-template class Triangulation<float, LocatorKDTree<float> >;
-template class Triangulation<double, LocatorKDTree<double> >;
+template class Triangulation<float>;
+template class Triangulation<double>;
 template struct V2d<float>;
 template struct V2d<double>;
 template struct Box2d<float>;

@@ -67,8 +67,6 @@ if(CDT_USE_AS_COMPILED_LIBRARY)
         include/CDT.h
         include/CDTUtils.h
         include/KDTree.h
-        include/LocatorBoostRTree.h
-        include/LocatorNearestRandom.h
         include/LocatorKDTree.h
         include/remove_at.hpp
         include/CDT.hpp
