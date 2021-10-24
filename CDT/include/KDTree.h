@@ -1,7 +1,8 @@
 /// This Source Code Form is subject to the terms of the Mozilla Public
 /// License, v. 2.0. If a copy of the MPL was not distributed with this
 /// file, You can obtain one at https://mozilla.org/MPL/2.0/.
-/// author: Andre Fecteau <andre.fecteau1@gmail.com>
+/// Contribution of original implementation:
+/// Andre Fecteau <andre.fecteau1@gmail.com>
 
 #ifndef KDTREE_KDTREE_H
 #define KDTREE_KDTREE_H
