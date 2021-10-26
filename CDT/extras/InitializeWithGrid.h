@@ -26,7 +26,8 @@ namespace detail
 /**
  * Generate grid vertices given of X- and Y-ticks
  *
- * @tparam OutputIt output iterator
+ * @tparam OutputVertIt output vertices iterator
+ * @tparam OutputTriIt output triangles iterator
  * @tparam TXCoordIter iterator dereferencing to X coordinate
  * @tparam TYCoordIter iterator dereferencing to Y coordinate
  * @param outFirst the beginning of the destination range
@@ -35,10 +36,14 @@ namespace detail
  * @param yfirst beginning of Y-ticks range
  * @param ylast end of Y-ticks range
  */
-template <typename OutVertIt, typename OutTriIt, typename TXCoordIter, typename TYCoordIter>
+template <
+    typename OutputVertIt,
+    typename OutputTriIt,
+    typename TXCoordIter,
+    typename TYCoordIter>
 void generateGridVertices(
-    OutVertIt outVert,
-    OutTriIt outTri,
+    OutputVertIt outVertsFirst,
+    OutputTriIt outTrisFirst,
     const TXCoordIter xfirst,
     const TXCoordIter xlast,
     const TYCoordIter yfirst,
@@ -54,33 +59,33 @@ void generateGridVertices(
         TXCoordIter xiter = xfirst;
         for(std::size_t ix = 0; xiter != xlast; ++xiter, ++ix)
         {
+            *outVertsFirst++ = V2d<T>::make(*xiter, *yiter);
             const std::size_t i = iy * xres + ix;
-            std::vector<TriInd> ind;
-            ind.reserve(6);
+            TriIndVec vTris;
+            vTris.reserve(6);
             // left-up
             if(ix > 0 && iy < yres)
             {
-                ind.push_back(2 * (i - 1));
-                ind.push_back(2 * (i - 1) + 1);
+                vTris.push_back(2 * (i - 1));
+                vTris.push_back(2 * (i - 1) + 1);
             }
             // right-up
             if(ix < xres && iy < yres)
             {
-                ind.push_back(2 * i);
+                vTris.push_back(2 * i);
             }
             // left-down
             if(ix > 0 && iy > 0)
             {
-                ind.push_back(2 * (i - xres - 1) + 1);
+                vTris.push_back(2 * (i - xres - 1) + 1);
             }
             // right-down
             if(ix < xres && iy > 0)
             {
-                ind.push_back(2 * (i - xres));
-                ind.push_back(2 * (i - xres) + 1);
+                vTris.push_back(2 * (i - xres));
+                vTris.push_back(2 * (i - xres) + 1);
             }
-            *outVert++ = V2d<T>::make(*xiter, *yiter);
-            *outTri++ = std::move(ind);
+            *outTrisFirst++ = vTris;
         }
     }
 }
@@ -96,20 +101,20 @@ void generateGridVertices(
 template <typename OutputIt>
 void generateGridTriangles(
     OutputIt outFirst,
-    const std::size_t xres,
-    const std::size_t yres)
+    const IndexSizeType xres,
+    const IndexSizeType yres)
 {
-    for(std::size_t iy = 0; iy < yres; ++iy)
+    for(IndexSizeType iy = 0; iy < yres; ++iy)
     {
-        for(std::size_t ix = 0; ix < xres; ++ix)
+        for(IndexSizeType ix = 0; ix < xres; ++ix)
         {
             // 2___3           v3
             // |\  |           /\
             // | \ |        n3/  \n2
             // |__\|         /____\
             // 0   1       v1  n1  v2
-            const std::size_t i = iy * xres + ix;
-            const std::size_t iv = iy * (xres + 1) + ix;
+            const IndexSizeType i = iy * xres + ix;
+            const IndexSizeType iv = iy * (xres + 1) + ix;
             const VertInd vv[4] = {iv, iv + 1, iv + xres + 1, iv + xres + 2};
             Triangle t;
 
@@ -199,7 +204,12 @@ void initializeWithIrregularGrid(
     out.vertices.reserve((xres + 1) * (yres + 1));
     out.vertTris.reserve((xres + 1) * (yres + 1));
     detail::generateGridVertices(
-        std::back_inserter(out.vertices), std::back_inserter(out.vertTris), xfirst, xlast, yfirst, ylast);
+        std::back_inserter(out.vertices),
+        std::back_inserter(out.vertTris),
+        xfirst,
+        xlast,
+        yfirst,
+        ylast);
     detail::generateGridTriangles(
         std::back_inserter(out.triangles), xres, yres);
     out.initializedWithCustomSuperGeometry();

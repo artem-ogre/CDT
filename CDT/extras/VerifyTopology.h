@@ -26,8 +26,9 @@ namespace CDT
  *  - each of triangle's vertices has triangle as adjacent
  *
  * @tparam T type of vertex coordinates (e.g., float, double)
+ * @tparam TNearPointLocator class providing locating near point for efficiently
  */
-template <typename T, typename TNearPointLocator>
+template <typename T, typename TNearPointLocator = LocatorKDTree<T> >
 inline bool verifyTopology(const CDT::Triangulation<T, TNearPointLocator>& cdt)
 {
     // Check if vertices' adjacent triangles contain vertex
