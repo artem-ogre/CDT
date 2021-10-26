@@ -20,7 +20,8 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 # options
 option(CDT_USE_BOOST
-    "If enabled Boost::rtree can be used for finding the nearest point; boost::flat_set is used for better performance"
+    "If enabled Boost is used as a fall-back for features missing in C++98
+    and performance tweaks (e.g., using boost::flat_set)"
     OFF)
 
 option(CDT_USE_AS_COMPILED_LIBRARY
