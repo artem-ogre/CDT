@@ -15,6 +15,8 @@
 
 #include "CDT.hpp"
 #include "CDTUtils.hpp"
+#include "InitializeWithGrid.h"
+#include "VerifyTopology.h"
 
 namespace CDT
 {
@@ -38,6 +40,26 @@ template DuplicatesInfo RemoveDuplicatesAndRemapEdges<float>(
 template DuplicatesInfo RemoveDuplicatesAndRemapEdges<double>(
     std::vector<V2d<double> >&,
     std::vector<Edge>&);
+
+template bool verifyTopology<float>(const CDT::Triangulation<float>&);
+template bool verifyTopology<double>(const CDT::Triangulation<double>&);
+
+template void initializeWithRegularGrid<float>(
+    float,
+    float,
+    float,
+    float,
+    std::size_t,
+    std::size_t,
+    Triangulation<float>&);
+template void initializeWithRegularGrid<double>(
+    double,
+    double,
+    double,
+    double,
+    std::size_t,
+    std::size_t,
+    Triangulation<double>&);
 
 } // namespace CDT
 
