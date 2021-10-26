@@ -35,9 +35,10 @@ namespace detail
  * @param yfirst beginning of Y-ticks range
  * @param ylast end of Y-ticks range
  */
-template <typename OutputIt, typename TXCoordIter, typename TYCoordIter>
+template <typename OutVertIt, typename OutTriIt, typename TXCoordIter, typename TYCoordIter>
 void generateGridVertices(
-    OutputIt outFirst,
+    OutVertIt outVert,
+    OutTriIt outTri,
     const TXCoordIter xfirst,
     const TXCoordIter xlast,
     const TYCoordIter yfirst,
@@ -53,33 +54,33 @@ void generateGridVertices(
         TXCoordIter xiter = xfirst;
         for(std::size_t ix = 0; xiter != xlast; ++xiter, ++ix)
         {
-            Vertex<T> v;
-            v.pos = V2d<T>::make(*xiter, *yiter);
-
             const std::size_t i = iy * xres + ix;
+            std::vector<TriInd> ind;
+            ind.reserve(6);
             // left-up
             if(ix > 0 && iy < yres)
             {
-                v.triangles.push_back(2 * (i - 1));
-                v.triangles.push_back(2 * (i - 1) + 1);
+                ind.push_back(2 * (i - 1));
+                ind.push_back(2 * (i - 1) + 1);
             }
             // right-up
             if(ix < xres && iy < yres)
             {
-                v.triangles.push_back(2 * i);
+                ind.push_back(2 * i);
             }
             // left-down
             if(ix > 0 && iy > 0)
             {
-                v.triangles.push_back(2 * (i - xres - 1) + 1);
+                ind.push_back(2 * (i - xres - 1) + 1);
             }
             // right-down
             if(ix < xres && iy > 0)
             {
-                v.triangles.push_back(2 * (i - xres));
-                v.triangles.push_back(2 * (i - xres) + 1);
+                ind.push_back(2 * (i - xres));
+                ind.push_back(2 * (i - xres) + 1);
             }
-            *outFirst++ = v;
+            *outVert++ = V2d<T>::make(*xiter, *yiter);
+            *outTri++ = std::move(ind);
         }
     }
 }
@@ -196,8 +197,9 @@ void initializeWithIrregularGrid(
     const std::size_t yres = std::distance(yfirst, ylast) - 1;
     out.triangles.reserve(xres * yres * 2);
     out.vertices.reserve((xres + 1) * (yres + 1));
+    out.vertTris.reserve((xres + 1) * (yres + 1));
     detail::generateGridVertices(
-        std::back_inserter(out.vertices), xfirst, xlast, yfirst, ylast);
+        std::back_inserter(out.vertices), std::back_inserter(out.vertTris), xfirst, xlast, yfirst, ylast);
     detail::generateGridTriangles(
         std::back_inserter(out.triangles), xres, yres);
     out.initializedWithCustomSuperGeometry();
