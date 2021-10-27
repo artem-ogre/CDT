@@ -26,19 +26,19 @@ class LocatorKDTree
 {
 public:
     /// Add point to R-tree
-    void addPoint(const VertInd i, const std::vector<V2d<T> >& points)
+    void addPoint(const VertInd i, const std::vector<V2d<TCoordType> >& points)
     {
         m_kdTree.insert(i, points);
     }
     /// Find nearest point using R-tree
     VertInd
-    nearPoint(const V2d<T>& pos, const std::vector<V2d<T> >& points) const
+    nearPoint(const V2d<TCoordType>& pos, const std::vector<V2d<TCoordType> >& points) const
     {
         return m_kdTree.nearest(pos, points).second;
     }
 
 private:
-    KDTree::KDTree<T, NumVerticesInLeaf, InitialStackDepth, StackDepthIncrement> m_kdTree;
+    KDTree::KDTree<TCoordType, NumVerticesInLeaf, InitialStackDepth, StackDepthIncrement> m_kdTree;
 };
 
 } // namespace CDT
