@@ -150,7 +150,7 @@ void generateGridTriangles(
  * @param yres grid Y-resolution
  * @param out triangulation to initialize with grid super-geometry
  */
-template <typename T>
+template <typename T, typename TNearPointLocator>
 void initializeWithRegularGrid(
     const T xmin,
     const T xmax,
@@ -158,7 +158,7 @@ void initializeWithRegularGrid(
     const T ymax,
     const std::size_t xres,
     const std::size_t yres,
-    Triangulation<T>& out)
+    Triangulation<T, TNearPointLocator>& out)
 {
     std::vector<T> xcoords;
     std::vector<T> ycoords;
@@ -190,13 +190,13 @@ void initializeWithRegularGrid(
  * @param ylast end of Y-ticks range
  * @param out triangulation to initialize with grid super-geometry
  */
-template <typename T, typename TXCoordIter, typename TYCoordIter>
+template <typename T, typename TNearPointLocator, typename TXCoordIter, typename TYCoordIter>
 void initializeWithIrregularGrid(
     const TXCoordIter xfirst,
     const TXCoordIter xlast,
     const TYCoordIter yfirst,
     const TYCoordIter ylast,
-    Triangulation<T>& out)
+    Triangulation<T, TNearPointLocator>& out)
 {
     const std::size_t xres = std::distance(xfirst, xlast) - 1;
     const std::size_t yres = std::distance(yfirst, ylast) - 1;
