@@ -31,14 +31,20 @@ public:
         m_kdTree.insert(i, points);
     }
     /// Find nearest point using R-tree
-    VertInd
-    nearPoint(const V2d<TCoordType>& pos, const std::vector<V2d<TCoordType> >& points) const
+    VertInd nearPoint(
+        const V2d<TCoordType>& pos,
+        const std::vector<V2d<TCoordType> >& points) const
     {
         return m_kdTree.nearest(pos, points).second;
     }
 
 private:
-    KDTree::KDTree<TCoordType, NumVerticesInLeaf, InitialStackDepth, StackDepthIncrement> m_kdTree;
+    KDTree::KDTree<
+        TCoordType,
+        NumVerticesInLeaf,
+        InitialStackDepth,
+        StackDepthIncrement>
+        m_kdTree;
 };
 
 } // namespace CDT
