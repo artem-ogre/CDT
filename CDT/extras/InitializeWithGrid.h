@@ -149,6 +149,8 @@ void generateGridTriangles(
  * super-triangle
  *
  * @tparam T type of vertex coordinates (e.g., float, double)
+ * @tparam TNearPointLocator class providing locating near point for efficiently
+ * inserting new points.
  * @param xmin minimum X-coordinate of grid
  * @param xmax maximum X-coordinate of grid
  * @param ymin minimum Y-coordinate of grid
@@ -189,6 +191,8 @@ void initializeWithRegularGrid(
  * super-triangle. Irregular grid is given by collections of X- and Y-ticks
  *
  * @tparam T type of vertex coordinates (e.g., float, double)
+ * @tparam TNearPointLocator class providing locating near point for efficiently
+ * inserting new points.
  * @tparam TXCoordIter iterator dereferencing to X coordinate
  * @tparam TYCoordIter iterator dereferencing to Y coordinate
  * @param xfirst beginning of X-ticks range
