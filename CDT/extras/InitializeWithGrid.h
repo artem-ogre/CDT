@@ -190,7 +190,11 @@ void initializeWithRegularGrid(
  * @param ylast end of Y-ticks range
  * @param out triangulation to initialize with grid super-geometry
  */
-template <typename T, typename TNearPointLocator, typename TXCoordIter, typename TYCoordIter>
+template <
+    typename T,
+    typename TNearPointLocator,
+    typename TXCoordIter,
+    typename TYCoordIter>
 void initializeWithIrregularGrid(
     const TXCoordIter xfirst,
     const TXCoordIter xlast,
