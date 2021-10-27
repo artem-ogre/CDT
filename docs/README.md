@@ -8,7 +8,7 @@ Numerically robust C++ implementation of constrained Delaunay triangulation (CDT
 - uses robust geometric predicates for numerical robustness
 - can be consumed as header-only (default) or compiled (if `CDT_USE_AS_COMPILED_LIBRARY` is defined)
 - permissively-licensed (MPL-2.0)
-- backwards-compatible with C++03
+- backwards-compatible with C++98
 - cross-platform: tested on Windows, Linux (Ubuntu), and macOS
 
 **Please ★ this repository if it helped. This means a lot to the authors :)**
