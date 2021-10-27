@@ -17,7 +17,11 @@ namespace CDT
 {
 
 /// KD-tree holding points
-template <typename T>
+template <
+    typename TCoordType,
+    size_t NumVerticesInLeaf = 32,
+    size_t InitialStackDepth = 32,
+    size_t StackDepthIncrement = 32>
 class LocatorKDTree
 {
 public:
@@ -34,7 +38,7 @@ public:
     }
 
 private:
-    KDTree::KDTree<T> m_kdTree;
+    KDTree::KDTree<T, NumVerticesInLeaf, InitialStackDepth, StackDepthIncrement> m_kdTree;
 };
 
 } // namespace CDT
