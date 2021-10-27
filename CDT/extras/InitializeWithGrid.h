@@ -14,6 +14,9 @@
 #include "CDT.h"
 #include "CDTUtils.h"
 
+#ifdef CDT_CXX11_IS_SUPPORTED
+#include <algorithm>
+#endif
 #include <cstddef>
 #include <iterator>
 #include <vector>
@@ -85,7 +88,11 @@ void generateGridVertices(
                 vTris.push_back(2 * (i - xres));
                 vTris.push_back(2 * (i - xres) + 1);
             }
+#ifdef CDT_CXX11_IS_SUPPORTED
+            *outTrisFirst++ = std::move(vTris);
+#else
             *outTrisFirst++ = vTris;
+#endif
         }
     }
 }
