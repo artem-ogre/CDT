@@ -37,9 +37,9 @@ struct NodeSplitDirection
 /// stack depth is reached.
 template <
     typename TCoordType,
-    size_t NumVerticesInLeaf = 32,
-    size_t InitialStackDepth = 32,
-    size_t StackDepthIncrement = 32>
+    size_t NumVerticesInLeaf,
+    size_t InitialStackDepth,
+    size_t StackDepthIncrement>
 class KDTree
 {
 public:
