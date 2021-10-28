@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.4)
 
 project(
     "CDT"
-    VERSION 1.1.1
+    VERSION 1.1.2
     DESCRIPTION
     "C++ library for constrained Delaunay triangulation (CDT)"
     HOMEPAGE_URL "https://github.com/artem-ogre/CDT"
