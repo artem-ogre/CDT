@@ -1062,4 +1062,18 @@ std::vector<LayerDepth> CalculateTriangleDepths(
     return triDepths;
 }
 
+CDT_INLINE_IF_HEADER_ONLY EdgeUSet
+extractEdgesFromTriangles(const TriangleVec& triangles)
+{
+    EdgeUSet edges;
+    typedef TriangleVec::const_iterator CIt;
+    for(CIt t = triangles.begin(); t != triangles.end(); ++t)
+    {
+        edges.insert(Edge(VertInd(t->vertices[0]), VertInd(t->vertices[1])));
+        edges.insert(Edge(VertInd(t->vertices[1]), VertInd(t->vertices[2])));
+        edges.insert(Edge(VertInd(t->vertices[2]), VertInd(t->vertices[0])));
+    }
+    return edges;
+}
+
 } // namespace CDT

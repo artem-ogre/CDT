@@ -479,6 +479,14 @@ unordered_map<TriInd, LayerDepth> PeelLayer(
     const LayerDepth layerDepth,
     std::vector<LayerDepth>& triDepths);
 
+/**
+ * Extract all edges of triangles
+ *
+ * @param triangles triangles used to extract edges
+ * @return an unordered set of all edges of triangulation
+ */
+CDT_EXPORT EdgeUSet extractEdgesFromTriangles(const TriangleVec& triangles);
+
 } // namespace CDT
 
 //*****************************************************************************
