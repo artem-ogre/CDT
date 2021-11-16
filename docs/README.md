@@ -151,21 +151,7 @@ Public API is provided in two places:
 
 ### Code Examples
 
-**Triangulation with constrained boundaries**
-
-<img src="./images/A.png" alt="Example of a triangulation with constrained boundaries and auto-detected holes" height="150"/>
-
-```c++
-// ... same as above
-cdt.insertVertices(/* points */);
-cdt.insertEdges(/* boundary edges */);
-cdt.eraseOuterTrianglesAndHoles();
-/* access triangles */ = cdt.triangles;
-/* access vertices */ = cdt.vertices;
-/* access boundary edges */ = cdt.edges;
-```
-
-**Triangulated convex-hull**
+**Delaunay triangulation without constraints (triangulated convex-hull)**
 
 <img src="./images/LakeSuperior.png" alt="Example of a triangulated convex hull" height="150"/>
 
@@ -174,6 +160,20 @@ cdt.eraseOuterTrianglesAndHoles();
 CDT::Triangulation<double> cdt;
 cdt.insertVertices(/* points */);
 cdt.eraseSuperTriangle();
+/* access triangles */ = cdt.triangles;
+/* access vertices */ = cdt.vertices;
+/* access boundary edges */ = cdt.edges;
+```
+
+**Constrained Delaunay triangulation (auto-detected boundaries and holes)**
+
+<img src="./images/A.png" alt="Example of a triangulation with constrained boundaries and auto-detected holes" height="150"/>
+
+```c++
+// ... same as above
+cdt.insertVertices(/* points */);
+cdt.insertEdges(/* boundary edges */);
+cdt.eraseOuterTrianglesAndHoles();
 /* access triangles */ = cdt.triangles;
 /* access vertices */ = cdt.vertices;
 /* access boundary edges */ = cdt.edges;
