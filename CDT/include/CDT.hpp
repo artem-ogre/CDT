@@ -1008,6 +1008,7 @@ TriIndUSet PeelLayer(
     return behindBoundary;
 }
 
+CDT_INLINE_IF_HEADER_ONLY
 std::vector<LayerDepth> CalculateTriangleDepths(
     const TriInd seed,
     const TriangleVec& triangles,
@@ -1042,6 +1043,7 @@ std::vector<LayerDepth> CalculateTriangleDepths(
     return triDepths;
 }
 
+CDT_INLINE_IF_HEADER_ONLY
 std::vector<LayerDepth> CalculateTriangleDepths(
     const TriInd seed,
     const TriangleVec& triangles,
