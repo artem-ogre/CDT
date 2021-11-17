@@ -520,8 +520,7 @@ namespace CDT
 #ifdef CDT_CXX11_IS_SUPPORTED
 inline void shuffle_indices(std::vector<VertInd>& indices)
 {
-    std::random_device rd;
-    std::mt19937 g(rd());
+    std::mt19937 g(9001);
     std::shuffle(indices.begin(), indices.end(), g);
 }
 #else
