@@ -517,11 +517,25 @@ struct hash<CDT::V2d<T> >
 namespace CDT
 {
 
+#ifdef CDT_CXX11_IS_SUPPORTED
+inline void shuffle_indices(std::vector<VertInd>& indices)
+{
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(indices.begin(), indices.end(), g);
+}
+#else
 inline size_t randomCDT(const size_t i)
 {
     static mt19937 g(9001);
     return g() % i;
 }
+
+inline void shuffle_indices(std::vector<VertInd>& indices)
+{
+    std::random_shuffle(indices.begin(), indices.end(), randomCDT);
+}
+#endif
 
 //-----------------------
 // Triangulation methods
@@ -560,7 +574,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
         VertInd value = nExistingVerts;
         for(Iter it = ii.begin(); it != ii.end(); ++it, ++value)
             *it = value;
-        std::random_shuffle(ii.begin(), ii.end(), randomCDT);
+        shuffle_indices(ii);
         for(Iter it = ii.begin(); it != ii.end(); ++it)
             insertVertex(*it);
         break;
