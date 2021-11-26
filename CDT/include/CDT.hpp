@@ -21,7 +21,6 @@ typedef std::deque<TriInd> TriDeque;
 
 namespace detail
 {
-static mt19937 randGen(9001);
 
 /// Needed for c++03 compatibility (no uniform initialization available)
 template <typename T>
@@ -686,7 +685,7 @@ TriInd Triangulation<T, TNearPointLocator>::walkTriangles(
         const Triangle& t = triangles[currTri];
         found = true;
         // stochastic offset to randomize which edge we check first
-        const Index offset(detail::randGen() % 3);
+        const Index offset(detail::randGenerator() % 3);
         for(Index i_(0); i_ < Index(3); ++i_)
         {
             const Index i((i_ + offset) % 3);

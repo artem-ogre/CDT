@@ -517,24 +517,23 @@ struct hash<CDT::V2d<T> >
 namespace CDT
 {
 
-#ifdef CDT_CXX11_IS_SUPPORTED
-inline void shuffle_indices(std::vector<VertInd>& indices)
+namespace detail
 {
-    static mt19937 g(9001);
-    std::shuffle(indices.begin(), indices.end(), g);
-}
-#else
-inline size_t randomCDT(const size_t i)
+
+static mt19937 randGenerator(9001);
+
+template <class RandomIt>
+void random_shuffle(RandomIt first, RandomIt last)
 {
-    static mt19937 g(9001);
-    return g() % i;
+    typename std::iterator_traits<RandomIt>::difference_type i, n;
+    n = last - first;
+    for(i = n - 1; i > 0; --i)
+    {
+        std::swap(first[i], first[randGenerator() % (i + 1)]);
+    }
 }
 
-inline void shuffle_indices(std::vector<VertInd>& indices)
-{
-    std::random_shuffle(indices.begin(), indices.end(), randomCDT);
-}
-#endif
+} // namespace detail
 
 //-----------------------
 // Triangulation methods
@@ -550,6 +549,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
     TGetVertexCoordX getX,
     TGetVertexCoordY getY)
 {
+    detail::randGenerator.seed(9001); // ensure deterministic behavior
     if(vertices.empty())
     {
         addSuperTriangle(envelopBox<T>(first, last, getX, getY));
@@ -573,7 +573,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
         VertInd value = nExistingVerts;
         for(Iter it = ii.begin(); it != ii.end(); ++it, ++value)
             *it = value;
-        shuffle_indices(ii);
+        detail::random_shuffle(ii.begin(),ii.end());
         for(Iter it = ii.begin(); it != ii.end(); ++it)
             insertVertex(*it);
         break;
