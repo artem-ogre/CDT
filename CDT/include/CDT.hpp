@@ -399,8 +399,8 @@ void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
     m_nTargetVerts = 3;
     m_superGeomType = SuperGeometryType::SuperTriangle;
 
-		// ref: https://web.mit.edu/alexmv/Public/6.850-lectures/lecture09.pdf
-		// page 41.
+    // ref: https://web.mit.edu/alexmv/Public/6.850-lectures/lecture09.pdf
+    // page 41.
     auto M = std::max(abs(box.max.x), abs(box.min.x));
     M = std::max(M, std::max(abs(box.max.y), abs(box.min.y)));
     M = ceil(M);
