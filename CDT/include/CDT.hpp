@@ -488,16 +488,30 @@ bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
     const V2d<T>& v3 = vertices[iVccw];
     if(m_superGeomType == SuperGeometryType::SuperTriangle)
     {
-        if(iVert < 3 || iVopo < 3) // flip-candidate edge touches super-triangle
+        if (iVert < 3 && iVopo < 3)  // both traingles touch super-triangle
         {
-            if(iVcw < 3 || iVccw < 3) // but so does original edge
-            {
-                // let the normal circumcircle test decide
-                return isInCircumcircle(pos, v1, v2, v3);
-            }
-            return false; // no flip is needed
+            return false;  // no flip is needed
+        }
+        else if (iVert < 3) // one traingle touches super-triangle
+        {
+            // check relative position to non super-triangle vertices
+            if(iVcw < 3)
+                return locatePointLine(v1, v2, v3) == locatePointLine(pos, v2, v3);
+            if(iVccw < 3)
+                return locatePointLine(v3, v1, v2) == locatePointLine(pos, v1, v2);
+            return false;  // no flip is needed
+        }
+        else if (iVopo < 3) // one traingle touches super-triangle
+        {
+            // check relative position to non super-triangle vertices
+            if (iVcw < 3)
+                return locatePointLine(v1, pos, v3) == locatePointLine(v2, pos, v3);
+            if (iVccw < 3)
+                return locatePointLine(v3, v1, pos) == locatePointLine(v2, v1, pos);
+            return false;  // no flip is needed
         }
 
+        // one of edge vertices is super-triangle vertex
         if(iVcw < 3)
             return locatePointLine(v1, v2, v3) == locatePointLine(pos, v2, v3);
         if(iVccw < 3)
