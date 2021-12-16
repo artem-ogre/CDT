@@ -399,17 +399,15 @@ void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
     m_nTargetVerts = 3;
     m_superGeomType = SuperGeometryType::SuperTriangle;
 
-    const V2d<T> center = {
-        (box.min.x + box.max.x) / T(2), (box.min.y + box.max.y) / T(2)};
-    const T w = box.max.x - box.min.x;
-    const T h = box.max.y - box.min.y;
-    T r = std::sqrt(w * w + h * h) / T(2); // incircle radius
-    r *= T(1.1);
-    const T R = T(2) * r;                        // excircle radius
-    const T shiftX = R * std::sqrt(T(3)) / T(2); // R * cos(30 deg)
-    const V2d<T> posV1 = {center.x - shiftX, center.y - r};
-    const V2d<T> posV2 = {center.x + shiftX, center.y - r};
-    const V2d<T> posV3 = {center.x, center.y + R};
+		// ref: https://web.mit.edu/alexmv/Public/6.850-lectures/lecture09.pdf
+		// page 41.
+    auto M = std::max(abs(box.max.x), abs(box.min.x));
+    M = std::max(M, std::max(abs(box.max.y), abs(box.min.y)));
+    M = ceil(M);
+    const V2d<T> posV1 = {3 * M, 0};
+    const V2d<T> posV2 = {0, 3 * M};
+    const V2d<T> posV3 = {-3 * M, -3 * M};
+
     addNewVertex(posV1, TriIndVec(1, TriInd(0)));
     addNewVertex(posV2, TriIndVec(1, TriInd(0)));
     addNewVertex(posV3, TriIndVec(1, TriInd(0)));
