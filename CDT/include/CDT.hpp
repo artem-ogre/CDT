@@ -473,51 +473,64 @@ void Triangulation<T, TNearPointLocator>::insertVertex(const VertInd iVert)
  */
 template <typename T, typename TNearPointLocator>
 bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
-    const V2d<T>& pos,
+    const V2d<T>& v,
     const TriInd iT,
     const TriInd iTopo,
-    const VertInd iVert) const
+    const VertInd iV) const
 {
+    /*
+     *                       v3         original edge: (v1, v3)
+     *                      /|\   flip-candidate edge: (v,  v2)
+     *                    /  |  \
+     *                  /    |    \
+     *                /      |      \
+     * new vertex--> v       |       v2
+     *                \      |      /
+     *                  \    |    /
+     *                    \  |  /
+     *                      \|/
+     *                       v1
+     */
     const Triangle& tOpo = triangles[iTopo];
     const Index i = opposedVertexInd(tOpo, iT);
-    const VertInd iVopo = tOpo.vertices[i];
-    const VertInd iVcw = tOpo.vertices[cw(i)];
-    const VertInd iVccw = tOpo.vertices[ccw(i)];
-    const V2d<T>& v1 = vertices[iVcw];
-    const V2d<T>& v2 = vertices[iVopo];
-    const V2d<T>& v3 = vertices[iVccw];
+    const VertInd iV2 = tOpo.vertices[i];
+    const VertInd iV1 = tOpo.vertices[cw(i)];
+    const VertInd iV3 = tOpo.vertices[ccw(i)];
+    const V2d<T>& v1 = vertices[iV1];
+    const V2d<T>& v2 = vertices[iV2];
+    const V2d<T>& v3 = vertices[iV3];
     if(m_superGeomType == SuperGeometryType::SuperTriangle)
     {
-        if (iVert < 3 && iVopo < 3)  // both traingles touch super-triangle
+        // If flip-candidate edge touches super-triangle in-circumference test
+        // has to be replaced with orient2d test against the line formed by two
+        // non-artificial vertices (that don't belong to super-triangle)
+        if(iV < 3) // flip-candidate edge touches super-triangle
         {
-            return false;  // no flip is needed
+            // does original edge also touch super-triangle?
+            if(iV1 < 3)
+                return locatePointLine(v1, v2, v3) ==
+                       locatePointLine(v, v2, v3);
+            if(iV3 < 3)
+                return locatePointLine(v3, v1, v2) ==
+                       locatePointLine(v, v1, v2);
+            return false; // original edge does not touch super-triangle
         }
-        else if (iVert < 3) // one traingle touches super-triangle
+        if(iV2 < 3) // flip-candidate edge touches super-triangle
         {
-            // check relative position to non super-triangle vertices
-            if(iVcw < 3)
-                return locatePointLine(v1, v2, v3) == locatePointLine(pos, v2, v3);
-            if(iVccw < 3)
-                return locatePointLine(v3, v1, v2) == locatePointLine(pos, v1, v2);
-            return false;  // no flip is needed
+            // does original edge also touch super-triangle?
+            if(iV1 < 3)
+                return locatePointLine(v1, v, v3) == locatePointLine(v2, v, v3);
+            if(iV3 < 3)
+                return locatePointLine(v3, v1, v) == locatePointLine(v2, v1, v);
+            return false; // original edge does not touch super-triangle
         }
-        else if (iVopo < 3) // one traingle touches super-triangle
-        {
-            // check relative position to non super-triangle vertices
-            if (iVcw < 3)
-                return locatePointLine(v1, pos, v3) == locatePointLine(v2, pos, v3);
-            if (iVccw < 3)
-                return locatePointLine(v3, v1, pos) == locatePointLine(v2, v1, pos);
-            return false;  // no flip is needed
-        }
-
-        // one of edge vertices is super-triangle vertex
-        if(iVcw < 3)
-            return locatePointLine(v1, v2, v3) == locatePointLine(pos, v2, v3);
-        if(iVccw < 3)
-            return locatePointLine(v3, v1, v2) == locatePointLine(pos, v1, v2);
+        // flip-candidate edge does not touch super-triangle
+        if(iV1 < 3)
+            return locatePointLine(v1, v2, v3) == locatePointLine(v, v2, v3);
+        if(iV3 < 3)
+            return locatePointLine(v3, v1, v2) == locatePointLine(v, v1, v2);
     }
-    return isInCircumcircle(pos, v1, v2, v3);
+    return isInCircumcircle(v, v1, v2, v3);
 }
 
 /* Insert point into triangle: split into 3 triangles:
