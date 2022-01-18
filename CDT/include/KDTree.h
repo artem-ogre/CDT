@@ -110,8 +110,9 @@ public:
         point_type max = m_max;
         NodeSplitDirection::Enum dir = m_rootDir;
 
-        coord_type mid;
-        NodeSplitDirection::Enum newDir;
+        // below: initialized only to suppress warnings
+        NodeSplitDirection::Enum newDir(NodeSplitDirection::X);
+        coord_type mid(0);
         point_type newMin, newMax;
         while(true)
         {
@@ -205,7 +206,7 @@ public:
                 const coord_type toMidSq = distToMid * distToMid;
 
                 const std::size_t iChild = whichChild(point, mid, t.dir);
-                if(iTask + 2 >= m_tasksStack.size())
+                if(iTask + 2 >= static_cast<int>(m_tasksStack.size()))
                 {
                     m_tasksStack.resize(
                         m_tasksStack.size() + StackDepthIncrement);
