@@ -139,10 +139,16 @@ public:
         TVertexIter last,
         TGetVertexCoordX getX,
         TGetVertexCoordY getY);
-    /// Insert vertices into triangulation
+    /**
+     * See @ref
+     * insertVertices(TVertexIter,TVertexIter,TGetVertexCoordX,TGetVertexCoordY)
+     */
     void insertVertices(const std::vector<V2d<T> >& vertices);
     /**
      * Insert constraints (custom-type fixed edges) into triangulation
+     * @note Each fixed edge is inserted by deleting the triangles it crosses,
+     * followed by the triangulation of the polygons on each side of the edge.
+     * <b> No new vertices are inserted.</b>
      * @note If some edge appears more than once in @ref insertEdges input this
      * means that multiple boundaries overlap at the edge and impacts
      * how hole detection algorithm of @ref eraseOuterTrianglesAndHoles works.
@@ -168,13 +174,44 @@ public:
         TGetEdgeVertexStart getStart,
         TGetEdgeVertexEnd getEnd);
     /**
-     * Insert constraints (fixed edges) into triangulation
+     * See @ref
+     * insertEdges(TEdgeIter,TEdgeIter,TGetEdgeVertexStart,TGetEdgeVertexEnd)
+     */
+    void insertEdges(const std::vector<Edge>& edges);
+    /**
+     * Ensure that triangulation conforms to constraints (fixed edges)
+     * @note For each fixed edge that is not present in the triangulation its
+     * midpoint is recursively added until the original edge is represented by a
+     * sequence of its pieces. <b> New vertices are inserted.</b>
      * @note If some edge appears more than once in @ref insertEdges input this
      * means that multiple boundaries overlap at the edge and impacts
      * how hole detection algorithm of @ref eraseOuterTrianglesAndHoles works.
      * <b>Make sure there are no erroneous duplicates.</b>
+     * @tparam TEdgeIter iterator that dereferences to custom edge type
+     * @tparam TGetEdgeVertexStart function object getting start vertex index
+     * from an edge.
+     * Getter signature: const TEdgeIter::value_type& -> CDT::VertInd
+     * @tparam TGetEdgeVertexEnd function object getting end vertex index from
+     * an edge. Getter signature: const TEdgeIter::value_type& -> CDT::VertInd
+     * @param first beginning of the range of edges to add
+     * @param last end of the range of edges to add
+     * @param getStart getter of edge start vertex index
+     * @param getEnd getter of edge end vertex index
      */
-    void insertEdges(const std::vector<Edge>& edges);
+    template <
+        typename TEdgeIter,
+        typename TGetEdgeVertexStart,
+        typename TGetEdgeVertexEnd>
+    void conformToEdges(
+        TEdgeIter first,
+        TEdgeIter last,
+        TGetEdgeVertexStart getStart,
+        TGetEdgeVertexEnd getEnd);
+    /**
+     * See @ref
+     * conformToEdges(TEdgeIter,TEdgeIter,TGetEdgeVertexStart,TGetEdgeVertexEnd)
+     */
+    void conformToEdges(const std::vector<Edge>& edges);
     /**
      * Erase triangles adjacent to super triangle
      *
@@ -201,7 +238,22 @@ private:
     void addSuperTriangle(const Box2d<T>& box);
     void addNewVertex(const V2d<T>& pos, const TriIndVec& tris);
     void insertVertex(const VertInd iVert);
+    /// Flip fixed edges and return a list of flipped fixed edges
+    std::vector<Edge> insertVertex_FlipFixedEdges(const VertInd iVert);
     void insertEdge(Edge edge);
+    /**
+     * Conform Delaunay triangulation to a fixed edge by recursively inserting
+     * mid point of the edge and then conforming to its halves
+     * @param edge fixed edge to conform to
+     * @param isOverrideOverlaps override overlapping boundaries counter for
+     * edge with following parameter
+     * @param overlaps count of overlapping boundaries at the edge. Only used
+     * when overriding overlaps is enabled
+     */
+    void conformToEdge(
+        Edge edge,
+        bool isOverrideOverlaps,
+        BoundaryOverlapCount overlaps);
     tuple<TriInd, VertInd, VertInd> intersectedTriangle(
         const VertInd iA,
         const std::vector<TriInd>& candidates,
@@ -216,7 +268,13 @@ private:
     array<TriInd, 2> walkingSearchTrianglesAt(const V2d<T>& pos) const;
     TriInd walkTriangles(const VertInd startVertex, const V2d<T>& pos) const;
     bool isFlipNeeded(
-        const V2d<T>& pos,
+        const V2d<T>& v,
+        const VertInd iV,
+        const VertInd iV1,
+        const VertInd iV2,
+        const VertInd iV3) const;
+    bool isFlipNeeded(
+        const V2d<T>& v,
         const TriInd iT,
         const TriInd iTopo,
         const VertInd iVert) const;
@@ -260,6 +318,7 @@ private:
     template <typename TriIndexIter>
     void eraseTrianglesAtIndices(TriIndexIter first, TriIndexIter last);
     TriIndUSet growToBoundary(std::stack<TriInd> seeds) const;
+    void fixEdge(const Edge& edge, const BoundaryOverlapCount overlaps);
     void fixEdge(const Edge& edge);
 
     std::vector<TriInd> m_dummyTris;
@@ -573,7 +632,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
         VertInd value = nExistingVerts;
         for(Iter it = ii.begin(); it != ii.end(); ++it, ++value)
             *it = value;
-        detail::random_shuffle(ii.begin(),ii.end());
+        detail::random_shuffle(ii.begin(), ii.end());
         for(Iter it = ii.begin(); it != ii.end(); ++it)
             insertVertex(*it);
         break;
@@ -597,6 +656,30 @@ void Triangulation<T, TNearPointLocator>::insertEdges(
         insertEdge(Edge(
             VertInd(getStart(*first) + m_nTargetVerts),
             VertInd(getEnd(*first) + m_nTargetVerts)));
+    }
+    eraseDummies();
+}
+
+template <typename T, typename TNearPointLocator>
+template <
+    typename TEdgeIter,
+    typename TGetEdgeVertexStart,
+    typename TGetEdgeVertexEnd>
+void Triangulation<T, TNearPointLocator>::conformToEdges(
+    TEdgeIter first,
+    const TEdgeIter last,
+    TGetEdgeVertexStart getStart,
+    TGetEdgeVertexEnd getEnd)
+{
+    for(; first != last; ++first)
+    {
+        // +3 to account for super-triangle vertices
+        conformToEdge(
+            Edge(
+                VertInd(getStart(*first) + m_nTargetVerts),
+                VertInd(getEnd(*first) + m_nTargetVerts)),
+            false,
+            0);
     }
     eraseDummies();
 }
