@@ -37,6 +37,7 @@ public:
         : QWidget(parent)
         , m_ptLimit(9999999)
         , m_edgeLimit(9999999)
+        , m_isConformToEdges(false)
         , m_isHidePoints(false)
         , m_isHideSuperTri(false)
         , m_isRemoveOuter(false)
@@ -59,6 +60,12 @@ public slots:
         const QString fileName = dir.filePath(item->text());
         readData(fileName);
         initTransform();
+        updateCDT();
+    }
+
+    void setConformToEdges(int isConform)
+    {
+        m_isConformToEdges = (isConform != 0);
         updateCDT();
     }
 
@@ -191,7 +198,10 @@ private:
                         ? std::vector<Edge>(&m_edges[0], &m_edges[m_edgeLimit])
                         : m_edges;
                 CDT::RemapEdges(edges, duplInfo.mapping);
-                m_cdt.insertEdges(edges);
+                if(m_isConformToEdges)
+                    m_cdt.conformToEdges(edges);
+                else
+                    m_cdt.insertEdges(edges);
             }
             if(m_isRemoveOuterAndHoles)
                 m_cdt.eraseOuterTrianglesAndHoles();
@@ -392,6 +402,7 @@ private:
     std::vector<Edge> m_edges;
     std::size_t m_ptLimit;
     std::size_t m_edgeLimit;
+    bool m_isConformToEdges;
     bool m_isHidePoints;
     bool m_isHideSuperTri;
     bool m_isRemoveOuter;
@@ -438,6 +449,16 @@ public:
             m_cdtWidget,
             SLOT(setEdgeLimit(int)));
         edgesSpinbox->setValue(999999);
+
+        QCheckBox* conformToEdges =
+            new QCheckBox(QStringLiteral("Conform to fixed edges"));
+        connect(
+            conformToEdges,
+            SIGNAL(stateChanged(int)),
+            m_cdtWidget,
+            SLOT(setConformToEdges(int)));
+        m_cdtWidget->setConformToEdges(0);
+        conformToEdges->setChecked(false);
 
         QCheckBox* hidePoints = new QCheckBox(QStringLiteral("Hide points"));
         connect(
@@ -491,6 +512,7 @@ public:
         rightLayout->addWidget(filesList, cntr++, 0);
         rightLayout->addWidget(ptsSpinbox, cntr++, 0);
         rightLayout->addWidget(edgesSpinbox, cntr++, 0);
+        rightLayout->addWidget(conformToEdges, cntr++, 0);
         rightLayout->addWidget(hidePoints, cntr++, 0);
         rightLayout->addWidget(removeOuter, cntr++, 0);
         rightLayout->addWidget(removeOuterHoles, cntr++, 0);

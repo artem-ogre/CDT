@@ -64,6 +64,7 @@ using std::array;
 using std::make_tuple;
 using std::mt19937;
 using std::tie;
+using std::get;
 using std::tuple;
 using std::unordered_map;
 using std::unordered_set;
@@ -81,6 +82,7 @@ namespace CDT
 using boost::array;
 using boost::make_tuple;
 using boost::tie;
+using boost::get;
 using boost::tuple;
 using boost::unordered_map;
 using boost::unordered_set;
