@@ -101,6 +101,13 @@ public:
      */
     unordered_map<Edge, BoundaryOverlapCount> overlapCount;
 
+    /** Stores list of original edges represented by a given fixed edge
+     * @note map only has entries for edges where multiple original fixed edges
+     * overlap or where a fixed edge is a part of original edge created by
+     * conforming Delaunay triangulation vertex insertion
+     */
+    unordered_map<Edge, EdgeVec> pieceToOriginals;
+
     /*____ API _____*/
     /// Default constructor
     Triangulation();
@@ -240,19 +247,23 @@ private:
     void insertVertex(const VertInd iVert);
     /// Flip fixed edges and return a list of flipped fixed edges
     std::vector<Edge> insertVertex_FlipFixedEdges(const VertInd iVert);
-    void insertEdge(Edge edge);
+    /**
+     * Insert an edge into constraint Delaunay triangulation
+     * @param edge edge to insert
+     * @param originalEdge original edge inserted edge is part of
+     */
+    void insertEdge(Edge edge, Edge originalEdge);
     /**
      * Conform Delaunay triangulation to a fixed edge by recursively inserting
      * mid point of the edge and then conforming to its halves
      * @param edge fixed edge to conform to
-     * @param isOverrideOverlaps override overlapping boundaries counter for
-     * edge with following parameter
+     * @param originalEdges original edges that new edge is piece of
      * @param overlaps count of overlapping boundaries at the edge. Only used
-     * when overriding overlaps is enabled
+     * when re-introducing edge with overlaps > 0
      */
     void conformToEdge(
         Edge edge,
-        bool isOverrideOverlaps,
+        EdgeVec originalEdges,
         BoundaryOverlapCount overlaps);
     tuple<TriInd, VertInd, VertInd> intersectedTriangle(
         const VertInd iA,
@@ -318,7 +329,8 @@ private:
     template <typename TriIndexIter>
     void eraseTrianglesAtIndices(TriIndexIter first, TriIndexIter last);
     TriIndUSet growToBoundary(std::stack<TriInd> seeds) const;
-    void fixEdge(const Edge& edge, const BoundaryOverlapCount overlaps);
+    void
+    reintroduceFixEdge(const Edge& edge, const BoundaryOverlapCount overlaps);
     void fixEdge(const Edge& edge);
 
     std::vector<TriInd> m_dummyTris;
@@ -546,6 +558,14 @@ unordered_map<TriInd, LayerDepth> PeelLayer(
  */
 CDT_EXPORT EdgeUSet extractEdgesFromTriangles(const TriangleVec& triangles);
 
+/*!
+ * Converts piece->original_edges mapping to original_edge->pieces
+ * @param pieceToOriginals maps pieces to original edges
+ * @return mapping of original edges to pieces
+ */
+CDT_EXPORT unordered_map<Edge, EdgeVec>
+EdgeToPiecesMapping(const unordered_map<Edge, EdgeVec>& pieceToOriginals);
+
 } // namespace CDT
 
 //*****************************************************************************
@@ -653,9 +673,10 @@ void Triangulation<T, TNearPointLocator>::insertEdges(
     for(; first != last; ++first)
     {
         // +3 to account for super-triangle vertices
-        insertEdge(Edge(
+        const Edge edge(
             VertInd(getStart(*first) + m_nTargetVerts),
-            VertInd(getEnd(*first) + m_nTargetVerts)));
+            VertInd(getEnd(*first) + m_nTargetVerts));
+        insertEdge(edge, edge);
     }
     eraseDummies();
 }
@@ -674,12 +695,10 @@ void Triangulation<T, TNearPointLocator>::conformToEdges(
     for(; first != last; ++first)
     {
         // +3 to account for super-triangle vertices
-        conformToEdge(
-            Edge(
-                VertInd(getStart(*first) + m_nTargetVerts),
-                VertInd(getEnd(*first) + m_nTargetVerts)),
-            false,
-            0);
+        const Edge e(
+            VertInd(getStart(*first) + m_nTargetVerts),
+            VertInd(getEnd(*first) + m_nTargetVerts));
+        conformToEdge(e, EdgeVec(1, e), 0);
     }
     eraseDummies();
 }

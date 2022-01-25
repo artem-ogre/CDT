@@ -283,7 +283,7 @@ void Triangulation<T, TNearPointLocator>::fixEdge(const Edge& edge)
 }
 
 template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::fixEdge(
+void Triangulation<T, TNearPointLocator>::reintroduceFixEdge(
     const Edge& edge,
     const BoundaryOverlapCount overlaps)
 {
@@ -291,8 +291,39 @@ void Triangulation<T, TNearPointLocator>::fixEdge(
     overlapCount[edge] = overlaps; // override overlap counter
 }
 
+namespace detail
+{
+
+// add element to 'to' if not already in 'to'
+template <typename T, typename Allocator1>
+void insert_unique(std::vector<T, Allocator1>& to, const T& elem)
+{
+    if(std::find(to.begin(), to.end(), elem) == to.end())
+    {
+        to.push_back(elem);
+    }
+}
+
+// add elements of 'from' that are not present in 'to' to 'to'
+template <typename T, typename Allocator1, typename Allocator2>
+void insert_unique(
+    std::vector<T, Allocator1>& to,
+    const std::vector<T, Allocator2>& from)
+{
+    typedef typename std::vector<T, Allocator2>::const_iterator Cit;
+    to.reserve(to.size() + from.size());
+    for(Cit cit = from.begin(); cit != from.end(); ++cit)
+    {
+        insert_unique(to, *cit);
+    }
+}
+
+} // namespace detail
+
 template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::insertEdge(Edge edge)
+void Triangulation<T, TNearPointLocator>::insertEdge(
+    const Edge edge,
+    const Edge originalEdge)
 {
     const VertInd iA = edge.v1();
     VertInd iB = edge.v2();
@@ -304,7 +335,9 @@ void Triangulation<T, TNearPointLocator>::insertEdge(Edge edge)
     const V2d<T>& b = vertices[iB];
     if(verticesShareEdge(aTris, bTris))
     {
-        fixEdge(Edge(iA, iB));
+        fixEdge(edge);
+        if(edge != originalEdge)
+            detail::insert_unique(pieceToOriginals[edge], originalEdge);
         return;
     }
     TriInd iT;
@@ -313,8 +346,10 @@ void Triangulation<T, TNearPointLocator>::insertEdge(Edge edge)
     // if one of the triangle vertices is on the edge, move edge start
     if(iT == noNeighbor)
     {
-        fixEdge(Edge(iA, iVleft));
-        return insertEdge(Edge(iVleft, iB));
+        const Edge edgePart(iA, iVleft);
+        fixEdge(edgePart);
+        detail::insert_unique(pieceToOriginals[edgePart], originalEdge);
+        return insertEdge(Edge(iVleft, iB), originalEdge);
     }
     std::vector<TriInd> intersected(1, iT);
     std::vector<VertInd> ptsLeft(1, iVleft);
@@ -360,15 +395,15 @@ void Triangulation<T, TNearPointLocator>::insertEdge(Edge edge)
     changeNeighbor(iTleft, noNeighbor, iTright);
     changeNeighbor(iTright, noNeighbor, iTleft);
     // add fixed edge
-    fixEdge(Edge(iA, iB));
+    fixEdge(edge);
     if(iB != edge.v2()) // encountered point on the edge
-        return insertEdge(Edge(iB, edge.v2()));
+        return insertEdge(Edge(iB, edge.v2()), originalEdge);
 }
 
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::conformToEdge(
     const Edge edge,
-    const bool isOverrideOverlaps,
+    EdgeVec originalEdges,
     const BoundaryOverlapCount overlaps)
 {
     const VertInd iA = edge.v1();
@@ -381,8 +416,12 @@ void Triangulation<T, TNearPointLocator>::conformToEdge(
     const V2d<T>& b = vertices[iB];
     if(verticesShareEdge(aTris, bTris))
     {
-        isOverrideOverlaps ? fixEdge(Edge(iA, iB), overlaps)
-                           : fixEdge(Edge(iA, iB));
+        overlaps > 0 ? reintroduceFixEdge(edge, overlaps) : fixEdge(edge);
+        // avoid marking edge as a part of itself
+        if(!originalEdges.empty() && edge != originalEdges.front())
+        {
+            detail::insert_unique(pieceToOriginals[edge], originalEdges);
+        }
         return;
     }
 
@@ -392,9 +431,13 @@ void Triangulation<T, TNearPointLocator>::conformToEdge(
     // if one of the triangle vertices is on the edge, move edge start
     if(iT == noNeighbor)
     {
-        isOverrideOverlaps ? fixEdge(Edge(iA, iVleft), overlaps)
-                           : fixEdge(Edge(iA, iVleft));
-        return conformToEdge(Edge(iVleft, iB), isOverrideOverlaps, overlaps);
+        const Edge edgePart(iA, iVleft);
+        overlaps > 0 ? reintroduceFixEdge(edgePart, overlaps)
+                     : fixEdge(edgePart);
+
+        detail::insert_unique(pieceToOriginals[edgePart], originalEdges);
+
+        return conformToEdge(Edge(iVleft, iB), originalEdges, overlaps);
     }
 
     // add mid-point to triangulation
@@ -404,27 +447,33 @@ void Triangulation<T, TNearPointLocator>::conformToEdge(
     const std::vector<Edge> flippedFixedEdges =
         insertVertex_FlipFixedEdges(iMid);
 
-    conformToEdge(Edge(iA, iMid), isOverrideOverlaps, overlaps);
-    conformToEdge(Edge(iMid, iB), isOverrideOverlaps, overlaps);
-    // re-insert fixed edges that were flipped
+    conformToEdge(Edge(iA, iMid), originalEdges, overlaps);
+    conformToEdge(Edge(iMid, iB), originalEdges, overlaps);
+    // re-introduce fixed edges that were flipped
     // and make sure overlap count is preserved
     for(std::vector<Edge>::const_iterator it = flippedFixedEdges.begin();
         it != flippedFixedEdges.end();
         ++it)
     {
         fixedEdges.erase(*it);
+
+        BoundaryOverlapCount prevOverlaps = 0;
         const unordered_map<Edge, BoundaryOverlapCount>::const_iterator
             overlapsIt = overlapCount.find(*it);
-        // flipped edge had no overlapping boundaries, just re-insert it
-        if(overlapsIt == overlapCount.end())
+        if(overlapsIt != overlapCount.end())
         {
-            conformToEdge(*it, false, 0);
-            continue;
+            prevOverlaps = overlapsIt->second;
+            overlapCount.erase(overlapsIt);
         }
         // override overlapping boundaries count when re-inserting an edge
-        const BoundaryOverlapCount prevOverlaps = overlapsIt->second;
-        overlapCount.erase(overlapsIt);
-        conformToEdge(*it, true, prevOverlaps);
+        EdgeVec prevOriginals(1, *it);
+        const unordered_map<Edge, EdgeVec>::const_iterator originalsIt =
+            pieceToOriginals.find(*it);
+        if(originalsIt != pieceToOriginals.end())
+        {
+            prevOriginals = originalsIt->second;
+        }
+        conformToEdge(*it, prevOriginals, prevOverlaps);
     }
 }
 
@@ -1263,6 +1312,26 @@ extractEdgesFromTriangles(const TriangleVec& triangles)
         edges.insert(Edge(VertInd(t->vertices[2]), VertInd(t->vertices[0])));
     }
     return edges;
+}
+
+CDT_INLINE_IF_HEADER_ONLY unordered_map<Edge, EdgeVec>
+EdgeToPiecesMapping(const unordered_map<Edge, EdgeVec>& pieceToOriginals)
+{
+    unordered_map<Edge, EdgeVec> originalToPieces;
+    typedef unordered_map<Edge, EdgeVec>::const_iterator Cit;
+    for(Cit ptoIt = pieceToOriginals.begin(); ptoIt != pieceToOriginals.end();
+        ++ptoIt)
+    {
+        const Edge piece = ptoIt->first;
+        const EdgeVec& originals = ptoIt->second;
+        for(EdgeVec::const_iterator origIt = originals.begin();
+            origIt != originals.end();
+            ++origIt)
+        {
+            originalToPieces[*origIt].push_back(piece);
+        }
+    }
+    return originalToPieces;
 }
 
 } // namespace CDT
