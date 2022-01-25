@@ -51,6 +51,11 @@ CDT_INLINE_IF_HEADER_ONLY bool Edge::operator==(const Edge& other) const
     return m_vertices == other.m_vertices;
 }
 
+CDT_INLINE_IF_HEADER_ONLY bool Edge::operator!=(const Edge& other) const
+{
+    return !(this->operator==(other));
+}
+
 CDT_INLINE_IF_HEADER_ONLY VertInd Edge::v1() const
 {
     return m_vertices.first;
