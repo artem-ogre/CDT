@@ -104,6 +104,12 @@ void Triangulation<T, TNearPointLocator>::eraseDummies()
     m_dummyTris = std::vector<TriInd>();
 }
 
+/// Remap removing super-triangle: subtract 3 from vertices
+inline Edge RemapNoSuperTriangle(const Edge& e)
+{
+    return Edge(e.v1() - 3, e.v2() - 3);
+}
+
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::eraseSuperTriangleVertices()
 {
@@ -112,15 +118,42 @@ void Triangulation<T, TNearPointLocator>::eraseSuperTriangleVertices()
     for(TriangleVec::iterator t = triangles.begin(); t != triangles.end(); ++t)
         for(Index i(0); i < Index(3); ++i)
             t->vertices[i] -= 3;
-
-    EdgeUSet updatedFixedEdges;
-    typedef CDT::EdgeUSet::const_iterator EdgeCit;
-    for(EdgeCit e = fixedEdges.begin(); e != fixedEdges.end(); ++e)
-    {
-        updatedFixedEdges.insert(
-            Edge(VertInd(e->v1() - 3), VertInd(e->v2() - 3)));
+    // Edge re-mapping
+    { // fixed edges
+        EdgeUSet updatedFixedEdges;
+        typedef CDT::EdgeUSet::const_iterator It;
+        for(It e = fixedEdges.begin(); e != fixedEdges.end(); ++e)
+        {
+            updatedFixedEdges.insert(RemapNoSuperTriangle(*e));
+        }
+        fixedEdges = updatedFixedEdges;
     }
-    fixedEdges = updatedFixedEdges;
+    { // overlap count
+        unordered_map<Edge, BoundaryOverlapCount> updatedOverlapCount;
+        typedef unordered_map<Edge, BoundaryOverlapCount>::const_iterator It;
+        for(It it = overlapCount.begin(); it != overlapCount.end(); ++it)
+        {
+            updatedOverlapCount.insert(
+                std::make_pair(RemapNoSuperTriangle(it->first), it->second));
+        }
+        overlapCount = updatedOverlapCount;
+    }
+    { // split edges mapping
+        unordered_map<Edge, EdgeVec> updatedPieceToOriginals;
+        typedef unordered_map<Edge, EdgeVec>::const_iterator It;
+        for(It it = pieceToOriginals.begin(); it != pieceToOriginals.end();
+            ++it)
+        {
+            EdgeVec ee = it->second;
+            for(EdgeVec::iterator eeIt = ee.begin(); eeIt != ee.end(); ++eeIt)
+            {
+                *eeIt = RemapNoSuperTriangle(*eeIt);
+            }
+            updatedPieceToOriginals.insert(
+                std::make_pair(RemapNoSuperTriangle(it->first), ee));
+        }
+        pieceToOriginals = updatedPieceToOriginals;
+    }
 
     vertices = std::vector<V2d<T> >(vertices.begin() + 3, vertices.end());
     vertTris = VerticesTriangles(vertTris.begin() + 3, vertTris.end());

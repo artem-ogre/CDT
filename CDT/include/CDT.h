@@ -380,7 +380,7 @@ DuplicatesInfo FindDuplicates(
 
 /**
  * Remove duplicates in-place from vector of custom points
- * @tparam TVertexIter iterator that dereferences to custom point type
+ * @tparam TVertex vertex type
  * @tparam TAllocator allocator used by input vector of vertices
  * @param vertices vertices to remove duplicates from
  * @param duplicates information about duplicates
@@ -415,7 +415,8 @@ RemapEdges(std::vector<Edge>& edges, const std::vector<std::size_t>& mapping);
  * (in-place)
  * @note Same as a chained call of @ref FindDuplicates, @ref RemoveDuplicates,
  * and @ref RemapEdges
- * @tparam TVertexIter iterator that dereferences to custom point type
+ * @tparam T type of vertex coordinates (e.g., float, double)
+ * @tparam TVertex type of vertex
  * @tparam TGetVertexCoordX function object getting x coordinate from vertex.
  * Getter signature: const TVertexIter::value_type& -> T
  * @tparam TGetVertexCoordY function object getting y coordinate from vertex.
@@ -565,6 +566,19 @@ CDT_EXPORT EdgeUSet extractEdgesFromTriangles(const TriangleVec& triangles);
  */
 CDT_EXPORT unordered_map<Edge, EdgeVec>
 EdgeToPiecesMapping(const unordered_map<Edge, EdgeVec>& pieceToOriginals);
+
+/*!
+ * Convert edge-to-pieces mapping into edge-to-split-vertices mapping
+ * @tparam T type of vertex coordinates (e.g., float, double)
+ * @param edgeToPieces edge-to-pieces mapping
+ * @param vertices vertex buffer
+ * @return mapping of edge-to-split-points.
+ * Split points are sorted from edge's start (v1) to end (v2)
+ */
+template <typename T>
+CDT_EXPORT unordered_map<Edge, std::vector<VertInd> > EdgeToSplitVertices(
+    const unordered_map<Edge, EdgeVec>& edgeToPieces,
+    const std::vector<V2d<T> >& vertices);
 
 } // namespace CDT
 
@@ -771,6 +785,64 @@ DuplicatesInfo RemoveDuplicatesAndRemapEdges(
     RemoveDuplicates(vertices, di.duplicates);
     RemapEdges(edges, di.mapping);
     return di;
+}
+
+template <typename T>
+unordered_map<Edge, std::vector<VertInd> > EdgeToSplitVertices(
+    const unordered_map<Edge, EdgeVec>& edgeToPieces,
+    const std::vector<V2d<T> >& vertices)
+{
+    typedef std::pair<VertInd, T> VertCoordPair;
+    struct ComparePred
+    {
+        bool operator()(const VertCoordPair& a, const VertCoordPair& b) const
+        {
+            return a.second < b.second;
+        }
+    } comparePred;
+
+    unordered_map<Edge, std::vector<VertInd> > edgeToSplitVerts;
+    typedef unordered_map<Edge, EdgeVec>::const_iterator It;
+    for(It it = edgeToPieces.begin(); it != edgeToPieces.end(); ++it)
+    {
+        const Edge& e = it->first;
+        const T dX = vertices[e.v2()].x - vertices[e.v1()].x;
+        const T dY = vertices[e.v2()].y - vertices[e.v1()].y;
+        const bool isX = std::abs(dX) >= std::abs(dY); // X-coord longer
+        const bool isAscending = isX ? dX >= 0 : dY >= 0; // Longer coordinate ascends
+        const EdgeVec& pieces = it->second;
+        std::vector<VertCoordPair> splitVerts;
+        // size is:  2[ends] + (pieces - 1)[split vertices] = pieces + 1
+        splitVerts.reserve(pieces.size() + 1);
+        typedef EdgeVec::const_iterator EIt;
+        for(EIt it = pieces.begin(); it != pieces.end(); ++it)
+        {
+            const array<VertInd, 2> vv = {it->v1(), it->v2()};
+            typedef array<VertInd, 2>::const_iterator VIt;
+            for(VIt v = vv.begin(); v != vv.end(); ++v)
+            {
+                const T c = isX ? vertices[*v].x : vertices[*v].y;
+                splitVerts.push_back(std::make_pair(*v, isAscending ? c : -c));
+            }
+        }
+        // sort by longest coordinate
+        std::sort(splitVerts.begin(), splitVerts.end(), comparePred);
+        // remove duplicates
+        splitVerts.erase(
+            std::unique(splitVerts.begin(), splitVerts.end()),
+            splitVerts.end());
+        assert(splitVerts.size() > 2); // 2 end points with split vertices
+        std::pair<Edge, std::vector<VertInd> > val =
+            std::make_pair(e, std::vector<VertInd>());
+        val.second.reserve(splitVerts.size());
+        typedef typename std::vector<VertCoordPair>::const_iterator SEIt;
+        for(SEIt it = splitVerts.begin() + 1; it != splitVerts.end() - 1; ++it)
+        {
+            val.second.push_back(it->first);
+        }
+        edgeToSplitVerts.insert(val);
+    }
+    return edgeToSplitVerts;
 }
 
 } // namespace CDT
