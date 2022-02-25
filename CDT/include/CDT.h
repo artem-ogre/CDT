@@ -301,7 +301,7 @@ template <
     typename TVertexIter,
     typename TGetVertexCoordX,
     typename TGetVertexCoordY>
-CDT_EXPORT DuplicatesInfo FindDuplicates(
+DuplicatesInfo FindDuplicates(
     TVertexIter first,
     TVertexIter last,
     TGetVertexCoordX getX,
@@ -315,7 +315,7 @@ CDT_EXPORT DuplicatesInfo FindDuplicates(
  * @param duplicates information about duplicates
  */
 template <typename TVertex, typename TAllocator>
-CDT_EXPORT void RemoveDuplicates(
+void RemoveDuplicates(
     std::vector<TVertex, TAllocator>& vertices,
     const std::vector<std::size_t>& duplicates);
 
@@ -362,7 +362,7 @@ template <
     typename TGetVertexCoordY,
     typename TVertexAllocator,
     typename TEdgeAllocator>
-CDT_EXPORT DuplicatesInfo RemoveDuplicatesAndRemapEdges(
+DuplicatesInfo RemoveDuplicatesAndRemapEdges(
     std::vector<TVertex, TVertexAllocator>& vertices,
     std::vector<Edge, TEdgeAllocator>& edges,
     TGetVertexCoordX getX,
