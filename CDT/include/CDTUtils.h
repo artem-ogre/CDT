@@ -118,7 +118,7 @@ const T& getY_V2d(const V2d<T>& v)
 
 /// If two 2D vectors are exactly equal
 template <typename T>
-CDT_EXPORT bool operator==(const CDT::V2d<T>& lhs, const CDT::V2d<T>& rhs)
+bool operator==(const CDT::V2d<T>& lhs, const CDT::V2d<T>& rhs)
 {
     return lhs.x == rhs.x && lhs.y == rhs.y;
 }
@@ -163,7 +163,7 @@ template <
     typename TVertexIter,
     typename TGetVertexCoordX,
     typename TGetVertexCoordY>
-CDT_EXPORT Box2d<T> envelopBox(
+Box2d<T> envelopBox(
     TVertexIter first,
     TVertexIter last,
     TGetVertexCoordX getX,
