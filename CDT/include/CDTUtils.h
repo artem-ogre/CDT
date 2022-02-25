@@ -306,37 +306,37 @@ CDT_EXPORT PtTriLocation::Enum locatePointTriangle(
     const V2d<T>& v3);
 
 /// Opposed neighbor index from vertex index
-CDT_EXPORT inline Index opoNbr(const Index vertIndex);
+CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index opoNbr(const Index vertIndex);
 
 /// Opposed vertex index from neighbor index
-CDT_EXPORT inline Index opoVrt(const Index neighborIndex);
+CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index opoVrt(const Index neighborIndex);
 
 /// Index of triangle's neighbor opposed to a vertex
-CDT_EXPORT inline Index
+CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index
 opposedTriangleInd(const Triangle& tri, const VertInd iVert);
 
 /// Index of triangle's neighbor opposed to an edge
-CDT_EXPORT inline Index opposedTriangleInd(
+CDT_INLINE_IF_HEADER_ONLY Index opposedTriangleInd(
     const Triangle& tri,
     const VertInd iVedge1,
     const VertInd iVedge2);
 
 /// Index of triangle's vertex opposed to a triangle
-CDT_EXPORT inline Index
+CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index
 opposedVertexInd(const Triangle& tri, const TriInd iTopo);
 
 /// If triangle has a given neighbor return neighbor-index, throw otherwise
-CDT_EXPORT inline Index neighborInd(const Triangle& tri, const TriInd iTnbr);
+CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index neighborInd(const Triangle& tri, const TriInd iTnbr);
 
 /// If triangle has a given vertex return vertex-index, throw otherwise
-CDT_EXPORT inline Index vertexInd(const Triangle& tri, const VertInd iV);
+CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index vertexInd(const Triangle& tri, const VertInd iV);
 
 /// Given triangle and a vertex find opposed triangle
-CDT_EXPORT inline TriInd
+CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY TriInd
 opposedTriangle(const Triangle& tri, const VertInd iVert);
 
 /// Given two triangles, return vertex of first triangle opposed to the second
-CDT_EXPORT inline VertInd
+CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY VertInd
 opposedVertex(const Triangle& tri, const TriInd iTopo);
 
 /// Test if point lies in a circumscribed circle of a triangle
@@ -348,7 +348,7 @@ CDT_EXPORT bool isInCircumcircle(
     const V2d<T>& v3);
 
 /// Test if two vertices share at least one common triangle
-CDT_EXPORT inline bool
+CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY bool
 verticesShareEdge(const TriIndVec& aTris, const TriIndVec& bTris);
 
 /// Distance between two 2D points
