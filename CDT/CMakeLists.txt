@@ -152,7 +152,7 @@ install(
 
 install(
   FILES
-      $<$<BOOL:${CDT_USE_AS_COMPILED_LIBRARY}>:${CMAKE_BINARY_DIR}/cdt_export.h>
+      $<$<BOOL:${CDT_USE_AS_COMPILED_LIBRARY}>:${CMAKE_CURRENT_BINARY_DIR}/cdt_export.h>
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
