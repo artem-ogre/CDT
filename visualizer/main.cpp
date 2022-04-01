@@ -42,6 +42,7 @@ public:
         , m_isHideSuperTri(false)
         , m_isRemoveOuter(false)
         , m_isRemoveOuterAndHoles(false)
+        , m_isDisplayIndices(false)
         , m_translation(0., 0.)
         , m_scale(1.0)
     {
@@ -103,6 +104,12 @@ public slots:
     {
         m_isRemoveOuterAndHoles = (isRemoveOuterAndHoles != 0);
         updateCDT();
+    }
+
+    void displayIndices(int isDisplayIndices)
+    {
+        m_isDisplayIndices = (isDisplayIndices != 0);
+        update();
     }
 
     void prtScn()
@@ -209,6 +216,10 @@ private:
                 m_cdt.eraseOuterTriangles();
             else if(m_isHideSuperTri)
                 m_cdt.eraseSuperTriangle();
+            const CDT::unordered_map<Edge, CDT::EdgeVec> tmp =
+                CDT::EdgeToPiecesMapping(m_cdt.pieceToOriginals);
+            const CDT::unordered_map<Edge, std::vector<CDT::VertInd> >
+                edgeToSplitVerts = EdgeToSplitVertices(tmp, m_cdt.vertices);
         }
         if(!CDT::verifyTopology(m_cdt))
         {
@@ -303,7 +314,9 @@ private:
         pen.setColor(QColor(150, 150, 150));
         p.setPen(pen);
         typedef CDT::TriangleVec::const_iterator TCit;
-        for(TCit t = m_cdt.triangles.begin(); t != m_cdt.triangles.end(); ++t)
+        int iT = 0;
+        for(TCit t = m_cdt.triangles.begin(); t != m_cdt.triangles.end();
+            ++t, ++iT)
         {
             if(!m_isHideSuperTri && !m_isRemoveOuter &&
                !m_isRemoveOuterAndHoles)
@@ -319,7 +332,26 @@ private:
             const V2d& v3 = m_cdt.vertices[t->vertices[2]];
             const CDT::array<QPointF, 3> pts = {
                 sceneToScreen(v1), sceneToScreen(v2), sceneToScreen(v3)};
+            const QPointF c(
+                (pts[0].x() + pts[1].x() + pts[2].x()) / 3.f,
+                (pts[0].y() + pts[1].y() + pts[2].y()) / 3.f);
             p.drawPolygon(pts.data(), pts.size());
+        }
+        if(m_isDisplayIndices)
+        {
+            for(TCit t = m_cdt.triangles.begin(); t != m_cdt.triangles.end();
+                ++t, ++iT)
+            {
+                const V2d& v1 = m_cdt.vertices[t->vertices[0]];
+                const V2d& v2 = m_cdt.vertices[t->vertices[1]];
+                const V2d& v3 = m_cdt.vertices[t->vertices[2]];
+                const CDT::array<QPointF, 3> pts = {
+                    sceneToScreen(v1), sceneToScreen(v2), sceneToScreen(v3)};
+                const QPointF c(
+                    (pts[0].x() + pts[1].x() + pts[2].x()) / 3.f,
+                    (pts[0].y() + pts[1].y() + pts[2].y()) / 3.f);
+                p.drawText(c, QString::number(iT));
+            }
         }
         // constraint edges
         pen.setColor(QColor(50, 50, 50));
@@ -340,7 +372,18 @@ private:
         p.setPen(pen);
         for(std::size_t i = 0; i < m_cdt.vertices.size(); ++i)
         {
-            p.drawPoint(sceneToScreen(m_cdt.vertices[i]));
+            const QPointF pos = sceneToScreen(m_cdt.vertices[i]);
+            p.drawPoint(pos);
+        }
+        if(m_isDisplayIndices)
+        {
+            pen.setColor(QColor(100, 100, 255));
+            p.setPen(pen);
+            for(std::size_t i = 0; i < m_cdt.vertices.size(); ++i)
+            {
+                const QPointF pos = sceneToScreen(m_cdt.vertices[i]);
+                p.drawText(pos, QString::number(i));
+            }
         }
         // last added point
         if(m_ptLimit <= m_points.size())
@@ -407,6 +450,7 @@ private:
     bool m_isHideSuperTri;
     bool m_isRemoveOuter;
     bool m_isRemoveOuterAndHoles;
+    bool m_isDisplayIndices;
 
     QPointF m_prevMousePos;
     QPointF m_translation;
@@ -449,6 +493,16 @@ public:
             m_cdtWidget,
             SLOT(setEdgeLimit(int)));
         edgesSpinbox->setValue(999999);
+
+        QCheckBox* displayIndices =
+            new QCheckBox(QStringLiteral("Display point/triangle indices"));
+        connect(
+            displayIndices,
+            SIGNAL(stateChanged(int)),
+            m_cdtWidget,
+            SLOT(displayIndices(int)));
+        m_cdtWidget->displayIndices(0);
+        displayIndices->setChecked(false);
 
         QCheckBox* conformToEdges =
             new QCheckBox(QStringLiteral("Conform to fixed edges"));
@@ -512,6 +566,7 @@ public:
         rightLayout->addWidget(filesList, cntr++, 0);
         rightLayout->addWidget(ptsSpinbox, cntr++, 0);
         rightLayout->addWidget(edgesSpinbox, cntr++, 0);
+        rightLayout->addWidget(displayIndices, cntr++, 0);
         rightLayout->addWidget(conformToEdges, cntr++, 0);
         rightLayout->addWidget(hidePoints, cntr++, 0);
         rightLayout->addWidget(removeOuter, cntr++, 0);
