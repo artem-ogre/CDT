@@ -315,15 +315,6 @@ void Triangulation<T, TNearPointLocator>::fixEdge(const Edge& edge)
     }
 }
 
-template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::reintroduceFixEdge(
-    const Edge& edge,
-    const BoundaryOverlapCount overlaps)
-{
-    fixedEdges.insert(edge).second;
-    overlapCount[edge] = overlaps; // override overlap counter
-}
-
 namespace detail
 {
 
@@ -354,6 +345,25 @@ void insert_unique(
 } // namespace detail
 
 template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::fixEdge(
+    const Edge& edge,
+    const Edge& originalEdge)
+{
+    fixEdge(edge);
+    if(edge != originalEdge)
+        detail::insert_unique(pieceToOriginals[edge], originalEdge);
+}
+
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::reintroduceFixEdge(
+    const Edge& edge,
+    const BoundaryOverlapCount overlaps)
+{
+    fixedEdges.insert(edge).second;
+    overlapCount[edge] = overlaps; // override overlap counter
+}
+
+template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::insertEdge(
     const Edge edge,
     const Edge originalEdge)
@@ -368,9 +378,7 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
     const V2d<T>& b = vertices[iB];
     if(verticesShareEdge(aTris, bTris))
     {
-        fixEdge(edge);
-        if(edge != originalEdge)
-            detail::insert_unique(pieceToOriginals[edge], originalEdge);
+        fixEdge(edge, originalEdge);
         return;
     }
     TriInd iT;
@@ -380,8 +388,7 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
     if(iT == noNeighbor)
     {
         const Edge edgePart(iA, iVleft);
-        fixEdge(edgePart);
-        detail::insert_unique(pieceToOriginals[edgePart], originalEdge);
+        fixEdge(edgePart, originalEdge);
         return insertEdge(Edge(iVleft, iB), originalEdge);
     }
     std::vector<TriInd> intersected(1, iT);
@@ -427,10 +434,18 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
     const TriInd iTright = triangulatePseudopolygon(iB, iA, ptsRight);
     changeNeighbor(iTleft, noNeighbor, iTright);
     changeNeighbor(iTright, noNeighbor, iTleft);
-    // add fixed edge
-    fixEdge(edge);
+
     if(iB != edge.v2()) // encountered point on the edge
+    {
+        // fix edge part
+        const Edge edgePart(iA, iB);
+        fixEdge(edgePart, originalEdge);
         return insertEdge(Edge(iB, edge.v2()), originalEdge);
+    }
+    else
+    {
+        fixEdge(edge, originalEdge);
+    }
 }
 
 template <typename T, typename TNearPointLocator>
@@ -467,9 +482,7 @@ void Triangulation<T, TNearPointLocator>::conformToEdge(
         const Edge edgePart(iA, iVleft);
         overlaps > 0 ? reintroduceFixEdge(edgePart, overlaps)
                      : fixEdge(edgePart);
-
         detail::insert_unique(pieceToOriginals[edgePart], originalEdges);
-
         return conformToEdge(Edge(iVleft, iB), originalEdges, overlaps);
     }
 
@@ -680,8 +693,8 @@ void Triangulation<T, TNearPointLocator>::insertVertex(const VertInd iVert)
  * Three cases are possible:
  *  1.  If one of the opposed vertices is super-tri: no flip needed
  *  2.  One of the shared vertices is super-tri:
- *      check if on point is same side of line formed by non-super-tri vertices
- *      as the non-super-tri shared vertex
+ *      check if on point is same side of line formed by non-super-tri
+ * vertices as the non-super-tri shared vertex
  *  3.  None of the vertices are super-tri: normal circumcircle test
  */
 /*
@@ -710,9 +723,10 @@ bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
     const V2d<T>& v3 = vertices[iV3];
     if(m_superGeomType == SuperGeometryType::SuperTriangle)
     {
-        // If flip-candidate edge touches super-triangle in-circumference test
-        // has to be replaced with orient2d test against the line formed by two
-        // non-artificial vertices (that don't belong to super-triangle)
+        // If flip-candidate edge touches super-triangle in-circumference
+        // test has to be replaced with orient2d test against the line
+        // formed by two non-artificial vertices (that don't belong to
+        // super-triangle)
         if(iV < 3) // flip-candidate edge touches super-triangle
         {
             // does original edge also touch super-triangle?
@@ -804,7 +818,8 @@ std::stack<TriInd> Triangulation<T, TNearPointLocator>::insertPointInTriangle(
     const array<TriInd, 3> nn = t.neighbors;
     const VertInd v1 = vv[0], v2 = vv[1], v3 = vv[2];
     const TriInd n1 = nn[0], n2 = nn[1], n3 = nn[2];
-    // make two new triangles and convert current triangle to 3rd new triangle
+    // make two new triangles and convert current triangle to 3rd new
+    // triangle
     using detail::arr3;
     triangles[iNewT1] = Triangle::make(arr3(v2, v3, v), arr3(n2, iNewT2, iT));
     triangles[iNewT2] = Triangle::make(arr3(v3, v1, v), arr3(n3, iT, iNewT1));
