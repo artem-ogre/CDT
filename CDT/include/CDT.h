@@ -332,6 +332,7 @@ private:
     void
     reintroduceFixEdge(const Edge& edge, const BoundaryOverlapCount overlaps);
     void fixEdge(const Edge& edge);
+    void fixEdge(const Edge& edge, const Edge& originalEdge);
 
     std::vector<TriInd> m_dummyTris;
     TNearPointLocator m_nearPtLocator;
@@ -809,7 +810,8 @@ unordered_map<Edge, std::vector<VertInd> > EdgeToSplitVertices(
         const T dX = vertices[e.v2()].x - vertices[e.v1()].x;
         const T dY = vertices[e.v2()].y - vertices[e.v1()].y;
         const bool isX = std::abs(dX) >= std::abs(dY); // X-coord longer
-        const bool isAscending = isX ? dX >= 0 : dY >= 0; // Longer coordinate ascends
+        const bool isAscending =
+            isX ? dX >= 0 : dY >= 0; // Longer coordinate ascends
         const EdgeVec& pieces = it->second;
         std::vector<VertCoordPair> splitVerts;
         // size is:  2[ends] + (pieces - 1)[split vertices] = pieces + 1
