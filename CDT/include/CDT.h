@@ -60,6 +60,22 @@ struct CDT_EXPORT SuperGeometryType
     };
 };
 
+/**
+ * Enum of strategies for treating intersecting constraint edges
+ */
+struct CDT_EXPORT IntersectingConstraintEdges
+{
+    /**
+     * The Enum itself
+     * @note needed to pre c++11 compilers that don't support 'class enum'
+     */
+    enum Enum
+    {
+        Ignore,  ///< constraint edge intersections are not checked
+        Resolve, ///< constraint edge intersections are resolved
+    };
+};
+
 /// Constant representing no valid neighbor for a triangle
 const static TriInd noNeighbor(std::numeric_limits<TriInd>::max());
 /// Constant representing no valid vertex for a triangle
@@ -245,6 +261,10 @@ private:
     void addSuperTriangle(const Box2d<T>& box);
     void addNewVertex(const V2d<T>& pos, const TriIndVec& tris);
     void insertVertex(const VertInd iVert);
+    void ensureDelaunayByEdgeFlips(
+        const V2d<T>& v,
+        const VertInd iVert,
+        std::stack<TriInd>& triStack);
     /// Flip fixed edges and return a list of flipped fixed edges
     std::vector<Edge> insertVertex_FlipFixedEdges(const VertInd iVert);
     /**
@@ -329,8 +349,7 @@ private:
     template <typename TriIndexIter>
     void eraseTrianglesAtIndices(TriIndexIter first, TriIndexIter last);
     TriIndUSet growToBoundary(std::stack<TriInd> seeds) const;
-    void
-    reintroduceFixEdge(const Edge& edge, const BoundaryOverlapCount overlaps);
+    void fixEdge(const Edge& edge, const BoundaryOverlapCount overlaps);
     void fixEdge(const Edge& edge);
     void fixEdge(const Edge& edge, const Edge& originalEdge);
 
@@ -339,6 +358,7 @@ private:
     std::size_t m_nTargetVerts;
     SuperGeometryType::Enum m_superGeomType;
     VertexInsertionOrder::Enum m_vertexInsertionOrder;
+    IntersectingConstraintEdges::Enum m_intersectingEdges;
 };
 
 /**
