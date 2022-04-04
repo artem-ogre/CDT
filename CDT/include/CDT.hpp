@@ -444,10 +444,10 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
         const VertInd iVopo = opposedVertex(tOpo, iT);
         const V2d<T> vOpo = vertices[iVopo];
 
+        // Resolve intersection between two constraint edges if needed
         if(m_intersectingEdges == IntersectingConstraintEdges::Resolve &&
            fixedEdges.count(Edge(iVleft, iVright)))
-        { // Resolve intersection between two constraint edges
-
+        {
             const VertInd iNewVert = vertices.size();
 
             // split constraint edge that already exists in triangulation
@@ -483,6 +483,8 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
             std::stack<TriInd> triStack =
                 insertPointOnEdge(iNewVert, iT, iTopo);
             ensureDelaunayByEdgeFlips(newV, iNewVert, triStack);
+            // TODO: is it's possible to re-use pseudo-polygons
+            //  for inserting [iA, iNewVert] edge half?
             insertEdge(Edge(iA, iNewVert), originalEdge);
             insertEdge(Edge(iNewVert, iB), originalEdge);
             return;
