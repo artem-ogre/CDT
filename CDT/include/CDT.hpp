@@ -436,8 +436,8 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
     std::vector<VertInd> ptsRight(1, iVright);
     VertInd iV = iA;
     Triangle t = triangles[iT];
-    const VerticesArr3& tverts = t.vertices;
-    while(std::find(tverts.begin(), tverts.end(), iB) == tverts.end())
+    while(std::find(t.vertices.begin(), t.vertices.end(), iB) ==
+          t.vertices.end())
     {
         const TriInd iTopo = opposedTriangle(t, iV);
         const Triangle& tOpo = triangles[iTopo];
@@ -462,18 +462,18 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
             fixEdge(half1, overlaps);
             fixEdge(half2, overlaps);
             // maintain piece-to-original mapping
-            EdgeVec halfOriginals(1, splitEdge);
+            EdgeVec newOriginals(1, splitEdge);
             const unordered_map<Edge, EdgeVec>::const_iterator originalsIt =
                 pieceToOriginals.find(splitEdge);
             if(originalsIt != pieceToOriginals.end())
             { // edge being split was split before: pass-through originals
-                halfOriginals = originalsIt->second;
+                newOriginals = originalsIt->second;
                 pieceToOriginals.erase(originalsIt);
             }
-            detail::insert_unique(pieceToOriginals[half1], halfOriginals);
-            detail::insert_unique(pieceToOriginals[half2], halfOriginals);
+            detail::insert_unique(pieceToOriginals[half1], newOriginals);
+            detail::insert_unique(pieceToOriginals[half2], newOriginals);
 
-            // add new point
+            // add a new point at the intersection of two constraint edges
             const V2d<T> newV = detail::intersectionPosition(
                 vertices[iA],
                 vertices[iB],
@@ -571,10 +571,86 @@ void Triangulation<T, TNearPointLocator>::conformToEdge(
         return conformToEdge(Edge(iVleft, iB), originalEdges, overlaps);
     }
 
+    VertInd iV = iA;
+    Triangle t = triangles[iT];
+    while(std::find(t.vertices.begin(), t.vertices.end(), iB) ==
+          t.vertices.end())
+    {
+        const TriInd iTopo = opposedTriangle(t, iV);
+        const Triangle& tOpo = triangles[iTopo];
+        const VertInd iVopo = opposedVertex(tOpo, iT);
+        const V2d<T> vOpo = vertices[iVopo];
+
+        // Resolve intersection between two constraint edges if needed
+        if(m_intersectingEdges == IntersectingConstraintEdges::Resolve &&
+           fixedEdges.count(Edge(iVleft, iVright)))
+        {
+            const VertInd iNewVert = vertices.size();
+
+            // split constraint edge that already exists in triangulation
+            const Edge splitEdge(iVleft, iVright);
+            const Edge half1(iVleft, iNewVert);
+            const Edge half2(iNewVert, iVright);
+            const BoundaryOverlapCount overlaps = overlapCount[splitEdge];
+            // remove edge tha wa split
+            fixedEdges.erase(splitEdge);
+            overlapCount.erase(splitEdge);
+            // add split edge's halves
+            fixEdge(half1, overlaps);
+            fixEdge(half2, overlaps);
+            // maintain piece-to-original mapping
+            EdgeVec newOriginals(1, splitEdge);
+            const unordered_map<Edge, EdgeVec>::const_iterator originalsIt =
+                pieceToOriginals.find(splitEdge);
+            if(originalsIt != pieceToOriginals.end())
+            { // edge being split was split before: pass-through originals
+                newOriginals = originalsIt->second;
+                pieceToOriginals.erase(originalsIt);
+            }
+            detail::insert_unique(pieceToOriginals[half1], newOriginals);
+            detail::insert_unique(pieceToOriginals[half2], newOriginals);
+
+            // add a new point at the intersection of two constraint edges
+            const V2d<T> newV = detail::intersectionPosition(
+                vertices[iA],
+                vertices[iB],
+                vertices[iVleft],
+                vertices[iVright]);
+            addNewVertex(newV, TriIndVec());
+            std::stack<TriInd> triStack =
+                insertPointOnEdge(iNewVert, iT, iTopo);
+            ensureDelaunayByEdgeFlips(newV, iNewVert, triStack);
+            conformToEdge(Edge(iA, iNewVert), originalEdges, overlaps);
+            conformToEdge(Edge(iNewVert, iB), originalEdges, overlaps);
+            return;
+        }
+
+        iT = iTopo;
+        t = triangles[iT];
+
+        const PtLineLocation::Enum loc = locatePointLine(vOpo, a, b);
+        if(loc == PtLineLocation::Left)
+        {
+            iV = iVleft;
+            iVleft = iVopo;
+        }
+        else if(loc == PtLineLocation::Right)
+        {
+            iV = iVright;
+            iVright = iVopo;
+        }
+        else // encountered point on the edge
+            iB = iVopo;
+    }
+    /**/
+
     // add mid-point to triangulation
     const VertInd iMid = vertices.size();
+    const V2d<T>& start = vertices[iA];
+    const V2d<T>& end = vertices[iB];
     addNewVertex(
-        V2d<T>::make((a.x + b.x) / T(2), (a.y + b.y) / T(2)), TriIndVec());
+        V2d<T>::make((start.x + end.x) / T(2), (start.y + end.y) / T(2)),
+        TriIndVec());
     const std::vector<Edge> flippedFixedEdges =
         insertVertex_FlipFixedEdges(iMid);
 
@@ -606,6 +682,8 @@ void Triangulation<T, TNearPointLocator>::conformToEdge(
         }
         conformToEdge(*it, prevOriginals, prevOverlaps);
     }
+    if(iB != edge.v2())
+        conformToEdge(Edge(iB, edge.v2()), originalEdges, overlaps);
 }
 
 /*!
