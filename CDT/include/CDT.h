@@ -276,6 +276,40 @@ public:
      */
     void initializedWithCustomSuperGeometry();
 
+    /**
+     * @defgroup Advanced
+     * Advanced methods for manually modifying the triangulation from
+     * outside. Please only use them when you know what you are doing.
+     */
+    ///@{
+
+    /**
+     * Flip an edge between two triangle.
+     * @note Advanced method for manually modifying the triangulation from
+     * outside. Please call it when you know what you are doing.
+     * @param iT first triangle
+     * @param iTopo second triangle
+
+     */
+    void flipEdge(const TriInd iT, const TriInd iTopo);
+
+    /**
+     * Flag triangle as dummy
+     * @note Advanced method for manually modifying the triangulation from
+     * outside. Please call it when you know what you are doing.
+     * @param iT index of a triangle to flag
+     */
+    void makeDummy(const TriInd iT);
+
+    /**
+     * Erase all dummy triangles
+     * @note Advanced method for manually modifying the triangulation from
+     * outside. Please call it when you know what you are doing.
+     */
+    void eraseDummies();
+
+    ///@}
+
 private:
     /*____ Detail __*/
     void addSuperTriangle(const Box2d<T>& box);
@@ -332,7 +366,6 @@ private:
         const TriInd iT,
         const TriInd iTopo,
         const VertInd iVert) const;
-    void flipEdge(const TriInd iT, const TriInd iTopo);
     void changeNeighbor(
         const TriInd iT,
         const TriInd oldNeighbor,
@@ -366,8 +399,6 @@ private:
     TriInd pseudopolyOuterTriangle(const VertInd ia, const VertInd ib) const;
     TriInd addTriangle(const Triangle& t); // note: invalidates iterators!
     TriInd addTriangle(); // note: invalidates triangle iterators!
-    void makeDummy(const TriInd iT);
-    void eraseDummies();
     void eraseSuperTriangleVertices(); // no effect if custom geometry is used
     template <typename TriIndexIter>
     void eraseTrianglesAtIndices(TriIndexIter first, TriIndexIter last);
