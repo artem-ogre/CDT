@@ -248,8 +248,6 @@ namespace detail {
 				return *this;
 			}
 
-			Expansion(const Expansion& other) { *this = other; }
-
 			//vector like convenience functions
 			size_t size() const {return m_size;}
 			bool empty() const {return 0 == m_size;}

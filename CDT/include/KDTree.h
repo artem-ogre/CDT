@@ -206,7 +206,7 @@ public:
             }
             else
             {
-                coord_type mid;
+                coord_type mid(0);
                 NodeSplitDirection::Enum newDir;
                 point_type newMin, newMax;
                 calcSplitInfo(t.min, t.max, t.dir, mid, newDir, newMin, newMax);
