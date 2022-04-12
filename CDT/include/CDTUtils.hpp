@@ -95,21 +95,33 @@ CDT_INLINE_IF_HEADER_ONLY Index edgeNeighbor(const PtTriLocation::Enum location)
     return static_cast<Index>(location - PtTriLocation::OnEdge1);
 }
 
-/// Check if point lies to the left of, to the right of, or on a line
 template <typename T>
-PtLineLocation::Enum
-locatePointLine(const V2d<T>& p, const V2d<T>& v1, const V2d<T>& v2)
+T orient2D(const V2d<T>& p, const V2d<T>& v1, const V2d<T>& v2)
 {
-    using namespace predicates::adaptive;
-    const T orientation = orient2d(v1.x, v1.y, v2.x, v2.y, p.x, p.y);
-    if(orientation < T(0))
-        return PtLineLocation::Right;
-    if(orientation == T(0))
-        return PtLineLocation::OnLine;
-    return PtLineLocation::Left;
+    return predicates::adaptive::orient2d(v1.x, v1.y, v2.x, v2.y, p.x, p.y);
 }
 
-/// Check if point a lies inside of, outside of, or on an edge of a triangle
+template <typename T>
+PtLineLocation::Enum locatePointLine(
+    const V2d<T>& p,
+    const V2d<T>& v1,
+    const V2d<T>& v2,
+    const T orientationTolerance)
+{
+    return classifyOrientation(orient2D(p, v1, v2), orientationTolerance);
+}
+
+template <typename T>
+PtLineLocation::Enum
+classifyOrientation(const T orientation, const T orientationTolerance)
+{
+    if(orientation < -orientationTolerance)
+        return PtLineLocation::Right;
+    if(orientation > orientationTolerance)
+        return PtLineLocation::Left;
+    return PtLineLocation::OnLine;
+}
+
 template <typename T>
 PtTriLocation::Enum locatePointTriangle(
     const V2d<T>& p,
