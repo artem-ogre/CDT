@@ -297,10 +297,22 @@ struct CDT_EXPORT PtLineLocation
     };
 };
 
+/// Orient p against line v1-v2 2D: robust geometric predicate
+template <typename T>
+CDT_EXPORT T orient2D(const V2d<T>& p, const V2d<T>& v1, const V2d<T>& v2);
+
 /// Check if point lies to the left of, to the right of, or on a line
 template <typename T>
-PtLineLocation::Enum CDT_EXPORT
-locatePointLine(const V2d<T>& p, const V2d<T>& v1, const V2d<T>& v2);
+CDT_EXPORT PtLineLocation::Enum locatePointLine(
+    const V2d<T>& p,
+    const V2d<T>& v1,
+    const V2d<T>& v2,
+    T orientationTolerance = T(0));
+
+/// Classify value of orient2d predicate
+template <typename T>
+CDT_EXPORT PtLineLocation::Enum
+classifyOrientation(T orientation, T orientationTolerance = T(0));
 
 /// Check if point a lies inside of, outside of, or on an edge of a triangle
 template <typename T>

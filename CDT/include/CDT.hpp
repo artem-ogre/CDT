@@ -30,34 +30,64 @@ array<T, 3> arr3(const T& v0, const T& v1, const T& v2)
     return out;
 }
 
+namespace defaults
+{
+
+const std::size_t nTargetVerts = 0;
+const SuperGeometryType::Enum superGeomType = SuperGeometryType::SuperTriangle;
+const VertexInsertionOrder::Enum vertexInsertionOrder =
+    VertexInsertionOrder::Randomized;
+const IntersectingConstraintEdges::Enum intersectingEdgesStrategy =
+    IntersectingConstraintEdges::Resolve;
+const float minDistToConstraintEdge(0);
+
+} // namespace defaults
+
 } // namespace detail
 
 template <typename T, typename TNearPointLocator>
 Triangulation<T, TNearPointLocator>::Triangulation()
-    : m_nTargetVerts(0)
-    , m_superGeomType(SuperGeometryType::SuperTriangle)
-    , m_vertexInsertionOrder(VertexInsertionOrder::Randomized)
-    , m_intersectingEdges(IntersectingConstraintEdges::Resolve)
+    : m_nTargetVerts(detail::defaults::nTargetVerts)
+    , m_superGeomType(detail::defaults::superGeomType)
+    , m_vertexInsertionOrder(detail::defaults::vertexInsertionOrder)
+    , m_intersectingEdgesStrategy(detail::defaults::intersectingEdgesStrategy)
+    , m_minDistToConstraintEdge(detail::defaults::minDistToConstraintEdge)
 {}
 
 template <typename T, typename TNearPointLocator>
 Triangulation<T, TNearPointLocator>::Triangulation(
     const VertexInsertionOrder::Enum vertexInsertionOrder)
-    : m_nTargetVerts(0)
-    , m_superGeomType(SuperGeometryType::SuperTriangle)
+    : m_nTargetVerts(detail::defaults::nTargetVerts)
+    , m_superGeomType(detail::defaults::superGeomType)
     , m_vertexInsertionOrder(vertexInsertionOrder)
-    , m_intersectingEdges(IntersectingConstraintEdges::Resolve)
+    , m_intersectingEdgesStrategy(detail::defaults::intersectingEdgesStrategy)
+    , m_minDistToConstraintEdge(detail::defaults::minDistToConstraintEdge)
 {}
 
 template <typename T, typename TNearPointLocator>
 Triangulation<T, TNearPointLocator>::Triangulation(
-    VertexInsertionOrder::Enum vertexInsertionOrder,
-    const TNearPointLocator& nearPtLocator)
-    : m_nTargetVerts(0)
-    , m_nearPtLocator(nearPtLocator)
-    , m_superGeomType(SuperGeometryType::SuperTriangle)
+    const VertexInsertionOrder::Enum vertexInsertionOrder,
+    const IntersectingConstraintEdges::Enum intersectingEdgesStrategy,
+    const T minDistToConstraintEdge)
+    : m_nTargetVerts(detail::defaults::nTargetVerts)
+    , m_superGeomType(detail::defaults::superGeomType)
     , m_vertexInsertionOrder(vertexInsertionOrder)
-    , m_intersectingEdges(IntersectingConstraintEdges::Resolve)
+    , m_intersectingEdgesStrategy(intersectingEdgesStrategy)
+    , m_minDistToConstraintEdge(minDistToConstraintEdge)
+{}
+
+template <typename T, typename TNearPointLocator>
+Triangulation<T, TNearPointLocator>::Triangulation(
+    const VertexInsertionOrder::Enum vertexInsertionOrder,
+    const TNearPointLocator& nearPtLocator,
+    const IntersectingConstraintEdges::Enum intersectingEdgesStrategy,
+    const T minDistToConstraintEdge)
+    : m_nTargetVerts(detail::defaults::nTargetVerts)
+    , m_nearPtLocator(nearPtLocator)
+    , m_superGeomType(detail::defaults::superGeomType)
+    , m_vertexInsertionOrder(vertexInsertionOrder)
+    , m_intersectingEdgesStrategy(intersectingEdgesStrategy)
+    , m_minDistToConstraintEdge(minDistToConstraintEdge)
 {}
 
 template <typename T, typename TNearPointLocator>
@@ -421,9 +451,16 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
         fixEdge(edge, originalEdge);
         return;
     }
+
+    const T distanceTolerance =
+        m_minDistToConstraintEdge == T(0)
+            ? T(0)
+            : m_minDistToConstraintEdge * distance(a, b);
+
     TriInd iT;
     VertInd iVleft, iVright;
-    tie(iT, iVleft, iVright) = intersectedTriangle(iA, aTris, a, b);
+    tie(iT, iVleft, iVright) =
+        intersectedTriangle(iA, aTris, a, b, distanceTolerance);
     // if one of the triangle vertices is on the edge, move edge start
     if(iT == noNeighbor)
     {
@@ -445,7 +482,8 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
         const V2d<T> vOpo = vertices[iVopo];
 
         // Resolve intersection between two constraint edges if needed
-        if(m_intersectingEdges == IntersectingConstraintEdges::Resolve &&
+        if(m_intersectingEdgesStrategy ==
+               IntersectingConstraintEdges::Resolve &&
            fixedEdges.count(Edge(iVleft, iVright)))
         {
             const VertInd iNewVert = vertices.size();
@@ -494,7 +532,8 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
         iT = iTopo;
         t = triangles[iT];
 
-        const PtLineLocation::Enum loc = locatePointLine(vOpo, a, b);
+        const PtLineLocation::Enum loc =
+            locatePointLine(vOpo, a, b, distanceTolerance);
         if(loc == PtLineLocation::Left)
         {
             ptsLeft.push_back(iVopo);
@@ -559,9 +598,14 @@ void Triangulation<T, TNearPointLocator>::conformToEdge(
         return;
     }
 
+    const T distanceTolerance =
+        m_minDistToConstraintEdge == T(0)
+            ? T(0)
+            : m_minDistToConstraintEdge * distance(a, b);
     TriInd iT;
     VertInd iVleft, iVright;
-    tie(iT, iVleft, iVright) = intersectedTriangle(iA, aTris, a, b);
+    tie(iT, iVleft, iVright) =
+        intersectedTriangle(iA, aTris, a, b, distanceTolerance);
     // if one of the triangle vertices is on the edge, move edge start
     if(iT == noNeighbor)
     {
@@ -582,7 +626,8 @@ void Triangulation<T, TNearPointLocator>::conformToEdge(
         const V2d<T> vOpo = vertices[iVopo];
 
         // Resolve intersection between two constraint edges if needed
-        if(m_intersectingEdges == IntersectingConstraintEdges::Resolve &&
+        if(m_intersectingEdgesStrategy ==
+               IntersectingConstraintEdges::Resolve &&
            fixedEdges.count(Edge(iVleft, iVright)))
         {
             const VertInd iNewVert = vertices.size();
@@ -628,7 +673,8 @@ void Triangulation<T, TNearPointLocator>::conformToEdge(
         iT = iTopo;
         t = triangles[iT];
 
-        const PtLineLocation::Enum loc = locatePointLine(vOpo, a, b);
+        const PtLineLocation::Enum loc =
+            locatePointLine(vOpo, a, b, distanceTolerance);
         if(loc == PtLineLocation::Left)
         {
             iV = iVleft;
@@ -702,9 +748,13 @@ Triangulation<T, TNearPointLocator>::intersectedTriangle(
     const VertInd iA,
     const std::vector<TriInd>& candidates,
     const V2d<T>& a,
-    const V2d<T>& b) const
+    const V2d<T>& b,
+    const T orientationTolerance) const
 {
     typedef std::vector<TriInd>::const_iterator TriIndCit;
+    VertInd closestP1 = noVertex;
+    VertInd closestP2 = noVertex;
+    T closestOrientP1 = std::numeric_limits<T>::max();
     for(TriIndCit it = candidates.begin(); it != candidates.end(); ++it)
     {
         const TriInd iT = *it;
@@ -712,16 +762,30 @@ Triangulation<T, TNearPointLocator>::intersectedTriangle(
         const Index i = vertexInd(t, iA);
         const VertInd iP1 = t.vertices[cw(i)];
         const VertInd iP2 = t.vertices[ccw(i)];
-        const PtLineLocation::Enum locP1 = locatePointLine(vertices[iP1], a, b);
-        const PtLineLocation::Enum locP2 = locatePointLine(vertices[iP2], a, b);
-        if(locP2 == PtLineLocation::Right)
+        const PtLineLocation::Enum locP2 =
+            locatePointLine(vertices[iP2], a, b, orientationTolerance);
+        if(locP2 == PtLineLocation::Left)
+            continue;
+        const T orientP1 = orient2D(vertices[iP1], a, b);
+        const PtLineLocation::Enum locP1 =
+            classifyOrientation(orientP1, orientationTolerance);
+        if(locP2 == PtLineLocation::Right && locP1 == PtLineLocation::Left)
+            return make_tuple(iT, iP1, iP2);
+        if(locP1 == PtLineLocation::OnLine)
         {
-            if(locP1 == PtLineLocation::OnLine)
+            if(!orientationTolerance)
                 return make_tuple(noNeighbor, iP1, iP2);
-            if(locP1 == PtLineLocation::Left)
-                return make_tuple(iT, iP1, iP2);
+            // tolerance is used: find the closest left point to the line
+            if(orientP1 < closestOrientP1)
+            {
+                closestP1 = iP1;
+                closestP2 = iP2;
+                closestOrientP1 = orientP1;
+            }
         }
     }
+    if(orientationTolerance && closestP1 != noVertex)
+        return make_tuple(noNeighbor, closestP1, closestP2);
     throw std::runtime_error("Could not find vertex triangle intersected by "
                              "edge. Note: can be caused by duplicate points.");
 }

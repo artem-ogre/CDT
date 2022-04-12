@@ -135,12 +135,32 @@ public:
     /**
      * Constructor
      * @param vertexInsertionOrder strategy used for ordering vertex insertions
-     * @param nearPtLocator class providing locating near point for efficiently
-     * inserting new points
+     * @param intersectingEdgesStrategy strategy for treating intersecting
+     * constraint edges
+     * @param minDistToConstraintEdge distance within which point is considered
+     * to be lying on a constraint edge. Used when adding constraints to the
+     * triangulation.
      */
     Triangulation(
         VertexInsertionOrder::Enum vertexInsertionOrder,
-        const TNearPointLocator& nearPtLocator);
+        IntersectingConstraintEdges::Enum intersectingEdgesStrategy,
+        T minDistToConstraintEdge);
+    /**
+     * Constructor
+     * @param vertexInsertionOrder strategy used for ordering vertex insertions
+     * @param nearPtLocator class providing locating near point for efficiently
+     * inserting new points
+     * @param intersectingEdgesStrategy strategy for treating intersecting
+     * constraint edges
+     * @param minDistToConstraintEdge distance within which point is considered
+     * to be lying on a constraint edge. Used when adding constraints to the
+     * triangulation.
+     */
+    Triangulation(
+        VertexInsertionOrder::Enum vertexInsertionOrder,
+        const TNearPointLocator& nearPtLocator,
+        IntersectingConstraintEdges::Enum intersectingEdgesStrategy,
+        T minDistToConstraintEdge);
     /**
      * Insert custom point-types specified by iterator range and X/Y-getters
      * @tparam TVertexIter iterator that dereferences to custom point type
@@ -280,6 +300,8 @@ private:
      * @param originalEdges original edges that new edge is piece of
      * @param overlaps count of overlapping boundaries at the edge. Only used
      * when re-introducing edge with overlaps > 0
+     * @param orientationTolerance tolerance for orient2d predicate,
+     * values [-tolerance,+tolerance] are considered as 0.
      */
     void conformToEdge(
         Edge edge,
@@ -289,7 +311,8 @@ private:
         const VertInd iA,
         const std::vector<TriInd>& candidates,
         const V2d<T>& a,
-        const V2d<T>& b) const;
+        const V2d<T>& b,
+        T orientationTolerance = T(0)) const;
     /// Returns indices of three resulting triangles
     std::stack<TriInd> insertPointInTriangle(const VertInd v, const TriInd iT);
     /// Returns indices of four resulting triangles
@@ -358,7 +381,8 @@ private:
     std::size_t m_nTargetVerts;
     SuperGeometryType::Enum m_superGeomType;
     VertexInsertionOrder::Enum m_vertexInsertionOrder;
-    IntersectingConstraintEdges::Enum m_intersectingEdges;
+    IntersectingConstraintEdges::Enum m_intersectingEdgesStrategy;
+    T m_minDistToConstraintEdge;
 };
 
 /**
