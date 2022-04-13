@@ -61,10 +61,10 @@ typedef char couldnt_parse_cxx_standard[-1]; ///< Error: couldn't parse standard
 namespace CDT
 {
 using std::array;
+using std::get;
 using std::make_tuple;
 using std::mt19937;
 using std::tie;
-using std::get;
 using std::tuple;
 using std::unordered_map;
 using std::unordered_set;
@@ -80,9 +80,9 @@ using std::unordered_set;
 namespace CDT
 {
 using boost::array;
+using boost::get;
 using boost::make_tuple;
 using boost::tie;
-using boost::get;
 using boost::tuple;
 using boost::unordered_map;
 using boost::unordered_set;
@@ -157,6 +157,20 @@ struct CDT_EXPORT Box2d
 {
     V2d<T> min; ///< min box corner
     V2d<T> max; ///< max box corner
+
+    /// Envelop box around a point
+    void envelopPoint(const V2d<T>& p)
+    {
+        envelopPoint(p.x, p.y);
+    }
+    /// Envelop box around a point with given coordinates
+    void envelopPoint(const T x, const T y)
+    {
+        min.x = std::min(x, min.x);
+        max.x = std::max(x, max.x);
+        min.y = std::min(y, min.y);
+        max.y = std::max(y, max.y);
+    }
 };
 
 /// Bounding box of a collection of custom 2D points given coordinate getters
@@ -175,10 +189,7 @@ Box2d<T> envelopBox(
     Box2d<T> box = {{max, max}, {-max, -max}};
     for(; first != last; ++first)
     {
-        box.min.x = std::min(getX(*first), box.min.x);
-        box.max.x = std::max(getX(*first), box.max.x);
-        box.min.y = std::min(getY(*first), box.min.y);
-        box.max.y = std::max(getY(*first), box.max.y);
+        box.envelopPoint(getX(*first), getY(*first));
     }
     return box;
 }
