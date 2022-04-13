@@ -38,7 +38,7 @@ const SuperGeometryType::Enum superGeomType = SuperGeometryType::SuperTriangle;
 const VertexInsertionOrder::Enum vertexInsertionOrder =
     VertexInsertionOrder::Randomized;
 const IntersectingConstraintEdges::Enum intersectingEdgesStrategy =
-    IntersectingConstraintEdges::Resolve;
+    IntersectingConstraintEdges::Ignore;
 const float minDistToConstraintEdge(0);
 
 } // namespace defaults
@@ -493,7 +493,7 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
             const Edge half1(iVleft, iNewVert);
             const Edge half2(iNewVert, iVright);
             const BoundaryOverlapCount overlaps = overlapCount[splitEdge];
-            // remove edge tha wa split
+            // remove the edge that will be split
             fixedEdges.erase(splitEdge);
             overlapCount.erase(splitEdge);
             // add split edge's halves
@@ -637,7 +637,7 @@ void Triangulation<T, TNearPointLocator>::conformToEdge(
             const Edge half1(iVleft, iNewVert);
             const Edge half2(iNewVert, iVright);
             const BoundaryOverlapCount overlaps = overlapCount[splitEdge];
-            // remove edge tha wa split
+            // remove the edge that will be split
             fixedEdges.erase(splitEdge);
             overlapCount.erase(splitEdge);
             // add split edge's halves
@@ -752,40 +752,50 @@ Triangulation<T, TNearPointLocator>::intersectedTriangle(
     const T orientationTolerance) const
 {
     typedef std::vector<TriInd>::const_iterator TriIndCit;
-    VertInd closestP1 = noVertex;
-    VertInd closestP2 = noVertex;
-    T closestOrientP1 = std::numeric_limits<T>::max();
     for(TriIndCit it = candidates.begin(); it != candidates.end(); ++it)
     {
         const TriInd iT = *it;
         const Triangle t = triangles[iT];
         const Index i = vertexInd(t, iA);
-        const VertInd iP1 = t.vertices[cw(i)];
         const VertInd iP2 = t.vertices[ccw(i)];
-        const PtLineLocation::Enum locP2 =
-            locatePointLine(vertices[iP2], a, b, orientationTolerance);
-        if(locP2 == PtLineLocation::Left)
-            continue;
-        const T orientP1 = orient2D(vertices[iP1], a, b);
-        const PtLineLocation::Enum locP1 =
-            classifyOrientation(orientP1, orientationTolerance);
-        if(locP2 == PtLineLocation::Right && locP1 == PtLineLocation::Left)
-            return make_tuple(iT, iP1, iP2);
-        if(locP1 == PtLineLocation::OnLine)
+        const T orientP2 = orient2D(vertices[iP2], a, b);
+        const PtLineLocation::Enum locP2 = classifyOrientation(orientP2);
+        if(locP2 == PtLineLocation::Right)
         {
-            if(!orientationTolerance)
-                return make_tuple(noNeighbor, iP1, iP2);
-            // tolerance is used: find the closest left point to the line
-            if(orientP1 < closestOrientP1)
+            const VertInd iP1 = t.vertices[cw(i)];
+            const T orientP1 = orient2D(vertices[iP1], a, b);
+            const PtLineLocation::Enum locP1 = classifyOrientation(orientP1);
+            if(locP1 == PtLineLocation::OnLine)
             {
-                closestP1 = iP1;
-                closestP2 = iP2;
-                closestOrientP1 = orientP1;
+                return make_tuple(noNeighbor, iP1, iP1);
+            }
+            if(locP1 == PtLineLocation::Left)
+            {
+                if(orientationTolerance)
+                {
+                    T closestOrient;
+                    VertInd iClosestP;
+                    if(std::abs(orientP1) <= std::abs(orientP2))
+                    {
+                        closestOrient = orientP1;
+                        iClosestP = iP1;
+                    }
+                    else
+                    {
+                        closestOrient = orientP2;
+                        iClosestP = iP2;
+                    }
+                    if(classifyOrientation(
+                           closestOrient, orientationTolerance) ==
+                       PtLineLocation::OnLine)
+                    {
+                        return make_tuple(noNeighbor, iClosestP, iClosestP);
+                    }
+                }
+                return make_tuple(iT, iP1, iP2);
             }
         }
     }
-    if(orientationTolerance && closestP1 != noVertex)
-        return make_tuple(noNeighbor, closestP1, closestP2);
     throw std::runtime_error("Could not find vertex triangle intersected by "
                              "edge. Note: can be caused by duplicate points.");
 }
