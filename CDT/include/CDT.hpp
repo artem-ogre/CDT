@@ -184,10 +184,7 @@ void Triangulation<T, TNearPointLocator>::eraseTrianglesAtIndices(
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::initializedWithCustomSuperGeometry()
 {
-    for(std::size_t i = 0; i < vertices.size(); ++i)
-    {
-        m_nearPtLocator.addPoint(VertInd(i), vertices);
-    }
+    m_nearPtLocator.initialize(vertices);
     m_nTargetVerts = vertices.size();
     m_superGeomType = SuperGeometryType::Custom;
 }
@@ -416,10 +413,7 @@ void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
         {VertInd(0), VertInd(1), VertInd(2)},
         {noNeighbor, noNeighbor, noNeighbor}};
     addTriangle(superTri);
-
-    m_nearPtLocator.addPoint(VertInd(0), vertices);
-    m_nearPtLocator.addPoint(VertInd(1), vertices);
-    m_nearPtLocator.addPoint(VertInd(2), vertices);
+    m_nearPtLocator.initialize(vertices);
 }
 
 template <typename T, typename TNearPointLocator>
