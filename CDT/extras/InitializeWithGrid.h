@@ -11,8 +11,8 @@
 #ifndef CDT_HmXGv083vZCrT3OXASD9
 #define CDT_HmXGv083vZCrT3OXASD9
 
-#include "CDT.h"
-#include "CDTUtils.h"
+#include <CDT.h>
+#include <CDTUtils.h>
 
 #ifdef CDT_CXX11_IS_SUPPORTED
 #include <algorithm>
