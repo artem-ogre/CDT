@@ -25,7 +25,25 @@ template <
 class LocatorKDTree
 {
 public:
-    /// Add point to R-tree
+    /// Initialize KD-tree with points
+    void initialize(const std::vector<V2d<TCoordType> >& points)
+    {
+        typedef V2d<TCoordType> V2d_t;
+        V2d_t min = points.front();
+        V2d_t max = min;
+        typedef typename std::vector<V2d_t>::const_iterator Cit;
+        for(Cit it = points.begin(); it != points.end(); ++it)
+        {
+            min = V2d_t::make(std::min(min.x, it->x), std::min(min.y, it->y));
+            max = V2d_t::make(std::max(max.x, it->x), std::max(max.y, it->y));
+        }
+        m_kdTree = KDTree_t(min, max);
+        for(VertInd i = 0; i < points.size(); ++i)
+        {
+            m_kdTree.insert(i, points);
+        }
+    }
+    /// Add point to KD-tree
     void addPoint(const VertInd i, const std::vector<V2d<TCoordType> >& points)
     {
         m_kdTree.insert(i, points);
@@ -39,12 +57,13 @@ public:
     }
 
 private:
-    KDTree::KDTree<
+    typedef KDTree::KDTree<
         TCoordType,
         NumVerticesInLeaf,
         InitialStackDepth,
         StackDepthIncrement>
-        m_kdTree;
+        KDTree_t;
+    KDTree_t m_kdTree;
 };
 
 } // namespace CDT

@@ -91,6 +91,17 @@ public:
         m_root = addNewNode();
     }
 
+    /// Constructor with bounding box known in advance
+    KDTree(const point_type& min, const point_type& max)
+        : m_rootDir(NodeSplitDirection::X)
+        , m_min(min)
+        , m_max(max)
+        , m_isRootBoxInitialized(true)
+        , m_tasksStack(InitialStackDepth, NearestTask())
+    {
+        m_root = addNewNode();
+    }
+
     /// Insert a point into kd-tree
     /// @note external point-buffer is used to reduce kd-tree's memory footprint
     /// @param iPoint index of point in external point-buffer
@@ -332,6 +343,19 @@ private:
                 std::min(m_min.x, p.x), std::min(m_min.y, p.y));
             m_max = point_type::make(
                 std::max(m_max.x, p.x), std::max(m_max.y, p.y));
+        }
+        // Make sure bounding box does not have a zero size by adding padding:
+        // zero-size bounding box cannot be extended properly
+        const TCoordType padding(1);
+        if(m_min.x == m_max.x)
+        {
+            m_min.x -= padding;
+            m_max.x += padding;
+        }
+        if(m_min.y == m_max.y)
+        {
+            m_min.y -= padding;
+            m_max.y += padding;
         }
         m_isRootBoxInitialized = true;
     }
