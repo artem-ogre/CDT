@@ -196,6 +196,12 @@ private:
                     ? std::vector<V2d>(&m_points[0], &m_points[m_ptLimit])
                     : m_points;
             const CDT::DuplicatesInfo duplInfo = CDT::RemoveDuplicates(pts);
+            if(!duplInfo.duplicates.empty())
+            {
+                QMessageBox errBox;
+                errBox.setText(QStringLiteral("Triangulation has duplicates"));
+                errBox.exec();
+            }
 
             m_cdt.insertVertices(pts);
             if(m_ptLimit >= m_points.size() && !m_edges.empty())
@@ -339,6 +345,7 @@ private:
         }
         if(m_isDisplayIndices)
         {
+            int iT = 0;
             for(TCit t = m_cdt.triangles.begin(); t != m_cdt.triangles.end();
                 ++t, ++iT)
             {
