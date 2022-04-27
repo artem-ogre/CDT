@@ -13,8 +13,8 @@
 
 #ifdef CDT_USE_AS_COMPILED_LIBRARY
 
-#include "CDT.hpp"
 #include "CDTUtils.hpp"
+#include "CDT.hpp"
 #include "InitializeWithGrid.h"
 #include "VerifyTopology.h"
 
