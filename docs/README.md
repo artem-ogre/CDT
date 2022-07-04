@@ -1,4 +1,4 @@
-<img src="./images/CDT_logo.png" alt="CDT Logo" height="120"/>
+<img src="./images/CDT_logo.png" alt="CDT Logo" style='height: 100%; width: 100%; object-fit: contain'/>
 
 [![CI Builds](https://github.com/artem-ogre/CDT/workflows/CI%20Builds/badge.svg)](https://github.com/artem-ogre/CDT/actions/)
 
@@ -32,7 +32,7 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 - **numerically robust:** triangulation algorithms rely on robust geometric predicates
 
 ## <a name="what-can-cdt-do"/>What can CDT do?</a>
-<img src="./images/show-case.png" alt="CDT show-case: constrained and conforming triangulations, convex hulls, automatically removing holes" height="150"/>
+<img src="./images/show-case.png" alt="CDT show-case: constrained and conforming triangulations, convex hulls, automatically removing holes" style='height: 100%; width: 100%; object-fit: contain'/>
 
 - Constrained Delaunay Triangulations: force edges into Delaunay triangulation
 - Conforming Delaunay Triangulations: add new points into Delaunay triangulation until the edge is present in triangulation
@@ -40,7 +40,7 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 - Automatically finding and removing holes
 
 ## <a name="corner-cases"/>Properly Handling the Corner-Cases</a>
-<img src="./images/corner-cases.png" alt="CDT supported corner cases: points on edges, overlapping edges, resolving edge intersections" height="180"/>
+<img src="./images/corner-cases.png" alt="CDT supported corner cases: points on edges, overlapping edges, resolving edge intersections" style='height: 100%; width: 100%; object-fit: contain'/>
 
 - Points exactly on the edges
 - Exactly overlapping edges
@@ -259,7 +259,7 @@ Any feedback and contributions are welcome.
 [Mozilla Public License,  v. 2.0](https://www.mozilla.org/en-US/MPL/2.0/FAQ/)
 
 ## <a name="example-gallery"/>Example Gallery</a>
-<img src="./images/A.png" alt="A" height="200"/> <img src="./images/Bean.png" alt="Bean" height="200"/> <img src="./images/Guitar.png" alt="Guitar" height="200"/> <img src="./images/Guitar_no_holes.png" alt="Guitar with holes" height="200"/> <img src="./images/LakeSuperior.png" alt="Lake Superior" height="200"/> <img src="./images/Sweden.png" alt="Sweden" height="200"/> <a name="overlapping-boundaries-example"/><img src="./images/Overlapping_boundaries.png" alt="Overlapping boundaries" height="200"/></a> 
+<img src="./images/A.png" alt="A" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Bean.png" alt="Bean" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Guitar.png" alt="Guitar" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Guitar_no_holes.png" alt="Guitar with holes" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/LakeSuperior.png" alt="Lake Superior" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Sweden.png" alt="Sweden" style='height: 45%; width: 45%; object-fit: contain'/> <a name="overlapping-boundaries-example"/><img src="./images/Overlapping_boundaries.png" alt="Overlapping boundaries" style='height: 45%; width: 45%; object-fit: contain'/></a> 
 
 ## <a name="bibliography"/>Bibliography</a>
 <a name="1">[1]</a> Marc Vigo Anglada,
