@@ -28,7 +28,7 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 - **bloat-free:** no external dependencies by default
 - **flexible:** can be consumed as a header-only or as a compiled library
 - **performant:** continuously profiled, measured, and optimized
-- **numerically robust:** triantulation algorithms rely on robust geometric predicates
+- **numerically robust:** triangulation algorithms rely on robust geometric predicates
 
 ## <a name="what-can-cdt-do"/>What can CDT do?</a>
 <img src="./images/show-case.png" alt="CDT show-case: constrained and conforming triangulations, convex hulls, automatically removing holes" height="150"/>
