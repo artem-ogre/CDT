@@ -5,34 +5,11 @@
 ***If CDT helped you please consider adding a star on GitHub. This means a lot to the authors*** 🤩
 
 # CDT: Conforming or Constrained Delaunay Triangulation
-## What is CDT?
-CDT is a C++ library for generating constraint or conforming Delaunay triangulations.
-- **open-source:** permissively-licensed under Mozilla Public License (MPL) 2.0
-- **cross-platform:** tested on Windows, Linux (Ubuntu), and macOS
-- **portable:** backwards-compatible with C++98
-- **bloat-free:** no external dependencies by default
-- **flexible:** can be consumed as a header-only or as a compiled library
-- **performant:** continuously profiled, measured, and optimized
-- **numerically robust:** triantulation algorithms rely on robust geometric predicates
 
-## What can CDT do?
-<img src="./images/show-case.png" alt="CDT Logo" height="150"/>
-
-- Constrained Delaunay Triangulations: force edges into Delaunay triangulation
-- Conforming Delaunay Triangulations: add new points into Delaunay triangulation until the edge is present in triangulation
-- Convex-hulls
-- Automatically finding and removing holes
-
-## What corner-cases can CDT handle?
-<img src="./images/corner-cases.png" alt="CDT Logo" height="180"/>
-
-- Points exactly on the edges
-- Exactly overlapping edges
-- Resolving intersecting edges by adding points at the intersections (with `CDT::IntersectingConstraintEdges::Resolve`)
-
-
-
-**Table of Contents**
+## Table of Contents
+- [What is CDT?](#"what-is-cdt)
+- [What can CDT do?](#what-can-cdt-do)
+- [Properly Handling the Corner-Cases](#corner-cases)
 - [Online Documentation](#online-doc)
 - [Algorithm](#algorithm)
 - [Implementation Details](#details)
@@ -42,6 +19,32 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 - [Contributing](#contributing)
 - [Example Gallery](#example-gallery)
 - [Bibliography](#bibliography)
+
+## <a name="what-is-cdt"/>What is CDT?</a>
+CDT is a C++ library for generating constraint or conforming Delaunay triangulations.
+- **open-source:** permissively-licensed under Mozilla Public License (MPL) 2.0
+- **cross-platform:** tested on Windows, Linux (Ubuntu), and macOS
+- **portable:** backwards-compatible with C++98
+- **bloat-free:** no external dependencies by default
+- **flexible:** can be consumed as a header-only or as a compiled library
+- **performant:** continuously profiled, measured, and optimized
+- **numerically robust:** triantulation algorithms rely on robust geometric predicates
+
+## <a name="what-can-cdt-do"/>What can CDT do?</a>
+<img src="./images/show-case.png" alt="CDT show-case: constrained and conforming triangulations, convex hulls, automatically removing holes" height="150"/>
+
+- Constrained Delaunay Triangulations: force edges into Delaunay triangulation
+- Conforming Delaunay Triangulations: add new points into Delaunay triangulation until the edge is present in triangulation
+- Convex-hulls
+- Automatically finding and removing holes
+
+## <a name="corner-cases"/>Properly Handling the Corner-Cases</a>
+<img src="./images/corner-cases.png" alt="CDT supported corner cases: points on edges, overlapping edges, resolving edge intersections" height="180"/>
+
+- Points exactly on the edges
+- Exactly overlapping edges
+- Resolving intersecting edges by adding points at the intersections (with `CDT::IntersectingConstraintEdges::Resolve`)
+
 
 ## <a name="online-doc"/>Online Documentation</a>
 [**Latest online documentation**](https://artem-ogre.github.io/CDT/doxygen/index.html) (automatically generated with Doxygen).
