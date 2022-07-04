@@ -15,6 +15,7 @@
 - [Implementation Details](#details)
 - [Installation/Building](#installation)
 - [Using with Code Examples](#using)
+- [Python bindings?](#python)
 - [Contributors](#contributors)
 - [Contributing](#contributing)
 - [Example Gallery](#example-gallery)
@@ -239,6 +240,10 @@ cdt.insertEdges(
     [](const CustomEdge& e){ return e.vertices.second; }
 );
 ```
+
+## <a name="python"/>Python bindings?</a>
+For work-in-progress on Python bindings check-out [PythonCDT](https://github.com/artem-ogre/PythonCDT)
+
 ## <a name="contributors"/>Contributors</a>
 - [Artem Amirkhanov](https://github.com/artem-ogre)
 - [Karl Åkerblom](https://github.com/kalleakerblom)
