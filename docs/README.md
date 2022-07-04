@@ -1,17 +1,36 @@
 <img src="./images/CDT_logo.png" alt="CDT Logo" height="120"/>
 
-# CDT: Constrained Delaunay Triangulation
-
 [![CI Builds](https://github.com/artem-ogre/CDT/workflows/CI%20Builds/badge.svg)](https://github.com/artem-ogre/CDT/actions/)
 
-Numerically robust C++ implementation of constrained Delaunay triangulation (CDT)
-- uses robust geometric predicates for numerical robustness
-- can be consumed as header-only (default) or compiled (if `CDT_USE_AS_COMPILED_LIBRARY` is defined)
-- permissively-licensed (MPL-2.0)
-- backwards-compatible with C++98
-- cross-platform: tested on Windows, Linux (Ubuntu), and macOS
+***If CDT helped you please consider adding a star on GitHub. This means a lot to the authors*** 🤩
 
-**Please ★ this repository if it helped. This means a lot to the authors :)**
+# CDT: Conforming or Constrained Delaunay Triangulation
+## What is CDT?
+CDT is a C++ library for generating constraint or conforming Delaunay triangulations.
+- **open-source:** permissively-licensed under Mozilla Public License (MPL) 2.0
+- **cross-platform:** tested on Windows, Linux (Ubuntu), and macOS
+- **portable:** backwards-compatible with C++98
+- **bloat-free:** no external dependencies by default
+- **flexible:** can be consumed as a header-only or as a compiled library
+- **performant:** continuously profiled, measured, and optimized
+- **numerically robust:** triantulation algorithms rely on robust geometric predicates
+
+## What can CDT do?
+<img src="./images/show-case.png" alt="CDT Logo" height="150"/>
+
+- Constrained Delaunay Triangulations: force edges into Delaunay triangulation
+- Conforming Delaunay Triangulations: add new points into Delaunay triangulation until the edge is present in triangulation
+- Convex-hulls
+- Automatically finding and removing holes
+
+## What corner-cases can CDT handle?
+<img src="./images/corner-cases.png" alt="CDT Logo" height="180"/>
+
+- Points exactly on the edges
+- Exactly overlapping edges
+- Resolving intersecting edges by adding points at the intersections (with `CDT::IntersectingConstraintEdges::Resolve`)
+
+
 
 **Table of Contents**
 - [Online Documentation](#online-doc)
@@ -178,6 +197,14 @@ cdt.eraseOuterTrianglesAndHoles();
 /* access vertices */ = cdt.vertices;
 /* access boundary edges */ = cdt.edges;
 ```
+
+**Conforming Delaunay triangulation**
+
+Use `conformToEdges` instead of `insertEdges`
+
+**Resolve edge intersections by adding new points and splitting edges**
+
+Pass `CDT::IntersectingConstraintEdges::Resolve` to `Triangulation` constructor.
 
 **Custom point/edge type**
 
