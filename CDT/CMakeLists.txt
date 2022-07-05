@@ -8,11 +8,9 @@ project(
     HOMEPAGE_URL "https://github.com/artem-ogre/CDT"
     LANGUAGES CXX)
 
-
 # -------
 # target
 # -------
-
 
 # export all symbols as we do it by instantiating templates anyway
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
@@ -29,6 +27,10 @@ option(CDT_USE_AS_COMPILED_LIBRARY
 
 option(CDT_USE_64_BIT_INDEX_TYPE
     "If enabled 64bits are used to store vertex/triangle index types. Otherwise 32bits are used (up to 4.2bn items)"
+    OFF)
+
+option(CDT_ENABLE_TESTING
+    "If enabled tests target will ge generated)"
     OFF)
 
 # check if Boost is needed
@@ -191,3 +193,30 @@ if(DOXYGEN_FOUND)
                 ${DOXYGEN_OUTPUT_DIRECTORY}/html/images
     )
 endif(DOXYGEN_FOUND)
+
+
+# ------------
+# tests
+# ------------
+
+if(CDT_ENABLE_TESTING)
+    include(CTest)
+    enable_testing()
+
+    set(Catch2_directory ${PROJECT_SOURCE_DIR}/tests/Catch2)
+    # add Catch2
+    add_subdirectory(${Catch2_directory})
+    set(CMAKE_MODULE_PATH "${Catch2_directory}/extras" ${CMAKE_MODULE_PATH})
+
+    set(TEST_TARGET_NAME ${PROJECT_NAME}_tests)
+    add_executable(${TEST_TARGET_NAME})
+    target_sources(${TEST_TARGET_NAME} PRIVATE tests/cdt.test.cpp)
+    target_link_libraries(
+        ${TEST_TARGET_NAME}
+        PRIVATE
+            Catch2::Catch2WithMain
+            CDT::CDT
+    )
+    include(Catch)
+    catch_discover_tests(${TEST_TARGET_NAME})
+endif()

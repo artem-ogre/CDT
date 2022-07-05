@@ -1,0 +1,3 @@
+[submodule "CDT/tests/Catch2"]
+	path = CDT/tests/Catch2
+	url = https://github.com/catchorg/Catch2.git
