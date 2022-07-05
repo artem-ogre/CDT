@@ -16,18 +16,26 @@ class CDTConan(ConanFile):
         "shared": [True, False],
         "use_boost": [True, False],
         "as_compiled_library": [True, False],
+        "enable_testing": [True, False],
     }
     default_options = {
         "shared": False,
         "use_boost": False,
         "as_compiled_library": False,
     }
-    generators = "cmake"
+    generators = {
+        "cmake",
+        "cmake_find_package",
+    }
     exports_sources = "*", "!.idea", "!conanfile.py"
 
     def requirements(self):
         if self.options.use_boost:
             self.requires.add("boost/1.71.0")
+
+    def build_requirements(self):
+        if self.options.enable_testing:
+            self.test_requires("catch2/3.0.1")
 
     def configure(self):
         if self.options.use_boost:
@@ -38,12 +46,15 @@ class CDTConan(ConanFile):
         cmake.definitions["CDT_USE_BOOST"] = self.options.use_boost
         cmake.definitions["CDT_USE_AS_COMPILED_LIBRARY"] = self.options.as_compiled_library
         cmake.definitions["CMAKE_PROJECT_CDT_INCLUDE"] = "conan_basic_setup.cmake"
+        cmake.definitions["CDT_ENABLE_TESTING"] = self.options.enable_testing
         cmake.configure()
         return cmake
 
     def build(self):
         cmake = self._configure_cmake()
         cmake.build()
+        if self.enable_testing:
+            cmake.test()
 
     def package(self):
         cmake = self._configure_cmake()
