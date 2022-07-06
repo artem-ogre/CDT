@@ -202,12 +202,10 @@ endif(DOXYGEN_FOUND)
 if(CDT_ENABLE_TESTING)
     include(CTest)
     enable_testing()
-
-    set(Catch2_directory ${PROJECT_SOURCE_DIR}/tests/Catch2)
     # add Catch2
+    set(Catch2_directory ${PROJECT_SOURCE_DIR}/tests/Catch2)
     add_subdirectory(${Catch2_directory})
     set(CMAKE_MODULE_PATH "${Catch2_directory}/extras" ${CMAKE_MODULE_PATH})
-
     set(TEST_TARGET_NAME ${PROJECT_NAME}_tests)
     add_executable(${TEST_TARGET_NAME})
     target_sources(${TEST_TARGET_NAME} PRIVATE tests/cdt.test.cpp)
