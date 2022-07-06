@@ -24,7 +24,9 @@ jobs:
           }
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+      with:
+        submodules: true
 
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -38,14 +40,14 @@ jobs:
         conan --version
     
     - name: "Build: compiled, shared, boost"
-      run: conan create CDT/ -o as_compiled_library=True -o shared=True -o use_boost=True --build missing
+      run: conan create CDT/ -o as_compiled_library=True -o shared=True -o use_boost=True -o enable_testing=True --build missing
     - name: "Build: compiled, shared, without boost"
-      run: conan create CDT/ -o as_compiled_library=True -o shared=True -o use_boost=False
+      run: conan create CDT/ -o as_compiled_library=True -o shared=True -o use_boost=False -o enable_testing=True
     - name: "Build: compiled, static, boost"
-      run: conan create CDT/ -o as_compiled_library=True -o use_boost=True --build missing
+      run: conan create CDT/ -o as_compiled_library=True -o use_boost=True -o enable_testing=True --build missing
     - name: "Build: compiled, static, without boost"
-      run: conan create CDT/ -o as_compiled_library=True -o use_boost=False
+      run: conan create CDT/ -o as_compiled_library=True -o use_boost=False -o enable_testing=True
     - name: "Build: header-only, boost"
-      run: conan create CDT/ -o use_boost=True --build missing
+      run: conan create CDT/ -o use_boost=True -o enable_testing=True --build missing
     - name: "Build: header-only, without boost"
-      run: conan create CDT/ -o use_boost=False
+      run: conan create CDT/ -o use_boost=False -o enable_testing=True
