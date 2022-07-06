@@ -33,10 +33,6 @@ class CDTConan(ConanFile):
         if self.options.use_boost:
             self.requires.add("boost/1.71.0")
 
-    def build_requirements(self):
-        if self.options.enable_testing:
-            self.test_requires("catch2/3.0.1")
-
     def configure(self):
         if self.options.use_boost:
             self.options["boost"].header_only = True
