@@ -1,4 +1,5 @@
 #include <CDT.h>
+#include <VerifyTopology.h>
 
 #include <catch2/benchmark/catch_benchmark.hpp>
 #include <catch2/catch_template_test_macros.hpp>
@@ -34,6 +35,7 @@ TEMPLATE_LIST_TEST_CASE("Triangulation Tests", "", CoordTypes)
 {
     auto cdt = Triangulation<TestType>();
     cdt.insertVertices(Vertices<TestType>{{0, 0}, {1, 1}, {3, 1}, {3, 0}});
+    REQUIRE(CDT::verifyTopology(cdt));
     REQUIRE(cdt.vertices.size() == std::size_t(4 + 3));
     REQUIRE(cdt.fixedEdges.size() == std::size_t(0));
     REQUIRE(cdt.triangles.size() == std::size_t(9));
@@ -46,6 +48,7 @@ TEMPLATE_LIST_TEST_CASE("Triangulation Tests", "", CoordTypes)
         "Erasing super-triangle affects indices in edges and triangle count")
     {
         cdt.eraseSuperTriangle();
+        REQUIRE(CDT::verifyTopology(cdt));
         REQUIRE(cdt.triangles.size() == std::size_t(2));
         const auto edges = ExtractAllEdges(cdt);
         REQUIRE(edges.count(Edge(1, 3)));
@@ -55,6 +58,7 @@ TEMPLATE_LIST_TEST_CASE("Triangulation Tests", "", CoordTypes)
         const auto constraintEdge = Edge(0, 2);
         cdt.insertEdges(std::vector<Edge>{constraintEdge});
         cdt.eraseSuperTriangle();
+        REQUIRE(CDT::verifyTopology(cdt));
         REQUIRE(cdt.vertices.size() == std::size_t(4));
         REQUIRE(cdt.fixedEdges.size() == std::size_t(1));
         REQUIRE(cdt.triangles.size() == std::size_t(2));
