@@ -392,7 +392,7 @@ void Triangulation<T, TNearPointLocator>::fixEdge(
     const Edge& edge,
     const BoundaryOverlapCount overlaps)
 {
-    fixedEdges.insert(edge).second;
+    fixedEdges.insert(edge);
     overlapCount[edge] = overlaps; // override overlap counter
 }
 
