@@ -251,7 +251,7 @@ void Triangulation<T, TNearPointLocator>::finalizeTriangulation(
     triangles.erase(triangles.end() - removedTriangles.size(), triangles.end());
     // adjust triangles
     // vertices' adjacent triangles will be re-calculated
-    vertTris = VerticesTriangles(vertices.size());
+    vertTris = VerticesTriangles();
     for(TriInd iT = 0; iT < triangles.size(); ++iT)
     {
         Triangle& t = triangles[iT];
@@ -270,13 +270,11 @@ void Triangulation<T, TNearPointLocator>::finalizeTriangulation(
         }
         if(m_superGeomType == SuperGeometryType::SuperTriangle)
         {
+            // account for removed super-triangle
             VerticesArr3& vv = t.vertices;
             for(VerticesArr3::iterator v = vv.begin(); v != vv.end(); ++v)
             {
-                // account for removed super-triangle
                 *v -= 3;
-                // re-calculate vertices' adjacent triangles
-                vertTris[*v].push_back(iT);
             }
         }
     }
@@ -1471,6 +1469,28 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
 {
     return insertVertices(
         newVertices.begin(), newVertices.end(), getX_V2d<T>, getY_V2d<T>);
+}
+
+template <typename T, typename TNearPointLocator>
+bool Triangulation<T, TNearPointLocator>::isFinalized() const
+{
+    return !vertices.empty() && vertTris.empty();
+}
+
+CDT_INLINE_IF_HEADER_ONLY VerticesTriangles calculateTrianglesByVertex(
+    const TriangleVec& triangles,
+    const VertInd verticesSize)
+{
+    VerticesTriangles vertTris(verticesSize);
+    for(TriInd iT = 0; iT < triangles.size(); ++iT)
+    {
+        const VerticesArr3& vv = triangles[iT].vertices;
+        for(VerticesArr3::const_iterator v = vv.begin(); v != vv.end(); ++v)
+        {
+            vertTris[*v].push_back(iT);
+        }
+    }
+    return vertTris;
 }
 
 template <typename T>

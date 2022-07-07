@@ -89,6 +89,9 @@ const static VertInd noVertex(std::numeric_limits<VertInd>::max());
 typedef unsigned short LayerDepth;
 typedef LayerDepth BoundaryOverlapCount;
 
+/// Triangles by vertex index
+typedef std::vector<TriIndVec> VerticesTriangles;
+
 /**
  * Data structure representing a 2D constrained Delaunay triangulation
  *
@@ -101,12 +104,17 @@ template <typename T, typename TNearPointLocator = LocatorKDTree<T> >
 class CDT_EXPORT Triangulation
 {
 public:
-    typedef std::vector<V2d<T> > V2dVec;              ///< Vertices vector
-    typedef std::vector<TriIndVec> VerticesTriangles; ///< Triangles by vertex
-    V2dVec vertices;            ///< triangulation's vertices
-    TriangleVec triangles;      ///< triangulation's triangles
-    EdgeUSet fixedEdges;        ///< triangulation's constraints (fixed edges)
-    VerticesTriangles vertTris; ///< triangles adjacent to each vertex
+    typedef std::vector<V2d<T> > V2dVec; ///< Vertices vector
+    V2dVec vertices;                     ///< triangulation's vertices
+    TriangleVec triangles;               ///< triangulation's triangles
+    EdgeUSet fixedEdges; ///< triangulation's constraints (fixed edges)
+    /**
+     * triangles adjacent to each vertex
+     * @note will be reset to empty when super-triangle is removed and
+     * triangulation is finalized. To re-calculate adjacent triangles use
+     * @ref CDT::calculateTrianglesByVertex helper
+     */
+    VerticesTriangles vertTris;
 
     /** Stores count of overlapping boundaries for a fixed edge. If no entry is
      * present for an edge: no boundaries overlap.
@@ -277,6 +285,13 @@ public:
     void initializedWithCustomSuperGeometry();
 
     /**
+     * Check if the triangulation was finalized with `erase...` method and
+     * super-triangle was removed.
+     * @return true if triangulation is finalized, false otherwise
+     */
+    bool isFinalized() const;
+
+    /**
      * @defgroup Advanced
      * Advanced methods for manually modifying the triangulation from
      * outside. Please only use them when you know what you are doing.
@@ -418,6 +433,15 @@ private:
     IntersectingConstraintEdges::Enum m_intersectingEdgesStrategy;
     T m_minDistToConstraintEdge;
 };
+
+/**
+ * Calculate triangles adjacent to vertices (triangles by vertex index)
+ * @param triangles triangulation
+ * @param verticesSize total number of vertices to pre-allocate the output
+ * @return triangles by vertex index
+ */
+CDT_EXPORT VerticesTriangles
+calculateTrianglesByVertex(const TriangleVec& triangles, VertInd verticesSize);
 
 /**
  * Information about removed duplicated vertices.
@@ -721,6 +745,12 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
     TGetVertexCoordX getX,
     TGetVertexCoordY getY)
 {
+    if(isFinalized())
+    {
+        throw std::runtime_error(
+            "Triangulation was finalized with 'erase...' method. Inserting new "
+            "vertices is not possible");
+    }
     detail::randGenerator.seed(9001); // ensure deterministic behavior
     if(vertices.empty())
     {
@@ -763,6 +793,12 @@ void Triangulation<T, TNearPointLocator>::insertEdges(
     TGetEdgeVertexStart getStart,
     TGetEdgeVertexEnd getEnd)
 {
+    if(isFinalized())
+    {
+        throw std::runtime_error(
+            "Triangulation was finalized with 'erase...' method. Inserting new "
+            "edges is not possible");
+    }
     for(; first != last; ++first)
     {
         // +3 to account for super-triangle vertices
@@ -785,6 +821,12 @@ void Triangulation<T, TNearPointLocator>::conformToEdges(
     TGetEdgeVertexStart getStart,
     TGetEdgeVertexEnd getEnd)
 {
+    if(isFinalized())
+    {
+        throw std::runtime_error(
+            "Triangulation was finalized with 'erase...' method. Conforming to "
+            "new edges is not possible");
+    }
     for(; first != last; ++first)
     {
         // +3 to account for super-triangle vertices

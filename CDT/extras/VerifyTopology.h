@@ -32,9 +32,13 @@ template <typename T, typename TNearPointLocator = LocatorKDTree<T> >
 inline bool verifyTopology(const CDT::Triangulation<T, TNearPointLocator>& cdt)
 {
     // Check if vertices' adjacent triangles contain vertex
+    const VerticesTriangles vertTris =
+        cdt.isFinalized()
+            ? calculateTrianglesByVertex(cdt.triangles, cdt.vertices.size())
+            : cdt.vertTris;
     for(VertInd iV(0); iV < VertInd(cdt.vertices.size()); ++iV)
     {
-        const TriIndVec& vTris = cdt.vertTris[iV];
+        const TriIndVec& vTris = vertTris[iV];
         typedef TriIndVec::const_iterator TriIndCit;
         for(TriIndCit it = vTris.begin(); it != vTris.end(); ++it)
         {
@@ -64,7 +68,7 @@ inline bool verifyTopology(const CDT::Triangulation<T, TNearPointLocator>& cdt)
         typedef VerticesArr3::const_iterator VCit;
         for(VCit it = t.vertices.begin(); it != t.vertices.end(); ++it)
         {
-            const TriIndVec& tt = cdt.vertTris[*it];
+            const TriIndVec& tt = vertTris[*it];
             if(std::find(tt.begin(), tt.end(), iT) == tt.end())
                 return false;
         }
