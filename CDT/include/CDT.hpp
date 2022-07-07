@@ -137,75 +137,22 @@ void Triangulation<T, TNearPointLocator>::eraseDummies()
     m_dummyTris = std::vector<TriInd>();
 }
 
-/// Remap removing super-triangle: subtract 3 from vertices
-inline Edge RemapNoSuperTriangle(const Edge& e)
-{
-    return Edge(e.v1() - 3, e.v2() - 3);
-}
-
-template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::eraseSuperTriangleVertices()
-{
-    if(m_superGeomType != SuperGeometryType::SuperTriangle)
-        return;
-    for(TriangleVec::iterator t = triangles.begin(); t != triangles.end(); ++t)
-        for(Index i(0); i < Index(3); ++i)
-            t->vertices[i] -= 3;
-    // Edge re-mapping
-    { // fixed edges
-        EdgeUSet updatedFixedEdges;
-        typedef CDT::EdgeUSet::const_iterator It;
-        for(It e = fixedEdges.begin(); e != fixedEdges.end(); ++e)
-        {
-            updatedFixedEdges.insert(RemapNoSuperTriangle(*e));
-        }
-        fixedEdges = updatedFixedEdges;
-    }
-    { // overlap count
-        unordered_map<Edge, BoundaryOverlapCount> updatedOverlapCount;
-        typedef unordered_map<Edge, BoundaryOverlapCount>::const_iterator It;
-        for(It it = overlapCount.begin(); it != overlapCount.end(); ++it)
-        {
-            updatedOverlapCount.insert(
-                std::make_pair(RemapNoSuperTriangle(it->first), it->second));
-        }
-        overlapCount = updatedOverlapCount;
-    }
-    { // split edges mapping
-        unordered_map<Edge, EdgeVec> updatedPieceToOriginals;
-        typedef unordered_map<Edge, EdgeVec>::const_iterator It;
-        for(It it = pieceToOriginals.begin(); it != pieceToOriginals.end();
-            ++it)
-        {
-            EdgeVec ee = it->second;
-            for(EdgeVec::iterator eeIt = ee.begin(); eeIt != ee.end(); ++eeIt)
-            {
-                *eeIt = RemapNoSuperTriangle(*eeIt);
-            }
-            updatedPieceToOriginals.insert(
-                std::make_pair(RemapNoSuperTriangle(it->first), ee));
-        }
-        pieceToOriginals = updatedPieceToOriginals;
-    }
-
-    vertices = std::vector<V2d<T> >(vertices.begin() + 3, vertices.end());
-    vertTris = VerticesTriangles(vertTris.begin() + 3, vertTris.end());
-}
-
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::eraseSuperTriangle()
 {
     if(m_superGeomType != SuperGeometryType::SuperTriangle)
         return;
-    // make dummy triangles adjacent to super-triangle's vertices
+    // find triangles adjacent to super-triangle's vertices
+    TriIndUSet toErase;
+    toErase.reserve(
+        vertTris[0].size() + vertTris[1].size() + vertTris[2].size());
     for(TriInd iT(0); iT < TriInd(triangles.size()); ++iT)
     {
         Triangle& t = triangles[iT];
         if(t.vertices[0] < 3 || t.vertices[1] < 3 || t.vertices[2] < 3)
-            makeDummy(iT);
+            toErase.insert(iT);
     }
-    eraseDummies();
-    eraseSuperTriangleVertices();
+    finalizeTriangulation(toErase);
 }
 
 template <typename T, typename TNearPointLocator>
@@ -214,8 +161,7 @@ void Triangulation<T, TNearPointLocator>::eraseOuterTriangles()
     // make dummy triangles adjacent to super-triangle's vertices
     const std::stack<TriInd> seed(std::deque<TriInd>(1, vertTris[0].front()));
     const TriIndUSet toErase = growToBoundary(seed);
-    eraseTrianglesAtIndices(toErase.begin(), toErase.end());
-    eraseSuperTriangleVertices();
+    finalizeTriangulation(toErase);
 }
 
 template <typename T, typename TNearPointLocator>
@@ -223,28 +169,117 @@ void Triangulation<T, TNearPointLocator>::eraseOuterTrianglesAndHoles()
 {
     const std::vector<LayerDepth> triDepths = CalculateTriangleDepths(
         vertTris[0].front(), triangles, fixedEdges, overlapCount);
-
-    TriIndVec toErase;
+    TriIndUSet toErase;
     toErase.reserve(triangles.size());
     for(std::size_t iT = 0; iT != triangles.size(); ++iT)
     {
         if(triDepths[iT] % 2 == 0)
-            toErase.push_back(iT);
+            toErase.insert(iT);
     }
+    finalizeTriangulation(toErase);
+}
 
-    eraseTrianglesAtIndices(toErase.begin(), toErase.end());
-    eraseSuperTriangleVertices();
+/// Remap removing super-triangle: subtract 3 from vertices
+inline Edge RemapNoSuperTriangle(const Edge& e)
+{
+    return Edge(e.v1() - 3, e.v2() - 3);
 }
 
 template <typename T, typename TNearPointLocator>
-template <typename TriIndexIter>
-void Triangulation<T, TNearPointLocator>::eraseTrianglesAtIndices(
-    TriIndexIter first,
-    TriIndexIter last)
+void Triangulation<T, TNearPointLocator>::finalizeTriangulation(
+    const TriIndUSet& removedTriangles)
 {
-    for(; first != last; ++first)
-        makeDummy(*first);
     eraseDummies();
+    // remove super-triangle
+    if(m_superGeomType == SuperGeometryType::SuperTriangle)
+    {
+        vertices.erase(vertices.begin(), vertices.begin() + 3);
+        if(removedTriangles.empty())
+            vertTris.erase(vertTris.begin(), vertTris.begin() + 3);
+        // Edge re-mapping
+        { // fixed edges
+            EdgeUSet updatedFixedEdges;
+            typedef CDT::EdgeUSet::const_iterator It;
+            for(It e = fixedEdges.begin(); e != fixedEdges.end(); ++e)
+            {
+                updatedFixedEdges.insert(RemapNoSuperTriangle(*e));
+            }
+            fixedEdges = updatedFixedEdges;
+        }
+        { // overlap count
+            unordered_map<Edge, BoundaryOverlapCount> updatedOverlapCount;
+            typedef unordered_map<Edge, BoundaryOverlapCount>::const_iterator
+                It;
+            for(It it = overlapCount.begin(); it != overlapCount.end(); ++it)
+            {
+                updatedOverlapCount.insert(std::make_pair(
+                    RemapNoSuperTriangle(it->first), it->second));
+            }
+            overlapCount = updatedOverlapCount;
+        }
+        { // split edges mapping
+            unordered_map<Edge, EdgeVec> updatedPieceToOriginals;
+            typedef unordered_map<Edge, EdgeVec>::const_iterator It;
+            for(It it = pieceToOriginals.begin(); it != pieceToOriginals.end();
+                ++it)
+            {
+                EdgeVec ee = it->second;
+                for(EdgeVec::iterator eeIt = ee.begin(); eeIt != ee.end();
+                    ++eeIt)
+                {
+                    *eeIt = RemapNoSuperTriangle(*eeIt);
+                }
+                updatedPieceToOriginals.insert(
+                    std::make_pair(RemapNoSuperTriangle(it->first), ee));
+            }
+            pieceToOriginals = updatedPieceToOriginals;
+        }
+    }
+    // remove triangles
+    if(removedTriangles.empty())
+        return;
+    // remove triangles and calculate triangle index mapping
+    TriIndUMap triIndMap;
+    for(TriInd iT(0), iTnew(0); iT < TriInd(triangles.size()); ++iT)
+    {
+        if(removedTriangles.count(iT))
+            continue;
+        triIndMap[iT] = iTnew;
+        triangles[iTnew] = triangles[iT];
+        iTnew++;
+    }
+    triangles.erase(triangles.end() - removedTriangles.size(), triangles.end());
+    // adjust triangles
+    // vertices' adjacent triangles will be re-calculated
+    vertTris = VerticesTriangles(vertices.size());
+    for(TriInd iT = 0; iT < triangles.size(); ++iT)
+    {
+        Triangle& t = triangles[iT];
+        // update neighbors to account for removed triangles
+        NeighborsArr3& nn = t.neighbors;
+        for(NeighborsArr3::iterator n = nn.begin(); n != nn.end(); ++n)
+        {
+            if(removedTriangles.count(*n))
+            {
+                *n = noNeighbor;
+            }
+            else if(*n != noNeighbor)
+            {
+                *n = triIndMap[*n];
+            }
+        }
+        if(m_superGeomType == SuperGeometryType::SuperTriangle)
+        {
+            VerticesArr3& vv = t.vertices;
+            for(VerticesArr3::iterator v = vv.begin(); v != vv.end(); ++v)
+            {
+                // account for removed super-triangle
+                *v -= 3;
+                // re-calculate vertices' adjacent triangles
+                vertTris[*v].push_back(iT);
+            }
+        }
+    }
 }
 
 template <typename T, typename TNearPointLocator>

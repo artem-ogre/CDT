@@ -105,7 +105,7 @@ public:
     typedef std::vector<TriIndVec> VerticesTriangles; ///< Triangles by vertex
     V2dVec vertices;            ///< triangulation's vertices
     TriangleVec triangles;      ///< triangulation's triangles
-    EdgeUSet fixedEdges;        ///<  triangulation's constraints (fixed edges)
+    EdgeUSet fixedEdges;        ///< triangulation's constraints (fixed edges)
     VerticesTriangles vertTris; ///< triangles adjacent to each vertex
 
     /** Stores count of overlapping boundaries for a fixed edge. If no entry is
@@ -399,9 +399,12 @@ private:
     TriInd pseudopolyOuterTriangle(const VertInd ia, const VertInd ib) const;
     TriInd addTriangle(const Triangle& t); // note: invalidates iterators!
     TriInd addTriangle(); // note: invalidates triangle iterators!
-    void eraseSuperTriangleVertices(); // no effect if custom geometry is used
-    template <typename TriIndexIter>
-    void eraseTrianglesAtIndices(TriIndexIter first, TriIndexIter last);
+    /**
+     * Remove super-triangle (if used) and triangles with specified indices.
+     * Adjust internal triangulation state accordingly.
+     * @removedTriangles indices of triangles to remove
+     */
+    void finalizeTriangulation(const TriIndUSet& removedTriangles);
     TriIndUSet growToBoundary(std::stack<TriInd> seeds) const;
     void fixEdge(const Edge& edge, const BoundaryOverlapCount overlaps);
     void fixEdge(const Edge& edge);
