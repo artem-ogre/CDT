@@ -4,6 +4,7 @@
 #include <catch2/benchmark/catch_benchmark.hpp>
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include <algorithm>
@@ -29,6 +30,17 @@ namespace CDT
 bool operator<(const Edge& lhs, const Edge& rhs)
 {
     return lhs.v1() != rhs.v1() ? lhs.v1() < rhs.v1() : lhs.v2() < rhs.v2();
+}
+
+bool operator<(const Triangle& lhs, const Triangle& rhs)
+{
+    for(Index i = 0; i < Index(3); ++i)
+    {
+        if(lhs.vertices[i] == rhs.vertices[i])
+            continue;
+        return lhs.vertices[i] < rhs.vertices[i];
+    }
+    return false;
 }
 
 } // namespace CDT
@@ -198,6 +210,22 @@ Triangle makeSmallestIndexFirst(const Triangle& t)
     return out;
 }
 
+// return mapping of index in a not sorted array to index in sorted array
+template <typename RandomIt>
+auto sort_mapping(RandomIt cbegin, RandomIt cend)
+{
+    auto len = std::distance(cbegin, cend);
+    std::vector<size_t> perm(len);
+    std::iota(perm.begin(), perm.end(), 0U);
+    std::sort(perm.begin(), perm.end(), [&](const size_t& a, const size_t& b) {
+        return *(cbegin + a) < *(cbegin + b);
+    });
+    std::vector<size_t> map(len);
+    for(size_t i = 0; i < perm.size(); ++i)
+        map[perm[i]] = i;
+    return map;
+}
+
 /// Triangulation topology stored in a sorted way that makes it easy to perform
 /// baseline comparisons
 struct TriangulationTopo
@@ -223,20 +251,20 @@ struct TriangulationTopo
             t = makeSmallestIndexFirst(t);
         }
         std::sort(fixedEdges.begin(), fixedEdges.end());
-        struct TriCompare
+        const auto sortMapping =
+            sort_mapping(triangles.begin(), triangles.end());
+        std::sort(triangles.begin(), triangles.end());
+        // remap neighbor indices according to new sorted order
+        for(auto& t : triangles)
         {
-            bool operator()(const Triangle& lhs, const Triangle& rhs) const
+            for(auto& n : t.neighbors)
             {
-                for(Index i = 0; i < Index(3); ++i)
+                if(n != noNeighbor)
                 {
-                    if(lhs.vertices[i] == rhs.vertices[i])
-                        continue;
-                    return lhs.vertices[i] < rhs.vertices[i];
+                    n = TriInd(sortMapping[n]);
                 }
-                return false;
             }
-        } cmp;
-        std::sort(triangles.begin(), triangles.end(), cmp);
+        }
     }
 
     void read(std::istream& f)
@@ -304,12 +332,10 @@ struct TriangulationTopo
         f << triangles.size() << '\n';
         for(const auto& t : triangles)
         {
-            for(const auto v : t.vertices)
-                f << v << ' ';
-            f << "   ";
-            for(const auto n : t.neighbors)
-                f << n << ' ';
-            f << '\n';
+            const auto& vv = t.vertices;
+            const auto& nn = t.neighbors;
+            f << vv[0] << ' ' << vv[1] << ' ' << vv[2] << "   " << nn[0] << ' '
+              << nn[1] << ' ' << nn[2] << '\n';
         }
         f << '\n' << fixedEdges.size() << '\n';
         for(const auto& e : fixedEdges)
@@ -325,14 +351,22 @@ struct TriangulationTopo
         f << '\n' << pieceToOriginals.size() << '\n';
         for(const auto& pto : pieceToOriginals)
         {
-            f << pto.first.v1() << ' ' << pto.first.v2() << "    "
-              << pto.second.size() << '\n';
+            f << pto.first.v1() << ' ' << pto.first.v2() << '\n'
+              << "    " << pto.second.size() << '\n';
             for(const auto& e : pto.second)
             {
                 f << "    " << e.v1() << ' ' << e.v2() << '\n';
             }
-            f << '\n';
         }
+    }
+    void writeToFile(const std::string& filename) const
+    {
+        std::ofstream f(filename);
+        if(!f.is_open())
+        {
+            ENHANCED_THROW(std::runtime_error, "Can't open file for writing");
+        }
+        write(f);
     }
 };
 
@@ -370,6 +404,10 @@ TEMPLATE_LIST_TEST_CASE(
 
     std::ostringstream out_s;
     std::ofstream f("tmp.txt");
+    if(!f.is_open())
+    {
+        ENHANCED_THROW(std::runtime_error, "Can't open file for writing");
+    }
     topo.write(f);
     topo.write(out_s);
     std::istringstream in_s(out_s.str());
@@ -382,11 +420,31 @@ TEMPLATE_LIST_TEST_CASE(
 
 TEMPLATE_LIST_TEST_CASE("Test ground truth tests", "", CoordTypes)
 {
+    const auto data = GENERATE(table<
+                               std::string,
+                               std::string,
+                               VertexInsertionOrder::Enum,
+                               IntersectingConstraintEdges::Enum,
+                               TestType>(
+        // clang-format off
+{
+        {"corner cases.txt", "corner cases.txt", VertexInsertionOrder::Randomized, IntersectingConstraintEdges::Resolve, TestType(0.)},
+        {"corner cases.txt", "corner cases.txt", VertexInsertionOrder::AsProvided, IntersectingConstraintEdges::Resolve, TestType(0.)}
+        }));
+    // clang-format on
+
+    const auto& inputFile = std::get<0>(data);
+    const auto& expectedOutputFile = std::get<1>(data);
+    const auto order = std::get<2>(data);
+    const auto intersectingEdgesStrategy = std::get<3>(data);
+    const auto minDistToConstraintEdge = std::get<4>(data);
+
     auto cdt = Triangulation<TestType>(
-        CDT::VertexInsertionOrder::Randomized,
-        CDT::IntersectingConstraintEdges::Resolve,
-        0.);
-    inputFromFile(cdt, "inputs/corner cases.txt");
+        order, intersectingEdgesStrategy, minDistToConstraintEdge);
+    inputFromFile(cdt, "inputs/" + inputFile);
     cdt.eraseSuperTriangle();
-    REQUIRE(topologyString(cdt) == topologyString("expected/corner cases.txt"));
+    TriangulationTopo(cdt).writeToFile("tmp.txt");
+    REQUIRE(
+        topologyString(cdt) ==
+        topologyString("expected/" + expectedOutputFile));
 }
