@@ -208,6 +208,7 @@ if(CDT_ENABLE_TESTING)
     set(CMAKE_MODULE_PATH "${Catch2_directory}/extras" ${CMAKE_MODULE_PATH})
     set(TEST_TARGET_NAME ${PROJECT_NAME}_tests)
     add_executable(${TEST_TARGET_NAME})
+    set_property(TARGET ${TEST_TARGET_NAME} PROPERTY CXX_STANDARD 17)
     target_sources(${TEST_TARGET_NAME} PRIVATE tests/cdt.test.cpp)
     target_link_libraries(
         ${TEST_TARGET_NAME}
@@ -217,4 +218,17 @@ if(CDT_ENABLE_TESTING)
     )
     include(Catch)
     catch_discover_tests(${TEST_TARGET_NAME})
+    # test files
+    set(test_files_inputs
+        "corner cases.txt"
+    )
+    foreach(f ${test_files_inputs})
+        configure_file(tests/inputs/${f} ${CMAKE_CURRENT_BINARY_DIR}/inputs/${f} COPYONLY)
+    endforeach()
+    set(test_files_expected
+        "corner cases.txt"
+    )
+    foreach(f ${test_files_expected})
+        configure_file(tests/expected/${f} ${CMAKE_CURRENT_BINARY_DIR}/expected/${f} COPYONLY)
+    endforeach()
 endif()
