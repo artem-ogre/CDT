@@ -69,24 +69,24 @@ void generateGridVertices(
             // left-up
             if(ix > 0 && iy < yres)
             {
-                vTris.push_back(2 * (i - 1));
-                vTris.push_back(2 * (i - 1) + 1);
+                vTris.push_back(static_cast<TriInd>(2 * (i - 1)));
+                vTris.push_back(static_cast<TriInd>(2 * (i - 1) + 1));
             }
             // right-up
             if(ix < xres && iy < yres)
             {
-                vTris.push_back(2 * i);
+                vTris.push_back(static_cast<TriInd>(2 * i));
             }
             // left-down
             if(ix > 0 && iy > 0)
             {
-                vTris.push_back(2 * (i - xres - 1) + 1);
+                vTris.push_back(static_cast<TriInd>(2 * (i - xres - 1) + 1));
             }
             // right-down
             if(ix < xres && iy > 0)
             {
-                vTris.push_back(2 * (i - xres));
-                vTris.push_back(2 * (i - xres) + 1);
+                vTris.push_back(static_cast<TriInd>(2 * (i - xres)));
+                vTris.push_back(static_cast<TriInd>(2 * (i - xres) + 1));
             }
 #ifdef CDT_CXX11_IS_SUPPORTED
             *outTrisFirst++ = std::move(vTris);
@@ -226,7 +226,9 @@ void initializeWithIrregularGrid(
         yfirst,
         ylast);
     detail::generateGridTriangles(
-        std::back_inserter(out.triangles), xres, yres);
+        std::back_inserter(out.triangles),
+        static_cast<IndexSizeType>(xres),
+        static_cast<IndexSizeType>(yres));
     out.initializedWithCustomSuperGeometry();
 }
 

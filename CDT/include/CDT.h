@@ -774,7 +774,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
     case VertexInsertionOrder::Randomized:
         std::vector<VertInd> ii(std::distance(first, last));
         typedef std::vector<VertInd>::iterator Iter;
-        VertInd value = nExistingVerts;
+        VertInd value = static_cast<VertInd>(nExistingVerts);
         for(Iter it = ii.begin(); it != ii.end(); ++it, ++value)
             *it = value;
         detail::random_shuffle(ii.begin(), ii.end());

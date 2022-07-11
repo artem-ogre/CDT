@@ -174,7 +174,7 @@ void Triangulation<T, TNearPointLocator>::eraseOuterTrianglesAndHoles()
     for(std::size_t iT = 0; iT != triangles.size(); ++iT)
     {
         if(triDepths[iT] % 2 == 0)
-            toErase.insert(iT);
+            toErase.insert(static_cast<TriInd>(iT));
     }
     finalizeTriangulation(toErase);
 }
@@ -519,7 +519,7 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
                IntersectingConstraintEdges::Resolve &&
            fixedEdges.count(Edge(iVleft, iVright)))
         {
-            const VertInd iNewVert = vertices.size();
+            const VertInd iNewVert = static_cast<VertInd>(vertices.size());
 
             // split constraint edge that already exists in triangulation
             const Edge splitEdge(iVleft, iVright);
@@ -1393,8 +1393,8 @@ TriInd Triangulation<T, TNearPointLocator>::triangulatePseudopolygon(
         ++newLast;
     const std::vector<VertInd>::const_iterator newFirst = newLast + 1;
     // triangulate splitted pseudo-polygons
-    TriInd iT2 = triangulatePseudopolygon(ic, ib, newFirst, pointsLast);
-    TriInd iT1 = triangulatePseudopolygon(ia, ic, pointsFirst, newLast);
+    const TriInd iT2 = triangulatePseudopolygon(ic, ib, newFirst, pointsLast);
+    const TriInd iT1 = triangulatePseudopolygon(ia, ic, pointsFirst, newLast);
     // add new triangle
     const Triangle t = {{ia, ib, ic}, {noNeighbor, iT2, iT1}};
     const TriInd iT = addTriangle(t);
@@ -1502,7 +1502,9 @@ RemapEdges(std::vector<Edge>& edges, const std::vector<std::size_t>& mapping)
 {
     for(std::vector<Edge>::iterator it = edges.begin(); it != edges.end(); ++it)
     {
-        *it = Edge(mapping[it->v1()], mapping[it->v2()]); // remap
+        *it = Edge(
+            static_cast<VertInd>(mapping[it->v1()]),
+            static_cast<VertInd>(mapping[it->v2()]));
     }
 }
 

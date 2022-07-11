@@ -246,7 +246,7 @@ private:
     /// Add a new node and return it's index in nodes buffer
     node_index addNewNode()
     {
-        const node_index newNodeIndex = m_nodes.size();
+        const node_index newNodeIndex = static_cast<node_index>(m_nodes.size());
         m_nodes.push_back(Node());
         return newNodeIndex;
     }
