@@ -34,7 +34,8 @@ inline bool verifyTopology(const CDT::Triangulation<T, TNearPointLocator>& cdt)
     // Check if vertices' adjacent triangles contain vertex
     const VerticesTriangles vertTris =
         cdt.isFinalized()
-            ? calculateTrianglesByVertex(cdt.triangles, cdt.vertices.size())
+            ? calculateTrianglesByVertex(
+                  cdt.triangles, static_cast<VertInd>(cdt.vertices.size()))
             : cdt.vertTris;
     for(VertInd iV(0); iV < VertInd(cdt.vertices.size()); ++iV)
     {

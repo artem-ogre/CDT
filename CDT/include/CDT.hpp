@@ -665,7 +665,7 @@ void Triangulation<T, TNearPointLocator>::conformToEdge(
                IntersectingConstraintEdges::Resolve &&
            fixedEdges.count(Edge(iVleft, iVright)))
         {
-            const VertInd iNewVert = vertices.size();
+            const VertInd iNewVert = static_cast<VertInd>(vertices.size());
 
             // split constraint edge that already exists in triangulation
             const Edge splitEdge(iVleft, iVright);
@@ -726,7 +726,7 @@ void Triangulation<T, TNearPointLocator>::conformToEdge(
     /**/
 
     // add mid-point to triangulation
-    const VertInd iMid = vertices.size();
+    const VertInd iMid = static_cast<VertInd>(vertices.size());
     const V2d<T>& start = vertices[iA];
     const V2d<T>& end = vertices[iB];
     addNewVertex(
