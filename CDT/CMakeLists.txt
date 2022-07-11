@@ -217,18 +217,5 @@ if(CDT_ENABLE_TESTING)
             CDT::CDT
     )
     include(Catch)
-    catch_discover_tests(${TEST_TARGET_NAME})
-    # test files
-    set(test_files_inputs
-        "corner cases.txt"
-    )
-    foreach(f ${test_files_inputs})
-        configure_file(tests/inputs/${f} ${CMAKE_CURRENT_BINARY_DIR}/inputs/${f} COPYONLY)
-    endforeach()
-    set(test_files_expected
-        "corner cases.txt"
-    )
-    foreach(f ${test_files_expected})
-        configure_file(tests/expected/${f} ${CMAKE_CURRENT_BINARY_DIR}/expected/${f} COPYONLY)
-    endforeach()
+    catch_discover_tests(${TEST_TARGET_NAME} WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/tests")
 endif()
