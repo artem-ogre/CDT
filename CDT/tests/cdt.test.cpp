@@ -86,14 +86,16 @@ template <typename T>
 std::pair<Vertices<T>, std::vector<Edge> >
 readInputFromFile(const std::string& fileName)
 {
-    std::ifstream fin(fileName);
-    if(!fin.is_open())
+    std::ifstream f(fileName);
+    if(!f.is_open())
     {
-        ENHANCED_THROW(std::runtime_error, "Could not open file");
+        ENHANCED_THROW(
+            std::runtime_error, "Could not open file '" + fileName + '\'');
     }
+    f.precision(std::numeric_limits<T>::digits10 + 1);
     IndexSizeType nVerts;
     IndexSizeType nEdges;
-    fin >> nVerts >> nEdges;
+    f >> nVerts >> nEdges;
 
     // Read vertices
     Vertices<T> vv;
@@ -101,7 +103,7 @@ readInputFromFile(const std::string& fileName)
     for(std::size_t i = 0; i < nVerts; ++i)
     {
         T x, y;
-        fin >> x >> y;
+        f >> x >> y;
         vv.push_back(V2d<T>::make(x, y));
     }
     // Read edges
@@ -109,10 +111,34 @@ readInputFromFile(const std::string& fileName)
     for(std::size_t i = 0; i < nEdges; ++i)
     {
         VertInd v1, v2;
-        fin >> v1 >> v2;
+        f >> v1 >> v2;
         ee.emplace_back(v1, v2);
     }
     return std::make_pair(vv, ee);
+}
+
+template <typename T>
+void saveInputToFile(
+    const std::string& fileName,
+    const Vertices<T>& vv,
+    const std::vector<Edge>& ee)
+{
+    std::ofstream f(fileName);
+    if(!f.is_open())
+    {
+        ENHANCED_THROW(std::runtime_error, "Could not open file");
+    }
+    IndexSizeType nVerts;
+    IndexSizeType nEdges;
+    f << vv.size() << ' ' << ee.size() << '\n';
+    for(const auto& v : vv)
+    {
+        f << v.x << ' ' << v.y << '\n';
+    }
+    for(const auto& e : ee)
+    {
+        f << e.v1() << ' ' << e.v2() << '\n';
+    }
 }
 
 template <typename T, typename TNearPointLocator>
@@ -378,6 +404,15 @@ std::string topologyString(const CDT::Triangulation<T, TNearPointLocator>& cdt)
     return out.str();
 }
 
+template <typename T, typename TNearPointLocator>
+void topologyToFile(
+    const std::string& filename,
+    const CDT::Triangulation<T, TNearPointLocator>& cdt)
+{
+    std::ofstream out(filename);
+    TriangulationTopo(cdt).write(out);
+}
+
 std::string topologyString(const std::string& filename)
 {
     std::ifstream ifs(filename);
@@ -418,33 +453,146 @@ TEMPLATE_LIST_TEST_CASE(
     REQUIRE(out_s.str() == out_s2.str());
 }
 
+namespace
+{
+
+std::string to_string(const VertexInsertionOrder::Enum& vio)
+{
+    switch(vio)
+    {
+    case VertexInsertionOrder::AsProvided:
+        return "as-provided";
+    case VertexInsertionOrder::Randomized:
+        return "randomized";
+    }
+    ENHANCED_THROW(std::runtime_error, "Reached unreachable");
+}
+
+std::string to_string(const IntersectingConstraintEdges::Enum& ice)
+{
+    switch(ice)
+    {
+    case IntersectingConstraintEdges::Ignore:
+        return "ignore";
+    case IntersectingConstraintEdges::Resolve:
+        return "resolve";
+    }
+    ENHANCED_THROW(std::runtime_error, "Reached unreachable");
+}
+
+} // namespace
+
+TEST_CASE("Asdf", "")
+{
+    auto [vv, ee] = readInputFromFile<double>("inputs/cdt.txt");
+    RemoveDuplicatesAndRemapEdges(vv, ee);
+    saveInputToFile("inputs/cdt_no_duplicates.txt", vv, ee);
+}
+
 TEMPLATE_LIST_TEST_CASE("Test ground truth tests", "", CoordTypes)
 {
-    const auto data = GENERATE(table<
-                               std::string,
-                               std::string,
-                               VertexInsertionOrder::Enum,
-                               IntersectingConstraintEdges::Enum,
-                               TestType>(
-        // clang-format off
-{
-        {"corner cases.txt", "corner cases.txt", VertexInsertionOrder::Randomized, IntersectingConstraintEdges::Resolve, TestType(0.)},
-        {"corner cases.txt", "corner cases.txt", VertexInsertionOrder::AsProvided, IntersectingConstraintEdges::Resolve, TestType(0.)}
-        }));
-    // clang-format on
+    const auto inputFile = GENERATE(
+        as<std::string>{},
+        "Capital A.txt",
+        "Hanging.txt",
+        "Hanging2.txt",
+        "Letter u.txt",
+        "OnEdge.txt",
+        "ProblematicCase1.txt",
+        "cdt.txt",
+        "corner cases.txt",
+        "ditch.txt",
+        "gh_issue.txt",
+        "guitar no box.txt",
+        "island.txt",
+        "issue-42-full-boundary-overlap.txt",
+        "issue-42-hole-overlaps-bondary.txt",
+        "issue-42-multiple-boundary-overlaps-conform-to-edge.txt",
+        "issue-42-multiple-boundary-overlaps.txt",
+        "issue-65-wrong-edges.txt",
+        "kidney.txt",
+        "overlapping constraints.txt",
+        "overlapping constraints2.txt",
+        "points_on_constraint_edge.txt",
+        "regression_issue_38_wrong_hull_small.txt",
+        "square with crack.txt",
+        "unit square.txt");
 
-    const auto& inputFile = std::get<0>(data);
-    const auto& expectedOutputFile = std::get<1>(data);
-    const auto order = std::get<2>(data);
-    const auto intersectingEdgesStrategy = std::get<3>(data);
-    const auto minDistToConstraintEdge = std::get<4>(data);
+    const auto typeSpecific = std::unordered_set<std::string>{
+        "guitar no box.txt",
+        "issue-42-full-boundary-overlap.txt",
+        "issue-42-multiple-boundary-overlaps-conform-to-edge.txt",
+        "issue-42-multiple-boundary-overlaps.txt",
+        "overlapping constraints.txt"};
+
+    const std::string typeString =
+        typeSpecific.count(inputFile)
+            ? sizeof(TestType) == sizeof(double) ? "f64_" : "f32_"
+            : "";
+
+    const auto order = GENERATE(
+        VertexInsertionOrder::AsProvided, VertexInsertionOrder::Randomized);
+    const auto intersectingEdgesStrategy = GENERATE(
+        IntersectingConstraintEdges::Ignore,
+        IntersectingConstraintEdges::Resolve);
+    const auto minDistToConstraintEdge = 0.;
 
     auto cdt = Triangulation<TestType>(
         order, intersectingEdgesStrategy, minDistToConstraintEdge);
-    inputFromFile(cdt, "inputs/" + inputFile);
-    cdt.eraseSuperTriangle();
-    TriangulationTopo(cdt).writeToFile("tmp.txt");
-    REQUIRE(
-        topologyString(cdt) ==
-        topologyString("expected/" + expectedOutputFile));
+    const auto [vv, ee] = readInputFromFile<TestType>("inputs/" + inputFile);
+    const DuplicatesInfo di = FindDuplicates<TestType>(
+        vv.begin(), vv.end(), getX_V2d<TestType>, getY_V2d<TestType>);
+    INFO("Input file is '" + inputFile + "'");
+    REQUIRE(di.duplicates.empty());
+    cdt.insertVertices(vv);
+    cdt.insertEdges(ee);
+    REQUIRE(CDT::verifyTopology(cdt));
+
+    // make true to update expected files (development purposes only)
+    const bool updateFiles = false;
+
+    const auto outputFileBase = "expected/" +
+                                inputFile.substr(0, inputFile.size() - 4) +
+                                "__" + typeString + to_string(order) + "_" +
+                                to_string(intersectingEdgesStrategy);
+    SECTION("With super-triangle")
+    {
+        const auto outFile = outputFileBase + "_all.txt";
+        saveToOff(outFile + ".off", cdt);
+        INFO("Output file is '" + outFile + "'");
+        if(updateFiles)
+            topologyToFile(outFile, cdt);
+        else
+            REQUIRE(topologyString(cdt) == topologyString(outFile));
+    }
+    SECTION("Erase super-triangle")
+    {
+        const auto outFile = outputFileBase + "_super.txt";
+        INFO("Output file is '" + outFile + "'");
+        cdt.eraseSuperTriangle();
+        if(updateFiles)
+            topologyToFile(outFile, cdt);
+        else
+            REQUIRE(topologyString(cdt) == topologyString(outFile));
+    }
+    SECTION("Erase outer triangles")
+    {
+        const auto outFile = outputFileBase + "_outer.txt";
+        INFO("Output file is '" + outFile + "'");
+        cdt.eraseOuterTriangles();
+        if(updateFiles)
+            topologyToFile(outFile, cdt);
+        else
+            REQUIRE(topologyString(cdt) == topologyString(outFile));
+    }
+    SECTION("Auto detect holes and erase outer triangles")
+    {
+        const auto outFile = outputFileBase + "_auto.txt";
+        INFO("Output file is '" + outFile + "'");
+        cdt.eraseOuterTrianglesAndHoles();
+        if(updateFiles)
+            topologyToFile(outFile, cdt);
+        else
+            REQUIRE(topologyString(cdt) == topologyString(outFile));
+    }
 }
