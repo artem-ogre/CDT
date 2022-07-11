@@ -482,13 +482,6 @@ std::string to_string(const IntersectingConstraintEdges::Enum& ice)
 
 } // namespace
 
-TEST_CASE("Asdf", "")
-{
-    auto [vv, ee] = readInputFromFile<double>("inputs/cdt.txt");
-    RemoveDuplicatesAndRemapEdges(vv, ee);
-    saveInputToFile("inputs/cdt_no_duplicates.txt", vv, ee);
-}
-
 TEMPLATE_LIST_TEST_CASE("Test ground truth tests", "", CoordTypes)
 {
     const auto inputFile = GENERATE(

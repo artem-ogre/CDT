@@ -587,9 +587,11 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
     for(TriIndCit it = intersected.begin(); it != intersected.end(); ++it)
         makeDummy(*it);
     // Triangulate pseudo-polygons on both sides
-    const TriInd iTleft = triangulatePseudopolygon(iA, iB, ptsLeft);
+    const TriInd iTleft =
+        triangulatePseudopolygon(iA, iB, ptsLeft.begin(), ptsLeft.end());
     std::reverse(ptsRight.begin(), ptsRight.end());
-    const TriInd iTright = triangulatePseudopolygon(iB, iA, ptsRight);
+    const TriInd iTright =
+        triangulatePseudopolygon(iB, iA, ptsRight.begin(), ptsRight.end());
     changeNeighbor(iTleft, noNeighbor, iTright);
     changeNeighbor(iTright, noNeighbor, iTleft);
 
@@ -1374,47 +1376,39 @@ void Triangulation<T, TNearPointLocator>::removeAdjacentTriangle(
     tris.erase(std::find(tris.begin(), tris.end(), iTriangle));
 }
 
-/// Split points collection to points before and after given vertex index
-inline std::pair<std::vector<VertInd>, std::vector<VertInd> >
-splitPseudopolygon(const VertInd vi, const std::vector<VertInd>& points)
-{
-    std::pair<std::vector<VertInd>, std::vector<VertInd> > out;
-    std::vector<VertInd>::const_iterator it;
-    for(it = points.begin(); vi != *it; ++it)
-        out.first.push_back(*it);
-    for(it = it + 1; it != points.end(); ++it)
-        out.second.push_back(*it);
-    return out;
-}
-
 template <typename T, typename TNearPointLocator>
 TriInd Triangulation<T, TNearPointLocator>::triangulatePseudopolygon(
     const VertInd ia,
     const VertInd ib,
-    const std::vector<VertInd>& points)
+    const std::vector<VertInd>::const_iterator pointsFirst,
+    const std::vector<VertInd>::const_iterator pointsLast)
 {
-    if(points.empty())
+    if(pointsFirst == pointsLast)
         return pseudopolyOuterTriangle(ia, ib);
-    const VertInd ic = findDelaunayPoint(ia, ib, points);
-    const std::pair<std::vector<VertInd>, std::vector<VertInd> > splitted =
-        splitPseudopolygon(ic, points);
+    // Find delaunay point
+    const VertInd ic = findDelaunayPoint(ia, ib, pointsFirst, pointsLast);
+    // Find pseudopolygons split by the delaunay point
+    std::vector<VertInd>::const_iterator newLast = pointsFirst;
+    while(*newLast != ic)
+        ++newLast;
+    const std::vector<VertInd>::const_iterator newFirst = newLast + 1;
     // triangulate splitted pseudo-polygons
-    TriInd iT2 = triangulatePseudopolygon(ic, ib, splitted.second);
-    TriInd iT1 = triangulatePseudopolygon(ia, ic, splitted.first);
+    TriInd iT2 = triangulatePseudopolygon(ic, ib, newFirst, pointsLast);
+    TriInd iT1 = triangulatePseudopolygon(ia, ic, pointsFirst, newLast);
     // add new triangle
     const Triangle t = {{ia, ib, ic}, {noNeighbor, iT2, iT1}};
     const TriInd iT = addTriangle(t);
     // adjust neighboring triangles and vertices
     if(iT1 != noNeighbor)
     {
-        if(splitted.first.empty())
+        if(pointsFirst == newLast)
             changeNeighbor(iT1, ia, ic, iT);
         else
             triangles[iT1].neighbors[0] = iT;
     }
     if(iT2 != noNeighbor)
     {
-        if(splitted.second.empty())
+        if(newFirst == pointsLast)
             changeNeighbor(iT2, ic, ib, iT);
         else
             triangles[iT2].neighbors[0] = iT;
@@ -1430,15 +1424,16 @@ template <typename T, typename TNearPointLocator>
 VertInd Triangulation<T, TNearPointLocator>::findDelaunayPoint(
     const VertInd ia,
     const VertInd ib,
-    const std::vector<VertInd>& points) const
+    const std::vector<VertInd>::const_iterator pointsFirst,
+    const std::vector<VertInd>::const_iterator pointsLast) const
 {
-    assert(!points.empty());
+    assert(pointsFirst != pointsLast);
     const V2d<T>& a = vertices[ia];
     const V2d<T>& b = vertices[ib];
-    VertInd ic = points.front();
+    VertInd ic = *pointsFirst;
     V2d<T> c = vertices[ic];
     typedef std::vector<VertInd>::const_iterator CIt;
-    for(CIt it = points.begin() + 1; it != points.end(); ++it)
+    for(CIt it = pointsFirst + 1; it != pointsLast; ++it)
     {
         const V2d<T> v = vertices[*it];
         if(!isInCircumcircle(v, a, b, c))

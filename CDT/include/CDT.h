@@ -406,11 +406,13 @@ private:
     TriInd triangulatePseudopolygon(
         const VertInd ia,
         const VertInd ib,
-        const std::vector<VertInd>& points);
+        const std::vector<VertInd>::const_iterator pointsFirst,
+        const std::vector<VertInd>::const_iterator pointsLast);
     VertInd findDelaunayPoint(
         const VertInd ia,
         const VertInd ib,
-        const std::vector<VertInd>& points) const;
+        const std::vector<VertInd>::const_iterator pointsFirst,
+        const std::vector<VertInd>::const_iterator pointsLast) const;
     TriInd pseudopolyOuterTriangle(const VertInd ia, const VertInd ib) const;
     TriInd addTriangle(const Triangle& t); // note: invalidates iterators!
     TriInd addTriangle(); // note: invalidates triangle iterators!
