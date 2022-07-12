@@ -231,6 +231,12 @@ inline VertInd edge_get_v2(const Edge& e)
     return e.v2();
 }
 
+/// Get edge second vertex
+inline Edge edge_make(VertInd iV1, VertInd iV2)
+{
+    return Edge(iV1, iV2);
+}
+
 typedef std::vector<Edge> EdgeVec;                ///< Vector of edges
 typedef unordered_set<Edge> EdgeUSet;             ///< Hash table of edges
 typedef unordered_set<TriInd> TriIndUSet;         ///< Hash table of triangles

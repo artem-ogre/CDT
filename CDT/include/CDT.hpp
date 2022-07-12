@@ -1500,12 +1500,13 @@ DuplicatesInfo RemoveDuplicates(std::vector<V2d<T> >& vertices)
 CDT_INLINE_IF_HEADER_ONLY void
 RemapEdges(std::vector<Edge>& edges, const std::vector<std::size_t>& mapping)
 {
-    for(std::vector<Edge>::iterator it = edges.begin(); it != edges.end(); ++it)
-    {
-        *it = Edge(
-            static_cast<VertInd>(mapping[it->v1()]),
-            static_cast<VertInd>(mapping[it->v2()]));
-    }
+    RemapEdges(
+        edges.begin(),
+        edges.end(),
+        mapping,
+        edge_get_v1,
+        edge_get_v2,
+        edge_make);
 }
 
 template <typename T>
@@ -1514,7 +1515,14 @@ DuplicatesInfo RemoveDuplicatesAndRemapEdges(
     std::vector<Edge>& edges)
 {
     return RemoveDuplicatesAndRemapEdges<T>(
-        vertices, edges, getX_V2d<T>, getY_V2d<T>);
+        vertices,
+        getX_V2d<T>,
+        getY_V2d<T>,
+        edges.begin(),
+        edges.end(),
+        edge_get_v1,
+        edge_get_v2,
+        edge_make);
 }
 
 CDT_INLINE_IF_HEADER_ONLY

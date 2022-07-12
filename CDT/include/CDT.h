@@ -507,6 +507,36 @@ CDT_EXPORT DuplicatesInfo RemoveDuplicates(std::vector<V2d<T> >& vertices);
 
 /**
  * Remap vertex indices in edges (in-place) using given vertex-index mapping.
+ * @tparam TEdgeIter iterator that dereferences to custom edge type
+ * @tparam TGetEdgeVertexStart function object getting start vertex index
+ * from an edge.
+ * Getter signature: const TEdgeIter::value_type& -> CDT::VertInd
+ * @tparam TGetEdgeVertexEnd function object getting end vertex index from
+ * an edge. Getter signature: const TEdgeIter::value_type& -> CDT::VertInd
+ * @tparam TMakeEdgeFromStartAndEnd function object that makes new edge from
+ * start and end vertices
+ * @param first beginning of the range of edges
+ * @param last end of the range of edges
+ * @param mapping vertex-index mapping
+ * @param getStart getter of edge start vertex index
+ * @param getEnd getter of edge end vertex index
+ * @param makeEdge factory for making edge from vetices
+ */
+template <
+    typename TEdgeIter,
+    typename TGetEdgeVertexStart,
+    typename TGetEdgeVertexEnd,
+    typename TMakeEdgeFromStartAndEnd>
+CDT_EXPORT void RemapEdges(
+    TEdgeIter first,
+    TEdgeIter last,
+    const std::vector<std::size_t>& mapping,
+    TGetEdgeVertexStart getStart,
+    TGetEdgeVertexEnd getEnd,
+    TMakeEdgeFromStartAndEnd makeEdge);
+
+/**
+ * Remap vertex indices in edges (in-place) using given vertex-index mapping.
  *
  * @note Mapping can be a result of RemoveDuplicates function
  * @param[in,out] edges collection of edges to remap
@@ -526,10 +556,23 @@ RemapEdges(std::vector<Edge>& edges, const std::vector<std::size_t>& mapping);
  * Getter signature: const TVertexIter::value_type& -> T
  * @tparam TGetVertexCoordY function object getting y coordinate from vertex.
  * Getter signature: const TVertexIter::value_type& -> T
+ * @tparam TEdgeIter iterator that dereferences to custom edge type
+ * @tparam TGetEdgeVertexStart function object getting start vertex index
+ * from an edge.
+ * Getter signature: const TEdgeIter::value_type& -> CDT::VertInd
+ * @tparam TGetEdgeVertexEnd function object getting end vertex index from
+ * an edge. Getter signature: const TEdgeIter::value_type& -> CDT::VertInd
+ * @tparam TMakeEdgeFromStartAndEnd function object that makes new edge from
+ * start and end vertices
  * @param[in, out] vertices vertices to remove duplicates from
  * @param[in, out] edges collection of edges connecting vertices
  * @param getX getter of X-coordinate
  * @param getY getter of Y-coordinate
+ * @param edgesFirst beginning of the range of edges
+ * @param edgesLast end of the range of edges
+ * @param getStart getter of edge start vertex index
+ * @param getEnd getter of edge end vertex index
+ * @param makeEdge factory for making edge from vetices
  * @returns information about vertex duplicates
  */
 template <
@@ -538,12 +581,19 @@ template <
     typename TGetVertexCoordX,
     typename TGetVertexCoordY,
     typename TVertexAllocator,
-    typename TEdgeAllocator>
+    typename TEdgeIter,
+    typename TGetEdgeVertexStart,
+    typename TGetEdgeVertexEnd,
+    typename TMakeEdgeFromStartAndEnd>
 DuplicatesInfo RemoveDuplicatesAndRemapEdges(
     std::vector<TVertex, TVertexAllocator>& vertices,
-    std::vector<Edge, TEdgeAllocator>& edges,
     TGetVertexCoordX getX,
-    TGetVertexCoordY getY);
+    TGetVertexCoordY getY,
+    TEdgeIter edgesFirst,
+    TEdgeIter edgesLast,
+    TGetEdgeVertexStart getStart,
+    TGetEdgeVertexEnd getEnd,
+    TMakeEdgeFromStartAndEnd makeEdge);
 
 /**
  * Same as a chained call of @ref RemoveDuplicates + @ref RemapEdges
@@ -891,22 +941,50 @@ void RemoveDuplicates(
 }
 
 template <
+    typename TEdgeIter,
+    typename TGetEdgeVertexStart,
+    typename TGetEdgeVertexEnd,
+    typename TMakeEdgeFromStartAndEnd>
+void RemapEdges(
+    TEdgeIter first,
+    const TEdgeIter last,
+    const std::vector<std::size_t>& mapping,
+    TGetEdgeVertexStart getStart,
+    TGetEdgeVertexEnd getEnd,
+    TMakeEdgeFromStartAndEnd makeEdge)
+{
+    for(; first != last; ++first)
+    {
+        *first = makeEdge(
+            static_cast<VertInd>(mapping[getStart(*first)]),
+            static_cast<VertInd>(mapping[getEnd(*first)]));
+    }
+}
+
+template <
     typename T,
     typename TVertex,
     typename TGetVertexCoordX,
     typename TGetVertexCoordY,
     typename TVertexAllocator,
-    typename TEdgeAllocator>
+    typename TEdgeIter,
+    typename TGetEdgeVertexStart,
+    typename TGetEdgeVertexEnd,
+    typename TMakeEdgeFromStartAndEnd>
 DuplicatesInfo RemoveDuplicatesAndRemapEdges(
     std::vector<TVertex, TVertexAllocator>& vertices,
-    std::vector<Edge, TEdgeAllocator>& edges,
     TGetVertexCoordX getX,
-    TGetVertexCoordY getY)
+    TGetVertexCoordY getY,
+    const TEdgeIter edgesFirst,
+    const TEdgeIter edgesLast,
+    TGetEdgeVertexStart getStart,
+    TGetEdgeVertexEnd getEnd,
+    TMakeEdgeFromStartAndEnd makeEdge)
 {
     const DuplicatesInfo di =
         FindDuplicates<T>(vertices.begin(), vertices.end(), getX, getY);
     RemoveDuplicates(vertices, di.duplicates);
-    RemapEdges(edges, di.mapping);
+    RemapEdges(edgesFirst, edgesLast, di.mapping, getStart, getEnd, makeEdge);
     return di;
 }
 
