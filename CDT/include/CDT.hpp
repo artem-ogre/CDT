@@ -186,6 +186,44 @@ inline Edge RemapNoSuperTriangle(const Edge& e)
 }
 
 template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::removeTriangles(
+    const TriIndUSet& removedTriangles)
+{
+    if(removedTriangles.empty())
+        return;
+    // remove triangles and calculate triangle index mapping
+    TriIndUMap triIndMap;
+    for(TriInd iT(0), iTnew(0); iT < TriInd(triangles.size()); ++iT)
+    {
+        if(removedTriangles.count(iT))
+            continue;
+        triIndMap[iT] = iTnew;
+        triangles[iTnew] = triangles[iT];
+        iTnew++;
+    }
+    triangles.erase(triangles.end() - removedTriangles.size(), triangles.end());
+    // adjust triangles' neighbors
+    vertTris = VerticesTriangles();
+    for(TriInd iT = 0; iT < triangles.size(); ++iT)
+    {
+        Triangle& t = triangles[iT];
+        // update neighbors to account for removed triangles
+        NeighborsArr3& nn = t.neighbors;
+        for(NeighborsArr3::iterator n = nn.begin(); n != nn.end(); ++n)
+        {
+            if(removedTriangles.count(*n))
+            {
+                *n = noNeighbor;
+            }
+            else if(*n != noNeighbor)
+            {
+                *n = triIndMap[*n];
+            }
+        }
+    }
+}
+
+template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::finalizeTriangulation(
     const TriIndUSet& removedTriangles)
 {
@@ -235,43 +273,15 @@ void Triangulation<T, TNearPointLocator>::finalizeTriangulation(
             pieceToOriginals = updatedPieceToOriginals;
         }
     }
-    // remove triangles
-    if(removedTriangles.empty())
-        return;
-    // remove triangles and calculate triangle index mapping
-    TriIndUMap triIndMap;
-    for(TriInd iT(0), iTnew(0); iT < TriInd(triangles.size()); ++iT)
+    // remove other triangles
+    removeTriangles(removedTriangles);
+    // adjust triangle vertices: account for removed super-triangle
+    if(m_superGeomType == SuperGeometryType::SuperTriangle)
     {
-        if(removedTriangles.count(iT))
-            continue;
-        triIndMap[iT] = iTnew;
-        triangles[iTnew] = triangles[iT];
-        iTnew++;
-    }
-    triangles.erase(triangles.end() - removedTriangles.size(), triangles.end());
-    // adjust triangles
-    // vertices' adjacent triangles will be re-calculated
-    vertTris = VerticesTriangles();
-    for(TriInd iT = 0; iT < triangles.size(); ++iT)
-    {
-        Triangle& t = triangles[iT];
-        // update neighbors to account for removed triangles
-        NeighborsArr3& nn = t.neighbors;
-        for(NeighborsArr3::iterator n = nn.begin(); n != nn.end(); ++n)
+        for(TriangleVec::iterator t = triangles.begin(); t != triangles.end();
+            ++t)
         {
-            if(removedTriangles.count(*n))
-            {
-                *n = noNeighbor;
-            }
-            else if(*n != noNeighbor)
-            {
-                *n = triIndMap[*n];
-            }
-        }
-        if(m_superGeomType == SuperGeometryType::SuperTriangle)
-        {
-            // account for removed super-triangle
-            VerticesArr3& vv = t.vertices;
+            VerticesArr3& vv = t->vertices;
             for(VerticesArr3::iterator v = vv.begin(); v != vv.end(); ++v)
             {
                 *v -= 3;
@@ -1311,10 +1321,15 @@ void Triangulation<T, TNearPointLocator>::flipEdge(
     // adjust neighboring triangles and vertices
     changeNeighbor(n1, iT, iTopo);
     changeNeighbor(n4, iTopo, iT);
-    addAdjacentTriangle(v1, iTopo);
-    addAdjacentTriangle(v3, iT);
-    removeAdjacentTriangle(v2, iT);
-    removeAdjacentTriangle(v4, iTopo);
+    // only adjust adjacent triangles if triangulation is not finalized:
+    // can happen when called from outside on an already finalized triangulation
+    if(!isFinalized())
+    {
+        addAdjacentTriangle(v1, iTopo);
+        addAdjacentTriangle(v3, iT);
+        removeAdjacentTriangle(v2, iT);
+        removeAdjacentTriangle(v4, iTopo);
+    }
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1469,7 +1484,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
 template <typename T, typename TNearPointLocator>
 bool Triangulation<T, TNearPointLocator>::isFinalized() const
 {
-    return !vertices.empty() && vertTris.empty();
+    return vertTris.empty() && !vertices.empty();
 }
 
 CDT_INLINE_IF_HEADER_ONLY VerticesTriangles calculateTrianglesByVertex(

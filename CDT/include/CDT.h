@@ -309,20 +309,11 @@ public:
     void flipEdge(const TriInd iT, const TriInd iTopo);
 
     /**
-     * Flag triangle as dummy
-     * @note Advanced method for manually modifying the triangulation from
-     * outside. Please call it when you know what you are doing.
-     * @param iT index of a triangle to flag
+     * Remove triangles with specified indices.
+     * Adjust internal triangulation state accordingly.
+     * @removedTriangles indices of triangles to remove
      */
-    void makeDummy(const TriInd iT);
-
-    /**
-     * Erase all dummy triangles
-     * @note Advanced method for manually modifying the triangulation from
-     * outside. Please call it when you know what you are doing.
-     */
-    void eraseDummies();
-
+    void removeTriangles(const TriIndUSet& removedTriangles);
     ///@}
 
 private:
@@ -426,6 +417,19 @@ private:
     void fixEdge(const Edge& edge, const BoundaryOverlapCount overlaps);
     void fixEdge(const Edge& edge);
     void fixEdge(const Edge& edge, const Edge& originalEdge);
+    /**
+     * Flag triangle as dummy
+     * @note Advanced method for manually modifying the triangulation from
+     * outside. Please call it when you know what you are doing.
+     * @param iT index of a triangle to flag
+     */
+    void makeDummy(const TriInd iT);
+    /**
+     * Erase all dummy triangles
+     * @note Advanced method for manually modifying the triangulation from
+     * outside. Please call it when you know what you are doing.
+     */
+    void eraseDummies();
 
     std::vector<TriInd> m_dummyTris;
     TNearPointLocator m_nearPtLocator;
