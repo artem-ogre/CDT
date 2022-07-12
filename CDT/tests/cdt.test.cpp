@@ -654,3 +654,39 @@ TEMPLATE_LIST_TEST_CASE(
             REQUIRE(topologyString(cdt) == topologyString(outFile));
     }
 }
+
+TEMPLATE_LIST_TEST_CASE("Ground truth tests: crossing edges", "", CoordTypes)
+{
+    const auto inputFile = std::string("crossing-edges.txt");
+
+    const auto order = VertexInsertionOrder::Randomized;
+    const auto intersectingEdgesStrategy = IntersectingConstraintEdges::Resolve;
+    const auto minDistToConstraintEdge = 0.;
+
+    auto cdt = Triangulation<TestType>(
+        order, intersectingEdgesStrategy, minDistToConstraintEdge);
+    const auto [vv, ee] = readInputFromFile<TestType>("inputs/" + inputFile);
+    const DuplicatesInfo di = FindDuplicates<TestType>(
+        vv.begin(), vv.end(), getX_V2d<TestType>, getY_V2d<TestType>);
+    INFO("Input file is '" + inputFile + "'");
+    REQUIRE(di.duplicates.empty());
+    const auto triangulationType =
+        GENERATE(as<std::string>{}, "", "conforming_");
+    cdt.insertVertices(vv);
+    triangulationType == "" ? cdt.insertEdges(ee) : cdt.conformToEdges(ee);
+    REQUIRE(CDT::verifyTopology(cdt));
+    // make true to update expected files (development purposes only)
+    const bool updateFiles = false;
+    const auto outputFileBase = "expected/" +
+                                inputFile.substr(0, inputFile.size() - 4) +
+                                "__" + triangulationType + to_string(order) +
+                                "_" + to_string(intersectingEdgesStrategy);
+    {
+        const auto outFile = outputFileBase + "_all.txt";
+        INFO("Output file is '" + outFile + "'");
+        if(updateFiles)
+            topologyToFile(outFile, cdt);
+        else
+            REQUIRE(topologyString(cdt) == topologyString(outFile));
+    }
+}
