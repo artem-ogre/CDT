@@ -482,7 +482,10 @@ std::string to_string(const IntersectingConstraintEdges::Enum& ice)
 
 } // namespace
 
-TEMPLATE_LIST_TEST_CASE("Test ground truth tests", "", CoordTypes)
+TEMPLATE_LIST_TEST_CASE(
+    "Ground truth tests: constraint triangulation",
+    "",
+    CoordTypes)
 {
     const auto inputFile = GENERATE(
         as<std::string>{},
@@ -579,6 +582,68 @@ TEMPLATE_LIST_TEST_CASE("Test ground truth tests", "", CoordTypes)
             REQUIRE(topologyString(cdt) == topologyString(outFile));
     }
     SECTION("Auto detect holes and erase outer triangles")
+    {
+        const auto outFile = outputFileBase + "_auto.txt";
+        INFO("Output file is '" + outFile + "'");
+        cdt.eraseOuterTrianglesAndHoles();
+        if(updateFiles)
+            topologyToFile(outFile, cdt);
+        else
+            REQUIRE(topologyString(cdt) == topologyString(outFile));
+    }
+}
+
+TEMPLATE_LIST_TEST_CASE(
+    "Ground truth tests: conforming triangulation",
+    "",
+    CoordTypes)
+{
+    const auto inputFile = GENERATE(
+        as<std::string>{},
+        "Capital A.txt",
+        "Hanging2.txt",
+        "ProblematicCase1.txt",
+        "cdt.txt",
+        "corner cases.txt",
+        "ditch.txt",
+        "gh_issue.txt",
+        "guitar no box.txt",
+        "issue-42-multiple-boundary-overlaps.txt",
+        "points_on_constraint_edge.txt",
+        "unit square.txt");
+
+    const auto typeSpecific = std::unordered_set<std::string>{
+        "guitar no box.txt",
+        "issue-42-multiple-boundary-overlaps.txt",
+    };
+
+    const std::string typeString =
+        typeSpecific.count(inputFile)
+            ? sizeof(TestType) == sizeof(double) ? "f64_" : "f32_"
+            : "";
+
+    const auto order = VertexInsertionOrder::Randomized;
+    const auto intersectingEdgesStrategy = IntersectingConstraintEdges::Ignore;
+    const auto minDistToConstraintEdge = 0.;
+
+    auto cdt = Triangulation<TestType>(
+        order, intersectingEdgesStrategy, minDistToConstraintEdge);
+    const auto [vv, ee] = readInputFromFile<TestType>("inputs/" + inputFile);
+    const DuplicatesInfo di = FindDuplicates<TestType>(
+        vv.begin(), vv.end(), getX_V2d<TestType>, getY_V2d<TestType>);
+    INFO("Input file is '" + inputFile + "'");
+    REQUIRE(di.duplicates.empty());
+    cdt.insertVertices(vv);
+    cdt.conformToEdges(ee);
+    REQUIRE(CDT::verifyTopology(cdt));
+
+    // make true to update expected files (development purposes only)
+    const bool updateFiles = false;
+
+    const auto outputFileBase =
+        "expected/" + inputFile.substr(0, inputFile.size() - 4) +
+        "__conforming_" + typeString + to_string(order) + "_" +
+        to_string(intersectingEdgesStrategy);
     {
         const auto outFile = outputFileBase + "_auto.txt";
         INFO("Output file is '" + outFile + "'");
