@@ -192,6 +192,7 @@ if(DOXYGEN_FOUND)
     )
     set(DOXYGEN_HTML_HEADER ${PROJECT_SOURCE_DIR}/../docs/doxygen-custom/header.html)
     set(DOXYGEN_HTML_EXTRA_FILES
+        ${CDT_DOCS_DIRECTORY}/doxygen-custom/logo.svg
         ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome-darkmode-toggle.js
         ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome-fragment-copy-button.js
         ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome-paragraph-link.js
