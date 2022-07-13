@@ -1,4 +1,4 @@
-<img src="./images/CDT_logo.png" alt="CDT Logo" style='height: 100%; width: 100%; object-fit: contain'/>
+<img src="./images/CDT_logo.png" alt="CDT Logo" style='height: 100%; width: 100%; max-height: 250px; object-fit: contain'/>
 
 [![CI Builds](https://github.com/artem-ogre/CDT/workflows/CI%20Builds/badge.svg)](https://github.com/artem-ogre/CDT/actions/)
 
@@ -7,10 +7,11 @@
 # CDT: Conforming or Constrained Delaunay Triangulation
 
 ## Table of Contents
-- [What is CDT?](#"what-is-cdt)
+
+- [What is CDT?](#what-is-cdt)
 - [What can CDT do?](#what-can-cdt-do)
 - [Properly Handling the Corner-Cases](#corner-cases)
-- [Online Documentation](#online-doc)
+- [Online Documentation](#online-documentation)
 - [Algorithm](#algorithm)
 - [Implementation Details](#details)
 - [Installation/Building](#installation)
@@ -21,7 +22,12 @@
 - [Example Gallery](#example-gallery)
 - [Bibliography](#bibliography)
 
-## <a name="what-is-cdt"/>What is CDT?</a>
+
+
+<a name="what-is-cdt"/>
+
+## What is CDT?
+
 CDT is a C++ library for generating constraint or conforming Delaunay triangulations.
 - **open-source:** permissively-licensed under Mozilla Public License (MPL) 2.0
 - **cross-platform:** tested on Windows, Linux (Ubuntu), and macOS
@@ -31,26 +37,34 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 - **performant:** continuously profiled, measured, and optimized
 - **numerically robust:** triangulation algorithms rely on robust geometric predicates
 
-## <a name="what-can-cdt-do"/>What can CDT do?</a>
-<img src="./images/show-case.png" alt="CDT show-case: constrained and conforming triangulations, convex hulls, automatically removing holes" style='height: 100%; width: 100%; object-fit: contain'/>
+<a name="what-can-cdt-do"/>
+
+## What can CDT do?
+<img src="./images/show-case.png" alt="CDT show-case: constrained and conforming triangulations, convex hulls, automatically removing holes" style='height: 100%; width: 100%; max-height: 300px; object-fit: contain'/>
 
 - Constrained Delaunay Triangulations: force edges into Delaunay triangulation
 - Conforming Delaunay Triangulations: add new points into Delaunay triangulation until the edge is present in triangulation
 - Convex-hulls
 - Automatically finding and removing holes
 
-## <a name="corner-cases"/>Properly Handling the Corner-Cases</a>
-<img src="./images/corner-cases.png" alt="CDT supported corner cases: points on edges, overlapping edges, resolving edge intersections" style='height: 100%; width: 100%; object-fit: contain'/>
+<a name="corner-cases"/>
+
+## Properly Handling the Corner-Cases
+<img src="./images/corner-cases.png" alt="CDT supported corner cases: points on edges, overlapping edges, resolving edge intersections" style='height: 100%; width: 100%; max-height: 300px; object-fit: contain'/>
 
 - Points exactly on the edges
 - Exactly overlapping edges
 - Resolving intersecting edges by adding points at the intersections (with `CDT::IntersectingConstraintEdges::Resolve`)
 
 
-## <a name="online-doc"/>Online Documentation</a>
+<a name="online-documentation"/>
+
+## Online Documentation
 [**Latest online documentation**](https://artem-ogre.github.io/CDT/doxygen/index.html) (automatically generated with Doxygen).
 
-## <a name="algorithm"/>Algorithm</a>
+<a name="algorithm"/>
+
+## Algorithm
 
 - Implementation closely follows incremental construction algorithm by Anglada [[1](#1)]. 
 - During the legalization, the cases
@@ -65,7 +79,9 @@ when at least one vertex belongs to super-triangle are resolved using an approac
 **Post-conditions:**
 - Triangles have counter-clockwise (CCW) winding
 
-## <a name="details"/>Implementation Details</a>
+<a name="details"/>
+
+## Implementation Details
 
 - Supports three ways of removing outer triangles:
     - `eraseSuperTriangle`: produce a convex-hull
@@ -86,7 +102,9 @@ when at least one vertex belongs to super-triangle are resolved using an approac
 
 - A demonstrator tool is included: requires Qt for GUI. When running demo-tool **make sure** that working directory contains files from 'data' folder.
 
-## <a name="installation"/>Installation/Building</a>
+<a name="installation"/>
+
+## Installation/Building
 
 CDT uses modern CMake and should *just work* out of the box without any suprises. The are many ways to consume CDT: 
 - copy headers and use as a header-only library
@@ -165,7 +183,9 @@ find_package(CDT REQUIRED CONFIG)
 There's a `conanfile.py` recipe provided.
 Note that it might need small adjustments like changing boost version to fit your needs.
 
-## <a name="using"/>Using</a>
+<a name="using"/>
+
+## Using
 
 Public API is provided in two places:
 - [`CDT::Triangulation`](https://artem-ogre.github.io/CDT/doxygen/classCDT_1_1Triangulation.html) class is used for performing constrained Delaunay triangulations.
@@ -241,27 +261,39 @@ cdt.insertEdges(
 );
 ```
 
-## <a name="python"/>Python bindings?</a>
+<a name="python"/>
+
+## Python bindings?
 For work-in-progress on Python bindings check-out [PythonCDT](https://github.com/artem-ogre/PythonCDT)
 
-## <a name="contributors"/>Contributors</a>
+<a name="contributors"/>
+
+## Contributors
 - [Artem Amirkhanov](https://github.com/artem-ogre)
 - [Karl Åkerblom](https://github.com/kalleakerblom)
 - [baiwenlei](https://github.com/baiwenlei): dragging and zooming in the viewer
 - [Bärbel Holm](https://github.com/eisbaerli): removing duplicates and re-mapping edges
 - [Andre Fecteau](https://github.com/AndreFecteau): benchmarking, profiling, and providing a kd-tree implementation a derivative of which is included in CDT
 
-## <a name="contributing"/>Contributing</a>
+<a name="contributing"/>
+
+## Contributing
 Any feedback and contributions are welcome.
 
-## <a name="license"/>License</a>
+<a name="license"/>
+
+## License
 
 [Mozilla Public License,  v. 2.0](https://www.mozilla.org/en-US/MPL/2.0/FAQ/)
 
-## <a name="example-gallery"/>Example Gallery</a>
+<a name="example-gallery"/>
+
+## Example Gallery
 <img src="./images/A.png" alt="A" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Bean.png" alt="Bean" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Guitar.png" alt="Guitar" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Guitar_no_holes.png" alt="Guitar with holes" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/LakeSuperior.png" alt="Lake Superior" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Sweden.png" alt="Sweden" style='height: 45%; width: 45%; object-fit: contain'/> <a name="overlapping-boundaries-example"/><img src="./images/Overlapping_boundaries.png" alt="Overlapping boundaries" style='height: 45%; width: 45%; object-fit: contain'/></a> 
 
-## <a name="bibliography"/>Bibliography</a>
+<a name="bibliography"/>
+
+## Bibliography
 <a name="1">[1]</a> Marc Vigo Anglada,
 An improved incremental algorithm for constructing restricted Delaunay triangulations,
 _Computers & Graphics_,

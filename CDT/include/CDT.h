@@ -311,7 +311,7 @@ public:
     /**
      * Remove triangles with specified indices.
      * Adjust internal triangulation state accordingly.
-     * @removedTriangles indices of triangles to remove
+     * @param removedTriangles indices of triangles to remove
      */
     void removeTriangles(const TriIndUSet& removedTriangles);
     ///@}

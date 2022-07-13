@@ -164,25 +164,45 @@ install(EXPORT ${PROJECT_NAME}Config NAMESPACE CDT:: DESTINATION cmake)
 # documentation
 # ------------
 
-find_package(Doxygen)
+# work-around to detect custom-doxygen
+#set(DOXYGEN_EXECUTABLE /usr/local/bin/doxygen)
+
+find_package(Doxygen 1.9)
 if(DOXYGEN_FOUND)
     message(STATUS "Doxygen found: adding documentation target.")
     set(DOXYGEN_EXCLUDE_PATTERNS
         */predicates.h
         conanfile.py
+        ${PROJECT_SOURCE_DIR}/tests/*
     )
     # doxygen settings can be set here, prefixed with "DOXYGEN_"
     set(DOXYGEN_SOURCE_BROWSER YES)
     set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
     set(DOXYGEN_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/docs")
-    set(DOXYGEN_USE_MDFILE_AS_MAINPAGE ${PROJECT_SOURCE_DIR}/../docs/README.md)
-    set(DOXYGEN_IMAGE_PATH ${PROJECT_SOURCE_DIR}/../docs/images)
+    set(CDT_DOCS_DIRECTORY ${PROJECT_SOURCE_DIR}/../docs)
+    set(DOXYGEN_USE_MDFILE_AS_MAINPAGE ${CDT_DOCS_DIRECTORY}/README.md)
+    set(DOXYGEN_IMAGE_PATH ${CDT_DOCS_DIRECTORY}/images)
+
+    set(DOXYGEN_GENERATE_TREEVIEW YES)
+    set(CDT_DOXYGEN_AWESOME_DIRECTORY ${CDT_DOCS_DIRECTORY}/doxygen-custom/doxygen-awesome)
+    set(DOXYGEN_HTML_EXTRA_STYLESHEET
+        ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome.css
+        ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome-sidebar-only.css
+        ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome-sidebar-only-darkmode-toggle.css
+    )
+    set(DOXYGEN_HTML_HEADER ${PROJECT_SOURCE_DIR}/../docs/doxygen-custom/header.html)
+    set(DOXYGEN_HTML_EXTRA_FILES
+        ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome-darkmode-toggle.js
+        ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome-fragment-copy-button.js
+        ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome-paragraph-link.js
+        ${CDT_DOXYGEN_AWESOME_DIRECTORY}/toggle-alternative-theme.js
+    )
     # this target will only be built if specifically asked to.
     # run "make api-docs" to create the doxygen documentation
     doxygen_add_docs(
         ${PROJECT_NAME}-docs
         ${PROJECT_SOURCE_DIR}
-        ${PROJECT_SOURCE_DIR}/../docs
+        ${CDT_DOCS_DIRECTORY}
         COMMENT "Generate doxygen documentation for CDT."
     )
     # copy README.md images to doxygen so that they are displayed
