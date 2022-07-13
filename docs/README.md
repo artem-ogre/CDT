@@ -22,9 +22,7 @@
 - [Example Gallery](#example-gallery)
 - [Bibliography](#bibliography)
 
-
-
-<a name="what-is-cdt"/>
+<a name="what-is-cdt"></a>
 
 ## What is CDT?
 
@@ -37,7 +35,7 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 - **performant:** continuously profiled, measured, and optimized
 - **numerically robust:** triangulation algorithms rely on robust geometric predicates
 
-<a name="what-can-cdt-do"/>
+<a name="what-can-cdt-do"></a>
 
 ## What can CDT do?
 <img src="./images/show-case.png" alt="CDT show-case: constrained and conforming triangulations, convex hulls, automatically removing holes" style='height: 100%; width: 100%; max-height: 300px; object-fit: contain'/>
@@ -47,7 +45,7 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 - Convex-hulls
 - Automatically finding and removing holes
 
-<a name="corner-cases"/>
+<a name="corner-cases"></a>
 
 ## Properly Handling the Corner-Cases
 <img src="./images/corner-cases.png" alt="CDT supported corner cases: points on edges, overlapping edges, resolving edge intersections" style='height: 100%; width: 100%; max-height: 300px; object-fit: contain'/>
@@ -57,12 +55,12 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 - Resolving intersecting edges by adding points at the intersections (with `CDT::IntersectingConstraintEdges::Resolve`)
 
 
-<a name="online-documentation"/>
+<a name="online-documentation"></a>
 
 ## Online Documentation
 [**Latest online documentation**](https://artem-ogre.github.io/CDT/) (automatically generated with Doxygen).
 
-<a name="algorithm"/>
+<a name="algorithm"></a>
 
 ## Algorithm
 
@@ -79,7 +77,7 @@ when at least one vertex belongs to super-triangle are resolved using an approac
 **Post-conditions:**
 - Triangles have counter-clockwise (CCW) winding
 
-<a name="details"/>
+<a name="details"></a>
 
 ## Implementation Details
 
@@ -102,7 +100,7 @@ when at least one vertex belongs to super-triangle are resolved using an approac
 
 - A demonstrator tool is included: requires Qt for GUI. When running demo-tool **make sure** that working directory contains files from 'data' folder.
 
-<a name="installation"/>
+<a name="installation"></a>
 
 ## Installation/Building
 
@@ -114,38 +112,11 @@ CDT uses modern CMake and should *just work* out of the box without any suprises
 
 **CMake options**
 
-<table>
-<thead>
-<tr>
-<th>Option</th>
-<th>Default value</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><b>CDT_USE_BOOST</b></td>
-<td>OFF</td>
-<td>
-If enabled Boost is used as a fall-back for features missing in C++98 and performance tweaks (e.g., using boost::flat_set)
-</td>
-</tr>
-<tr>
-<td><b>CDT_USE_64_BIT_INDEX_TYPE</b></td>
-<td>OFF</td>
-<td>
-If enabled 64bits are used to store vertex/triangle index types. Otherwise 32bits are used (up to 4.2bn items)
-</td>
-</tr>
-<tr>
-<td><b>CDT_USE_AS_COMPILED_LIBRARY</b></td>
-<td>OFF</td>
-<td>
-If enabled templates for float and double will be instantiated and compiled into a library
-</td>
-</tr>
-</tbody>
-</table>
+| Option                      | Default value | Description                                                                                           |
+| --------------------------- | :-----------: | :---------------------------------------------------------------------------------------------------- |
+| CDT_USE_BOOST               |      OFF      | Use Boost as a fall-back for features missing in C++98 and performance tweaks (e.g., boost::flat_set) |
+| CDT_USE_64_BIT_INDEX_TYPE   |      OFF      | Use 64bits to store vertex/triangle index types. Otherwise 32bits are used (up to 4.2bn items)        |
+| CDT_USE_AS_COMPILED_LIBRARY |      OFF      | Instantiate templates for float and double and compiled into a library                                |
 
 **Adding to CMake project directly**
 
@@ -183,7 +154,7 @@ find_package(CDT REQUIRED CONFIG)
 There's a `conanfile.py` recipe provided.
 Note that it might need small adjustments like changing boost version to fit your needs.
 
-<a name="using"/>
+<a name="using"></a>
 
 ## Using
 
@@ -261,12 +232,12 @@ cdt.insertEdges(
 );
 ```
 
-<a name="python"/>
+<a name="python"></a>
 
 ## Python bindings?
 For work-in-progress on Python bindings check-out [PythonCDT](https://github.com/artem-ogre/PythonCDT)
 
-<a name="contributors"/>
+<a name="contributors"></a>
 
 ## Contributors
 - [Artem Amirkhanov](https://github.com/artem-ogre)
@@ -275,23 +246,23 @@ For work-in-progress on Python bindings check-out [PythonCDT](https://github.com
 - [Bärbel Holm](https://github.com/eisbaerli): removing duplicates and re-mapping edges
 - [Andre Fecteau](https://github.com/AndreFecteau): benchmarking, profiling, and providing a kd-tree implementation a derivative of which is included in CDT
 
-<a name="contributing"/>
+<a name="contributing"></a>
 
 ## Contributing
 Any feedback and contributions are welcome.
 
-<a name="license"/>
+<a name="license"></a>
 
 ## License
 
 [Mozilla Public License,  v. 2.0](https://www.mozilla.org/en-US/MPL/2.0/FAQ/)
 
-<a name="example-gallery"/>
+<a name="example-gallery"></a>
 
 ## Example Gallery
 <img src="./images/A.png" alt="A" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Bean.png" alt="Bean" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Guitar.png" alt="Guitar" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Guitar_no_holes.png" alt="Guitar with holes" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/LakeSuperior.png" alt="Lake Superior" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Sweden.png" alt="Sweden" style='height: 45%; width: 45%; object-fit: contain'/> <a name="overlapping-boundaries-example"/><img src="./images/Overlapping_boundaries.png" alt="Overlapping boundaries" style='height: 45%; width: 45%; object-fit: contain'/></a> 
 
-<a name="bibliography"/>
+<a name="bibliography"></a>
 
 ## Bibliography
 <a name="1">[1]</a> Marc Vigo Anglada,
