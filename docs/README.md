@@ -60,7 +60,7 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 <a name="online-documentation"/>
 
 ## Online Documentation
-[**Latest online documentation**](https://artem-ogre.github.io/CDT/doxygen/index.html) (automatically generated with Doxygen).
+[**Latest online documentation**](https://artem-ogre.github.io/CDT/) (automatically generated with Doxygen).
 
 <a name="algorithm"/>
 
