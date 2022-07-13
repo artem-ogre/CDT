@@ -68,7 +68,7 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 - During the legalization, the cases
 when at least one vertex belongs to super-triangle are resolved using an approach as described in Žalik et. al [[2](#2)].
 - For finding a triangle that contains inserted point remembering randomized triangle walk is used [[3](#3)]. To find the starting triangle for the walk the nearest point is found using a kd-tree with mid-split nodes.
-- By default inserted vertices are randomly shuffled internally to improve performance and avoid worst-case scenarios. The original vertices order can be optied-in using `VertexInsertionOrder::AsProvided` when constructing a triangulation. 
+- By default inserted vertices are randomly shuffled internally to improve performance and avoid worst-case scenarios. The original vertices order can be optied-in using `CDT::VertexInsertionOrder::AsProvided` when constructing a triangulation. 
 
 **Pre-conditions:**
 - No duplicated points (use provided functions for removing duplicate points and re-mapping edges)
@@ -82,21 +82,18 @@ when at least one vertex belongs to super-triangle are resolved using an approac
 ## Implementation Details
 
 - Supports three ways of removing outer triangles:
-    - `eraseSuperTriangle`: produce a convex-hull
-    - `eraseOuterTriangles`: remove all outer triangles until a boundary defined by constraint edges
-    - `eraseOuterTrianglesAndHoles`: remove outer triangles and automatically detected holes. Starts from super-triangle and traverses triangles until outer boundary. Triangles outside outer boundary will be removed. Then traversal continues until next boundary. Triangles between two boundaries will be kept. Traversal to next boundary continues (this time removing triangles). Stops when all triangles are traversed.
+    - `CDT::Triangulation::eraseSuperTriangle`: produce a convex-hull
+    - `CDT::Triangulation::eraseOuterTriangles`: remove all outer triangles until a boundary defined by constraint edges
+    - `CDT::Triangulation::eraseOuterTrianglesAndHoles`: remove outer triangles and automatically detected holes. Starts from super-triangle and traverses triangles until outer boundary. Triangles outside outer boundary will be removed. Then traversal continues until next boundary. Triangles between two boundaries will be kept. Traversal to next boundary continues (this time removing triangles). Stops when all triangles are traversed.
 - Supports [overlapping boundaries](#overlapping-boundaries-example)
 
-- Removing duplicate points and re-mapping constraint edges can be done using functions: `RemoveDuplicatesAndRemapEdges, RemoveDuplicates,  RemapEdges`
+- Removing duplicate points and re-mapping constraint edges can be done using functions: `CDT::RemoveDuplicatesAndRemapEdges, CDT::RemoveDuplicates,  CDT::RemapEdges`
 
 - Uses William C. Lenthe's implementation of robust orientation and in-circle geometric predicates: https://github.com/wlenthe/GeometricPredicates.
 
-- Boost is an optional dependency used for:
+- Boost is an optional (to opt-in define `CDT_USE_BOOST`) dependency used for:
     * **Fall back** for standard library features missing in C++98 compilers.
-    * **Minor performance tweaks:** `boost::container::flat_set` is used for faster triangle walking
-
-
-    To opt in define `CDT_USE_BOOST` either in CMake or in a preprocessor.
+    * **Minor performance tweaks:** `boost::container::flat_set` is used for faster triangle walking.
 
 - A demonstrator tool is included: requires Qt for GUI. When running demo-tool **make sure** that working directory contains files from 'data' folder.
 
@@ -114,7 +111,7 @@ CDT uses modern CMake and should *just work* out of the box without any suprises
 
 | Option                      | Default value | Description                                                                                           |
 | --------------------------- | :-----------: | :---------------------------------------------------------------------------------------------------- |
-| CDT_USE_BOOST               |      OFF      | Use Boost as a fall-back for features missing in C++98 and performance tweaks (e.g., boost::flat_set) |
+| CDT_USE_BOOST               |      OFF      | Use Boost as a fall-back for features missing in C++98 and performance tweaks (e.g., `boost::flat_set`) |
 | CDT_USE_64_BIT_INDEX_TYPE   |      OFF      | Use 64bits to store vertex/triangle index types. Otherwise 32bits are used (up to 4.2bn items)        |
 | CDT_USE_AS_COMPILED_LIBRARY |      OFF      | Instantiate templates for float and double and compiled into a library                                |
 
@@ -131,7 +128,7 @@ To use as **header-only** copy headers from `CDT/include`
 
 To use as a **compiled library** define `CDT_USE_AS_COMPILED_LIBRARY` and compile `CDT.cpp`
 
-**Consume pre-build CDT in CMake project with [`find_package`](https://cmake.org/cmake/help/latest/command/find_package.html)**
+**Consume pre-build CDT in CMake project with [find_package](https://cmake.org/cmake/help/latest/command/find_package.html)**
 
 CDT provides package config files that can be included by other projects to find and use it.
 
@@ -159,8 +156,8 @@ Note that it might need small adjustments like changing boost version to fit you
 ## Using
 
 Public API is provided in two places:
-- [`CDT::Triangulation`](https://artem-ogre.github.io/CDT/doxygen/classCDT_1_1Triangulation.html) class is used for performing constrained Delaunay triangulations.
-- Free functions in [`CDT.h`](https://artem-ogre.github.io/CDT/doxygen/CDT_8h.html) provide some additional functionality for removing duplicates, re-mapping edges and triangle depth-peeling
+- `CDT::Triangulation` class is used for performing constrained Delaunay triangulations.
+- Free functions in `CDT.h` provide some additional functionality for removing duplicates, re-mapping edges and triangle depth-peeling
 
 
 ### Code Examples
@@ -169,7 +166,7 @@ Public API is provided in two places:
 
 <img src="./images/LakeSuperior.png" alt="Example of a triangulated convex hull" height="150"/>
 
-```c++
+```cpp
 #include "CDT.h"
 CDT::Triangulation<double> cdt;
 cdt.insertVertices(/* points */);
@@ -183,7 +180,7 @@ cdt.eraseSuperTriangle();
 
 <img src="./images/A.png" alt="Example of a triangulation with constrained boundaries and auto-detected holes" height="150"/>
 
-```c++
+```cpp
 // ... same as above
 cdt.insertVertices(/* points */);
 cdt.insertEdges(/* boundary edges */);
@@ -195,15 +192,15 @@ cdt.eraseOuterTrianglesAndHoles();
 
 **Conforming Delaunay triangulation**
 
-Use `conformToEdges` instead of `insertEdges`
+Use `CDT::Triangulation::conformToEdges` instead of `CDT::Triangulation::insertEdges`
 
 **Resolve edge intersections by adding new points and splitting edges**
 
-Pass `CDT::IntersectingConstraintEdges::Resolve` to `Triangulation` constructor.
+Pass `CDT::IntersectingConstraintEdges::Resolve` to `CDT::Triangulation` constructor.
 
 **Custom point/edge type**
 
-```c++
+```cpp
 struct CustomPoint2D
 {
     double data[2];
