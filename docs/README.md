@@ -1,14 +1,21 @@
+# Overview
+
 <img src="./images/CDT_logo.png" alt="CDT Logo" style='height: 100%; width: 100%; max-height: 250px; object-fit: contain'/>
 
 [![CI Builds](https://github.com/artem-ogre/CDT/workflows/CI%20Builds/badge.svg)](https://github.com/artem-ogre/CDT/actions/)
 
+CDT is a C++ library for generating constraint or conforming Delaunay triangulations.
+- **open-source:** permissively-licensed under Mozilla Public License (MPL) 2.0
+- **cross-platform:** tested on Windows, Linux (Ubuntu), and macOS
+- **portable:** backwards-compatible with C++98
+- **bloat-free:** no external dependencies by default
+- **flexible:** can be consumed as a header-only or as a compiled library
+- **performant:** continuously profiled, measured, and optimized
+- **numerically robust:** triangulation algorithms rely on robust geometric predicates
+
 ***If CDT helped you please consider adding a star on GitHub. This means a lot to the authors*** 🤩
-
-# CDT: Conforming or Constrained Delaunay Triangulation
-
 ## Table of Contents
 
-- [What is CDT?](#what-is-cdt)
 - [What can CDT do?](#what-can-cdt-do)
 - [Properly Handling the Corner-Cases](#corner-cases)
 - [Online Documentation](#online-documentation)
@@ -21,19 +28,6 @@
 - [Contributing](#contributing)
 - [Example Gallery](#example-gallery)
 - [Bibliography](#bibliography)
-
-<a name="what-is-cdt"></a>
-
-## What is CDT?
-
-CDT is a C++ library for generating constraint or conforming Delaunay triangulations.
-- **open-source:** permissively-licensed under Mozilla Public License (MPL) 2.0
-- **cross-platform:** tested on Windows, Linux (Ubuntu), and macOS
-- **portable:** backwards-compatible with C++98
-- **bloat-free:** no external dependencies by default
-- **flexible:** can be consumed as a header-only or as a compiled library
-- **performant:** continuously profiled, measured, and optimized
-- **numerically robust:** triangulation algorithms rely on robust geometric predicates
 
 <a name="what-can-cdt-do"></a>
 

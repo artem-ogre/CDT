@@ -24,8 +24,14 @@
 #include <utility>
 #include <vector>
 
+/// Namespace containing triangulation functionality
 namespace CDT
 {
+
+/** @defgroup API Public API
+ *  Contains API for constrained and conforming Delaunay triangulations
+ */
+/// @{
 
 /**
  * Enum of strategies specifying order in which a range of vertices is inserted
@@ -91,6 +97,12 @@ typedef LayerDepth BoundaryOverlapCount;
 
 /// Triangles by vertex index
 typedef std::vector<TriIndVec> VerticesTriangles;
+
+/**
+ * @defgroup Triangulation Triangulation Class
+ * Class performing triangulations.
+ */
+/// @{
 
 /**
  * Data structure representing a 2D constrained Delaunay triangulation
@@ -292,11 +304,11 @@ public:
     bool isFinalized() const;
 
     /**
-     * @defgroup Advanced
+     * @defgroup Advanced Advanced Triangulation Methods
      * Advanced methods for manually modifying the triangulation from
      * outside. Please only use them when you know what you are doing.
      */
-    ///@{
+    /// @{
 
     /**
      * Flip an edge between two triangle.
@@ -314,7 +326,7 @@ public:
      * @param removedTriangles indices of triangles to remove
      */
     void removeTriangles(const TriIndUSet& removedTriangles);
-    ///@}
+    /// @}
 
 private:
     /*____ Detail __*/
@@ -439,6 +451,13 @@ private:
     IntersectingConstraintEdges::Enum m_intersectingEdgesStrategy;
     T m_minDistToConstraintEdge;
 };
+
+/// @}
+
+/** @defgroup helpers Helpers
+ *  Helpers for working with CDT::Triangulation.
+ */
+/// @{
 
 /**
  * Calculate triangles adjacent to vertices (triangles by vertex index)
@@ -738,6 +757,10 @@ template <typename T>
 CDT_EXPORT unordered_map<Edge, std::vector<VertInd> > EdgeToSplitVertices(
     const unordered_map<Edge, EdgeVec>& edgeToPieces,
     const std::vector<V2d<T> >& vertices);
+
+/// @}
+
+/// @}
 
 } // namespace CDT
 

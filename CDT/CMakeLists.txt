@@ -2,9 +2,9 @@ cmake_minimum_required(VERSION 3.4)
 
 project(
     "CDT"
-    VERSION 1.1.2
+    VERSION 1.2.0
     DESCRIPTION
-    "C++ library for constrained Delaunay triangulation (CDT)"
+    "C++ library for constrained Delaunay triangulation"
     HOMEPAGE_URL "https://github.com/artem-ogre/CDT"
     LANGUAGES CXX)
 
@@ -171,6 +171,7 @@ find_package(Doxygen 1.9)
 if(DOXYGEN_FOUND)
     message(STATUS "Doxygen found: adding documentation target.")
     set(DOXYGEN_EXCLUDE_PATTERNS
+        */cmake-build*
         */predicates.h
         conanfile.py
         ${PROJECT_SOURCE_DIR}/tests/*
@@ -204,6 +205,7 @@ if(DOXYGEN_FOUND)
         ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome-paragraph-link.js
         ${CDT_DOXYGEN_AWESOME_DIRECTORY}/toggle-alternative-theme.js
     )
+    set(DOXYGEN_LAYOUT_FILE ${CDT_DOCS_DIRECTORY}/doxygen-custom/DoxygenLayout.xml)
     # this target will only be built if specifically asked to.
     # run "make api-docs" to create the doxygen documentation
     doxygen_add_docs(
