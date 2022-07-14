@@ -187,10 +187,10 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_GENERATE_TREEVIEW YES)
     set(CDT_DOXYGEN_AWESOME_DIRECTORY ${CDT_DOCS_DIRECTORY}/doxygen-custom/doxygen-awesome)
     set(DOXYGEN_HTML_EXTRA_STYLESHEET
-        ${CDT_DOCS_DIRECTORY}/doxygen-custom/custom.css
         ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome.css
         ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome-sidebar-only.css
         ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome-sidebar-only-darkmode-toggle.css
+        ${CDT_DOCS_DIRECTORY}/doxygen-custom/custom.css
     )
     set(DOXYGEN_HTML_HEADER ${PROJECT_SOURCE_DIR}/../docs/doxygen-custom/header.html)
     set(DOXYGEN_HTML_EXTRA_FILES

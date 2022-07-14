@@ -4,12 +4,13 @@
   <navindex>
     <tab type="mainpage" visible="yes" title=""/>
     <tab type="pages" visible="yes" title="" intro=""/>
-    
-    <tab type="modules" visible="yes" title="API Reference" intro=""/>
+    <tab type="usergroup" visible="yes" title="API Reference" url="@ref API" intro="">
+      <tab type="user" url="@ref CDT::Triangulation" title="Triangulation"/>
+      <tab type="user" url="@ref helpers" title="Helper Functions"/>
+    </tab>
+    <!-- <tab type="modules" visible="yes" title="Modules" intro=""/> -->
     <tab type="classlist" visible="yes" title="Classes" intro=""/>
     <tab type="filelist" visible="yes" title="Files" intro=""/>
-
-    </tab>
     
 <!--     
     <tab type="modules" visible="yes" title="" intro=""/>
