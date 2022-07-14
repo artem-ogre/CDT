@@ -1,0 +1,4 @@
+.github-corner svg {
+    fill: var(--primary-color);
+    color: var(--page-background-color);
+}

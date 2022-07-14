@@ -87,9 +87,9 @@ when at least one vertex belongs to super-triangle are resolved using an approac
     - `CDT::Triangulation::eraseOuterTrianglesAndHoles`: remove outer triangles and automatically detected holes. Starts from super-triangle and traverses triangles until outer boundary. Triangles outside outer boundary will be removed. Then traversal continues until next boundary. Triangles between two boundaries will be kept. Traversal to next boundary continues (this time removing triangles). Stops when all triangles are traversed.
 - Supports [overlapping boundaries](#overlapping-boundaries-example)
 
-- Removing duplicate points and re-mapping constraint edges can be done using functions: `CDT::RemoveDuplicatesAndRemapEdges, CDT::RemoveDuplicates,  CDT::RemapEdges`
+- Removing duplicate points and re-mapping constraint edges can be done using functions: `CDT::RemoveDuplicatesAndRemapEdges`, `CDT::RemoveDuplicates`,  `CDT::RemapEdges`
 
-- Uses William C. Lenthe's implementation of robust orientation and in-circle geometric predicates: https://github.com/wlenthe/GeometricPredicates.
+- Uses William C. Lenthe's implementation of robust orientation and in-circle geometric predicates: [github.com/wlenthe/GeometricPredicates](https://github.com/wlenthe/GeometricPredicates)
 
 - Boost is an optional (to opt-in define `CDT_USE_BOOST`) dependency used for:
     * **Fall back** for standard library features missing in C++98 compilers.

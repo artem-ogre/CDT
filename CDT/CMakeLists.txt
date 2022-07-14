@@ -186,6 +186,7 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_GENERATE_TREEVIEW YES)
     set(CDT_DOXYGEN_AWESOME_DIRECTORY ${CDT_DOCS_DIRECTORY}/doxygen-custom/doxygen-awesome)
     set(DOXYGEN_HTML_EXTRA_STYLESHEET
+        ${CDT_DOCS_DIRECTORY}/doxygen-custom/custom.css
         ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome.css
         ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome-sidebar-only.css
         ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome-sidebar-only-darkmode-toggle.css
@@ -193,6 +194,11 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_HTML_HEADER ${PROJECT_SOURCE_DIR}/../docs/doxygen-custom/header.html)
     set(DOXYGEN_HTML_EXTRA_FILES
         ${CDT_DOCS_DIRECTORY}/doxygen-custom/logo.svg
+        ${CDT_DOCS_DIRECTORY}/doxygen-custom/favicon/favicon.ico
+        ${CDT_DOCS_DIRECTORY}/doxygen-custom/favicon/apple-touch-icon.png
+        ${CDT_DOCS_DIRECTORY}/doxygen-custom/favicon/android-chrome-192x192.png
+        ${CDT_DOCS_DIRECTORY}/doxygen-custom/favicon/android-chrome-512x512.png
+        ${CDT_DOCS_DIRECTORY}/doxygen-custom/favicon/site.webmanifest
         ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome-darkmode-toggle.js
         ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome-fragment-copy-button.js
         ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome-paragraph-link.js
