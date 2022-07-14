@@ -29,7 +29,7 @@ namespace CDT
 
 /**
  * Enum of strategies specifying order in which a range of vertices is inserted
- * @note @ref VertexInsertionOrder::Randomized will only randomize order of
+ * @note VertexInsertionOrder::Randomized will only randomize order of
  * inserting in triangulation, vertex indices will be preserved as they were
  * specified in the final triangulation
  */
@@ -112,7 +112,7 @@ public:
      * triangles adjacent to each vertex
      * @note will be reset to empty when super-triangle is removed and
      * triangulation is finalized. To re-calculate adjacent triangles use
-     * @ref CDT::calculateTrianglesByVertex helper
+     * CDT::calculateTrianglesByVertex helper
      */
     VerticesTriangles vertTris;
 
@@ -191,7 +191,7 @@ public:
         TGetVertexCoordX getX,
         TGetVertexCoordY getY);
     /**
-     * See @ref
+     * See
      * insertVertices(TVertexIter,TVertexIter,TGetVertexCoordX,TGetVertexCoordY)
      */
     void insertVertices(const std::vector<V2d<T> >& vertices);
@@ -200,9 +200,9 @@ public:
      * @note Each fixed edge is inserted by deleting the triangles it crosses,
      * followed by the triangulation of the polygons on each side of the edge.
      * <b> No new vertices are inserted.</b>
-     * @note If some edge appears more than once in @ref insertEdges input this
-     * means that multiple boundaries overlap at the edge and impacts
-     * how hole detection algorithm of @ref eraseOuterTrianglesAndHoles works.
+     * @note If some edge appears more than once in the input this means that
+     * multiple boundaries overlap at the edge and impacts how hole detection
+     * algorithm of Triangulation::eraseOuterTrianglesAndHoles works.
      * <b>Make sure there are no erroneous duplicates.</b>
      * @tparam TEdgeIter iterator that dereferences to custom edge type
      * @tparam TGetEdgeVertexStart function object getting start vertex index
@@ -225,7 +225,7 @@ public:
         TGetEdgeVertexStart getStart,
         TGetEdgeVertexEnd getEnd);
     /**
-     * See @ref
+     * See
      * insertEdges(TEdgeIter,TEdgeIter,TGetEdgeVertexStart,TGetEdgeVertexEnd)
      */
     void insertEdges(const std::vector<Edge>& edges);
@@ -234,9 +234,9 @@ public:
      * @note For each fixed edge that is not present in the triangulation its
      * midpoint is recursively added until the original edge is represented by a
      * sequence of its pieces. <b> New vertices are inserted.</b>
-     * @note If some edge appears more than once in @ref insertEdges input this
-     * means that multiple boundaries overlap at the edge and impacts
-     * how hole detection algorithm of @ref eraseOuterTrianglesAndHoles works.
+     * @note If some edge appears more than once the input this
+     * means that multiple boundaries overlap at the edge and impacts how hole
+     * detection algorithm of Triangulation::eraseOuterTrianglesAndHoles works.
      * <b>Make sure there are no erroneous duplicates.</b>
      * @tparam TEdgeIter iterator that dereferences to custom edge type
      * @tparam TGetEdgeVertexStart function object getting start vertex index
@@ -259,7 +259,7 @@ public:
         TGetEdgeVertexStart getStart,
         TGetEdgeVertexEnd getEnd);
     /**
-     * See @ref
+     * See
      * conformToEdges(TEdgeIter,TEdgeIter,TGetEdgeVertexStart,TGetEdgeVertexEnd)
      */
     void conformToEdges(const std::vector<Edge>& edges);
@@ -552,8 +552,8 @@ RemapEdges(std::vector<Edge>& edges, const std::vector<std::size_t>& mapping);
 /**
  * Find point duplicates, remove them from vector (in-place) and remap edges
  * (in-place)
- * @note Same as a chained call of @ref FindDuplicates, @ref RemoveDuplicates,
- * and @ref RemapEdges
+ * @note Same as a chained call of CDT::FindDuplicates, CDT::RemoveDuplicates,
+ * and CDT::RemapEdges
  * @tparam T type of vertex coordinates (e.g., float, double)
  * @tparam TVertex type of vertex
  * @tparam TGetVertexCoordX function object getting x coordinate from vertex.
@@ -600,7 +600,7 @@ DuplicatesInfo RemoveDuplicatesAndRemapEdges(
     TMakeEdgeFromStartAndEnd makeEdge);
 
 /**
- * Same as a chained call of @ref RemoveDuplicates + @ref RemapEdges
+ * Same as a chained call of CDT::RemoveDuplicates + CDT::RemapEdges
  *
  * @tparam T type of vertex coordinates (e.g., float, double)
  * @param[in, out] vertices collection of vertices to remove duplicates from
