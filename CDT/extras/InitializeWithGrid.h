@@ -123,21 +123,22 @@ void generateGridTriangles(
             const IndexSizeType i = iy * xres + ix;
             const IndexSizeType iv = iy * (xres + 1) + ix;
             const VertInd vv[4] = {iv, iv + 1, iv + xres + 1, iv + xres + 2};
-            Triangle t;
-
-            t.vertices = {vv[0], vv[1], vv[2]};
-            t.neighbors = {
-                iy ? 2 * i - xres * 2 + 1 : noNeighbor,
-                2 * i + 1,
-                ix ? 2 * i - 1 : noNeighbor};
-            *outFirst++ = t;
-
-            t.vertices = {vv[1], vv[3], vv[2]};
-            t.neighbors = {
-                ix < xres - 1 ? 2 * i + 2 : noNeighbor,
-                iy < yres - 1 ? 2 * i + xres * 2 : noNeighbor,
-                2 * i};
-            *outFirst++ = t;
+            {
+                const Triangle t = {
+                    {vv[0], vv[1], vv[2]},
+                    {iy ? 2 * i - xres * 2 + 1 : noNeighbor,
+                     2 * i + 1,
+                     ix ? 2 * i - 1 : noNeighbor}};
+                *outFirst++ = t;
+            }
+            {
+                const Triangle t = {
+                    {vv[1], vv[3], vv[2]},
+                    {ix < xres - 1 ? 2 * i + 2 : noNeighbor,
+                     iy < yres - 1 ? 2 * i + xres * 2 : noNeighbor,
+                     2 * i}};
+                *outFirst++ = t;
+            }
         }
     }
 }
