@@ -203,8 +203,8 @@ public:
         TGetVertexCoordX getX,
         TGetVertexCoordY getY);
     /**
-     * See
-     * insertVertices(TVertexIter,TVertexIter,TGetVertexCoordX,TGetVertexCoordY)
+     * Insert vertices into triangulation
+     * @param vertices vector of vertices to insert
      */
     void insertVertices(const std::vector<V2d<T> >& vertices);
     /**
@@ -237,8 +237,15 @@ public:
         TGetEdgeVertexStart getStart,
         TGetEdgeVertexEnd getEnd);
     /**
-     * See
-     * insertEdges(TEdgeIter,TEdgeIter,TGetEdgeVertexStart,TGetEdgeVertexEnd)
+     * Insert constraint edges into triangulation
+     * @note Each fixed edge is inserted by deleting the triangles it crosses,
+     * followed by the triangulation of the polygons on each side of the edge.
+     * <b> No new vertices are inserted.</b>
+     * @note If some edge appears more than once in the input this means that
+     * multiple boundaries overlap at the edge and impacts how hole detection
+     * algorithm of Triangulation::eraseOuterTrianglesAndHoles works.
+     * <b>Make sure there are no erroneous duplicates.</b>
+     * @tparam edges constraint edges
      */
     void insertEdges(const std::vector<Edge>& edges);
     /**
@@ -271,8 +278,15 @@ public:
         TGetEdgeVertexStart getStart,
         TGetEdgeVertexEnd getEnd);
     /**
-     * See
-     * conformToEdges(TEdgeIter,TEdgeIter,TGetEdgeVertexStart,TGetEdgeVertexEnd)
+     * Ensure that triangulation conforms to constraints (fixed edges)
+     * @note For each fixed edge that is not present in the triangulation its
+     * midpoint is recursively added until the original edge is represented by a
+     * sequence of its pieces. <b> New vertices are inserted.</b>
+     * @note If some edge appears more than once the input this
+     * means that multiple boundaries overlap at the edge and impacts how hole
+     * detection algorithm of Triangulation::eraseOuterTrianglesAndHoles works.
+     * <b>Make sure there are no erroneous duplicates.</b>
+     * @tparam edges edges to conform to
      */
     void conformToEdges(const std::vector<Edge>& edges);
     /**
