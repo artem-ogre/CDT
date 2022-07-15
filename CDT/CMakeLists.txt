@@ -69,11 +69,13 @@ if(CDT_USE_AS_COMPILED_LIBRARY)
     set(cdt_headers
         include/CDT.h
         include/CDTUtils.h
+        include/Triangulation.h
         include/KDTree.h
         include/LocatorKDTree.h
         include/remove_at.hpp
         include/CDT.hpp
         include/CDTUtils.hpp
+        include/Triangulation.hpp
         include/predicates.h
         extras/VerifyTopology.h
         extras/InitializeWithGrid.h

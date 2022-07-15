@@ -101,7 +101,7 @@ struct CDT_EXPORT V2d
     T y; ///< Y-coordinate
 
     /// Create vector from X and Y coordinates
-    static V2d make(const T x, const T y);
+    static V2d make(T x, T y);
 };
 
 /// X- coordinate getter for V2d
@@ -146,6 +146,11 @@ BOOST_STRONG_TYPEDEF(IndexSizeType, VertInd);
 /// Triangle index
 BOOST_STRONG_TYPEDEF(IndexSizeType, TriInd);
 #endif
+
+/// Constant representing no valid neighbor for a triangle
+const static TriInd noNeighbor(std::numeric_limits<TriInd>::max());
+/// Constant representing no valid vertex for a triangle
+const static VertInd noVertex(std::numeric_limits<VertInd>::max());
 
 typedef std::vector<TriInd> TriIndVec;  ///< Vector of triangle indices
 typedef array<VertInd, 3> VerticesArr3; ///< array of three vertex indices
@@ -266,9 +271,7 @@ struct CDT_EXPORT Triangle
     static Triangle
     make(const array<VertInd, 3>& vertices, const array<TriInd, 3>& neighbors)
     {
-        Triangle t;
-        t.vertices = vertices;
-        t.neighbors = neighbors;
+        Triangle t = {vertices, neighbors};
         return t;
     }
 };
@@ -296,11 +299,11 @@ struct CDT_EXPORT PtTriLocation
 };
 
 /// Check if location is classified as on any of three edges
-CDT_EXPORT bool isOnEdge(const PtTriLocation::Enum location);
+CDT_EXPORT bool isOnEdge(PtTriLocation::Enum location);
 
 /// Neighbor index from a on-edge location
 /// \note Call only if located on the edge!
-CDT_EXPORT Index edgeNeighbor(const PtTriLocation::Enum location);
+CDT_EXPORT Index edgeNeighbor(PtTriLocation::Enum location);
 
 /// Relative location of point to a line
 struct CDT_EXPORT PtLineLocation
@@ -340,38 +343,38 @@ CDT_EXPORT PtTriLocation::Enum locatePointTriangle(
     const V2d<T>& v3);
 
 /// Opposed neighbor index from vertex index
-CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index opoNbr(const Index vertIndex);
+CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index opoNbr(Index vertIndex);
 
 /// Opposed vertex index from neighbor index
-CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index opoVrt(const Index neighborIndex);
+CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index opoVrt(Index neighborIndex);
 
 /// Index of triangle's neighbor opposed to a vertex
 CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index
-opposedTriangleInd(const Triangle& tri, const VertInd iVert);
+opposedTriangleInd(const Triangle& tri, VertInd iVert);
 
 /// Index of triangle's neighbor opposed to an edge
-CDT_INLINE_IF_HEADER_ONLY Index opposedTriangleInd(
-    const Triangle& tri,
-    const VertInd iVedge1,
-    const VertInd iVedge2);
+CDT_INLINE_IF_HEADER_ONLY Index
+opposedTriangleInd(const Triangle& tri, VertInd iVedge1, VertInd iVedge2);
 
 /// Index of triangle's vertex opposed to a triangle
 CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index
-opposedVertexInd(const Triangle& tri, const TriInd iTopo);
+opposedVertexInd(const Triangle& tri, TriInd iTopo);
 
 /// If triangle has a given neighbor return neighbor-index, throw otherwise
-CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index neighborInd(const Triangle& tri, const TriInd iTnbr);
+CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index
+neighborInd(const Triangle& tri, TriInd iTnbr);
 
 /// If triangle has a given vertex return vertex-index, throw otherwise
-CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index vertexInd(const Triangle& tri, const VertInd iV);
+CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index
+vertexInd(const Triangle& tri, VertInd iV);
 
 /// Given triangle and a vertex find opposed triangle
 CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY TriInd
-opposedTriangle(const Triangle& tri, const VertInd iVert);
+opposedTriangle(const Triangle& tri, VertInd iVert);
 
 /// Given two triangles, return vertex of first triangle opposed to the second
 CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY VertInd
-opposedVertex(const Triangle& tri, const TriInd iTopo);
+opposedVertex(const Triangle& tri, TriInd iTopo);
 
 /// Test if point lies in a circumscribed circle of a triangle
 template <typename T>
