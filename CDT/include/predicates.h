@@ -275,31 +275,6 @@ namespace detail {
 			}
 	};
 
-	//std::fma is faster than dekker's product when the processor instruction is available
-	#ifdef FP_FAST_FMAF
-		static const bool fp_fast_fmaf = true;
-	#else
-		static const bool fp_fast_fmaf = false;
-	#endif
-
-	#ifdef FP_FAST_FMA
-		static const bool fp_fast_fma = true;
-	#else
-		static const bool fp_fast_fma = false;
-	#endif
-
-	#ifdef FP_FAST_FMAL
-		static const bool fp_fast_fmal = true;
-	#else
-		static const bool fp_fast_fmal = false;
-	#endif
-
-	#ifdef PREDICATES_CXX11_IS_SUPPORTED
-	template <typename T> struct use_fma {static const bool value = (std::is_same<T, float>::value       && fp_fast_fmaf) ||
-	                                                                (std::is_same<T, double>::value      && fp_fast_fma)  ||
-	                                                                (std::is_same<T, long double>::value && fp_fast_fmal);};
-	#endif
-
 	//@brief  : helper function to sort by absolute value
 	//@param a: lhs item to compare
 	//@param b: rhs item to compare
@@ -410,11 +385,8 @@ namespace detail {
 
 			//roundoff error of x = a * b
 #ifdef PREDICATES_CXX11_IS_SUPPORTED
-			template <typename S = T> static typename std::enable_if< use_fma<S>::value, S>::type MultTail(const T a, const T b, const T p) {return std::fma(a, b, -p);}
-			template <typename S = T> static typename std::enable_if<!use_fma<S>::value, S>::type MultTail(const T a, const T b, const T p) {return DekkersProduct(a, Split(a), b, Split(b), p);}
-
-			template <typename S = T> static typename std::enable_if< use_fma<S>::value, S>::type MultTailPreSplit(const T a, const T b, const std::pair<T, T> /*bSplit*/, const T p) {return std::fma(a, b, -p);}
-			template <typename S = T> static typename std::enable_if<!use_fma<S>::value, S>::type MultTailPreSplit(const T a, const T b, const std::pair<T, T> bSplit, const T p) {return DekkersProduct(a, Split(a), b, bSplit, p);}
+			static T MultTail(const T a, const T b, const T p) {return std::fma(a, b, -p);}
+			static T MultTailPreSplit(const T a, const T b, const std::pair<T, T> /*bSplit*/, const T p) {return std::fma(a, b, -p);}
 #else
 			static T MultTail(const T a, const T b, const T p) {return DekkersProduct(a, Split(a), b, Split(b), p);}
 			static T MultTailPreSplit(const T a, const T b, const std::pair<T, T> bSplit, const T p) {return DekkersProduct(a, Split(a), b, bSplit, p);}
@@ -470,13 +442,12 @@ namespace detail {
 			static inline Expansion<T, 4> ThreeProd(const T a, const T b, const T c) {return (T(0) == a || T(0) == b || T(0) == c) ? Expansion<T, 4>() : Mult(a, b) * c;}
 	};
 
-	template <typename T> const T ExpansionBase<T>::Splitter = static_cast<T>(
+	template <typename T> const T ExpansionBase<T>::Splitter =
 #ifdef PREDICATES_CXX11_IS_SUPPORTED
-		std::exp2((std::numeric_limits<T>::digits + std::numeric_limits<T>::digits%2)/2 + 1)
+            static_cast<T>(std::exp2(std::numeric_limits<T>::digits/2 + 1));
 #else
-		std::ldexp(T(1), (std::numeric_limits<T>::digits + std::numeric_limits<T>::digits%2)/2 + 1)
+            static_cast<T>(std::ldexp(T(1), std::numeric_limits<T>::digits/2 + 1));
 #endif
-	);
 }
 
 	namespace exact {
@@ -599,13 +570,12 @@ namespace detail {
 	template <typename T>
 	const T& Epsilon()
 	{
-		static const T epsilon = static_cast<T>(
+		static const T epsilon =
 #ifdef PREDICATES_CXX11_IS_SUPPORTED
-			std::exp2(-std::numeric_limits<T>::digits)
+			std::exp2(-std::numeric_limits<T>::digits);
 #else
-			std::ldexp(T(1), -std::numeric_limits<T>::digits)
+			std::ldexp(T(1), -std::numeric_limits<T>::digits);
 #endif
-		);
 		return epsilon;
 	}
 
