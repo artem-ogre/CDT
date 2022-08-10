@@ -572,9 +572,9 @@ namespace detail {
 	{
 		static const T epsilon =
 #ifdef PREDICATES_CXX11_IS_SUPPORTED
-			std::exp2(-std::numeric_limits<T>::digits);
+			static_cast<T>(std::exp2(-std::numeric_limits<T>::digits));
 #else
-			std::ldexp(T(1), -std::numeric_limits<T>::digits);
+			static_cast<T>(std::ldexp(T(1), -std::numeric_limits<T>::digits));
 #endif
 		return epsilon;
 	}
