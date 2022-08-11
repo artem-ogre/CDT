@@ -358,12 +358,51 @@ private:
         std::stack<TriInd>& triStack);
     /// Flip fixed edges and return a list of flipped fixed edges
     std::vector<Edge> insertVertex_FlipFixedEdges(VertInd iVert);
+
+    typedef std::vector<VertInd>::const_iterator VertIndCit;
+    /// State for an iteration of triangulate pseudo-polygon
+    typedef tuple<VertInd, VertInd, VertIndCit, VertIndCit, TriInd>
+        TriangulatePseudopolygonTask;
+
     /**
      * Insert an edge into constraint Delaunay triangulation
      * @param edge edge to insert
      * @param originalEdge original edge inserted edge is part of
+     * @param[in,out] remaining parts of the edge that still need to
+     * be inserted
+     * @param[in,out] tppIterations stack to be used for storing iterations of
+     * triangulating pseudo-polygon
+     * @note in-out state (@param remaining @param tppIterations) is shared
+     * between different runs for performance gains (reducing memory
+     * allocations)
      */
-    void insertEdge(Edge edge, Edge originalEdge);
+    void insertEdge(
+        Edge edge,
+        Edge originalEdge,
+        EdgeVec& remaining,
+        std::vector<TriangulatePseudopolygonTask>& tppIterations);
+
+    /**
+     * Insert an edge or its part into constraint Delaunay triangulation
+     * @param edge edge to insert
+     * @param originalEdge original edge inserted edge is part of
+     * @param[in,out] remainingStack parts of the edge that still need to
+     * be inserted
+     * @param[in,out] tppIterations stack to be used for storing iterations of
+     * triangulating pseudo-polygon
+     * @note in-out state (@param remaining @param tppIterations) is shared
+     * between different runs for performance gains (reducing memory
+     * allocations)
+     */
+    void insertEdgeIteration(
+        Edge edge,
+        Edge originalEdge,
+        EdgeVec& remaining,
+        std::vector<TriangulatePseudopolygonTask>& tppIterations);
+
+    /// State for iteration of conforming to edge
+    typedef tuple<Edge, EdgeVec, BoundaryOverlapCount> ConformToEdgeTask;
+
     /**
      * Conform Delaunay triangulation to a fixed edge by recursively inserting
      * mid point of the edge and then conforming to its halves
@@ -371,13 +410,41 @@ private:
      * @param originalEdges original edges that new edge is piece of
      * @param overlaps count of overlapping boundaries at the edge. Only used
      * when re-introducing edge with overlaps > 0
-     * @param orientationTolerance tolerance for orient2d predicate,
-     * values [-tolerance,+tolerance] are considered as 0.
+     * @param[in,out] remaining remaining edge parts to be conformed to
+     * @param[in,out] reintroduce fixed edges that got removed during conforming
+     * process and need to be reintroduced
+     * @note in-out state (@param remaining @param reintroduce) is shared
+     * between different runs for performance gains (reducing memory
+     * allocations)
      */
     void conformToEdge(
         Edge edge,
-        EdgeVec originalEdges,
-        BoundaryOverlapCount overlaps);
+        const EdgeVec& originalEdges,
+        BoundaryOverlapCount overlaps,
+        EdgeVec& remaining,
+        std::vector<ConformToEdgeTask>& reintroduce);
+
+    /**
+     * Iteration of conform to fixed edge.
+     * @param edge fixed edge to conform to
+     * @param originalEdges original edges that new edge is piece of
+     * @param overlaps count of overlapping boundaries at the edge. Only used
+     * when re-introducing edge with overlaps > 0
+     * @param[in,out] remaining remaining edge parts that need to be conformed
+     * to
+     * @param[in,out] reintroduce fixed edges that got removed during conforming
+     * process and need to be reintroduced
+     * @note in-out state (@param remaining @param reintroduce) is shared
+     * between different runs for performance gains (reducing memory
+     * allocations)
+     */
+    void conformToEdgeIteration(
+        Edge edge,
+        const EdgeVec& originalEdges,
+        BoundaryOverlapCount overlaps,
+        EdgeVec& remaining,
+        std::vector<ConformToEdgeTask>& reintroduce);
+
     tuple<TriInd, VertInd, VertInd> intersectedTriangle(
         VertInd iA,
         const std::vector<TriInd>& candidates,
@@ -419,10 +486,12 @@ private:
         VertInd ia,
         VertInd ib,
         std::vector<VertInd>::const_iterator pointsFirst,
-        std::vector<VertInd>::const_iterator pointsLast);
-    VertInd findDelaunayPoint(
-        VertInd ia,
-        VertInd ib,
+        std::vector<VertInd>::const_iterator pointsLast,
+        TriInd parent,
+        std::vector<TriangulatePseudopolygonTask>& iterations);
+    std::vector<VertInd>::const_iterator findDelaunayPoint(
+        const V2d<T>& a,
+        const V2d<T>& b,
         std::vector<VertInd>::const_iterator pointsFirst,
         std::vector<VertInd>::const_iterator pointsLast) const;
     TriInd pseudopolyOuterTriangle(VertInd ia, VertInd ib) const;
@@ -563,6 +632,9 @@ void Triangulation<T, TNearPointLocator>::insertEdges(
     TGetEdgeVertexStart getStart,
     TGetEdgeVertexEnd getEnd)
 {
+    // state shared between different runs for performance gains
+    std::vector<TriangulatePseudopolygonTask> tppIterations;
+    EdgeVec remaining;
     if(isFinalized())
     {
         throw std::runtime_error(
@@ -575,7 +647,7 @@ void Triangulation<T, TNearPointLocator>::insertEdges(
         const Edge edge(
             VertInd(getStart(*first) + m_nTargetVerts),
             VertInd(getEnd(*first) + m_nTargetVerts));
-        insertEdge(edge, edge);
+        insertEdge(edge, edge, remaining, tppIterations);
     }
     eraseDummies();
 }
@@ -597,13 +669,16 @@ void Triangulation<T, TNearPointLocator>::conformToEdges(
             "Triangulation was finalized with 'erase...' method. Conforming to "
             "new edges is not possible");
     }
+    // state shared between different runs for performance gains
+    EdgeVec remaining;
+    std::vector<ConformToEdgeTask> reintroduce;
     for(; first != last; ++first)
     {
         // +3 to account for super-triangle vertices
         const Edge e(
             VertInd(getStart(*first) + m_nTargetVerts),
             VertInd(getEnd(*first) + m_nTargetVerts));
-        conformToEdge(e, EdgeVec(1, e), 0);
+        conformToEdge(e, EdgeVec(1, e), 0, remaining, reintroduce);
     }
     eraseDummies();
 }
