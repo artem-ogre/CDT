@@ -476,9 +476,11 @@ V2d<T> intersectionPosition(
 } // namespace detail
 
 template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::insertEdge(
-    const Edge edge,
-    const Edge originalEdge)
+void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
+    Edge edge,
+    Edge originalEdge,
+    EdgeVec& remaining,
+    std::vector<TriangulatePseudopolygonTask>& tppIterations)
 {
     const VertInd iA = edge.v1();
     VertInd iB = edge.v2();
@@ -508,7 +510,8 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
     {
         const Edge edgePart(iA, iVleft);
         fixEdge(edgePart, originalEdge);
-        return insertEdge(Edge(iVleft, iB), originalEdge);
+        remaining.push_back(Edge(iVleft, iB));
+        return;
     }
     std::vector<TriInd> intersected(1, iT);
     std::vector<VertInd> ptsLeft(1, iVleft);
@@ -565,8 +568,8 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
             ensureDelaunayByEdgeFlips(newV, iNewVert, triStack);
             // TODO: is it's possible to re-use pseudo-polygons
             //  for inserting [iA, iNewVert] edge half?
-            insertEdge(Edge(iA, iNewVert), originalEdge);
-            insertEdge(Edge(iNewVert, iB), originalEdge);
+            remaining.push_back(Edge(iA, iNewVert));
+            remaining.push_back(Edge(iNewVert, iB));
             return;
         }
 
@@ -591,16 +594,17 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
         else // encountered point on the edge
             iB = iVopo;
     }
+    assert(!intersected.empty());
     // Remove intersected triangles
     typedef std::vector<TriInd>::const_iterator TriIndCit;
     for(TriIndCit it = intersected.begin(); it != intersected.end(); ++it)
         makeDummy(*it);
     // Triangulate pseudo-polygons on both sides
-    const TriInd iTleft =
-        triangulatePseudopolygon(iA, iB, ptsLeft.begin(), ptsLeft.end());
+    const TriInd iTleft = triangulatePseudopolygon(
+        iA, iB, ptsLeft.begin(), ptsLeft.end(), noNeighbor, tppIterations);
     std::reverse(ptsRight.begin(), ptsRight.end());
-    const TriInd iTright =
-        triangulatePseudopolygon(iB, iA, ptsRight.begin(), ptsRight.end());
+    const TriInd iTright = triangulatePseudopolygon(
+        iB, iA, ptsRight.begin(), ptsRight.end(), noNeighbor, tppIterations);
     changeNeighbor(iTleft, noNeighbor, iTright);
     changeNeighbor(iTright, noNeighbor, iTleft);
 
@@ -609,7 +613,8 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
         // fix edge part
         const Edge edgePart(iA, iB);
         fixEdge(edgePart, originalEdge);
-        return insertEdge(Edge(iB, edge.v2()), originalEdge);
+        remaining.push_back(Edge(iB, edge.v2()));
+        return;
     }
     else
     {
@@ -618,10 +623,30 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
 }
 
 template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::conformToEdge(
-    const Edge edge,
-    EdgeVec originalEdges,
-    const BoundaryOverlapCount overlaps)
+void Triangulation<T, TNearPointLocator>::insertEdge(
+    Edge edge,
+    const Edge originalEdge,
+    EdgeVec& remaining,
+    std::vector<TriangulatePseudopolygonTask>& tppIterations)
+{
+    // use iteration over recursion to avoid stack overflows
+    remaining.clear();
+    remaining.push_back(edge);
+    while(!remaining.empty())
+    {
+        edge = remaining.back();
+        remaining.pop_back();
+        insertEdgeIteration(edge, originalEdge, remaining, tppIterations);
+    }
+}
+
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
+    Edge edge,
+    const EdgeVec& originalEdges,
+    BoundaryOverlapCount overlaps,
+    EdgeVec& remaining,
+    std::vector<ConformToEdgeTask>& reintroduce)
 {
     const VertInd iA = edge.v1();
     VertInd iB = edge.v2();
@@ -656,7 +681,8 @@ void Triangulation<T, TNearPointLocator>::conformToEdge(
         const Edge edgePart(iA, iVleft);
         overlaps > 0 ? fixEdge(edgePart, overlaps) : fixEdge(edgePart);
         detail::insert_unique(pieceToOriginals[edgePart], originalEdges);
-        return conformToEdge(Edge(iVleft, iB), originalEdges, overlaps);
+        remaining.push_back(Edge(iVleft, iB));
+        return;
     }
 
     VertInd iV = iA;
@@ -709,8 +735,8 @@ void Triangulation<T, TNearPointLocator>::conformToEdge(
             std::stack<TriInd> triStack =
                 insertPointOnEdge(iNewVert, iT, iTopo);
             ensureDelaunayByEdgeFlips(newV, iNewVert, triStack);
-            conformToEdge(Edge(iA, iNewVert), originalEdges, overlaps);
-            conformToEdge(Edge(iNewVert, iB), originalEdges, overlaps);
+            remaining.push_back(Edge(iNewVert, iB));
+            remaining.push_back(Edge(iA, iNewVert));
             return;
         }
 
@@ -732,7 +758,12 @@ void Triangulation<T, TNearPointLocator>::conformToEdge(
         else // encountered point on the edge
             iB = iVopo;
     }
-    /**/
+
+    // encountered one or more points on the edge: add remaining edge part
+    if(iB != edge.v2())
+    {
+        remaining.push_back(Edge(iB, edge.v2()));
+    }
 
     // add mid-point to triangulation
     const VertInd iMid = static_cast<VertInd>(vertices.size());
@@ -744,8 +775,9 @@ void Triangulation<T, TNearPointLocator>::conformToEdge(
     const std::vector<Edge> flippedFixedEdges =
         insertVertex_FlipFixedEdges(iMid);
 
-    conformToEdge(Edge(iA, iMid), originalEdges, overlaps);
-    conformToEdge(Edge(iMid, iB), originalEdges, overlaps);
+    remaining.push_back(Edge(iMid, iB));
+    remaining.push_back(Edge(iA, iMid));
+
     // re-introduce fixed edges that were flipped
     // and make sure overlap count is preserved
     for(std::vector<Edge>::const_iterator it = flippedFixedEdges.begin();
@@ -770,10 +802,42 @@ void Triangulation<T, TNearPointLocator>::conformToEdge(
         {
             prevOriginals = originalsIt->second;
         }
-        conformToEdge(*it, prevOriginals, prevOverlaps);
+        reintroduce.push_back(make_tuple(*it, prevOriginals, prevOverlaps));
     }
-    if(iB != edge.v2())
-        conformToEdge(Edge(iB, edge.v2()), originalEdges, overlaps);
+}
+
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::conformToEdge(
+    Edge edge,
+    const EdgeVec& originalEdges,
+    const BoundaryOverlapCount overlaps,
+    EdgeVec& remaining,
+    std::vector<ConformToEdgeTask>& reintroduce)
+{
+    // use iteration over recursion to avoid stack overflows
+    reintroduce.clear();
+    remaining.clear();
+    remaining.push_back(edge);
+    Edge reEdge(noNeighbor, noNeighbor);
+    EdgeVec reOriginals;
+    BoundaryOverlapCount reOverlaps;
+    while(!remaining.empty() || !reintroduce.empty())
+    {
+        if(!reintroduce.empty())
+        {
+            tie(reEdge, reOriginals, reOverlaps) = reintroduce.back();
+            reintroduce.pop_back();
+            conformToEdgeIteration(
+                reEdge, reOriginals, reOverlaps, remaining, reintroduce);
+        }
+        else
+        {
+            edge = remaining.back();
+            remaining.pop_back();
+            conformToEdgeIteration(
+                edge, originalEdges, overlaps, remaining, reintroduce);
+        }
+    }
 }
 
 /*!
@@ -1392,70 +1456,86 @@ void Triangulation<T, TNearPointLocator>::removeAdjacentTriangle(
 
 template <typename T, typename TNearPointLocator>
 TriInd Triangulation<T, TNearPointLocator>::triangulatePseudopolygon(
-    const VertInd ia,
-    const VertInd ib,
-    const std::vector<VertInd>::const_iterator pointsFirst,
-    const std::vector<VertInd>::const_iterator pointsLast)
+    VertInd ia,
+    VertInd ib,
+    std::vector<VertInd>::const_iterator pointsFirst,
+    std::vector<VertInd>::const_iterator pointsLast,
+    TriInd parent,
+    std::vector<TriangulatePseudopolygonTask>& iterations)
 {
-    if(pointsFirst == pointsLast)
-        return pseudopolyOuterTriangle(ia, ib);
-    // Find delaunay point
-    const VertInd ic = findDelaunayPoint(ia, ib, pointsFirst, pointsLast);
-    // Find pseudopolygons split by the delaunay point
-    std::vector<VertInd>::const_iterator newLast = pointsFirst;
-    while(*newLast != ic)
-        ++newLast;
-    const std::vector<VertInd>::const_iterator newFirst = newLast + 1;
-    // triangulate splitted pseudo-polygons
-    const TriInd iT2 = triangulatePseudopolygon(ic, ib, newFirst, pointsLast);
-    const TriInd iT1 = triangulatePseudopolygon(ia, ic, pointsFirst, newLast);
-    // add new triangle
-    const Triangle t = {{ia, ib, ic}, {noNeighbor, iT2, iT1}};
-    const TriInd iT = addTriangle(t);
-    // adjust neighboring triangles and vertices
-    if(iT1 != noNeighbor)
-    {
-        if(pointsFirst == newLast)
-            changeNeighbor(iT1, ia, ic, iT);
-        else
-            triangles[iT1].neighbors[0] = iT;
-    }
-    if(iT2 != noNeighbor)
-    {
-        if(newFirst == pointsLast)
-            changeNeighbor(iT2, ic, ib, iT);
-        else
-            triangles[iT2].neighbors[0] = iT;
-    }
-    addAdjacentTriangle(ia, iT);
-    addAdjacentTriangle(ib, iT);
-    addAdjacentTriangle(ic, iT);
+    // note: uses interation instead of recursion to avoid stack overflows
+    assert(pointsFirst != pointsLast);
+    TriInd out = noNeighbor;
 
-    return iT;
+    typedef std::vector<VertInd>::const_iterator CIter;
+    iterations.clear();
+    iterations.push_back(make_tuple(ia, ib, pointsFirst, pointsLast, parent));
+
+    while(!iterations.empty())
+    {
+        tie(ia, ib, pointsFirst, pointsLast, parent) = iterations.back();
+        iterations.pop_back();
+        // check if pseudo-polygon is a single triangle
+        if(pointsFirst == pointsLast)
+        {
+            const TriInd outerTri = pseudopolyOuterTriangle(ia, ib);
+            if(parent != noNeighbor)
+            {
+                changeNeighbor(parent, ia, ib, outerTri);
+                changeNeighbor(outerTri, ia, ib, parent);
+            }
+            continue;
+        }
+        // find Delaunay point
+        const CIter newLast = findDelaunayPoint(
+            vertices[ia], vertices[ib], pointsFirst, pointsLast);
+        const VertInd ic = *newLast;
+        const CIter newFirst = newLast + 1;
+        // add new triangle
+        const TriInd iT = addTriangle();
+        Triangle& t = triangles[iT];
+        using detail::arr3;
+        t.vertices = arr3(ia, ib, ic);
+        addAdjacentTriangle(ia, iT);
+        addAdjacentTriangle(ib, iT);
+        addAdjacentTriangle(ic, iT);
+        // adjust neighboring triangles and vertices
+        t.neighbors[0] = parent;
+        if(parent != noNeighbor)
+        {
+            changeNeighbor(parent, ia, ib, iT);
+        }
+        // split pseudo-polygon in two parts and triangulate them
+        iterations.push_back(make_tuple(ia, ic, pointsFirst, newLast, iT));
+        iterations.push_back(make_tuple(ic, ib, newFirst, pointsLast, iT));
+        // remember index of first created triangle to return later
+        if(out == noNeighbor)
+            out = iT;
+    }
+    return out;
 }
 
 template <typename T, typename TNearPointLocator>
-VertInd Triangulation<T, TNearPointLocator>::findDelaunayPoint(
-    const VertInd ia,
-    const VertInd ib,
-    const std::vector<VertInd>::const_iterator pointsFirst,
+std::vector<VertInd>::const_iterator
+Triangulation<T, TNearPointLocator>::findDelaunayPoint(
+    const V2d<T>& a,
+    const V2d<T>& b,
+    std::vector<VertInd>::const_iterator pointsFirst,
     const std::vector<VertInd>::const_iterator pointsLast) const
 {
     assert(pointsFirst != pointsLast);
-    const V2d<T>& a = vertices[ia];
-    const V2d<T>& b = vertices[ib];
-    VertInd ic = *pointsFirst;
-    V2d<T> c = vertices[ic];
-    typedef std::vector<VertInd>::const_iterator CIt;
-    for(CIt it = pointsFirst + 1; it != pointsLast; ++it)
+    std::vector<VertInd>::const_iterator cIt = pointsFirst;
+    const V2d<T>* c = &vertices[*cIt]; // caching value for better performance
+    for(; pointsFirst != pointsLast; ++pointsFirst)
     {
-        const V2d<T> v = vertices[*it];
-        if(!isInCircumcircle(v, a, b, c))
-            continue;
-        ic = *it;
-        c = vertices[ic];
+        const V2d<T>& v = vertices[*pointsFirst];
+        if(isInCircumcircle(v, a, b, *c))
+        {
+            cIt = pointsFirst;
+            c = &v;
+        }
     }
-    return ic;
+    return cIt;
 }
 
 template <typename T, typename TNearPointLocator>
