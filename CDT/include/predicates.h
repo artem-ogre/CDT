@@ -275,6 +275,11 @@ namespace detail {
 			}
 	};
 
+// See: https://stackoverflow.com/a/40765925/1597714
+#if defined(__FMA__) || defined(__FMA4__) || defined(__AVX2__)
+#define PREDICATES_FAST_FMA 1
+#endif
+
 	//@brief  : helper function to sort by absolute value
 	//@param a: lhs item to compare
 	//@param b: rhs item to compare
@@ -384,7 +389,7 @@ namespace detail {
 			}
 
 			//roundoff error of x = a * b
-#ifdef PREDICATES_CXX11_IS_SUPPORTED
+#if defined(PREDICATES_CXX11_IS_SUPPORTED) && defined(PREDICATES_FAST_FMA)
 			static T MultTail(const T a, const T b, const T p) {return std::fma(a, b, -p);}
 			static T MultTailPreSplit(const T a, const T b, const std::pair<T, T> /*bSplit*/, const T p) {return std::fma(a, b, -p);}
 #else
