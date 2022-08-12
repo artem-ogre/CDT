@@ -157,7 +157,78 @@ Public API is provided in two places:
 
 ### Code Examples
 
-**Delaunay triangulation without constraints (triangulated convex-hull)**
+#### Print triangulation contents
+```cpp
+template <typename T>
+void print_triangulation(const CDT::Triangulation<T>& cdt)
+{
+    std::cout << "Vertices (#" << cdt.vertices.size() << "): ";
+    for(auto v : cdt.vertices)
+        std::cout << "(" << v.x << ", " << v.y << "), ";
+    std::cout << "\nTriangles (#" << cdt.triangles.size() << "): ";
+    for(auto t : cdt.triangles)
+        std::cout << "[" << t.vertices[0] << ", " << t.vertices[1] << ", " << t.vertices[2] << "], ";
+    std::cout << "\nFixed edges (#" << cdt.fixedEdges.size() << "): ";
+    for(auto e : cdt.fixedEdges)
+        std::cout << "[" << e.v1() << ", " << e.v2() << "], ";
+    std::cout << "\n";
+}
+```
+
+#### Delaunay triangulation
+```cpp
+auto cdt = Triangulation<double>();
+cdt.insertVertices({{0., 0.}, {2., 0.}, {2., 2.}, {1., 1.}, {0., 2.}});
+cdt.eraseSuperTriangle();
+print_triangulation(cdt);
+```
+Output:
+
+<img src="./images/delaunay_triangulation.png" alt="Triangulated polygon" height="150"/>
+
+```
+Vertices (#5): (0, 0), (2, 0), (2, 2), (1, 1), (0, 2), 
+Triangles (#4): [3, 4, 0], [3, 2, 4], [1, 3, 0], [1, 2, 3], 
+Fixed edges (#0):
+```
+
+#### Triangulate polygon
+```cpp
+auto cdt = Triangulation<double>();
+cdt.insertVertices({{0., 0.}, {2., 0.}, {2., 2.}, {1., 1.}, {0., 2.}});
+cdt.insertEdges({{0, 1}, {1, 2}, {2, 3}, {3, 4}, {4, 0}});
+cdt.eraseOuterTriangles();
+print_triangulation(cdt);
+```
+Output:
+
+<img src="./images/triangulate_polygon.png" alt="Triangulated polygon" height="150"/>
+
+```
+Vertices (#5): (0, 0), (2, 0), (2, 2), (1, 1), (0, 2), 
+Triangles (#3): [3, 4, 0], [1, 3, 0], [1, 2, 3], 
+Fixed edges (#5): [0, 1], [1, 2], [3, 4], [2, 3], [0, 4],
+```
+
+#### Triangulate polygon with holes
+```cpp
+    auto cdt = Triangulation<double>();
+    cdt.insertVertices({{0., 0.}, {3., 0.}, {3., 3.}, {0., 3.}, {1., 1.}, {2., 1.}, {1.5, 2.}});
+    cdt.insertEdges({{0, 1}, {1, 2}, {2, 3}, {3, 0}, {4, 5}, {5, 6}, {6, 4}});
+    cdt.eraseOuterTrianglesAndHoles();
+    print_triangulation(cdt);
+```
+Output:
+
+<img src="./images/polygon_with_hole.png" alt="Triangulated polygon" height="150"/>
+
+```
+Vertices (#7): (0, 0), (3, 0), (3, 3), (0, 3), (1, 1), (2, 1), (1.5, 2), 
+Triangles (#7): [4, 0, 5], [6, 2, 3], [0, 4, 3], [6, 5, 2], [5, 0, 1], [1, 2, 5], [6, 3, 4], 
+Fixed edges (#7): [0, 1], [1, 2], [2, 3], [5, 6], [0, 3], [4, 5], [4, 6],
+```
+
+#### Delaunay triangulation without constraints (triangulated convex-hull)
 
 <img src="./images/LakeSuperior.png" alt="Example of a triangulated convex hull" height="150"/>
 
@@ -171,7 +242,7 @@ cdt.eraseSuperTriangle();
 /* access boundary edges */ = cdt.edges;
 ```
 
-**Constrained Delaunay triangulation (auto-detected boundaries and holes)**
+#### Constrained Delaunay triangulation (auto-detected boundaries and holes)
 
 <img src="./images/A.png" alt="Example of a triangulation with constrained boundaries and auto-detected holes" height="150"/>
 
@@ -185,15 +256,15 @@ cdt.eraseOuterTrianglesAndHoles();
 /* access boundary edges */ = cdt.edges;
 ```
 
-**Conforming Delaunay triangulation**
+#### Conforming Delaunay triangulation
 
 Use `CDT::Triangulation::conformToEdges` instead of `CDT::Triangulation::insertEdges`
 
-**Resolve edge intersections by adding new points and splitting edges**
+#### Resolve edge intersections by adding new points and splitting edges
 
 Pass `CDT::IntersectingConstraintEdges::Resolve` to `CDT::Triangulation` constructor.
 
-**Custom point/edge type**
+#### Custom point/edge type
 
 ```cpp
 struct CustomPoint2D
