@@ -643,10 +643,9 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
     Edge edge,
-    const EdgeVec& originalEdges,
+    const EdgeVec& originals,
     BoundaryOverlapCount overlaps,
-    EdgeVec& remaining,
-    std::vector<ConformToEdgeTask>& reintroduce)
+    std::vector<ConformToEdgeTask>& remaining)
 {
     const VertInd iA = edge.v1();
     VertInd iB = edge.v2();
@@ -660,9 +659,9 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
     {
         overlaps > 0 ? fixEdge(edge, overlaps) : fixEdge(edge);
         // avoid marking edge as a part of itself
-        if(!originalEdges.empty() && edge != originalEdges.front())
+        if(!originals.empty() && edge != originals.front())
         {
-            detail::insert_unique(pieceToOriginals[edge], originalEdges);
+            detail::insert_unique(pieceToOriginals[edge], originals);
         }
         return;
     }
@@ -680,8 +679,12 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
     {
         const Edge edgePart(iA, iVleft);
         overlaps > 0 ? fixEdge(edgePart, overlaps) : fixEdge(edgePart);
-        detail::insert_unique(pieceToOriginals[edgePart], originalEdges);
-        remaining.push_back(Edge(iVleft, iB));
+        detail::insert_unique(pieceToOriginals[edgePart], originals);
+#ifdef CDT_CXX11_IS_SUPPORTED
+        remaining.emplace_back(Edge(iVleft, iB), originals, overlaps);
+#else
+        remaining.push_back(make_tuple(Edge(iVleft, iB), originals, overlaps));
+#endif
         return;
     }
 
@@ -706,13 +709,26 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
             const Edge splitEdge(iVleft, iVright);
             const Edge half1(iVleft, iNewVert);
             const Edge half2(iNewVert, iVright);
-            const BoundaryOverlapCount overlaps = overlapCount[splitEdge];
-            // remove the edge that will be split
+
+            const unordered_map<Edge, BoundaryOverlapCount>::const_iterator
+                splitEdgeOverlapsIt = overlapCount.find(splitEdge);
+            const BoundaryOverlapCount splitEdgeOverlaps =
+                splitEdgeOverlapsIt != overlapCount.end()
+                    ? splitEdgeOverlapsIt->second
+                    : 0;
+            // remove the edge that will be split and add split edge's halves
             fixedEdges.erase(splitEdge);
-            overlapCount.erase(splitEdge);
-            // add split edge's halves
-            fixEdge(half1, overlaps);
-            fixEdge(half2, overlaps);
+            if(splitEdgeOverlaps > 0)
+            {
+                overlapCount.erase(splitEdgeOverlapsIt);
+                fixEdge(half1, splitEdgeOverlaps);
+                fixEdge(half2, splitEdgeOverlaps);
+            }
+            else
+            {
+                fixEdge(half1);
+                fixEdge(half2);
+            }
             // maintain piece-to-original mapping
             EdgeVec newOriginals(1, splitEdge);
             const unordered_map<Edge, EdgeVec>::const_iterator originalsIt =
@@ -735,8 +751,15 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
             std::stack<TriInd> triStack =
                 insertPointOnEdge(iNewVert, iT, iTopo);
             ensureDelaunayByEdgeFlips(newV, iNewVert, triStack);
-            remaining.push_back(Edge(iNewVert, iB));
-            remaining.push_back(Edge(iA, iNewVert));
+#ifdef CDT_CXX11_IS_SUPPORTED
+            remaining.emplace_back(Edge(iNewVert, iB), originals, overlaps);
+            remaining.emplace_back(Edge(iA, iNewVert), originals, overlaps);
+#else
+            remaining.push_back(
+                make_tuple(Edge(iNewVert, iB), originals, overlaps));
+            remaining.push_back(
+                make_tuple(Edge(iA, iNewVert), originals, overlaps));
+#endif
             return;
         }
 
@@ -762,7 +785,12 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
     // encountered one or more points on the edge: add remaining edge part
     if(iB != edge.v2())
     {
-        remaining.push_back(Edge(iB, edge.v2()));
+#ifdef CDT_CXX11_IS_SUPPORTED
+        remaining.emplace_back(Edge(iB, edge.v2()), originals, overlaps);
+#else
+        remaining.push_back(
+            make_tuple(Edge(iB, edge.v2()), originals, overlaps));
+#endif
     }
 
     // add mid-point to triangulation
@@ -775,8 +803,13 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
     const std::vector<Edge> flippedFixedEdges =
         insertVertex_FlipFixedEdges(iMid);
 
-    remaining.push_back(Edge(iMid, iB));
-    remaining.push_back(Edge(iA, iMid));
+#ifdef CDT_CXX11_IS_SUPPORTED
+    remaining.emplace_back(Edge(iMid, iB), originals, overlaps);
+    remaining.emplace_back(Edge(iA, iMid), originals, overlaps);
+#else
+    remaining.push_back(make_tuple(Edge(iMid, iB), originals, overlaps));
+    remaining.push_back(make_tuple(Edge(iA, iMid), originals, overlaps));
+#endif
 
     // re-introduce fixed edges that were flipped
     // and make sure overlap count is preserved
@@ -784,59 +817,53 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
         it != flippedFixedEdges.end();
         ++it)
     {
-        fixedEdges.erase(*it);
+        const Edge& flippedFixedEdge = *it;
+        fixedEdges.erase(flippedFixedEdge);
 
         BoundaryOverlapCount prevOverlaps = 0;
         const unordered_map<Edge, BoundaryOverlapCount>::const_iterator
-            overlapsIt = overlapCount.find(*it);
+            overlapsIt = overlapCount.find(flippedFixedEdge);
         if(overlapsIt != overlapCount.end())
         {
             prevOverlaps = overlapsIt->second;
             overlapCount.erase(overlapsIt);
         }
         // override overlapping boundaries count when re-inserting an edge
-        EdgeVec prevOriginals(1, *it);
+        EdgeVec prevOriginals(1, flippedFixedEdge);
         const unordered_map<Edge, EdgeVec>::const_iterator originalsIt =
-            pieceToOriginals.find(*it);
+            pieceToOriginals.find(flippedFixedEdge);
         if(originalsIt != pieceToOriginals.end())
         {
             prevOriginals = originalsIt->second;
         }
-        reintroduce.push_back(make_tuple(*it, prevOriginals, prevOverlaps));
+#ifdef CDT_CXX11_IS_SUPPORTED
+        remaining.emplace_back(flippedFixedEdge, prevOriginals, prevOverlaps);
+#else
+        remaining.push_back(
+            make_tuple(flippedFixedEdge, prevOriginals, prevOverlaps));
+#endif
     }
 }
 
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::conformToEdge(
     Edge edge,
-    const EdgeVec& originalEdges,
-    const BoundaryOverlapCount overlaps,
-    EdgeVec& remaining,
-    std::vector<ConformToEdgeTask>& reintroduce)
+    EdgeVec originals,
+    BoundaryOverlapCount overlaps,
+    std::vector<ConformToEdgeTask>& remaining)
 {
     // use iteration over recursion to avoid stack overflows
-    reintroduce.clear();
     remaining.clear();
-    remaining.push_back(edge);
-    Edge reEdge(noNeighbor, noNeighbor);
-    EdgeVec reOriginals;
-    BoundaryOverlapCount reOverlaps;
-    while(!remaining.empty() || !reintroduce.empty())
+#ifdef CDT_CXX11_IS_SUPPORTED
+    remaining.emplace_back(edge, originals, overlaps);
+#else
+    remaining.push_back(make_tuple(edge, originals, overlaps));
+#endif
+    while(!remaining.empty())
     {
-        if(!reintroduce.empty())
-        {
-            tie(reEdge, reOriginals, reOverlaps) = reintroduce.back();
-            reintroduce.pop_back();
-            conformToEdgeIteration(
-                reEdge, reOriginals, reOverlaps, remaining, reintroduce);
-        }
-        else
-        {
-            edge = remaining.back();
-            remaining.pop_back();
-            conformToEdgeIteration(
-                edge, originalEdges, overlaps, remaining, reintroduce);
-        }
+        tie(edge, originals, overlaps) = remaining.back();
+        remaining.pop_back();
+        conformToEdgeIteration(edge, originals, overlaps, remaining);
     }
 }
 

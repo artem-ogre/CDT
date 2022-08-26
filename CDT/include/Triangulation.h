@@ -407,43 +407,36 @@ private:
      * Conform Delaunay triangulation to a fixed edge by recursively inserting
      * mid point of the edge and then conforming to its halves
      * @param edge fixed edge to conform to
-     * @param originalEdges original edges that new edge is piece of
+     * @param originals original edges that new edge is piece of
      * @param overlaps count of overlapping boundaries at the edge. Only used
      * when re-introducing edge with overlaps > 0
      * @param[in,out] remaining remaining edge parts to be conformed to
-     * @param[in,out] reintroduce fixed edges that got removed during conforming
-     * process and need to be reintroduced
      * @note in-out state (@param remaining @param reintroduce) is shared
      * between different runs for performance gains (reducing memory
      * allocations)
      */
     void conformToEdge(
         Edge edge,
-        const EdgeVec& originalEdges,
+        EdgeVec originals,
         BoundaryOverlapCount overlaps,
-        EdgeVec& remaining,
-        std::vector<ConformToEdgeTask>& reintroduce);
+        std::vector<ConformToEdgeTask>& remaining);
 
     /**
      * Iteration of conform to fixed edge.
      * @param edge fixed edge to conform to
-     * @param originalEdges original edges that new edge is piece of
+     * @param originals original edges that new edge is piece of
      * @param overlaps count of overlapping boundaries at the edge. Only used
      * when re-introducing edge with overlaps > 0
-     * @param[in,out] remaining remaining edge parts that need to be conformed
-     * to
-     * @param[in,out] reintroduce fixed edges that got removed during conforming
-     * process and need to be reintroduced
+     * @param[in,out] remaining remaining edge parts
      * @note in-out state (@param remaining @param reintroduce) is shared
      * between different runs for performance gains (reducing memory
      * allocations)
      */
     void conformToEdgeIteration(
         Edge edge,
-        const EdgeVec& originalEdges,
+        const EdgeVec& originals,
         BoundaryOverlapCount overlaps,
-        EdgeVec& remaining,
-        std::vector<ConformToEdgeTask>& reintroduce);
+        std::vector<ConformToEdgeTask>& remaining);
 
     tuple<TriInd, VertInd, VertInd> intersectedTriangle(
         VertInd iA,
@@ -670,15 +663,14 @@ void Triangulation<T, TNearPointLocator>::conformToEdges(
             "new edges is not possible");
     }
     // state shared between different runs for performance gains
-    EdgeVec remaining;
-    std::vector<ConformToEdgeTask> reintroduce;
+    std::vector<ConformToEdgeTask> remaining;
     for(; first != last; ++first)
     {
         // +3 to account for super-triangle vertices
         const Edge e(
             VertInd(getStart(*first) + m_nTargetVerts),
             VertInd(getEnd(*first) + m_nTargetVerts));
-        conformToEdge(e, EdgeVec(1, e), 0, remaining, reintroduce);
+        conformToEdge(e, EdgeVec(1, e), 0, remaining);
     }
     eraseDummies();
 }
