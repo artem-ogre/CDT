@@ -554,7 +554,6 @@ TEMPLATE_LIST_TEST_CASE(
     SECTION("With super-triangle")
     {
         const auto outFile = outputFileBase + "_all.txt";
-        saveToOff(outFile + ".off", cdt);
         INFO("Output file is '" + outFile + "'");
         if(updateFiles)
             topologyToFile(outFile, cdt);
@@ -688,5 +687,31 @@ TEMPLATE_LIST_TEST_CASE("Ground truth tests: crossing edges", "", CoordTypes)
             topologyToFile(outFile, cdt);
         else
             REQUIRE(topologyString(cdt) == topologyString(outFile));
+    }
+}
+
+TEMPLATE_LIST_TEST_CASE("Benchmarks", "[benchmark][.]", CoordTypes)
+{
+    SECTION("Constrained Sweden")
+    {
+        const auto [vv, ee] =
+            readInputFromFile<TestType>("inputs/Constrained Sweden.txt");
+        BENCHMARK("Constrained Sweden")
+        {
+            auto cdt = Triangulation<TestType>();
+            cdt.insertVertices(vv);
+            cdt.insertEdges(ee);
+        };
+    }
+    SECTION("Corridor")
+    {
+        const auto [vv, ee] =
+            readInputFromFile<TestType>("inputs/long-narrow-stripe.txt");
+        BENCHMARK("Corridor")
+        {
+            auto cdt = Triangulation<TestType>();
+            cdt.insertVertices(vv);
+            cdt.insertEdges(ee);
+        };
     }
 }
