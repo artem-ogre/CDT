@@ -42,8 +42,9 @@ struct CDT_EXPORT VertexInsertionOrder
      */
     enum Enum
     {
-        Randomized, ///< vertices will be inserted in random order
-        AsProvided, ///< vertices will be inserted in the same order as provided
+        Randomized, ///< random order
+        AsProvided, ///< the same order as provided
+        KdTreeBFS,  ///<  breadth-first traversal of a Kd-tree
     };
 };
 
@@ -352,6 +353,7 @@ private:
     void addSuperTriangle(const Box2d<T>& box);
     void addNewVertex(const V2d<T>& pos, const TriIndVec& tris);
     void insertVertex(VertInd iVert);
+    void insertVertex(VertInd iVert, VertInd walkStart);
     void ensureDelaunayByEdgeFlips(
         const V2d<T>& v,
         VertInd iVert,
@@ -449,7 +451,8 @@ private:
     /// Returns indices of four resulting triangles
     std::stack<TriInd> insertPointOnEdge(VertInd v, TriInd iT1, TriInd iT2);
     array<TriInd, 2> trianglesAt(const V2d<T>& pos) const;
-    array<TriInd, 2> walkingSearchTrianglesAt(const V2d<T>& pos) const;
+    array<TriInd, 2>
+    walkingSearchTrianglesAt(const V2d<T>& pos, VertInd startVertex) const;
     TriInd walkTriangles(VertInd startVertex, const V2d<T>& pos) const;
     bool isFlipNeeded(
         const V2d<T>& v,
@@ -533,6 +536,13 @@ private:
         LayerDepth layerDepth,
         std::vector<LayerDepth>& triDepths) const;
 
+    void insertVertices_AsProvided(VertInd superGeomVertCount);
+    void insertVertices_Randomized(VertInd superGeomVertCount);
+    void insertVertices_KDTreeBFS(
+        VertInd superGeomVertCount,
+        V2d<T> boxMin,
+        V2d<T> boxMax);
+
     std::vector<TriInd> m_dummyTris;
     TNearPointLocator m_nearPtLocator;
     std::size_t m_nTargetVerts;
@@ -561,6 +571,17 @@ void random_shuffle(RandomIt first, RandomIt last)
     }
 }
 
+// backport from c++11
+template <class ForwardIt, class T>
+void iota(ForwardIt first, ForwardIt last, T value)
+{
+    while(first != last)
+    {
+        *first++ = value;
+        ++value;
+    }
+}
+
 } // namespace detail
 
 //-----------------------
@@ -583,13 +604,24 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
             "Triangulation was finalized with 'erase...' method. Inserting new "
             "vertices is not possible");
     }
-    detail::randGenerator.seed(9001); // ensure deterministic behavior
-    if(vertices.empty())
+
+    const bool isFirstTime = vertices.empty();
+    if(m_vertexInsertionOrder == VertexInsertionOrder::KdTreeBFS &&
+       !isFirstTime)
     {
-        addSuperTriangle(envelopBox<T>(first, last, getX, getY));
+        throw std::runtime_error("When using Kd-tree BFS order inserting "
+                                 "vertices can only be called once");
     }
 
-    const std::size_t nExistingVerts = vertices.size();
+    detail::randGenerator.seed(9001); // ensure deterministic behavior
+    Box2d<T> box;
+    if(isFirstTime)
+    {
+        box = envelopBox<T>(first, last, getX, getY);
+        addSuperTriangle(box);
+    }
+
+    const VertInd nExistingVerts = vertices.size();
 
     vertices.reserve(nExistingVerts + std::distance(first, last));
     for(TVertexIter it = first; it != last; ++it)
@@ -598,18 +630,13 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
     switch(m_vertexInsertionOrder)
     {
     case VertexInsertionOrder::AsProvided:
-        for(TVertexIter it = first; it != last; ++it)
-            insertVertex(VertInd(nExistingVerts + std::distance(first, it)));
+        insertVertices_AsProvided(nExistingVerts);
         break;
     case VertexInsertionOrder::Randomized:
-        std::vector<VertInd> ii(std::distance(first, last));
-        typedef std::vector<VertInd>::iterator Iter;
-        VertInd value = static_cast<VertInd>(nExistingVerts);
-        for(Iter it = ii.begin(); it != ii.end(); ++it, ++value)
-            *it = value;
-        detail::random_shuffle(ii.begin(), ii.end());
-        for(Iter it = ii.begin(); it != ii.end(); ++it)
-            insertVertex(*it);
+        insertVertices_Randomized(nExistingVerts);
+        break;
+    case VertexInsertionOrder::KdTreeBFS:
+        insertVertices_KDTreeBFS(nExistingVerts, box.min, box.max);
         break;
     }
 }
