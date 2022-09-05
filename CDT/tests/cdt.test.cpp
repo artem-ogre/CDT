@@ -692,9 +692,11 @@ TEMPLATE_LIST_TEST_CASE("Ground truth tests: crossing edges", "", CoordTypes)
 
 TEMPLATE_LIST_TEST_CASE("Benchmarks", "[benchmark][.]", CoordTypes)
 {
+    Vertices<TestType> vv;
+    std::vector<Edge> ee;
     SECTION("Constrained Sweden")
     {
-        const auto [vv, ee] =
+        std::tie(vv, ee) =
             readInputFromFile<TestType>("inputs/Constrained Sweden.txt");
         BENCHMARK("Constrained Sweden")
         {
@@ -702,14 +704,26 @@ TEMPLATE_LIST_TEST_CASE("Benchmarks", "[benchmark][.]", CoordTypes)
             cdt.insertVertices(vv);
             cdt.insertEdges(ee);
         };
+        BENCHMARK("Constrained Sweden: kd-tree BFS")
+        {
+            auto cdt = Triangulation<TestType>(VertexInsertionOrder::KdTreeBFS);
+            cdt.insertVertices(vv);
+            cdt.insertEdges(ee);
+        };
     }
-    SECTION("Corridor")
+    SECTION("Long line")
     {
-        const auto [vv, ee] =
+        std::tie(vv, ee) =
             readInputFromFile<TestType>("inputs/long-narrow-stripe.txt");
-        BENCHMARK("Corridor")
+        BENCHMARK("Long line")
         {
             auto cdt = Triangulation<TestType>();
+            cdt.insertVertices(vv);
+            cdt.insertEdges(ee);
+        };
+        BENCHMARK("Long line: kd-tree BFS")
+        {
+            auto cdt = Triangulation<TestType>(VertexInsertionOrder::KdTreeBFS);
             cdt.insertVertices(vv);
             cdt.insertEdges(ee);
         };
