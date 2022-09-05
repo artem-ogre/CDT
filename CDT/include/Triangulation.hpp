@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <deque>
 #include <stdexcept>
 
@@ -979,7 +980,8 @@ Triangulation<T, TNearPointLocator>::insertVertex_FlipFixedEdges(
     std::vector<Edge> flippedFixedEdges;
 
     const V2d<T>& v = vertices[iVert];
-    array<TriInd, 2> trisAt = walkingSearchTrianglesAt(v);
+    const VertInd startVertex = m_nearPtLocator.nearPoint(v, vertices);
+    array<TriInd, 2> trisAt = walkingSearchTrianglesAt(v, startVertex);
     std::stack<TriInd> triStack =
         trisAt[1] == noNeighbor
             ? insertPointInTriangle(iVert, trisAt[0])
@@ -1031,10 +1033,33 @@ Triangulation<T, TNearPointLocator>::insertVertex_FlipFixedEdges(
 }
 
 template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::insertVertex(
+    const VertInd iVert,
+    const VertInd walkStart)
+{
+    const V2d<T>& v = vertices[iVert];
+    array<TriInd, 2> trisAt = {noNeighbor, noNeighbor};
+    if(walkStart != noVertex)
+    {
+        trisAt = walkingSearchTrianglesAt(v, walkStart);
+    }
+    else
+    {
+        trisAt[0] = 0;
+    }
+    std::stack<TriInd> triStack =
+        trisAt[1] == noNeighbor
+            ? insertPointInTriangle(iVert, trisAt[0])
+            : insertPointOnEdge(iVert, trisAt[0], trisAt[1]);
+    ensureDelaunayByEdgeFlips(v, iVert, triStack);
+}
+
+template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::insertVertex(const VertInd iVert)
 {
     const V2d<T>& v = vertices[iVert];
-    array<TriInd, 2> trisAt = walkingSearchTrianglesAt(v);
+    const VertInd startVertex = m_nearPtLocator.nearPoint(v, vertices);
+    array<TriInd, 2> trisAt = walkingSearchTrianglesAt(v, startVertex);
     std::stack<TriInd> triStack =
         trisAt[1] == noNeighbor
             ? insertPointInTriangle(iVert, trisAt[0])
@@ -1346,11 +1371,10 @@ TriInd Triangulation<T, TNearPointLocator>::walkTriangles(
 
 template <typename T, typename TNearPointLocator>
 array<TriInd, 2> Triangulation<T, TNearPointLocator>::walkingSearchTrianglesAt(
-    const V2d<T>& pos) const
+    const V2d<T>& pos,
+    const VertInd startVertex) const
 {
     array<TriInd, 2> out = {noNeighbor, noNeighbor};
-    // Query  for a vertex close to pos, to start the search
-    const VertInd startVertex = m_nearPtLocator.nearPoint(pos, vertices);
     const TriInd iT = walkTriangles(startVertex, pos);
     // Finished walk, locate point in current triangle
     const Triangle& t = triangles[iT];
@@ -1660,6 +1684,199 @@ Triangulation<T, TNearPointLocator>::calculateTriangleDepths() const
     } while(!seeds.empty() || deepestSeedDepth > layerDepth);
 
     return triDepths;
+}
+
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::insertVertices_AsProvided(
+    VertInd superGeomVertCount)
+{
+    for(VertInd iV = superGeomVertCount; iV < vertices.size(); ++iV)
+    {
+        insertVertex(iV);
+    }
+}
+
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::insertVertices_Randomized(
+    VertInd superGeomVertCount)
+{
+    std::size_t vertexCount = vertices.size() - superGeomVertCount;
+    std::vector<VertInd> ii(vertexCount);
+    detail::iota(ii.begin(), ii.end(), superGeomVertCount);
+    detail::random_shuffle(ii.begin(), ii.end());
+    for(std::vector<VertInd>::iterator it = ii.begin(); it != ii.end(); ++it)
+    {
+        insertVertex(*it);
+    }
+}
+
+namespace detail
+{
+
+/// Since KD-tree bulk load builds a balanced tree the maximum length of a queue
+/// can be pre-calculated: it is calculated as size of a completely filled tree
+/// layer plus the number of the nodes on a completely filled layer that have
+/// two children.
+VertInd maxQueueLengthBFSKDTree(const VertInd vertexCount)
+{
+    VertInd filledLayerPow2 = std::floor(std::log2(vertexCount)) - 1;
+    VertInd nodesInFilledTree = std::pow(2, filledLayerPow2 + 1) - 1;
+    VertInd nodesInLastFilledLayer = std::pow(2, filledLayerPow2);
+    VertInd nodesInLastLayer = vertexCount - nodesInFilledTree;
+    return nodesInLastLayer >= nodesInLastFilledLayer
+               ? nodesInLastFilledLayer + nodesInLastLayer -
+                     nodesInLastFilledLayer
+               : nodesInLastFilledLayer;
+}
+
+template <typename T>
+class FixedCapacityQueue
+{
+public:
+    FixedCapacityQueue(const std::size_t capacity)
+        : m_vec(capacity)
+        , m_front(m_vec.begin())
+        , m_back(m_vec.begin())
+        , m_size(0)
+    {}
+    bool empty() const
+    {
+        return m_size == 0;
+    }
+    const T& front() const
+    {
+        return *m_front;
+    }
+    void pop()
+    {
+        assert(m_size > 0);
+        ++m_front;
+        if(m_front == m_vec.end())
+            m_front = m_vec.begin();
+        --m_size;
+    }
+    void push(const T& t)
+    {
+        assert(m_size < m_vec.size());
+        *m_back = t;
+        ++m_back;
+        if(m_back == m_vec.end())
+            m_back = m_vec.begin();
+        ++m_size;
+    }
+#ifdef CDT_CXX11_IS_SUPPORTED
+    void push(const T&& t)
+    {
+        assert(m_size < m_vec.size());
+        *m_back = t;
+        ++m_back;
+        if(m_back == m_vec.end())
+            m_back = m_vec.begin();
+        ++m_size;
+    }
+#endif
+private:
+    std::vector<T> m_vec;
+    typename std::vector<T>::iterator m_front;
+    typename std::vector<T>::iterator m_back;
+    std::size_t m_size;
+};
+
+template <typename T>
+struct less_than_x
+{
+    less_than_x(const std::vector<V2d<T> >& vertices)
+        : vertices(vertices)
+    {}
+    bool operator()(const VertInd a, const VertInd b) const
+    {
+        return vertices[a].x < vertices[b].x;
+    }
+    const std::vector<V2d<T> >& vertices;
+};
+
+template <typename T>
+struct less_than_y
+{
+    less_than_y(const std::vector<V2d<T> >& vertices)
+        : vertices(vertices)
+    {}
+    bool operator()(const VertInd a, const VertInd b) const
+    {
+        return vertices[a].y < vertices[b].y;
+    }
+    const std::vector<V2d<T> >& vertices;
+};
+
+} // namespace detail
+
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::insertVertices_KDTreeBFS(
+    VertInd superGeomVertCount,
+    V2d<T> boxMin,
+    V2d<T> boxMax)
+{
+    // calculate original indices
+    std::size_t vertexCount = vertices.size() - superGeomVertCount;
+    std::vector<VertInd> ii(vertexCount);
+    detail::iota(ii.begin(), ii.end(), superGeomVertCount);
+
+    typedef std::vector<VertInd>::iterator It;
+    detail::FixedCapacityQueue<tuple<It, It, V2d<T>, V2d<T>, VertInd> > queue(
+        detail::maxQueueLengthBFSKDTree(vertexCount));
+//    std::queue<tuple<It, It, V2d<T>, V2d<T>, VertInd> > queue;
+    queue.push(make_tuple(ii.begin(), ii.end(), boxMin, boxMax, noVertex));
+
+    It first, last;
+    V2d<T> newBoxMin, newBoxMax;
+    VertInd parent, mid;
+
+    const detail::less_than_x<T> cmpX(vertices);
+    const detail::less_than_y<T> cmpY(vertices);
+
+    while(!queue.empty())
+    {
+        tie(first, last, boxMin, boxMax, parent) = queue.front();
+        queue.pop();
+        assert(first != last);
+
+        const std::ptrdiff_t len = std::distance(first, last);
+        if(len == 1)
+        {
+            insertVertex(*first, parent);
+            continue;
+        }
+        const It midIt = first + len / 2;
+        if(boxMax.x - boxMin.x >= boxMax.y - boxMin.y)
+        {
+            std::nth_element(first, midIt, last, cmpX);
+            mid = *midIt;
+            const T split = vertices[mid].x;
+            newBoxMin.x = split;
+            newBoxMin.y = boxMin.y;
+            newBoxMax.x = split;
+            newBoxMax.y = boxMax.y;
+        }
+        else
+        {
+            std::nth_element(first, midIt, last, cmpY);
+            mid = *midIt;
+            const T split = vertices[mid].y;
+            newBoxMin.x = boxMin.x;
+            newBoxMin.y = split;
+            newBoxMax.x = boxMax.x;
+            newBoxMax.y = split;
+        }
+        insertVertex(mid, parent);
+        if(first != midIt)
+        {
+            queue.push(make_tuple(first, midIt, boxMin, newBoxMax, mid));
+        }
+        if(midIt + 1 != last)
+        {
+            queue.push(make_tuple(midIt + 1, last, newBoxMin, boxMax, mid));
+        }
+    }
 }
 
 } // namespace CDT
