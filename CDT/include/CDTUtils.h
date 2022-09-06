@@ -246,9 +246,13 @@ typedef std::vector<Edge> EdgeVec;                ///< Vector of edges
 typedef unordered_set<Edge> EdgeUSet;             ///< Hash table of edges
 typedef unordered_set<TriInd> TriIndUSet;         ///< Hash table of triangles
 typedef unordered_map<TriInd, TriInd> TriIndUMap; ///< Triangle hash map
+
 #ifdef CDT_USE_BOOST
 /// Flat hash table of triangles
-typedef boost::container::flat_set<TriInd> TriIndFlatUSet;
+typedef boost::container::flat_set<TriInd> TriIndSmallSet;
+#else
+/// Small set of triangles
+typedef unordered_set<TriInd> TriIndSmallSet;
 #endif
 
 /// Triangulation triangle (CCW winding)
@@ -359,10 +363,6 @@ opposedTriangleInd(const Triangle& tri, VertInd iVedge1, VertInd iVedge2);
 /// Index of triangle's vertex opposed to a triangle
 CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index
 opposedVertexInd(const Triangle& tri, TriInd iTopo);
-
-/// If triangle has a given neighbor return neighbor-index, throw otherwise
-CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index
-neighborInd(const Triangle& tri, TriInd iTnbr);
 
 /// If triangle has a given vertex return vertex-index, throw otherwise
 CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index
