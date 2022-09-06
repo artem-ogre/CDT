@@ -201,15 +201,6 @@ opposedVertexInd(const Triangle& tri, const TriInd iTopo)
     throw std::runtime_error("Could not find opposed vertex index");
 }
 
-CDT_INLINE_IF_HEADER_ONLY Index
-neighborInd(const Triangle& tri, const TriInd iTnbr)
-{
-    for(Index ni = Index(0); ni < Index(3); ++ni)
-        if(iTnbr == tri.neighbors[ni])
-            return ni;
-    throw std::runtime_error("Could not find neighbor triangle index");
-}
-
 CDT_INLINE_IF_HEADER_ONLY Index vertexInd(const Triangle& tri, const VertInd iV)
 {
     for(Index i = Index(0); i < Index(3); ++i)

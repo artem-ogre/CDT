@@ -469,15 +469,21 @@ private:
         VertInd iVedge2,
         TriInd newNeighbor);
     void addAdjacentTriangle(VertInd iVertex, TriInd iTriangle);
-    void
-    addAdjacentTriangles(VertInd iVertex, TriInd iT1, TriInd iT2, TriInd iT3);
-    void addAdjacentTriangles(
-        VertInd iVertex,
-        TriInd iT1,
-        TriInd iT2,
-        TriInd iT3,
-        TriInd iT4);
+    void setAdjacentTriangles(
+        const VertInd iVertex,
+        const TriInd iT1,
+        const TriInd iT2,
+        const TriInd iT3);
+    void setAdjacentTriangles(
+        const VertInd iVertex,
+        const TriInd iT1,
+        const TriInd iT2,
+        const TriInd iT3,
+        const TriInd iT4);
     void removeAdjacentTriangle(VertInd iVertex, TriInd iTriangle);
+    /// Optimisation purpose. Change is faster than remove + add
+    void
+    changeAdjacentTriangle(VertInd iVertex, TriInd iOldTri, TriInd iNewTri);
     TriInd triangulatePseudopolygon(
         VertInd ia,
         VertInd ib,
@@ -623,7 +629,10 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
 
     const VertInd nExistingVerts = vertices.size();
 
-    vertices.reserve(nExistingVerts + std::distance(first, last));
+    const VertInd nVerts = nExistingVerts + std::distance(first, last);
+    triangles.reserve(2 * nVerts); // optimization, try to pre-allocate tris
+    vertices.reserve(nVerts);
+    vertTris.reserve(nVerts);
     for(TVertexIter it = first; it != last; ++it)
         addNewVertex(V2d<T>::make(getX(*it), getY(*it)), TriIndVec());
 

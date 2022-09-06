@@ -41,8 +41,25 @@ const VertexInsertionOrder::Enum vertexInsertionOrder =
 const IntersectingConstraintEdges::Enum intersectingEdgesStrategy =
     IntersectingConstraintEdges::Ignore;
 const float minDistToConstraintEdge(0);
+const std::size_t defaultVertexTrianglesAllocation = 10;
 
 } // namespace defaults
+
+struct SplitMix64RandGen
+{
+    typedef unsigned long long uint64;
+    uint64 m_state;
+    explicit SplitMix64RandGen(uint64 state)
+        : m_state(state)
+    {}
+    uint64 operator()()
+    {
+        uint64_t z = (m_state += 0x9e3779b97f4a7c15);
+        z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
+        z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
+        return z ^ (z >> 31);
+    }
+};
 
 } // namespace detail
 
@@ -1019,8 +1036,11 @@ Triangulation<T, TNearPointLocator>::insertVertex_FlipFixedEdges(
         {
             // if flipped edge is fixed, remember it
             const Edge flippedEdge(iV1, iV3);
-            if(fixedEdges.count(flippedEdge))
+            if(!fixedEdges.empty() &&
+               fixedEdges.find(flippedEdge) != fixedEdges.end())
+            {
                 flippedFixedEdges.push_back(flippedEdge);
+            }
 
             flipEdge(iT, iTopo);
             triStack.push(iT);
@@ -1188,8 +1208,11 @@ bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
     const VertInd iV3 = tOpo.vertices[ccw(i)];
 
     // flip not needed if the original edge is fixed
-    if(fixedEdges.count(Edge(iV1, iV3)))
+    if(!fixedEdges.empty() &&
+       fixedEdges.find(Edge(iV1, iV3)) != fixedEdges.end())
+    {
         return false;
+    }
 
     return isFlipNeeded(v, iV, iV1, iV2, iV3);
 }
@@ -1230,12 +1253,11 @@ std::stack<TriInd> Triangulation<T, TNearPointLocator>::insertPointInTriangle(
     triangles[iNewT2] = Triangle::make(arr3(v3, v1, v), arr3(n3, iT, iNewT1));
     t = Triangle::make(arr3(v1, v2, v), arr3(n1, iNewT1, iNewT2));
     // make and add a new vertex
-    addAdjacentTriangles(v, iT, iNewT1, iNewT2);
+    setAdjacentTriangles(v, iT, iNewT1, iNewT2);
     // adjust lists of adjacent triangles for v1, v2, v3
     addAdjacentTriangle(v1, iNewT2);
     addAdjacentTriangle(v2, iNewT1);
-    removeAdjacentTriangle(v3, iT);
-    addAdjacentTriangle(v3, iNewT1);
+    changeAdjacentTriangle(v3, iT, iNewT1);
     addAdjacentTriangle(v3, iNewT2);
     // change triangle neighbor's neighbors to new triangles
     changeNeighbor(n2, iT, iNewT1);
@@ -1289,16 +1311,14 @@ std::stack<TriInd> Triangulation<T, TNearPointLocator>::insertPointOnEdge(
     triangles[iTnew1] = Triangle::make(arr3(v1, v, v4), arr3(iT1, iT2, n4));
     triangles[iTnew2] = Triangle::make(arr3(v3, v, v2), arr3(iT2, iT1, n2));
     // make and add new vertex
-    addAdjacentTriangles(v, iT1, iTnew2, iT2, iTnew1);
+    setAdjacentTriangles(v, iT1, iTnew2, iT2, iTnew1);
     // adjust neighboring triangles and vertices
     changeNeighbor(n4, iT1, iTnew1);
     changeNeighbor(n2, iT2, iTnew2);
     addAdjacentTriangle(v1, iTnew1);
     addAdjacentTriangle(v3, iTnew2);
-    removeAdjacentTriangle(v2, iT2);
-    addAdjacentTriangle(v2, iTnew2);
-    removeAdjacentTriangle(v4, iT1);
-    addAdjacentTriangle(v4, iTnew1);
+    changeAdjacentTriangle(v2, iT2, iTnew2);
+    changeAdjacentTriangle(v4, iT1, iTnew1);
     // return newly added triangles
     std::stack<TriInd> newTriangles;
     newTriangles.push(iT1);
@@ -1330,6 +1350,14 @@ Triangulation<T, TNearPointLocator>::trianglesAt(const V2d<T>& pos) const
     throw std::runtime_error("No triangle was found at position");
 }
 
+// optimization to avoid allocating visited: keep the largest reserved capacity
+#ifdef CDT_CXX11_IS_SUPPORTED
+namespace detail
+{
+thread_local TriIndSmallSet visited;
+}
+#endif
+
 template <typename T, typename TNearPointLocator>
 TriInd Triangulation<T, TNearPointLocator>::walkTriangles(
     const VertInd startVertex,
@@ -1337,18 +1365,22 @@ TriInd Triangulation<T, TNearPointLocator>::walkTriangles(
 {
     // begin walk in search of triangle at pos
     TriInd currTri = vertTris[startVertex][0];
-#ifdef CDT_USE_BOOST
-    TriIndFlatUSet visited;
+#ifdef CDT_CXX11_IS_SUPPORTED
+    // optimization to avoid allocating visited:
+    // keep the largest reserved capacity
+    TriIndSmallSet& visited = detail::visited;
+    visited.clear();
 #else
-    TriIndUSet visited;
+    TriIndSmallSet visited;
 #endif
     bool found = false;
+    detail::SplitMix64RandGen prng(9001);
     while(!found)
     {
         const Triangle& t = triangles[currTri];
         found = true;
         // stochastic offset to randomize which edge we check first
-        const Index offset(detail::randGenerator() % 3);
+        const Index offset(prng() % 3);
         for(Index i_(0); i_ < Index(3); ++i_)
         {
             const Index i((i_ + offset) % 3);
@@ -1356,12 +1388,13 @@ TriInd Triangulation<T, TNearPointLocator>::walkTriangles(
             const V2d<T>& vEnd = vertices[t.vertices[ccw(i)]];
             const PtLineLocation::Enum edgeCheck =
                 locatePointLine(pos, vStart, vEnd);
-            if(edgeCheck == PtLineLocation::Right &&
-               t.neighbors[i] != noNeighbor &&
-               visited.insert(t.neighbors[i]).second)
+            const TriInd iN = t.neighbors[i];
+            if(edgeCheck == PtLineLocation::Right && iN != noNeighbor &&
+               visited.find(iN) == visited.end())
             {
                 found = false;
                 currTri = t.neighbors[i];
+                visited.insert(iN);
                 break;
             }
         }
@@ -1454,8 +1487,16 @@ void Triangulation<T, TNearPointLocator>::changeNeighbor(
 {
     if(iT == noNeighbor)
         return;
-    Triangle& t = triangles[iT];
-    t.neighbors[neighborInd(t, oldNeighbor)] = newNeighbor;
+    NeighborsArr3& nn = triangles[iT].neighbors;
+    for(NeighborsArr3::iterator nIt = nn.begin(); nIt != nn.end(); ++nIt)
+    {
+        if(*nIt == oldNeighbor)
+        {
+            *nIt = newNeighbor;
+            return;
+        }
+    }
+    throw std::runtime_error("Could not find vertex index in triangle");
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1467,21 +1508,23 @@ void Triangulation<T, TNearPointLocator>::addAdjacentTriangle(
 }
 
 template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::addAdjacentTriangles(
+void Triangulation<T, TNearPointLocator>::setAdjacentTriangles(
     const VertInd iVertex,
     const TriInd iT1,
     const TriInd iT2,
     const TriInd iT3)
 {
     TriIndVec& vTris = vertTris[iVertex];
-    vTris.reserve(vTris.size() + 3);
+    assert(vTris.empty());
+    // micro-optimization to reduce allocations with the cost of memory
+    vTris.reserve(detail::defaults::defaultVertexTrianglesAllocation);
     vTris.push_back(iT1);
     vTris.push_back(iT2);
     vTris.push_back(iT3);
 }
 
 template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::addAdjacentTriangles(
+void Triangulation<T, TNearPointLocator>::setAdjacentTriangles(
     const VertInd iVertex,
     const TriInd iT1,
     const TriInd iT2,
@@ -1489,7 +1532,9 @@ void Triangulation<T, TNearPointLocator>::addAdjacentTriangles(
     const TriInd iT4)
 {
     TriIndVec& vTris = vertTris[iVertex];
-    vTris.reserve(vTris.size() + 4);
+    assert(vTris.empty());
+    // micro-optimization to reduce allocations with the cost of memory
+    vTris.reserve(detail::defaults::defaultVertexTrianglesAllocation);
     vTris.push_back(iT1);
     vTris.push_back(iT2);
     vTris.push_back(iT3);
@@ -1502,7 +1547,31 @@ void Triangulation<T, TNearPointLocator>::removeAdjacentTriangle(
     const TriInd iTriangle)
 {
     std::vector<TriInd>& tris = vertTris[iVertex];
-    tris.erase(std::find(tris.begin(), tris.end(), iTriangle));
+    // do the "unstable erase" by putting last element into removed and popping
+    // the back that changes order of triangles but is faster than find+erase
+    const std::vector<TriInd>::iterator it =
+        std::find(tris.begin(), tris.end(), iTriangle);
+    assert(it != tris.end());
+    *it = tris.back();
+    tris.pop_back();
+}
+
+// change is faster than remove + add
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::changeAdjacentTriangle(
+    VertInd iVertex,
+    TriInd iOldTri,
+    TriInd iNewTri)
+{
+    std::vector<TriInd>& tris = vertTris[iVertex];
+    for(std::vector<TriInd>::iterator it = tris.begin(); it != tris.end(); ++it)
+    {
+        if(*it == iOldTri)
+        {
+            *it = iNewTri;
+            return;
+        }
+    }
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1824,7 +1893,6 @@ void Triangulation<T, TNearPointLocator>::insertVertices_KDTreeBFS(
     typedef std::vector<VertInd>::iterator It;
     detail::FixedCapacityQueue<tuple<It, It, V2d<T>, V2d<T>, VertInd> > queue(
         detail::maxQueueLengthBFSKDTree(vertexCount));
-//    std::queue<tuple<It, It, V2d<T>, V2d<T>, VertInd> > queue;
     queue.push(make_tuple(ii.begin(), ii.end(), boxMin, boxMax, noVertex));
 
     It first, last;
