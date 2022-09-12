@@ -34,7 +34,7 @@ bool operator<(const Edge& lhs, const Edge& rhs)
 
 bool operator<(const Triangle& lhs, const Triangle& rhs)
 {
-    for(Index i = 0; i < Index(3); ++i)
+    for(Index i(0); i < Index(3); ++i)
     {
         if(lhs.vertices[i] == rhs.vertices[i])
             continue;
@@ -192,7 +192,7 @@ TEMPLATE_LIST_TEST_CASE("Triangulation Tests", "", CoordTypes)
     SECTION("Edges have indices offsetted by 3 because of super-triangle")
     {
         const auto edges = extractAllEdges(cdt);
-        REQUIRE(edges.count(Edge(1 + 3, 3 + 3)));
+        REQUIRE(edges.count(Edge(VertInd(1 + 3), VertInd(3 + 3))));
     }
     SECTION(
         "Erasing super-triangle affects indices in edges and triangle count")
@@ -201,11 +201,11 @@ TEMPLATE_LIST_TEST_CASE("Triangulation Tests", "", CoordTypes)
         REQUIRE(CDT::verifyTopology(cdt));
         REQUIRE(cdt.triangles.size() == std::size_t(2));
         const auto edges = extractAllEdges(cdt);
-        REQUIRE(edges.count(Edge(1, 3)));
+        REQUIRE(edges.count(Edge(VertInd(1), VertInd(3))));
     }
     SECTION("Adding a constraint edge")
     {
-        const auto constraintEdge = Edge(0, 2);
+        const auto constraintEdge = Edge(VertInd(0), VertInd(2));
         cdt.insertEdges(std::vector<Edge>{constraintEdge});
         cdt.eraseSuperTriangle();
         REQUIRE(CDT::verifyTopology(cdt));
@@ -224,12 +224,12 @@ namespace
 Triangle makeSmallestIndexFirst(const Triangle& t)
 {
     const auto& vv = t.vertices;
-    const Index iStart =
-        vv[0] < vv[1] ? (vv[0] < vv[2] ? 0 : 2) : (vv[1] < vv[2] ? 1 : 2);
+    const Index iStart = vv[0] < vv[1] ? Index(vv[0] < vv[2] ? 0 : 2)
+                                       : Index(vv[1] < vv[2] ? 1 : 2);
     Triangle out;
-    for(Index i = 0; i < Index(3); ++i)
+    for(Index i(0); i < Index(3); ++i)
     {
-        const Index j = (iStart + i) % 3;
+        const auto j = Index((iStart + i) % 3);
         out.vertices[i] = t.vertices[j];
         out.neighbors[i] = t.neighbors[j];
     }
@@ -558,7 +558,9 @@ TEMPLATE_LIST_TEST_CASE(
         if(updateFiles)
             topologyToFile(outFile, cdt);
         else
+        {
             REQUIRE(topologyString(cdt) == topologyString(outFile));
+        }
     }
     SECTION("Erase super-triangle")
     {
@@ -692,40 +694,74 @@ TEMPLATE_LIST_TEST_CASE("Ground truth tests: crossing edges", "", CoordTypes)
 
 TEMPLATE_LIST_TEST_CASE("Benchmarks", "[benchmark][.]", CoordTypes)
 {
-    Vertices<TestType> vv;
-    std::vector<Edge> ee;
     SECTION("Constrained Sweden")
     {
-        std::tie(vv, ee) =
+        const auto [vv, ee] =
             readInputFromFile<TestType>("inputs/Constrained Sweden.txt");
+        BENCHMARK("Constrained Sweden (vertices)")
+        {
+            auto cdt = Triangulation<TestType>();
+            cdt.insertVertices(vv);
+        };
+        BENCHMARK("Constrained Sweden (vertices): KDTree")
+        {
+            auto cdt = Triangulation<TestType>(VertexInsertionOrder::KdTreeBFS);
+            cdt.insertVertices(vv);
+        };
         BENCHMARK("Constrained Sweden")
         {
             auto cdt = Triangulation<TestType>();
             cdt.insertVertices(vv);
             cdt.insertEdges(ee);
         };
-        BENCHMARK("Constrained Sweden: kd-tree BFS")
+        BENCHMARK("Constrained Sweden: KDTree")
         {
             auto cdt = Triangulation<TestType>(VertexInsertionOrder::KdTreeBFS);
             cdt.insertVertices(vv);
             cdt.insertEdges(ee);
         };
     }
-    SECTION("Long line")
+    SECTION("Corridor")
     {
-        std::tie(vv, ee) =
+        const auto [vv, ee] =
             readInputFromFile<TestType>("inputs/long-narrow-stripe.txt");
-        BENCHMARK("Long line")
+        BENCHMARK("Corridor (vertices)")
+        {
+            auto cdt = Triangulation<TestType>();
+            cdt.insertVertices(vv);
+        };
+        BENCHMARK("Corridor (vertices): KDTree")
+        {
+            auto cdt = Triangulation<TestType>(VertexInsertionOrder::KdTreeBFS);
+            cdt.insertVertices(vv);
+        };
+
+        BENCHMARK("Corridor")
         {
             auto cdt = Triangulation<TestType>();
             cdt.insertVertices(vv);
             cdt.insertEdges(ee);
         };
-        BENCHMARK("Long line: kd-tree BFS")
+        BENCHMARK("Corridor: KDTree")
         {
             auto cdt = Triangulation<TestType>(VertexInsertionOrder::KdTreeBFS);
             cdt.insertVertices(vv);
             cdt.insertEdges(ee);
+        };
+    }
+    SECTION("Tmp")
+    {
+        auto [vv, ee] = readInputFromFile<TestType>("inputs/tmp.txt");
+        CDT::RemoveDuplicates(vv);
+        BENCHMARK("Tmp (vertices)")
+        {
+            auto cdt = Triangulation<TestType>();
+            cdt.insertVertices(vv);
+        };
+        BENCHMARK("Tmp (vertices): KDTree")
+        {
+            auto cdt = Triangulation<TestType>(VertexInsertionOrder::KdTreeBFS);
+            cdt.insertVertices(vv);
         };
     }
 }

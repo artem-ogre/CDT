@@ -89,7 +89,7 @@ void generateGridVertices(
                 vTris.push_back(static_cast<TriInd>(2 * (i - xres) + 1));
             }
 #ifdef CDT_CXX11_IS_SUPPORTED
-            *outTrisFirst++ = std::move(vTris);
+            *outTrisFirst++ = std::move(vTris.front());
 #else
             *outTrisFirst++ = vTris;
 #endif
@@ -122,21 +122,25 @@ void generateGridTriangles(
             // 0   1       v1  n1  v2
             const IndexSizeType i = iy * xres + ix;
             const IndexSizeType iv = iy * (xres + 1) + ix;
-            const VertInd vv[4] = {iv, iv + 1, iv + xres + 1, iv + xres + 2};
+            const VertInd vv[4] = {
+                VertInd(iv),
+                VertInd(iv + 1),
+                VertInd(iv + xres + 1),
+                VertInd(iv + xres + 2)};
             {
                 const Triangle t = {
                     {vv[0], vv[1], vv[2]},
-                    {iy ? 2 * i - xres * 2 + 1 : noNeighbor,
-                     2 * i + 1,
-                     ix ? 2 * i - 1 : noNeighbor}};
+                    {TriInd(iy ? 2 * i - xres * 2 + 1 : noNeighbor),
+                     TriInd(2 * i + 1),
+                     TriInd(ix ? 2 * i - 1 : noNeighbor)}};
                 *outFirst++ = t;
             }
             {
                 const Triangle t = {
                     {vv[1], vv[3], vv[2]},
-                    {ix < xres - 1 ? 2 * i + 2 : noNeighbor,
-                     iy < yres - 1 ? 2 * i + xres * 2 : noNeighbor,
-                     2 * i}};
+                    {TriInd(ix < xres - 1 ? 2 * i + 2 : noNeighbor),
+                     TriInd(iy < yres - 1 ? 2 * i + xres * 2 : noNeighbor),
+                     TriInd(2 * i)}};
                 *outFirst++ = t;
             }
         }

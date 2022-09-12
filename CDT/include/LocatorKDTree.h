@@ -38,7 +38,7 @@ public:
             max = V2d_t::make(std::max(max.x, it->x), std::max(max.y, it->y));
         }
         m_kdTree = KDTree_t(min, max);
-        for(VertInd i = 0; i < points.size(); ++i)
+        for(VertInd i(0); i < points.size(); ++i)
         {
             m_kdTree.insert(i, points);
         }

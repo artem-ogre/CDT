@@ -170,35 +170,46 @@ CDT_INLINE_IF_HEADER_ONLY Index opoVrt(const Index neighborIndex)
 }
 
 CDT_INLINE_IF_HEADER_ONLY Index
-opposedTriangleInd(const Triangle& tri, const VertInd iVert)
+opposedTriangleInd(const VerticesArr3& vv, const VertInd iVert)
 {
-    for(Index vi = Index(0); vi < Index(3); ++vi)
-        if(iVert == tri.vertices[vi])
-            return opoNbr(vi);
-    throw std::runtime_error("Could not find opposed triangle index");
+    assert(vv[0] == iVert || vv[1] == iVert || vv[2] == iVert);
+    if(vv[0] == iVert)
+        return Index(1);
+    else if(vv[1] == iVert)
+        return Index(2);
+    else
+        return Index(0);
 }
 
 CDT_INLINE_IF_HEADER_ONLY Index opposedTriangleInd(
-    const Triangle& tri,
+    const VerticesArr3& vv,
     const VertInd iVedge1,
     const VertInd iVedge2)
 {
-    for(Index vi = Index(0); vi < Index(3); ++vi)
-    {
-        const VertInd iVert = tri.vertices[vi];
-        if(iVert != iVedge1 && iVert != iVedge2)
-            return opoNbr(vi);
-    }
-    throw std::runtime_error("Could not find opposed-to-edge triangle index");
+    assert(vv[0] == iVedge1 || vv[1] == iVedge1 || vv[2] == iVedge1);
+    assert(vv[0] == iVedge2 || vv[1] == iVedge2 || vv[2] == iVedge2);
+    assert(
+        (vv[0] != iVedge1 && vv[0] != iVedge2) ||
+        (vv[1] != iVedge1 && vv[1] != iVedge2) ||
+        (vv[2] != iVedge1 && vv[2] != iVedge2));
+    if(vv[0] != iVedge1 && vv[0] != iVedge2)
+        return Index(1);
+    else if(vv[1] != iVedge1 && vv[1] != iVedge2)
+        return Index(2);
+    else
+        return Index(0);
 }
 
 CDT_INLINE_IF_HEADER_ONLY Index
-opposedVertexInd(const Triangle& tri, const TriInd iTopo)
+opposedVertexInd(const NeighborsArr3& nn, const TriInd iTopo)
 {
-    for(Index ni = Index(0); ni < Index(3); ++ni)
-        if(iTopo == tri.neighbors[ni])
-            return opoVrt(ni);
-    throw std::runtime_error("Could not find opposed vertex index");
+    assert(nn[0] == iTopo || nn[1] == iTopo || nn[2] == iTopo);
+    if(nn[0] == iTopo)
+        return Index(2);
+    else if(nn[1] == iTopo)
+        return Index(0);
+    else
+        return Index(1);
 }
 
 CDT_INLINE_IF_HEADER_ONLY Index vertexInd(const Triangle& tri, const VertInd iV)
@@ -212,13 +223,13 @@ CDT_INLINE_IF_HEADER_ONLY Index vertexInd(const Triangle& tri, const VertInd iV)
 CDT_INLINE_IF_HEADER_ONLY TriInd
 opposedTriangle(const Triangle& tri, const VertInd iVert)
 {
-    return tri.neighbors[opposedTriangleInd(tri, iVert)];
+    return tri.neighbors[opposedTriangleInd(tri.vertices, iVert)];
 }
 
 CDT_INLINE_IF_HEADER_ONLY VertInd
 opposedVertex(const Triangle& tri, const TriInd iTopo)
 {
-    return tri.vertices[opposedVertexInd(tri, iTopo)];
+    return tri.vertices[opposedVertexInd(tri.neighbors, iTopo)];
 }
 
 template <typename T>
