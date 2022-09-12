@@ -33,6 +33,10 @@ option(CDT_ENABLE_TESTING
     "If enabled tests target will ge generated)"
     OFF)
 
+option(CDT_USE_STRONG_TYPING
+    "If enabled uses strong typing for types: useful for development and debugging"
+    OFF)
+
 # check if Boost is needed
 if(cxx_std_11 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
     # Work-around as AppleClang 11 defaults to c++98 by default
@@ -49,6 +53,7 @@ message(STATUS "CDT_USE_BOOST is ${CDT_USE_BOOST}")
 message(STATUS "CDT_USE_AS_COMPILED_LIBRARY is ${CDT_USE_AS_COMPILED_LIBRARY}")
 message(STATUS "CDT_USE_64_BIT_INDEX_TYPE is ${CDT_USE_64_BIT_INDEX_TYPE}")
 message(STATUS "CDT_ENABLE_TESTING is ${CDT_ENABLE_TESTING}")
+message(STATUS "CDT_USE_STRONG_TYPING is ${CDT_USE_STRONG_TYPING}")
 
 # Use boost for c++98 versions of c++11 containers or for Boost::rtree
 if(CDT_USE_BOOST)
@@ -124,9 +129,10 @@ target_include_directories(
 target_compile_definitions(
     ${PROJECT_NAME}
     ${cdt_scope}
-    $<$<BOOL:${CDT_USE_BOOST}>:CDT_USE_BOOST>
-    $<$<BOOL:${CDT_USE_AS_COMPILED_LIBRARY}>:CDT_USE_AS_COMPILED_LIBRARY>
-    $<$<BOOL:${CDT_USE_64_BIT_INDEX_TYPE}>:CDT_USE_64_BIT_INDEX_TYPE>
+        $<$<BOOL:${CDT_USE_BOOST}>:CDT_USE_BOOST>
+        $<$<BOOL:${CDT_USE_AS_COMPILED_LIBRARY}>:CDT_USE_AS_COMPILED_LIBRARY>
+        $<$<BOOL:${CDT_USE_64_BIT_INDEX_TYPE}>:CDT_USE_64_BIT_INDEX_TYPE>
+        $<$<BOOL:${CDT_USE_STRONG_TYPING}>:CDT_USE_STRONG_TYPING>
 )
 
 if(CDT_USE_BOOST)
