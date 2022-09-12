@@ -22,7 +22,7 @@ CDT_INLINE_IF_HEADER_ONLY VerticesTriangles calculateTrianglesByVertex(
     const VertInd verticesSize)
 {
     VerticesTriangles vertTris(verticesSize);
-    for(TriInd iT = 0; iT < triangles.size(); ++iT)
+    for(TriInd iT(0); iT < triangles.size(); ++iT)
     {
         const VerticesArr3& vv = triangles[iT].vertices;
         for(VerticesArr3::const_iterator v = vv.begin(); v != vv.end(); ++v)

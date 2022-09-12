@@ -86,9 +86,6 @@ struct CDT_EXPORT IntersectingConstraintEdges
 typedef unsigned short LayerDepth;
 typedef LayerDepth BoundaryOverlapCount;
 
-/// Triangles by vertex index
-typedef std::vector<TriIndVec> VerticesTriangles;
-
 /**
  * @defgroup Triangulation Triangulation Class
  * Class performing triangulations.
@@ -117,7 +114,7 @@ public:
      * triangulation is finalized. To re-calculate adjacent triangles use
      * CDT::calculateTrianglesByVertex helper
      */
-    VerticesTriangles vertTris;
+    TriIndVec vertTris;
 
     /** Stores count of overlapping boundaries for a fixed edge. If no entry is
      * present for an edge: no boundaries overlap.
@@ -351,7 +348,7 @@ public:
 private:
     /*____ Detail __*/
     void addSuperTriangle(const Box2d<T>& box);
-    void addNewVertex(const V2d<T>& pos, const TriIndVec& tris);
+    void addNewVertex(const V2d<T>& pos, TriInd iT);
     void insertVertex(VertInd iVert);
     void insertVertex(VertInd iVert, VertInd walkStart);
     void ensureDelaunayByEdgeFlips(
@@ -363,7 +360,7 @@ private:
 
     typedef std::vector<VertInd>::const_iterator VertIndCit;
     /// State for an iteration of triangulate pseudo-polygon
-    typedef tuple<VertInd, VertInd, VertIndCit, VertIndCit, TriInd>
+    typedef tuple<VertIndCit, VertIndCit, TriInd, TriInd, Index>
         TriangulatePseudopolygonTask;
 
     /**
@@ -442,7 +439,6 @@ private:
 
     tuple<TriInd, VertInd, VertInd> intersectedTriangle(
         VertInd iA,
-        const std::vector<TriInd>& candidates,
         const V2d<T>& a,
         const V2d<T>& b,
         T orientationTolerance = T(0)) const;
@@ -468,35 +464,16 @@ private:
         VertInd iVedge1,
         VertInd iVedge2,
         TriInd newNeighbor);
-    void addAdjacentTriangle(VertInd iVertex, TriInd iTriangle);
-    void setAdjacentTriangles(
-        const VertInd iVertex,
-        const TriInd iT1,
-        const TriInd iT2,
-        const TriInd iT3);
-    void setAdjacentTriangles(
-        const VertInd iVertex,
-        const TriInd iT1,
-        const TriInd iT2,
-        const TriInd iT3,
-        const TriInd iT4);
-    void removeAdjacentTriangle(VertInd iVertex, TriInd iTriangle);
-    /// Optimisation purpose. Change is faster than remove + add
-    void
-    changeAdjacentTriangle(VertInd iVertex, TriInd iOldTri, TriInd iNewTri);
-    TriInd triangulatePseudopolygon(
-        VertInd ia,
-        VertInd ib,
-        std::vector<VertInd>::const_iterator pointsFirst,
-        std::vector<VertInd>::const_iterator pointsLast,
-        TriInd parent,
+    void triangulatePseudopolygon(
+        const std::vector<VertInd>& poly,
+        TriInd iT,
+        TriInd iN,
+        std::vector<TriangulatePseudopolygonTask>& iterations);
+    void triangulatePseudopolygonIteration(
         std::vector<TriangulatePseudopolygonTask>& iterations);
     std::vector<VertInd>::const_iterator findDelaunayPoint(
-        const V2d<T>& a,
-        const V2d<T>& b,
-        std::vector<VertInd>::const_iterator pointsFirst,
-        std::vector<VertInd>::const_iterator pointsLast) const;
-    TriInd pseudopolyOuterTriangle(VertInd ia, VertInd ib) const;
+        std::vector<VertInd>::const_iterator first,
+        std::vector<VertInd>::const_iterator last) const;
     TriInd addTriangle(const Triangle& t); // note: invalidates iterators!
     TriInd addTriangle(); // note: invalidates triangle iterators!
     /**
@@ -548,6 +525,9 @@ private:
         VertInd superGeomVertCount,
         V2d<T> boxMin,
         V2d<T> boxMax);
+    bool hasEdge(VertInd a, VertInd b) const;
+    TriInd edgeTriangle(VertInd a, VertInd b) const;
+    void setVertexTriangle(VertInd v, TriInd t);
 
     std::vector<TriInd> m_dummyTris;
     TNearPointLocator m_nearPtLocator;
@@ -627,14 +607,14 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
         addSuperTriangle(box);
     }
 
-    const VertInd nExistingVerts = vertices.size();
+    const VertInd nExistingVerts(vertices.size());
 
-    const VertInd nVerts = nExistingVerts + std::distance(first, last);
+    const VertInd nVerts(nExistingVerts + std::distance(first, last));
     triangles.reserve(2 * nVerts); // optimization, try to pre-allocate tris
     vertices.reserve(nVerts);
     vertTris.reserve(nVerts);
     for(TVertexIter it = first; it != last; ++it)
-        addNewVertex(V2d<T>::make(getX(*it), getY(*it)), TriIndVec());
+        addNewVertex(V2d<T>::make(getX(*it), getY(*it)), noNeighbor);
 
     switch(m_vertexInsertionOrder)
     {

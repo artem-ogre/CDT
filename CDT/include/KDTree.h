@@ -62,7 +62,7 @@ public:
         /// Create empty leaf
         Node()
         {
-            setChildren(0, 0);
+            setChildren(node_index(0), node_index(0));
             data.reserve(NumVerticesInLeaf);
         }
         /// Children setter for convenience
