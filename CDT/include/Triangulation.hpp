@@ -139,7 +139,8 @@ void Triangulation<T, TNearPointLocator>::eraseDummies()
     triangles.erase(triangles.end() - dummySet.size(), triangles.end());
 
     // remap adjacent triangle indices for vertices
-    for(TriIndVec::iterator iT = vertTris.begin(); iT != vertTris.end(); ++iT)
+    for(TriIndVec::iterator iT = m_vertTris.begin(); iT != m_vertTris.end();
+        ++iT)
     {
         *iT = triIndMap[*iT];
     }
@@ -174,7 +175,8 @@ template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::eraseOuterTriangles()
 {
     // make dummy triangles adjacent to super-triangle's vertices
-    const std::stack<TriInd> seed(std::deque<TriInd>(1, vertTris[0]));
+    assert(m_vertTris[0] != noNeighbor);
+    const std::stack<TriInd> seed(std::deque<TriInd>(1, m_vertTris[0]));
     const TriIndUSet toErase = growToBoundary(seed);
     finalizeTriangulation(toErase);
 }
@@ -217,7 +219,6 @@ void Triangulation<T, TNearPointLocator>::removeTriangles(
     }
     triangles.erase(triangles.end() - removedTriangles.size(), triangles.end());
     // adjust triangles' neighbors
-    vertTris = TriIndVec();
     for(TriInd iT(0); iT < triangles.size(); ++iT)
     {
         Triangle& t = triangles[iT];
@@ -236,18 +237,22 @@ void Triangulation<T, TNearPointLocator>::removeTriangles(
         }
     }
 }
+template <typename T, typename TNearPointLocator>
+TriIndVec& Triangulation<T, TNearPointLocator>::VertTrisInternal()
+{
+    return m_vertTris;
+}
 
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::finalizeTriangulation(
     const TriIndUSet& removedTriangles)
 {
     eraseDummies();
+    m_vertTris = TriIndVec();
     // remove super-triangle
     if(m_superGeomType == SuperGeometryType::SuperTriangle)
     {
         vertices.erase(vertices.begin(), vertices.begin() + 3);
-        if(removedTriangles.empty())
-            vertTris.erase(vertTris.begin(), vertTris.begin() + 3);
         // Edge re-mapping
         { // fixed edges
             EdgeUSet updatedFixedEdges;
@@ -345,7 +350,7 @@ void Triangulation<T, TNearPointLocator>::makeDummy(const TriInd iT)
         ++it)
     {
         // if necessary rotate vertex's triangle
-        if(vertTris[*it] == iT)
+        if(m_vertTris[*it] == iT)
         {
             TriInd candidate = t.next(*it).first;
             if(candidate != noNeighbor)
@@ -359,7 +364,7 @@ void Triangulation<T, TNearPointLocator>::makeDummy(const TriInd iT)
                 setVertexTriangle(*it, candidate);
                 continue;
             }
-            vertTris[*it] = noNeighbor;
+            m_vertTris[*it] = noNeighbor;
         }
     }
     for(NeighborsArr3::const_iterator it = t.neighbors.begin();
@@ -920,7 +925,7 @@ Triangulation<T, TNearPointLocator>::intersectedTriangle(
     const T orientationTolerance) const
 {
     typedef std::vector<TriInd>::const_iterator TriIndCit;
-    const TriInd startTri = vertTris[iA];
+    const TriInd startTri = m_vertTris[iA];
     TriInd iT = startTri;
     do
     {
@@ -1003,7 +1008,7 @@ void Triangulation<T, TNearPointLocator>::addNewVertex(
     const TriInd iT)
 {
     vertices.push_back(pos);
-    vertTris.push_back(iT);
+    m_vertTris.push_back(iT);
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1374,7 +1379,7 @@ TriInd Triangulation<T, TNearPointLocator>::walkTriangles(
     const V2d<T>& pos) const
 {
     // begin walk in search of triangle at pos
-    TriInd currTri = vertTris[startVertex];
+    TriInd currTri = m_vertTris[startVertex];
 #ifdef CDT_CXX11_IS_SUPPORTED
     // optimization to avoid allocating visited:
     // keep the largest reserved capacity
@@ -1581,7 +1586,7 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudopolygonIteration(
     t.neighbors[0] = iParent;
     t.vertices = detail::arr3(*first, *(last - 1), *dPt);
     // only if Delaunay point is hanging, otherwise triangle is valid already
-    if(vertTris[*dPt] == noNeighbor)
+    if(m_vertTris[*dPt] == noNeighbor)
     {
         // needs to be done at the end not to affect finding edge triangles
         setVertexTriangle(*dPt, iT);
@@ -1625,7 +1630,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
 template <typename T, typename TNearPointLocator>
 bool Triangulation<T, TNearPointLocator>::isFinalized() const
 {
-    return vertTris.empty() && !vertices.empty();
+    return m_vertTris.empty() && !vertices.empty();
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1671,7 +1676,7 @@ Triangulation<T, TNearPointLocator>::calculateTriangleDepths() const
 {
     std::vector<LayerDepth> triDepths(
         triangles.size(), std::numeric_limits<LayerDepth>::max());
-    std::stack<TriInd> seeds(TriDeque(1, vertTris[0]));
+    std::stack<TriInd> seeds(TriDeque(1, m_vertTris[0]));
     LayerDepth layerDepth = 0;
     LayerDepth deepestSeedDepth = 0;
 
@@ -1894,7 +1899,7 @@ bool Triangulation<T, TNearPointLocator>::hasEdge(
     const VertInd a,
     const VertInd b) const
 {
-    const TriInd triStart = vertTris[a];
+    const TriInd triStart = m_vertTris[a];
     assert(triStart != noNeighbor);
     TriInd iT = triStart;
     VertInd iV = noVertex;
@@ -1914,9 +1919,9 @@ TriInd Triangulation<T, TNearPointLocator>::edgeTriangle(
     const VertInd a,
     const VertInd b) const
 {
-    if(vertTris[a] == noNeighbor || vertTris[b] == noNeighbor)
+    if(m_vertTris[a] == noNeighbor || m_vertTris[b] == noNeighbor)
         return noNeighbor;
-    const TriInd triStart = vertTris[a];
+    const TriInd triStart = m_vertTris[a];
     assert(triStart != noNeighbor);
     // clockwise search
     TriInd iT = triStart;
@@ -1959,7 +1964,7 @@ void Triangulation<T, TNearPointLocator>::setVertexTriangle(
     const TriInd t)
 {
     assert(t != noNeighbor);
-    vertTris[v] = t;
+    m_vertTris[v] = t;
     assert(
         triangles[t].vertices[0] == v || triangles[t].vertices[1] == v ||
         triangles[t].vertices[2] == v);
