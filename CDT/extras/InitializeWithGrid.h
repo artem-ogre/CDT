@@ -222,10 +222,10 @@ void initializeWithIrregularGrid(
     const std::size_t yres = std::distance(yfirst, ylast) - 1;
     out.triangles.reserve(xres * yres * 2);
     out.vertices.reserve((xres + 1) * (yres + 1));
-    out.vertTris.reserve((xres + 1) * (yres + 1));
+    out.VertTrisInternal().reserve((xres + 1) * (yres + 1));
     detail::generateGridVertices(
         std::back_inserter(out.vertices),
-        std::back_inserter(out.vertTris),
+        std::back_inserter(out.VertTrisInternal()),
         xfirst,
         xlast,
         yfirst,

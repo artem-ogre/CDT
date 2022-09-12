@@ -108,13 +108,6 @@ public:
     V2dVec vertices;                     ///< triangulation's vertices
     TriangleVec triangles;               ///< triangulation's triangles
     EdgeUSet fixedEdges; ///< triangulation's constraints (fixed edges)
-    /**
-     * triangles adjacent to each vertex
-     * @note will be reset to empty when super-triangle is removed and
-     * triangulation is finalized. To re-calculate adjacent triangles use
-     * CDT::calculateTrianglesByVertex helper
-     */
-    TriIndVec vertTris;
 
     /** Stores count of overlapping boundaries for a fixed edge. If no entry is
      * present for an edge: no boundaries overlap.
@@ -343,6 +336,9 @@ public:
      * @param removedTriangles indices of triangles to remove
      */
     void removeTriangles(const TriIndUSet& removedTriangles);
+
+    /// Access internal vertex adjacent triangles
+    TriIndVec& VertTrisInternal();
     /// @}
 
 private:
@@ -536,6 +532,7 @@ private:
     VertexInsertionOrder::Enum m_vertexInsertionOrder;
     IntersectingConstraintEdges::Enum m_intersectingEdgesStrategy;
     T m_minDistToConstraintEdge;
+    TriIndVec m_vertTris; /// one triangle adjacent to each vertex
 };
 
 /// @}
@@ -612,7 +609,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
     const VertInd nVerts(nExistingVerts + std::distance(first, last));
     triangles.reserve(2 * nVerts); // optimization, try to pre-allocate tris
     vertices.reserve(nVerts);
-    vertTris.reserve(nVerts);
+    m_vertTris.reserve(nVerts);
     for(TVertexIter it = first; it != last; ++it)
         addNewVertex(V2d<T>::make(getX(*it), getY(*it)), noNeighbor);
 
