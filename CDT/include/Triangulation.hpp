@@ -45,22 +45,6 @@ const std::size_t defaultVertexTrianglesAllocation = 10;
 
 } // namespace defaults
 
-struct SplitMix64RandGen
-{
-    typedef unsigned long long uint64;
-    uint64 m_state;
-    explicit SplitMix64RandGen(uint64 state)
-        : m_state(state)
-    {}
-    uint64 operator()()
-    {
-        uint64_t z = (m_state += 0x9e3779b97f4a7c15);
-        z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
-        z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
-        return z ^ (z >> 31);
-    }
-};
-
 } // namespace detail
 
 template <typename T, typename TNearPointLocator>
@@ -1389,7 +1373,7 @@ TriInd Triangulation<T, TNearPointLocator>::walkTriangles(
     TriIndSmallSet visited;
 #endif
     bool found = false;
-    detail::SplitMix64RandGen prng(9001);
+    detail::SplitMix64RandGen prng;
     while(!found)
     {
         const Triangle& t = triangles[currTri];
