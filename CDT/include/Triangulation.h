@@ -541,16 +541,35 @@ private:
 namespace detail
 {
 
-static mt19937 randGenerator(9001);
+/// SplitMix64  pseudo-random number generator
+struct SplitMix64RandGen
+{
+    typedef unsigned long long uint64;
+    uint64 m_state;
+    explicit SplitMix64RandGen(uint64 state)
+        : m_state(state)
+    {}
+    explicit SplitMix64RandGen()
+        : m_state(0)
+    {}
+    uint64 operator()()
+    {
+        uint64_t z = (m_state += 0x9e3779b97f4a7c15);
+        z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
+        z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
+        return z ^ (z >> 31);
+    }
+};
 
 template <class RandomIt>
 void random_shuffle(RandomIt first, RandomIt last)
 {
+    detail::SplitMix64RandGen prng;
     typename std::iterator_traits<RandomIt>::difference_type i, n;
     n = last - first;
     for(i = n - 1; i > 0; --i)
     {
-        std::swap(first[i], first[randGenerator() % (i + 1)]);
+        std::swap(first[i], first[prng() % (i + 1)]);
     }
 }
 
@@ -596,7 +615,6 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
                                  "vertices can only be called once");
     }
 
-    detail::randGenerator.seed(9001); // ensure deterministic behavior
     Box2d<T> box;
     if(isFirstTime)
     {
