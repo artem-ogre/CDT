@@ -429,7 +429,7 @@ TEMPLATE_LIST_TEST_CASE(
     const auto [vv, ee] =
         readInputFromFile<TestType>("inputs/corner cases.txt");
     auto cdt = Triangulation<TestType>(
-        CDT::VertexInsertionOrder::Randomized,
+        CDT::VertexInsertionOrder::Auto,
         CDT::IntersectingConstraintEdges::Resolve,
         0.);
     cdt.insertVertices(vv);
@@ -462,10 +462,8 @@ std::string to_string(const VertexInsertionOrder::Enum& vio)
     {
     case VertexInsertionOrder::AsProvided:
         return "as-provided";
-    case VertexInsertionOrder::Randomized:
-        return "randomized";
-    case VertexInsertionOrder::KdTreeBFS:
-        return "kdtree-bfs";
+    case VertexInsertionOrder::Auto:
+        return "auto";
     }
     ENHANCED_THROW(std::runtime_error, "Reached unreachable");
 }
@@ -528,8 +526,8 @@ TEMPLATE_LIST_TEST_CASE(
             ? sizeof(TestType) == sizeof(double) ? "f64_" : "f32_"
             : "";
 
-    const auto order = GENERATE(
-        VertexInsertionOrder::AsProvided, VertexInsertionOrder::Randomized);
+    const auto order =
+        GENERATE(VertexInsertionOrder::AsProvided, VertexInsertionOrder::Auto);
     const auto intersectingEdgesStrategy = GENERATE(
         IntersectingConstraintEdges::Ignore,
         IntersectingConstraintEdges::Resolve);
@@ -625,7 +623,7 @@ TEMPLATE_LIST_TEST_CASE(
             ? sizeof(TestType) == sizeof(double) ? "f64_" : "f32_"
             : "";
 
-    const auto order = VertexInsertionOrder::Randomized;
+    const auto order = VertexInsertionOrder::Auto;
     const auto intersectingEdgesStrategy = IntersectingConstraintEdges::Ignore;
     const auto minDistToConstraintEdge = 0.;
 
@@ -662,7 +660,7 @@ TEMPLATE_LIST_TEST_CASE("Ground truth tests: crossing edges", "", CoordTypes)
 {
     const auto inputFile = std::string("crossing-edges.txt");
 
-    const auto order = VertexInsertionOrder::Randomized;
+    const auto order = VertexInsertionOrder::Auto;
     const auto intersectingEdgesStrategy = IntersectingConstraintEdges::Resolve;
     const auto minDistToConstraintEdge = 0.;
 
@@ -694,6 +692,33 @@ TEMPLATE_LIST_TEST_CASE("Ground truth tests: crossing edges", "", CoordTypes)
     }
 }
 
+TEMPLATE_LIST_TEST_CASE("Inserting vertices in two batches", "", CoordTypes)
+{
+    const auto [vv, ee] =
+        readInputFromFile<TestType>("inputs/Constrained Sweden.txt");
+    auto cdt = Triangulation<TestType>(
+        CDT::VertexInsertionOrder::Auto,
+        CDT::IntersectingConstraintEdges::Resolve,
+        0.);
+    cdt.insertVertices(vv);
+    cdt.insertEdges(ee);
+    cdt.eraseOuterTrianglesAndHoles();
+
+    const auto halfSize = vv.size() / 2;
+    const auto vv_lo = Vertices<TestType>(vv.begin(), vv.begin() + halfSize);
+    const auto vv_hi = Vertices<TestType>(vv.begin() + halfSize, vv.end());
+    auto cdtBatches = Triangulation<TestType>(
+        CDT::VertexInsertionOrder::Auto,
+        CDT::IntersectingConstraintEdges::Resolve,
+        0.);
+    cdtBatches.insertVertices(vv_lo);
+    cdtBatches.insertVertices(vv_hi);
+    cdtBatches.insertEdges(ee);
+    cdtBatches.eraseOuterTrianglesAndHoles();
+
+    REQUIRE(topologyString(cdt) == topologyString(cdtBatches));
+}
+
 TEMPLATE_LIST_TEST_CASE("Benchmarks", "[benchmark][.]", CoordTypes)
 {
     SECTION("Constrained Sweden")
@@ -702,25 +727,27 @@ TEMPLATE_LIST_TEST_CASE("Benchmarks", "[benchmark][.]", CoordTypes)
         std::vector<Edge> ee;
         tie(vv, ee) =
             readInputFromFile<TestType>("inputs/Constrained Sweden.txt");
-        BENCHMARK("Constrained Sweden (vertices)")
+        BENCHMARK("Constrained Sweden (vertices only): As Provided")
         {
-            auto cdt = Triangulation<TestType>();
+            auto cdt =
+                Triangulation<TestType>(VertexInsertionOrder::AsProvided);
             cdt.insertVertices(vv);
         };
-        BENCHMARK("Constrained Sweden (vertices): KDTree")
+        BENCHMARK("Constrained Sweden (vertices only): Auto")
         {
-            auto cdt = Triangulation<TestType>(VertexInsertionOrder::KdTreeBFS);
+            auto cdt = Triangulation<TestType>(VertexInsertionOrder::Auto);
             cdt.insertVertices(vv);
         };
-        BENCHMARK("Constrained Sweden")
+        BENCHMARK("Constrained Sweden: As Provided")
         {
-            auto cdt = Triangulation<TestType>();
+            auto cdt =
+                Triangulation<TestType>(VertexInsertionOrder::AsProvided);
             cdt.insertVertices(vv);
             cdt.insertEdges(ee);
         };
-        BENCHMARK("Constrained Sweden: KDTree")
+        BENCHMARK("Constrained Sweden: Auto")
         {
-            auto cdt = Triangulation<TestType>(VertexInsertionOrder::KdTreeBFS);
+            auto cdt = Triangulation<TestType>(VertexInsertionOrder::Auto);
             cdt.insertVertices(vv);
             cdt.insertEdges(ee);
         };

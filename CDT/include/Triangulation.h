@@ -42,9 +42,14 @@ struct CDT_EXPORT VertexInsertionOrder
      */
     enum Enum
     {
-        Randomized, ///< random order
-        AsProvided, ///< the same order as provided
-        KdTreeBFS,  ///<  breadth-first traversal of a Kd-tree
+        /**
+         * Automatic insertion order optimized for better performance
+         * @details breadth-first traversal of a Kd-tree for initial bulk-load,
+         * randomized for subsequent insertions
+         */
+        Auto,
+        /// insert vertices in same order they are provided
+        AsProvided,
     };
 };
 
@@ -608,18 +613,17 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
     }
 
     const bool isFirstTime = vertices.empty();
-    if(m_vertexInsertionOrder == VertexInsertionOrder::KdTreeBFS &&
-       !isFirstTime)
-    {
-        throw std::runtime_error("When using Kd-tree BFS order inserting "
-                                 "vertices can only be called once");
-    }
-
     Box2d<T> box;
     if(isFirstTime)
     {
         box = envelopBox<T>(first, last, getX, getY);
         addSuperTriangle(box);
+    }
+    else if(m_vertexInsertionOrder == VertexInsertionOrder::Auto)
+    {
+        // We need to put vertices added during initial Kd-tree BFS bulk load to
+        // the nearest point locator in order to continue adding more points
+        m_nearPtLocator.initialize(vertices);
     }
 
     const VertInd nExistingVerts(vertices.size());
@@ -636,11 +640,9 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
     case VertexInsertionOrder::AsProvided:
         insertVertices_AsProvided(nExistingVerts);
         break;
-    case VertexInsertionOrder::Randomized:
-        insertVertices_Randomized(nExistingVerts);
-        break;
-    case VertexInsertionOrder::KdTreeBFS:
-        insertVertices_KDTreeBFS(nExistingVerts, box.min, box.max);
+    case VertexInsertionOrder::Auto:
+        isFirstTime ? insertVertices_KDTreeBFS(nExistingVerts, box.min, box.max)
+                    : insertVertices_Randomized(nExistingVerts);
         break;
     }
 }
