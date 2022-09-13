@@ -911,7 +911,6 @@ Triangulation<T, TNearPointLocator>::intersectedTriangle(
     const V2d<T>& b,
     const T orientationTolerance) const
 {
-    typedef std::vector<TriInd>::const_iterator TriIndCit;
     const TriInd startTri = m_vertTris[iA];
     TriInd iT = startTri;
     do
@@ -1356,14 +1355,6 @@ Triangulation<T, TNearPointLocator>::trianglesAt(const V2d<T>& pos) const
     throw std::runtime_error("No triangle was found at position");
 }
 
-// optimization to avoid allocating visited: keep the largest reserved capacity
-#ifdef CDT_CXX11_IS_SUPPORTED
-namespace detail
-{
-thread_local TriIndSmallSet visited;
-}
-#endif
-
 template <typename T, typename TNearPointLocator>
 TriInd Triangulation<T, TNearPointLocator>::walkTriangles(
     const VertInd startVertex,
@@ -1371,14 +1362,7 @@ TriInd Triangulation<T, TNearPointLocator>::walkTriangles(
 {
     // begin walk in search of triangle at pos
     TriInd currTri = m_vertTris[startVertex];
-#ifdef CDT_CXX11_IS_SUPPORTED
-    // optimization to avoid allocating visited:
-    // keep the largest reserved capacity
-    TriIndSmallSet& visited = detail::visited;
-    visited.clear();
-#else
     TriIndSmallSet visited;
-#endif
     bool found = false;
     detail::SplitMix64RandGen prng;
     while(!found)
@@ -1724,7 +1708,7 @@ namespace detail
 /// can be pre-calculated: it is calculated as size of a completely filled tree
 /// layer plus the number of the nodes on a completely filled layer that have
 /// two children.
-std::size_t maxQueueLengthBFSKDTree(const std::size_t vertexCount)
+inline std::size_t maxQueueLengthBFSKDTree(const std::size_t vertexCount)
 {
     std::size_t filledLayerPow2 = std::floor(std::log2(vertexCount)) - 1;
     std::size_t nodesInFilledTree = std::pow(2, filledLayerPow2 + 1) - 1;
