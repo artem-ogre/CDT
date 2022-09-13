@@ -56,6 +56,11 @@ public:
         return m_kdTree.nearest(pos, points).second;
     }
 
+    CDT::VertInd size() const
+    {
+        return m_kdTree.size();
+    }
+
 private:
     typedef KDTree::KDTree<
         TCoordType,
