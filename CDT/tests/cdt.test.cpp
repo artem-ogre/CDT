@@ -464,6 +464,8 @@ std::string to_string(const VertexInsertionOrder::Enum& vio)
         return "as-provided";
     case VertexInsertionOrder::Randomized:
         return "randomized";
+    case VertexInsertionOrder::KdTreeBFS:
+        return "kdtree-bfs";
     }
     ENHANCED_THROW(std::runtime_error, "Reached unreachable");
 }
@@ -696,7 +698,9 @@ TEMPLATE_LIST_TEST_CASE("Benchmarks", "[benchmark][.]", CoordTypes)
 {
     SECTION("Constrained Sweden")
     {
-        const auto [vv, ee] =
+        Vertices<TestType> vv;
+        std::vector<Edge> ee;
+        tie(vv, ee) =
             readInputFromFile<TestType>("inputs/Constrained Sweden.txt");
         BENCHMARK("Constrained Sweden (vertices)")
         {
@@ -719,49 +723,6 @@ TEMPLATE_LIST_TEST_CASE("Benchmarks", "[benchmark][.]", CoordTypes)
             auto cdt = Triangulation<TestType>(VertexInsertionOrder::KdTreeBFS);
             cdt.insertVertices(vv);
             cdt.insertEdges(ee);
-        };
-    }
-    SECTION("Corridor")
-    {
-        const auto [vv, ee] =
-            readInputFromFile<TestType>("inputs/long-narrow-stripe.txt");
-        BENCHMARK("Corridor (vertices)")
-        {
-            auto cdt = Triangulation<TestType>();
-            cdt.insertVertices(vv);
-        };
-        BENCHMARK("Corridor (vertices): KDTree")
-        {
-            auto cdt = Triangulation<TestType>(VertexInsertionOrder::KdTreeBFS);
-            cdt.insertVertices(vv);
-        };
-
-        BENCHMARK("Corridor")
-        {
-            auto cdt = Triangulation<TestType>();
-            cdt.insertVertices(vv);
-            cdt.insertEdges(ee);
-        };
-        BENCHMARK("Corridor: KDTree")
-        {
-            auto cdt = Triangulation<TestType>(VertexInsertionOrder::KdTreeBFS);
-            cdt.insertVertices(vv);
-            cdt.insertEdges(ee);
-        };
-    }
-    SECTION("Tmp")
-    {
-        auto [vv, ee] = readInputFromFile<TestType>("inputs/tmp.txt");
-        CDT::RemoveDuplicates(vv);
-        BENCHMARK("Tmp (vertices)")
-        {
-            auto cdt = Triangulation<TestType>();
-            cdt.insertVertices(vv);
-        };
-        BENCHMARK("Tmp (vertices): KDTree")
-        {
-            auto cdt = Triangulation<TestType>(VertexInsertionOrder::KdTreeBFS);
-            cdt.insertVertices(vv);
         };
     }
 }
