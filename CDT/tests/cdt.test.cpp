@@ -437,13 +437,16 @@ TEMPLATE_LIST_TEST_CASE(
     cdt.eraseSuperTriangle();
     const auto topo = TriangulationTopo(cdt);
 
-    std::ostringstream out_s;
+    /*
+    // Write to file for debugging
     std::ofstream f("tmp.txt");
-    if(!f.is_open())
+    if(f.is_open())
     {
         ENHANCED_THROW(std::runtime_error, "Can't open file for writing");
     }
     topo.write(f);
+    */
+    std::ostringstream out_s;
     topo.write(out_s);
     std::istringstream in_s(out_s.str());
     TriangulationTopo topo2;
