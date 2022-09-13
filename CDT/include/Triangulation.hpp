@@ -8,6 +8,7 @@
  */
 
 #include "Triangulation.h"
+#include "portable_nth_element.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -1854,7 +1855,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices_KDTreeBFS(
         const It midIt = first + len / 2;
         if(boxMax.x - boxMin.x >= boxMax.y - boxMin.y)
         {
-            std::nth_element(first, midIt, last, cmpX);
+            detail::portable_nth_element(first, midIt, last, cmpX);
             mid = *midIt;
             const T split = vertices[mid].x;
             newBoxMin.x = split;
@@ -1864,7 +1865,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices_KDTreeBFS(
         }
         else
         {
-            std::nth_element(first, midIt, last, cmpY);
+            detail::portable_nth_element(first, midIt, last, cmpY);
             mid = *midIt;
             const T split = vertices[mid].y;
             newBoxMin.x = boxMin.x;
