@@ -37,7 +37,7 @@ namespace defaults
 const std::size_t nTargetVerts = 0;
 const SuperGeometryType::Enum superGeomType = SuperGeometryType::SuperTriangle;
 const VertexInsertionOrder::Enum vertexInsertionOrder =
-    VertexInsertionOrder::Randomized;
+    VertexInsertionOrder::Auto;
 const IntersectingConstraintEdges::Enum intersectingEdgesStrategy =
     IntersectingConstraintEdges::Ignore;
 const float minDistToConstraintEdge(0);
@@ -983,7 +983,10 @@ void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
         {VertInd(0), VertInd(1), VertInd(2)},
         {noNeighbor, noNeighbor, noNeighbor}};
     addTriangle(superTri);
-    m_nearPtLocator.initialize(vertices);
+    if(m_vertexInsertionOrder != VertexInsertionOrder::Auto)
+    {
+        m_nearPtLocator.initialize(vertices);
+    }
 }
 
 template <typename T, typename TNearPointLocator>

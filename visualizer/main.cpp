@@ -188,7 +188,10 @@ private:
 
     void updateCDT()
     {
-        m_cdt = Triangulation();
+        m_cdt = Triangulation(
+            CDT::VertexInsertionOrder::Auto,
+            CDT::IntersectingConstraintEdges::Resolve,
+            1e-3);
         if(!m_points.empty())
         {
             std::vector<V2d> pts =
