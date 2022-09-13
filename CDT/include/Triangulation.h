@@ -444,9 +444,9 @@ private:
         const V2d<T>& b,
         T orientationTolerance = T(0)) const;
     /// Returns indices of three resulting triangles
-    std::stack<TriInd> insertPointInTriangle(VertInd v, TriInd iT);
+    std::stack<TriInd> insertVertexInsideTriangle(VertInd v, TriInd iT);
     /// Returns indices of four resulting triangles
-    std::stack<TriInd> insertPointOnEdge(VertInd v, TriInd iT1, TriInd iT2);
+    std::stack<TriInd> insertVertexOnEdge(VertInd v, TriInd iT1, TriInd iT2);
     array<TriInd, 2> trianglesAt(const V2d<T>& pos) const;
     array<TriInd, 2>
     walkingSearchTrianglesAt(const V2d<T>& pos, VertInd startVertex) const;
@@ -529,6 +529,7 @@ private:
     bool hasEdge(VertInd a, VertInd b) const;
     TriInd edgeTriangle(VertInd a, VertInd b) const;
     void setVertexTriangle(VertInd v, TriInd t);
+    void addVertexToLocator(VertInd v);
 
     std::vector<TriInd> m_dummyTris;
     TNearPointLocator m_nearPtLocator;

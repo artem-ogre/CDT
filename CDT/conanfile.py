@@ -51,7 +51,7 @@ class CDTConan(ConanFile):
         cmake = self._configure_cmake()
         cmake.build()
         if self.options.enable_testing:
-            cmake.test()
+            cmake.test(output_on_failure=True)
 
     def package(self):
         cmake = self._configure_cmake()

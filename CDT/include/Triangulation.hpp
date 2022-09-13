@@ -588,7 +588,8 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
                 vertices[iA], vertices[iB], vertices[iVL], vertices[iVR]);
             addNewVertex(newV, noNeighbor);
             std::stack<TriInd> triStack =
-                insertPointOnEdge(iNewVert, iT, iTopo);
+                insertVertexOnEdge(iNewVert, iT, iTopo);
+            addVertexToLocator(iNewVert);
             ensureDelaunayByEdgeFlips(newV, iNewVert, triStack);
             // TODO: is it's possible to re-use pseudo-polygons
             //  for inserting [iA, iNewVert] edge half?
@@ -772,7 +773,8 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
                 vertices[iVright]);
             addNewVertex(newV, noNeighbor);
             std::stack<TriInd> triStack =
-                insertPointOnEdge(iNewVert, iT, iTopo);
+                insertVertexOnEdge(iNewVert, iT, iTopo);
+            addVertexToLocator(iNewVert);
             ensureDelaunayByEdgeFlips(newV, iNewVert, triStack);
 #ifdef CDT_CXX11_IS_SUPPORTED
             remaining.emplace_back(Edge(iNewVert, iB), originals, overlaps);
@@ -1010,8 +1012,8 @@ Triangulation<T, TNearPointLocator>::insertVertex_FlipFixedEdges(
     array<TriInd, 2> trisAt = walkingSearchTrianglesAt(v, startVertex);
     std::stack<TriInd> triStack =
         trisAt[1] == noNeighbor
-            ? insertPointInTriangle(iVert, trisAt[0])
-            : insertPointOnEdge(iVert, trisAt[0], trisAt[1]);
+            ? insertVertexInsideTriangle(iVert, trisAt[0])
+            : insertVertexOnEdge(iVert, trisAt[0], trisAt[1]);
     while(!triStack.empty())
     {
         const TriInd iT = triStack.top();
@@ -1057,7 +1059,7 @@ Triangulation<T, TNearPointLocator>::insertVertex_FlipFixedEdges(
         }
     }
 
-    m_nearPtLocator.addPoint(iVert, vertices);
+    addVertexToLocator(iVert);
     return flippedFixedEdges;
 }
 
@@ -1078,8 +1080,8 @@ void Triangulation<T, TNearPointLocator>::insertVertex(
     }
     std::stack<TriInd> triStack =
         trisAt[1] == noNeighbor
-            ? insertPointInTriangle(iVert, trisAt[0])
-            : insertPointOnEdge(iVert, trisAt[0], trisAt[1]);
+            ? insertVertexInsideTriangle(iVert, trisAt[0])
+            : insertVertexOnEdge(iVert, trisAt[0], trisAt[1]);
     ensureDelaunayByEdgeFlips(v, iVert, triStack);
 }
 
@@ -1087,14 +1089,14 @@ template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::insertVertex(const VertInd iVert)
 {
     const V2d<T>& v = vertices[iVert];
-    const VertInd startVertex = m_nearPtLocator.nearPoint(v, vertices);
-    array<TriInd, 2> trisAt = walkingSearchTrianglesAt(v, startVertex);
+    const VertInd walkStart = m_nearPtLocator.nearPoint(v, vertices);
+    array<TriInd, 2> trisAt = walkingSearchTrianglesAt(v, walkStart);
     std::stack<TriInd> triStack =
         trisAt[1] == noNeighbor
-            ? insertPointInTriangle(iVert, trisAt[0])
-            : insertPointOnEdge(iVert, trisAt[0], trisAt[1]);
+            ? insertVertexInsideTriangle(iVert, trisAt[0])
+            : insertVertexOnEdge(iVert, trisAt[0], trisAt[1]);
     ensureDelaunayByEdgeFlips(v, iVert, triStack);
-    m_nearPtLocator.addPoint(iVert, vertices);
+    addVertexToLocator(iVert);
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1243,9 +1245,10 @@ bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
  *                     n1
  */
 template <typename T, typename TNearPointLocator>
-std::stack<TriInd> Triangulation<T, TNearPointLocator>::insertPointInTriangle(
-    const VertInd v,
-    const TriInd iT)
+std::stack<TriInd>
+Triangulation<T, TNearPointLocator>::insertVertexInsideTriangle(
+    VertInd v,
+    TriInd iT)
 {
     const TriInd iNewT1 = addTriangle();
     const TriInd iNewT2 = addTriangle();
@@ -1289,10 +1292,10 @@ std::stack<TriInd> Triangulation<T, TNearPointLocator>::insertPointInTriangle(
  *   T2 (bottom)      v3
  */
 template <typename T, typename TNearPointLocator>
-std::stack<TriInd> Triangulation<T, TNearPointLocator>::insertPointOnEdge(
-    const VertInd v,
-    const TriInd iT1,
-    const TriInd iT2)
+std::stack<TriInd> Triangulation<T, TNearPointLocator>::insertVertexOnEdge(
+    VertInd v,
+    TriInd iT1,
+    TriInd iT2)
 {
     const TriInd iTnew1 = addTriangle();
     const TriInd iTnew2 = addTriangle();
@@ -1955,6 +1958,17 @@ void Triangulation<T, TNearPointLocator>::setVertexTriangle(
     assert(
         triangles[t].vertices[0] == v || triangles[t].vertices[1] == v ||
         triangles[t].vertices[2] == v);
+}
+
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::addVertexToLocator(const VertInd v)
+{
+    // lazy initialization of near point locator
+    if(!m_nearPtLocator.size())
+    {
+        m_nearPtLocator.initialize(vertices);
+    }
+    m_nearPtLocator.addPoint(v, vertices);
 }
 
 } // namespace CDT

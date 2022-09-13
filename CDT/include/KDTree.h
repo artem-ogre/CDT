@@ -87,6 +87,7 @@ public:
         , m_max(point_type::make(
               std::numeric_limits<coord_type>::max(),
               std::numeric_limits<coord_type>::max()))
+        , m_size(0)
         , m_isRootBoxInitialized(false)
         , m_tasksStack(InitialStackDepth, NearestTask())
     {
@@ -98,10 +99,16 @@ public:
         : m_rootDir(NodeSplitDirection::X)
         , m_min(min)
         , m_max(max)
+        , m_size(0)
         , m_isRootBoxInitialized(true)
         , m_tasksStack(InitialStackDepth, NearestTask())
     {
         m_root = addNewNode();
+    }
+
+    CDT::VertInd size() const
+    {
+        return m_size;
     }
 
     /// Insert a point into kd-tree
@@ -111,6 +118,7 @@ public:
     void
     insert(const point_index& iPoint, const std::vector<point_type>& points)
     {
+        ++m_size;
         // if point is outside root, extend tree by adding new roots
         const point_type& pos = points[iPoint];
         while(!isInsideBox(pos, m_min, m_max))
@@ -368,6 +376,8 @@ private:
     NodeSplitDirection::Enum m_rootDir;
     point_type m_min;
     point_type m_max;
+    CDT::VertInd m_size;
+
     bool m_isRootBoxInitialized;
 
     // used for nearest query
