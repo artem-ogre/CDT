@@ -46,10 +46,6 @@ typedef char couldnt_parse_cxx_standard[-1]; ///< Error: couldn't parse standard
 #include <limits>
 #include <vector>
 
-#ifdef CDT_USE_BOOST
-#include <boost/container/flat_set.hpp>
-#endif
-
 #if defined(CDT_USE_BOOST) && defined(CDT_USE_STRONG_TYPING)
 #include <boost/serialization/strong_typedef.hpp>
 #endif
@@ -248,22 +244,13 @@ typedef unordered_set<Edge> EdgeUSet;             ///< Hash table of edges
 typedef unordered_set<TriInd> TriIndUSet;         ///< Hash table of triangles
 typedef unordered_map<TriInd, TriInd> TriIndUMap; ///< Triangle hash map
 
-#ifdef CDT_USE_BOOST
-/// Flat hash table of triangles
-typedef boost::container::flat_set<TriInd> TriIndSmallSet;
-#else
-/// Small set of triangles
-typedef unordered_set<TriInd> TriIndSmallSet;
-#endif
-
-/// Triangulation triangle (CCW winding)
-/* Counter-clockwise winding:
-       v3
-       /\
-    n3/  \n2
-     /____\
-   v1  n1  v2                 */
-struct CDT_EXPORT Triangle
+/// Triangulation triangle (counter-clockwise winding)
+//     v3
+//     /\
+//  n3/  \n2
+//   /____\
+// v1  n1  v2
+    struct CDT_EXPORT Triangle
 {
     VerticesArr3 vertices;   ///< triangle's three vertices
     NeighborsArr3 neighbors; ///< triangle's three neighbors

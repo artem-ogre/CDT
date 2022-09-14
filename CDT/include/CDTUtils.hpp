@@ -206,10 +206,9 @@ opposedVertexInd(const NeighborsArr3& nn, const TriInd iTopo)
     assert(nn[0] == iTopo || nn[1] == iTopo || nn[2] == iTopo);
     if(nn[0] == iTopo)
         return Index(2);
-    else if(nn[1] == iTopo)
+    if(nn[1] == iTopo)
         return Index(0);
-    else
-        return Index(1);
+    return Index(1);
 }
 
 CDT_INLINE_IF_HEADER_ONLY Index vertexInd(const Triangle& tri, const VertInd iV)

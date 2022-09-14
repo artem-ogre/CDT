@@ -1070,6 +1070,8 @@ void Triangulation<T, TNearPointLocator>::insertVertex(
 {
     const V2d<T>& v = vertices[iVert];
     array<TriInd, 2> trisAt = {noNeighbor, noNeighbor};
+    // TODO: re-factor this corner case handling out
+    //  and merge with another `insertVertex`
     if(walkStart != noVertex)
     {
         trisAt = walkingSearchTrianglesAt(v, walkStart);
@@ -1362,7 +1364,6 @@ TriInd Triangulation<T, TNearPointLocator>::walkTriangles(
 {
     // begin walk in search of triangle at pos
     TriInd currTri = m_vertTris[startVertex];
-    TriIndSmallSet visited;
     bool found = false;
     detail::SplitMix64RandGen prng;
     while(!found)
@@ -1379,12 +1380,10 @@ TriInd Triangulation<T, TNearPointLocator>::walkTriangles(
             const PtLineLocation::Enum edgeCheck =
                 locatePointLine(pos, vStart, vEnd);
             const TriInd iN = t.neighbors[i];
-            if(edgeCheck == PtLineLocation::Right && iN != noNeighbor &&
-               visited.find(iN) == visited.end())
+            if(edgeCheck == PtLineLocation::Right && iN != noNeighbor)
             {
                 found = false;
                 currTri = t.neighbors[i];
-                visited.insert(iN);
                 break;
             }
         }
