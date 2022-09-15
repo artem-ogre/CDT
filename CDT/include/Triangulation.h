@@ -361,7 +361,7 @@ private:
 
     typedef std::vector<VertInd>::const_iterator VertIndCit;
     /// State for an iteration of triangulate pseudo-polygon
-    typedef tuple<VertIndCit, VertIndCit, TriInd, TriInd, Index>
+    typedef tuple<IndexSizeType, IndexSizeType, TriInd, TriInd, Index>
         TriangulatePseudopolygonTask;
 
     /**
@@ -471,10 +471,12 @@ private:
         TriInd iN,
         std::vector<TriangulatePseudopolygonTask>& iterations);
     void triangulatePseudopolygonIteration(
+        const std::vector<VertInd>& poly,
         std::vector<TriangulatePseudopolygonTask>& iterations);
-    std::vector<VertInd>::const_iterator findDelaunayPoint(
-        std::vector<VertInd>::const_iterator first,
-        std::vector<VertInd>::const_iterator last) const;
+    IndexSizeType findDelaunayPoint(
+        const std::vector<VertInd>& poly,
+        IndexSizeType iA,
+        IndexSizeType iB) const;
     TriInd addTriangle(const Triangle& t); // note: invalidates iterators!
     TriInd addTriangle(); // note: invalidates triangle iterators!
     /**
