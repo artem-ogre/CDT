@@ -137,7 +137,7 @@ public:
      * Constructor
      * @param vertexInsertionOrder strategy used for ordering vertex insertions
      */
-    Triangulation(VertexInsertionOrder::Enum vertexInsertionOrder);
+    explicit Triangulation(VertexInsertionOrder::Enum vertexInsertionOrder);
     /**
      * Constructor
      * @param vertexInsertionOrder strategy used for ordering vertex insertions
@@ -359,7 +359,6 @@ private:
     /// Flip fixed edges and return a list of flipped fixed edges
     std::vector<Edge> insertVertex_FlipFixedEdges(VertInd iVert);
 
-    typedef std::vector<VertInd>::const_iterator VertIndCit;
     /// State for an iteration of triangulate pseudo-polygon
     typedef tuple<IndexSizeType, IndexSizeType, TriInd, TriInd, Index>
         TriangulatePseudopolygonTask;
@@ -467,11 +466,13 @@ private:
         TriInd newNeighbor);
     void triangulatePseudopolygon(
         const std::vector<VertInd>& poly,
+        const std::vector<TriInd>& outerTris,
         TriInd iT,
         TriInd iN,
         std::vector<TriangulatePseudopolygonTask>& iterations);
     void triangulatePseudopolygonIteration(
         const std::vector<VertInd>& poly,
+        const std::vector<TriInd>& outerTris,
         std::vector<TriangulatePseudopolygonTask>& iterations);
     IndexSizeType findDelaunayPoint(
         const std::vector<VertInd>& poly,
@@ -529,8 +530,8 @@ private:
         V2d<T> boxMin,
         V2d<T> boxMax);
     bool hasEdge(VertInd a, VertInd b) const;
-    TriInd edgeTriangle(VertInd a, VertInd b) const;
     void setVertexTriangle(VertInd v, TriInd t);
+    void pivotVertexTriangleCW(VertInd v);
     void addVertexToLocator(VertInd v);
 
     std::vector<TriInd> m_dummyTris;
