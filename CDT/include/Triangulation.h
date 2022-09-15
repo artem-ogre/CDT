@@ -399,6 +399,13 @@ private:
         EdgeVec& remaining,
         std::vector<TriangulatePseudopolygonTask>& tppIterations);
 
+    /** If outer pseudo-polygon edge is hanging (encounted twice in
+     * pseudo-polygon)
+     * @return index of previous encounter if hanging, invalid index otherwise
+     */
+    IndexSizeType
+    hangingCheck(const VertInd v, const std::vector<VertInd>& poly) const;
+
     /// State for iteration of conforming to edge
     typedef tuple<Edge, EdgeVec, BoundaryOverlapCount> ConformToEdgeTask;
 
