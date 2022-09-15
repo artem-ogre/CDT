@@ -458,6 +458,26 @@ V2d<T> intersectionPosition(
 } // namespace detail
 
 template <typename T, typename TNearPointLocator>
+IndexSizeType Triangulation<T, TNearPointLocator>::hangingCheck(
+    const VertInd v,
+    const std::vector<VertInd>& poly) const
+{
+    if(m_vertTris[v] != noNeighbor)
+        return invalidIndex;
+    // rewind back
+    IndexSizeType i = poly.size() - 1;
+    while(poly[i] != v)
+    {
+        assert(i > 0);
+        --i;
+    }
+    // were same two vertices encountered before?
+    if(poly[i + 1] == poly.back())
+        return i;
+    return invalidIndex;
+}
+
+template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
     const Edge edge,
     const Edge originalEdge,
@@ -565,26 +585,12 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
             locatePointLine(vertices[iVopo], a, b, distanceTolerance);
         if(loc == PtLineLocation::Left)
         {
-            if(m_vertTris[iVopo] == noNeighbor)
-            { // hanging edge: make sure triangles on both side are no-neighbor
-                // rewind back
-                IndexSizeType i = polyL.size() - 1;
-                while(polyL[i] != iVopo)
-                {
-                    assert(i > 0);
-                    --i;
-                }
-                // were same two vertices encountered before?
-                if(polyL[i + 1] == polyL.back())
-                {
-                    outerTrisL[i] = noNeighbor;
-                    outerTrisL.push_back(noNeighbor);
-                }
-                else
-                {
-                    outerTrisL.push_back(
-                        edgeNeighbor(tOpo, polyL.back(), iVopo));
-                }
+            // hanging edge check
+            const IndexSizeType prev = hangingCheck(iVopo, polyL);
+            if(prev != invalidIndex)
+            {
+                outerTrisL[prev] = noNeighbor; // previous entry of hanging edge
+                outerTrisL.push_back(noNeighbor);
             }
             else
             {
@@ -597,27 +603,11 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
         }
         else if(loc == PtLineLocation::Right)
         {
-            // hanging edge check:
-            if(m_vertTris[iVopo] == noNeighbor)
+            const IndexSizeType prev = hangingCheck(iVopo, polyR);
+            if(prev != invalidIndex)
             {
-                // rewind back
-                IndexSizeType i = polyR.size() - 1;
-                while(polyR[i] != iVopo)
-                {
-                    assert(i > 0);
-                    --i;
-                }
-                // were same two vertices encountered before?
-                if(polyR[i + 1] == polyR.back())
-                {
-                    outerTrisR[i] = noNeighbor;
-                    outerTrisR.push_back(noNeighbor);
-                }
-                else
-                {
-                    outerTrisR.push_back(
-                        edgeNeighbor(tOpo, polyR.back(), iVopo));
-                }
+                outerTrisR[prev] = noNeighbor; // previous entry of hanging edge
+                outerTrisR.push_back(noNeighbor);
             }
             else
             {
@@ -765,7 +755,8 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
                 splitEdgeOverlapsIt != overlapCount.end()
                     ? splitEdgeOverlapsIt->second
                     : 0;
-            // remove the edge that will be split and add split edge's halves
+            // remove the edge that will be split and add split edge's
+            // halves
             fixedEdges.erase(splitEdge);
             if(splitEdgeOverlaps > 0)
             {
@@ -1482,7 +1473,8 @@ void Triangulation<T, TNearPointLocator>::flipEdge(
     changeNeighbor(n1, iT, iTopo);
     changeNeighbor(n4, iTopo, iT);
     // only adjust adjacent triangles if triangulation is not finalized:
-    // can happen when called from outside on an already finalized triangulation
+    // can happen when called from outside on an already finalized
+    // triangulation
     if(!isFinalized())
     {
         setVertexTriangle(v4, iT);
@@ -1741,10 +1733,10 @@ void Triangulation<T, TNearPointLocator>::insertVertices_Randomized(
 namespace detail
 {
 
-/// Since KD-tree bulk load builds a balanced tree the maximum length of a queue
-/// can be pre-calculated: it is calculated as size of a completely filled tree
-/// layer plus the number of the nodes on a completely filled layer that have
-/// two children.
+/// Since KD-tree bulk load builds a balanced tree the maximum length of a
+/// queue can be pre-calculated: it is calculated as size of a completely
+/// filled tree layer plus the number of the nodes on a completely filled
+/// layer that have two children.
 inline std::size_t maxQueueLengthBFSKDTree(const std::size_t vertexCount)
 {
     std::size_t filledLayerPow2 = std::floor(std::log2(vertexCount)) - 1;

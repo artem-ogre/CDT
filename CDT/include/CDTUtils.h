@@ -144,10 +144,13 @@ typedef IndexSizeType VertInd;
 typedef IndexSizeType TriInd;
 #endif
 
+/// Constant representing no valid value for index
+const static IndexSizeType
+    invalidIndex(std::numeric_limits<IndexSizeType>::max());
 /// Constant representing no valid neighbor for a triangle
-const static TriInd noNeighbor(std::numeric_limits<TriInd>::max());
+const static TriInd noNeighbor(invalidIndex);
 /// Constant representing no valid vertex for a triangle
-const static VertInd noVertex(std::numeric_limits<VertInd>::max());
+const static VertInd noVertex(invalidIndex);
 
 typedef std::vector<TriInd> TriIndVec;  ///< Vector of triangle indices
 typedef array<VertInd, 3> VerticesArr3; ///< array of three vertex indices
