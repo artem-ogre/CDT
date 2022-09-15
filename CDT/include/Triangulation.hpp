@@ -1492,65 +1492,66 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudopolygon(
     const TriInd iN,
     std::vector<TriangulatePseudopolygonTask>& iterations)
 {
-    assert(poly.size() >= 3);
+    assert(poly.size() > 2);
     // note: uses interation instead of recursion to avoid stack overflows
     iterations.clear();
-    iterations.push_back(
-        make_tuple(poly.begin(), poly.end(), iT, iN, Index(0)));
+    iterations.push_back(make_tuple(0, poly.size() - 1, iT, iN, Index(0)));
     while(!iterations.empty())
     {
-        triangulatePseudopolygonIteration(iterations);
+        triangulatePseudopolygonIteration(poly, iterations);
     }
 }
 
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::triangulatePseudopolygonIteration(
+    const std::vector<VertInd>& poly,
     std::vector<TriangulatePseudopolygonTask>& iterations)
 {
-    typedef std::vector<VertInd>::const_iterator CIt;
-    CIt first, last;
+    IndexSizeType iA, iB;
     TriInd iT, iParent;
     Index iInParent;
     assert(!iterations.empty());
-    tie(first, last, iT, iParent, iInParent) = iterations.back();
+    tie(iA, iB, iT, iParent, iInParent) = iterations.back();
     iterations.pop_back();
-    assert(
-        std::distance(first, last) >= 3 && iT != noNeighbor &&
-        iParent != noNeighbor);
+    assert(iB - iA > 1 && iT != noNeighbor && iParent != noNeighbor);
     Triangle& t = triangles[iT];
     // find Delaunay point
-    const CIt dPt = findDelaunayPoint(first, last);
+    const IndexSizeType iC = findDelaunayPoint(poly, iA, iB);
+
+    const VertInd a = poly[iA];
+    const VertInd b = poly[iB];
+    const VertInd c = poly[iC];
     // split pseudo-polygon in two parts and triangulate them
     // first part: points before the Delaunay point
-    if(std::distance(first, dPt + 1) >= 3)
+    if(iC - iA > 1)
     { // add next triangle and add another iteration
         const TriInd iNext = addTriangle();
-        iterations.push_back(make_tuple(first, dPt + 1, iNext, iT, Index(2)));
+        iterations.push_back(make_tuple(iA, iC, iNext, iT, Index(2)));
     }
     else
     { // pseudo-poly is reduced to a single outer edge
-        const TriInd outerTri = edgeTriangle(*first, *dPt);
+        const TriInd outerTri = edgeTriangle(a, c);
         if(outerTri != noNeighbor)
         {
             assert(outerTri != iT);
             t.neighbors[2] = outerTri;
-            changeNeighbor(outerTri, *dPt, *first, iT);
+            changeNeighbor(outerTri, c, a, iT);
         }
     }
     // second part: points after the Delaunay point
-    if(std::distance(dPt, last) >= 3)
+    if(iB - iC > 1)
     {
         const TriInd iNext = addTriangle();
-        iterations.push_back(make_tuple(dPt, last, iNext, iT, Index(1)));
+        iterations.push_back(make_tuple(iC, iB, iNext, iT, Index(1)));
     }
     else // pseudo-poly is reduced to a single outer edge
     {
-        const TriInd outerTri = edgeTriangle(*dPt, *(last - 1));
+        const TriInd outerTri = edgeTriangle(c, b);
         if(outerTri != noNeighbor)
         {
             assert(outerTri != iT);
             t.neighbors[1] = outerTri;
-            changeNeighbor(outerTri, *dPt, *(last - 1), iT);
+            changeNeighbor(outerTri, c, b, iT);
         }
     }
     // Finalize triangle
@@ -1558,38 +1559,36 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudopolygonIteration(
     // parent to maintain triangulation topology consistency
     triangles[iParent].neighbors[iInParent] = iT;
     t.neighbors[0] = iParent;
-    t.vertices = detail::arr3(*first, *(last - 1), *dPt);
+    t.vertices = detail::arr3(a, b, c);
     // only if Delaunay point is hanging, otherwise triangle is valid already
-    if(m_vertTris[*dPt] == noNeighbor)
+    if(m_vertTris[c] == noNeighbor)
     {
         // needs to be done at the end not to affect finding edge triangles
-        setVertexTriangle(*dPt, iT);
+        setVertexTriangle(c, iT);
     }
 }
 
 template <typename T, typename TNearPointLocator>
-std::vector<VertInd>::const_iterator
-Triangulation<T, TNearPointLocator>::findDelaunayPoint(
-    std::vector<VertInd>::const_iterator first,
-    const std::vector<VertInd>::const_iterator last) const
+IndexSizeType Triangulation<T, TNearPointLocator>::findDelaunayPoint(
+    const std::vector<VertInd>& poly,
+    const IndexSizeType iA,
+    const IndexSizeType iB) const
 {
-    assert(std::distance(first, last) >= 3);
-    const V2d<T>& a = vertices[*first];
-    const V2d<T>& b = vertices[*(last - 1)];
-    typedef std::vector<VertInd>::const_iterator Cit;
-    Cit out = first + 1;
-    // caching value for better performance
-    const V2d<T>* c = &vertices[*(first + 1)];
-    for(Cit it = first + 1; it != last - 1; ++it)
+    assert(iB - iA > 1);
+    const V2d<T>& a = vertices[poly[iA]];
+    const V2d<T>& b = vertices[poly[iB]];
+    IndexSizeType out = iA + 1;
+    const V2d<T>* c = &vertices[poly[out]]; // caching for better performance
+    for(IndexSizeType i = iA + 1; i < iB; ++i)
     {
-        const V2d<T>& v = vertices[*it];
+        const V2d<T>& v = vertices[poly[i]];
         if(isInCircumcircle(v, a, b, *c))
         {
-            out = it;
+            out = i;
             c = &v;
         }
     }
-    assert(out != first && out != last); // point is between ends
+    assert(out > iA && out < iB); // point is between ends
     return out;
 }
 
