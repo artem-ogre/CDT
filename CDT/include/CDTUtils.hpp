@@ -192,12 +192,24 @@ CDT_INLINE_IF_HEADER_ONLY Index opposedTriangleInd(
         (vv[0] != iVedge1 && vv[0] != iVedge2) ||
         (vv[1] != iVedge1 && vv[1] != iVedge2) ||
         (vv[2] != iVedge1 && vv[2] != iVedge2));
-    if(vv[0] != iVedge1 && vv[0] != iVedge2)
-        return Index(1);
-    else if(vv[1] != iVedge1 && vv[1] != iVedge2)
+    //       vv[2]
+    //        /\
+    //   n[2]/  \n[1]
+    //      /____\
+    // vv[0] n[0] vv[1]
+    if(vv[0] == iVedge1)
+    {
+        if(vv[1] == iVedge2)
+            return Index(0);
         return Index(2);
-    else
-        return Index(0);
+    }
+    if(vv[0] == iVedge2)
+    {
+        if(vv[1] == iVedge1)
+            return Index(0);
+        return Index(2);
+    }
+    return Index(1);
 }
 
 CDT_INLINE_IF_HEADER_ONLY Index
