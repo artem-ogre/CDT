@@ -37,6 +37,20 @@ option(CDT_USE_STRONG_TYPING
     "If enabled uses strong typing for types: useful for development and debugging"
     OFF)
 
+option(CDT_DEVELOPER_BUILD
+    "Enables all warnings."
+    OFF)
+
+if(CDT_DEVELOPER_BUILD)
+    if (MSVC)
+        # warning level 4 and all warnings as errors
+        add_compile_options(/W4 /WX)
+    else()
+        # lots of warnings and all warnings as errors
+        add_compile_options(-Wall -Wextra -pedantic -Wno-comment)
+    endif()
+endif()
+
 # check if Boost is needed
 if(cxx_std_11 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
     # Work-around as AppleClang 11 defaults to c++98 by default
@@ -54,6 +68,7 @@ message(STATUS "CDT_USE_AS_COMPILED_LIBRARY is ${CDT_USE_AS_COMPILED_LIBRARY}")
 message(STATUS "CDT_USE_64_BIT_INDEX_TYPE is ${CDT_USE_64_BIT_INDEX_TYPE}")
 message(STATUS "CDT_ENABLE_TESTING is ${CDT_ENABLE_TESTING}")
 message(STATUS "CDT_USE_STRONG_TYPING is ${CDT_USE_STRONG_TYPING}")
+message(STATUS "CDT_DEVELOPER_BUILD is ${CDT_DEVELOPER_BUILD}")
 
 # Use boost for c++98 versions of c++11 containers or for Boost::rtree
 if(CDT_USE_BOOST)

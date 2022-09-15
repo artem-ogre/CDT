@@ -250,7 +250,7 @@ typedef unordered_map<TriInd, TriInd> TriIndUMap; ///< Triangle hash map
 //  n3/  \n2
 //   /____\
 // v1  n1  v2
-    struct CDT_EXPORT Triangle
+struct CDT_EXPORT Triangle
 {
     VerticesArr3 vertices;   ///< triangle's three vertices
     NeighborsArr3 neighbors; ///< triangle's three neighbors
@@ -378,19 +378,23 @@ opposedTriangleInd(const VerticesArr3& vv, VertInd iVert);
 
 /// Index of triangle's neighbor opposed to an edge
 CDT_INLINE_IF_HEADER_ONLY Index
-opposedTriangleInd(const VerticesArr3& vv, VertInd iVedge1, VertInd iVedge2);
+edgeNeighborInd(const VerticesArr3& vv, VertInd iVedge1, VertInd iVedge2);
 
 /// Index of triangle's vertex opposed to a triangle
 CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index
 opposedVertexInd(const NeighborsArr3& nn, TriInd iTopo);
 
-/// If triangle has a given vertex return vertex-index, throw otherwise
+/// If triangle has a given vertex return vertex-index
 CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index
-vertexInd(const Triangle& tri, VertInd iV);
+vertexInd(const VerticesArr3& vv, VertInd iV);
 
 /// Given triangle and a vertex find opposed triangle
 CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY TriInd
 opposedTriangle(const Triangle& tri, VertInd iVert);
+
+/// Given triangle and an edge find neighbor sharing the edge
+CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY TriInd
+edgeNeighbor(const Triangle& tri, VertInd iVedge1, VertInd iVedge2);
 
 /// Given two triangles, return vertex of first triangle opposed to the second
 CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY VertInd

@@ -175,13 +175,12 @@ opposedTriangleInd(const VerticesArr3& vv, const VertInd iVert)
     assert(vv[0] == iVert || vv[1] == iVert || vv[2] == iVert);
     if(vv[0] == iVert)
         return Index(1);
-    else if(vv[1] == iVert)
+    if(vv[1] == iVert)
         return Index(2);
-    else
-        return Index(0);
+    return Index(0);
 }
 
-CDT_INLINE_IF_HEADER_ONLY Index opposedTriangleInd(
+CDT_INLINE_IF_HEADER_ONLY Index edgeNeighborInd(
     const VerticesArr3& vv,
     const VertInd iVedge1,
     const VertInd iVedge2)
@@ -223,12 +222,15 @@ opposedVertexInd(const NeighborsArr3& nn, const TriInd iTopo)
     return Index(1);
 }
 
-CDT_INLINE_IF_HEADER_ONLY Index vertexInd(const Triangle& tri, const VertInd iV)
+CDT_INLINE_IF_HEADER_ONLY Index
+vertexInd(const VerticesArr3& vv, const VertInd iV)
 {
-    for(Index i = Index(0); i < Index(3); ++i)
-        if(iV == tri.vertices[i])
-            return i;
-    throw std::runtime_error("Could not find vertex index in triangle");
+    assert(vv[0] == iV || vv[1] == iV || vv[2] == iV);
+    if(vv[0] == iV)
+        return Index(0);
+    if(vv[1] == iV)
+        return Index(1);
+    return Index(2);
 }
 
 CDT_INLINE_IF_HEADER_ONLY TriInd
@@ -241,6 +243,13 @@ CDT_INLINE_IF_HEADER_ONLY VertInd
 opposedVertex(const Triangle& tri, const TriInd iTopo)
 {
     return tri.vertices[opposedVertexInd(tri.neighbors, iTopo)];
+}
+
+/// Given triangle and an edge find neighbor sharing the edge
+CDT_INLINE_IF_HEADER_ONLY TriInd
+edgeNeighbor(const Triangle& tri, VertInd iVedge1, VertInd iVedge2)
+{
+    return tri.neighbors[edgeNeighborInd(tri.vertices, iVedge1, iVedge2)];
 }
 
 template <typename T>
