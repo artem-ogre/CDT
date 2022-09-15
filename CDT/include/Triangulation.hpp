@@ -94,18 +94,6 @@ Triangulation<T, TNearPointLocator>::Triangulation(
 {}
 
 template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::changeNeighbor(
-    const TriInd iT,
-    const VertInd iVedge1,
-    const VertInd iVedge2,
-    const TriInd newNeighbor)
-{
-    assert(iT != noNeighbor);
-    Triangle& t = triangles[iT];
-    t.neighbors[opposedTriangleInd(t.vertices, iVedge1, iVedge2)] = newNeighbor;
-}
-
-template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::eraseDummies()
 {
     if(m_dummyTris.empty())
@@ -1483,6 +1471,18 @@ void Triangulation<T, TNearPointLocator>::changeNeighbor(
         nn[1] = newNeighbor;
     else
         nn[2] = newNeighbor;
+}
+
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::changeNeighbor(
+    const TriInd iT,
+    const VertInd iVedge1,
+    const VertInd iVedge2,
+    const TriInd newNeighbor)
+{
+    assert(iT != noNeighbor);
+    Triangle& t = triangles[iT];
+    t.neighbors[opposedTriangleInd(t.vertices, iVedge1, iVedge2)] = newNeighbor;
 }
 
 template <typename T, typename TNearPointLocator>
