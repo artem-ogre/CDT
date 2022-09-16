@@ -1022,24 +1022,23 @@ void Triangulation<T, TNearPointLocator>::addNewVertex(
 template <typename T, typename TNearPointLocator>
 std::vector<Edge>
 Triangulation<T, TNearPointLocator>::insertVertex_FlipFixedEdges(
-    const VertInd iVert)
+    const VertInd iV)
 {
     std::vector<Edge> flippedFixedEdges;
 
-    const V2d<T>& v = vertices[iVert];
+    const V2d<T>& v = vertices[iV];
     const VertInd startVertex = m_nearPtLocator.nearPoint(v, vertices);
     array<TriInd, 2> trisAt = walkingSearchTrianglesAt(v, startVertex);
     std::stack<TriInd> triStack =
-        trisAt[1] == noNeighbor
-            ? insertVertexInsideTriangle(iVert, trisAt[0])
-            : insertVertexOnEdge(iVert, trisAt[0], trisAt[1]);
+        trisAt[1] == noNeighbor ? insertVertexInsideTriangle(iV, trisAt[0])
+                                : insertVertexOnEdge(iV, trisAt[0], trisAt[1]);
     while(!triStack.empty())
     {
         const TriInd iT = triStack.top();
         triStack.pop();
 
         const Triangle& t = triangles[iT];
-        const TriInd iTopo = opposedTriangle(t, iVert);
+        const TriInd iTopo = opposedTriangle(t, iV);
         if(iTopo == noNeighbor)
             continue;
 
@@ -1062,7 +1061,7 @@ Triangulation<T, TNearPointLocator>::insertVertex_FlipFixedEdges(
         const VertInd iV1 = tOpo.vertices[cw(i)];
         const VertInd iV3 = tOpo.vertices[ccw(i)];
 
-        if(isFlipNeeded(v, iVert, iV1, iV2, iV3))
+        if(isFlipNeeded(v, iV, iV1, iV2, iV3))
         {
             // if flipped edge is fixed, remember it
             const Edge flippedEdge(iV1, iV3);
@@ -1078,7 +1077,7 @@ Triangulation<T, TNearPointLocator>::insertVertex_FlipFixedEdges(
         }
     }
 
-    addVertexToLocator(iVert);
+    addVertexToLocator(iV);
     return flippedFixedEdges;
 }
 
