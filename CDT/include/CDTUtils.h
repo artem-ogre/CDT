@@ -46,7 +46,7 @@ typedef char couldnt_parse_cxx_standard[-1]; ///< Error: couldn't parse standard
 #include <limits>
 #include <vector>
 
-#if defined(CDT_USE_BOOST) && defined(CDT_USE_STRONG_TYPING)
+#ifdef CDT_USE_STRONG_TYPING
 #include <boost/serialization/strong_typedef.hpp>
 #endif
 
@@ -128,7 +128,7 @@ typedef unsigned long long IndexSizeType;
 typedef unsigned int IndexSizeType;
 #endif
 
-#if defined(CDT_USE_BOOST) && defined(CDT_USE_STRONG_TYPING)
+#ifdef CDT_USE_STRONG_TYPING
 /// Index in triangle
 BOOST_STRONG_TYPEDEF(unsigned char, Index);
 /// Vertex index

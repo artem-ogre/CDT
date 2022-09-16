@@ -18,6 +18,8 @@
 #include <iterator>
 #ifdef CDT_CXX11_IS_SUPPORTED
 #include <type_traits>
+#else
+#include <boost/type_traits/add_lvalue_reference.hpp>
 #endif
 
 namespace CDT
@@ -80,9 +82,10 @@ void selection_sort(
             typename std::add_lvalue_reference<Compare>::type>(
             first, last, comp);
 #else
-        BirdirectionalIterator i =
-            std::min_element<BirdirectionalIterator, Compare&>(
-                first, last, comp);
+        BirdirectionalIterator i = std::min_element<
+            BirdirectionalIterator,
+            typename boost::add_lvalue_reference<Compare>::type>(
+            first, last, comp);
 #endif
         if(i != first)
             std::swap(*first, *i);
@@ -299,7 +302,8 @@ inline void portable_nth_element(
     detail::nth_element<typename std::add_lvalue_reference<_Compare>::type>(
         first, nth, last, comp);
 #else
-    detail::nth_element<_Compare&>(first, nth, last, comp);
+    detail::nth_element<typename boost::add_lvalue_reference<_Compare>::type>(
+        first, nth, last, comp);
 #endif
 }
 

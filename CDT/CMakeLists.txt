@@ -70,6 +70,10 @@ message(STATUS "CDT_ENABLE_TESTING is ${CDT_ENABLE_TESTING}")
 message(STATUS "CDT_USE_STRONG_TYPING is ${CDT_USE_STRONG_TYPING}")
 message(STATUS "CDT_DEVELOPER_BUILD is ${CDT_DEVELOPER_BUILD}")
 
+if(CDT_USE_STRONG_TYPING)
+    set(CDT_USE_BOOST ON)
+endif()
+
 # Use boost for c++98 versions of c++11 containers or for Boost::rtree
 if(CDT_USE_BOOST)
     find_package(Boost REQUIRED)

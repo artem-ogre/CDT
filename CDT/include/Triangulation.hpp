@@ -1745,7 +1745,7 @@ inline double log2_bc(T x)
     return std::log2(x);
 #else
     static double log2_constant = std::log(2.0);
-    return std::log(x) / log2_constant;
+    return std::log(static_cast<double>(x)) / log2_constant;
 #endif
 }
 
@@ -1755,7 +1755,7 @@ inline double log2_bc(T x)
 /// layer that have two children.
 inline std::size_t maxQueueLengthBFSKDTree(const std::size_t vertexCount)
 {
-    std::size_t filledLayerPow2 = std::floor(log2_bc(vertexCount)) - 1;
+    int filledLayerPow2 = std::floor(log2_bc(vertexCount)) - 1;
     std::size_t nodesInFilledTree = std::pow(2., filledLayerPow2 + 1) - 1;
     std::size_t nodesInLastFilledLayer = std::pow(2., filledLayerPow2);
     std::size_t nodesInLastLayer = vertexCount - nodesInFilledTree;
