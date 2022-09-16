@@ -560,8 +560,9 @@ private:
         V2d<T> boxMin,
         V2d<T> boxMax);
     bool hasEdge(VertInd a, VertInd b) const;
-    void setVertexTriangle(VertInd v, TriInd t);
+    void setAdjacentTriangle(const VertInd v, const TriInd t);
     void pivotVertexTriangleCW(VertInd v);
+    void removeAdjacentTriangle(VertInd v);
     void addVertexToLocator(VertInd v);
 
     std::vector<TriInd> m_dummyTris;

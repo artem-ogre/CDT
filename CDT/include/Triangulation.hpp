@@ -529,8 +529,8 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
     polyR.push_back(iA);
     polyR.push_back(iVR);
     outerTrisR.push_back(edgeNeighbor(t, iA, iVR));
-    m_vertTris[iVL] = noNeighbor;
-    m_vertTris[iVR] = noNeighbor;
+    removeAdjacentTriangle(iVL);
+    removeAdjacentTriangle(iVR);
     VertInd iV = iA;
 
     while(!t.containsVertex(iB))
@@ -581,6 +581,11 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
             //  for inserting [iA, iNewVert] edge half?
             remaining.push_back(Edge(iA, iNewVert));
             remaining.push_back(Edge(iNewVert, iB));
+            // Set adjacent triangles again
+            for(IndexSizeType i = 0; i < outerTrisL.size(); ++i)
+                setAdjacentTriangle(polyL[i + 1], outerTrisL[i]);
+            for(IndexSizeType i = 0; i < outerTrisR.size(); ++i)
+                setAdjacentTriangle(polyR[i + 1], outerTrisR[i]);
             return;
         }
 
@@ -600,7 +605,7 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
                 outerTrisL.push_back(edgeNeighbor(tOpo, polyL.back(), iVopo));
             }
             polyL.push_back(iVopo);
-            m_vertTris[iVopo] = noNeighbor;
+            removeAdjacentTriangle(iVopo);
             iV = iVL;
             iVL = iVopo;
         }
@@ -618,7 +623,7 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
                 outerTrisR.push_back(edgeNeighbor(tOpo, polyR.back(), iVopo));
             }
             polyR.push_back(iVopo);
-            m_vertTris[iVopo] = noNeighbor;
+            removeAdjacentTriangle(iVopo);
             iV = iVR;
             iVR = iVopo;
         }
@@ -635,12 +640,18 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
     polyR.push_back(iB);
 
     assert(!intersected.empty());
-    // make sure start/end vertices have an adjacent triangle
+    // make sure start/end vertices have a valid adjacent triangle
     // that is not intersected by an edge
     if(m_vertTris[iA] == intersected.front())
         pivotVertexTriangleCW(iA);
     if(m_vertTris[iB] == intersected.back())
         pivotVertexTriangleCW(iB);
+    // reset adjacent triangle for pseudo-polygons' vertices
+    //    typedef std::vector<VertInd>::const_iterator PolyCit;
+    //    for(PolyCit it = polyL.begin() + 1; it != polyL.end() - 1; ++it)
+    //        removeAdjacentTriangle(*it);
+    //    for(PolyCit it = polyR.begin() + 1; it != polyR.end() - 1; ++it)
+    //        removeAdjacentTriangle(*it);
     // Remove intersected triangles
     typedef std::vector<TriInd>::const_iterator TriIndCit;
     for(TriIndCit it = intersected.begin(); it != intersected.end(); ++it)
@@ -1353,8 +1364,8 @@ Triangulation<T, TNearPointLocator>::insertVertexInsideTriangle(
     triangles[iNewT2] = Triangle::make(arr3(v3, v1, v), arr3(n3, iT, iNewT1));
     t = Triangle::make(arr3(v1, v2, v), arr3(n1, iNewT1, iNewT2));
     // adjust adjacent triangles
-    setVertexTriangle(v, iT);
-    setVertexTriangle(v3, iNewT1);
+    setAdjacentTriangle(v, iT);
+    setAdjacentTriangle(v3, iNewT1);
     // change triangle neighbor's neighbors to new triangles
     changeNeighbor(n2, iT, iNewT1);
     changeNeighbor(n3, iT, iNewT2);
@@ -1407,8 +1418,8 @@ std::stack<TriInd> Triangulation<T, TNearPointLocator>::insertVertexOnEdge(
     triangles[iTnew1] = Triangle::make(arr3(v, v4, v1), arr3(iTnew2, n4, iT1));
     triangles[iTnew2] = Triangle::make(arr3(v, v3, v4), arr3(iT2, n3, iTnew1));
     // adjust adjacent triangles
-    setVertexTriangle(v, iT1);
-    setVertexTriangle(v4, iTnew1);
+    setAdjacentTriangle(v, iT1);
+    setAdjacentTriangle(v4, iTnew1);
     // adjust neighboring triangles and vertices
     changeNeighbor(n4, iT1, iTnew1);
     changeNeighbor(n3, iT2, iTnew2);
@@ -1548,8 +1559,8 @@ void Triangulation<T, TNearPointLocator>::flipEdge(
     // triangulation
     if(!isFinalized())
     {
-        setVertexTriangle(v4, iT);
-        setVertexTriangle(v2, iTopo);
+        setAdjacentTriangle(v4, iT);
+        setAdjacentTriangle(v2, iTopo);
     }
 }
 
@@ -1667,7 +1678,7 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudopolygonIteration(
     t.neighbors[0] = iParent;
     t.vertices = detail::arr3(a, b, c);
     // needs to be done at the end not to affect finding edge triangles
-    setVertexTriangle(c, iT);
+    setAdjacentTriangle(c, iT);
 }
 
 template <typename T, typename TNearPointLocator>
@@ -2002,7 +2013,7 @@ bool Triangulation<T, TNearPointLocator>::hasEdge(
 }
 
 template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::setVertexTriangle(
+void Triangulation<T, TNearPointLocator>::setAdjacentTriangle(
     const VertInd v,
     const TriInd t)
 {
@@ -2014,14 +2025,22 @@ void Triangulation<T, TNearPointLocator>::setVertexTriangle(
 }
 
 template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::pivotVertexTriangleCW(VertInd v)
+void Triangulation<T, TNearPointLocator>::pivotVertexTriangleCW(const VertInd v)
 {
     assert(m_vertTris[v] != noNeighbor);
     m_vertTris[v] = triangles[m_vertTris[v]].next(v).first;
+    assert(m_vertTris[v] != noNeighbor);
     assert(
         triangles[m_vertTris[v]].vertices[0] == v ||
         triangles[m_vertTris[v]].vertices[1] == v ||
         triangles[m_vertTris[v]].vertices[2] == v);
+}
+
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::removeAdjacentTriangle(
+    const VertInd v)
+{
+    m_vertTris[v] = noNeighbor;
 }
 
 template <typename T, typename TNearPointLocator>
