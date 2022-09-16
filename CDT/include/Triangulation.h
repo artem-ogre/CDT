@@ -357,7 +357,7 @@ private:
         VertInd iVert,
         std::stack<TriInd>& triStack);
     /// Flip fixed edges and return a list of flipped fixed edges
-    std::vector<Edge> insertVertex_FlipFixedEdges(VertInd iVert);
+    std::vector<Edge> insertVertex_FlipFixedEdges(VertInd iV);
 
     /// State for an iteration of triangulate pseudo-polygon
     typedef tuple<IndexSizeType, IndexSizeType, TriInd, TriInd, Index>
@@ -403,7 +403,9 @@ private:
      * pseudo-polygon)
      * @return index of previous encounter if hanging, invalid index otherwise
      */
-    IndexSizeType previousEdgeEncounter(const VertInd v, const std::vector<VertInd>& poly) const;
+    IndexSizeType previousEdgeEncounter(
+        const VertInd v,
+        const std::vector<VertInd>& poly) const;
 
     /// State for iteration of conforming to edge
     typedef tuple<Edge, EdgeVec, BoundaryOverlapCount> ConformToEdgeTask;
