@@ -354,7 +354,7 @@ private:
     void insertVertex(VertInd iVert, VertInd walkStart);
     void ensureDelaunayByEdgeFlips(
         const V2d<T>& v,
-        VertInd iVert,
+        VertInd iV,
         std::stack<TriInd>& triStack);
     /// Flip fixed edges and return a list of flipped fixed edges
     std::vector<Edge> insertVertex_FlipFixedEdges(VertInd iV);

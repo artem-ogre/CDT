@@ -1122,7 +1122,7 @@ void Triangulation<T, TNearPointLocator>::insertVertex(const VertInd iVert)
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::ensureDelaunayByEdgeFlips(
     const V2d<T>& v,
-    const VertInd iVert,
+    const VertInd iV,
     std::stack<TriInd>& triStack)
 {
     while(!triStack.empty())
@@ -1131,10 +1131,10 @@ void Triangulation<T, TNearPointLocator>::ensureDelaunayByEdgeFlips(
         triStack.pop();
 
         const Triangle& t = triangles[iT];
-        const TriInd iTopo = opposedTriangle(t, iVert);
+        const TriInd iTopo = opposedTriangle(t, iV);
         if(iTopo == noNeighbor)
             continue;
-        if(isFlipNeeded(v, iT, iTopo, iVert))
+        if(isFlipNeeded(v, iT, iTopo, iV))
         {
             flipEdge(iT, iTopo);
             triStack.push(iT);
