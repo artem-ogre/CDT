@@ -458,23 +458,26 @@ V2d<T> intersectionPosition(
 } // namespace detail
 
 template <typename T, typename TNearPointLocator>
-IndexSizeType Triangulation<T, TNearPointLocator>::hangingCheck(
+IndexSizeType Triangulation<T, TNearPointLocator>::previousEdgeEncounter(
     const VertInd v,
     const std::vector<VertInd>& poly) const
 {
+    // check if vertex was encountered earlier in the pseudo-polygons:
+    // it's triangle was reset
     if(m_vertTris[v] != noNeighbor)
         return invalidIndex;
-    // rewind back
+    // rewind back to the previous entry of the point
     IndexSizeType i = poly.size() - 1;
     while(poly[i] != v)
     {
         assert(i > 0);
         --i;
     }
-    // were same two vertices encountered before?
+    // was the edge or only the vertex encountered before?
+    // check if previous 'next' is same as current 'previous'
     if(poly[i + 1] == poly.back())
-        return i;
-    return invalidIndex;
+        return i;        // edge was encountered earlier
+    return invalidIndex; // edge was not encountered earlier
 }
 
 template <typename T, typename TNearPointLocator>
@@ -586,7 +589,7 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
         if(loc == PtLineLocation::Left)
         {
             // hanging edge check
-            const IndexSizeType prev = hangingCheck(iVopo, polyL);
+            const IndexSizeType prev = previousEdgeEncounter(iVopo, polyL);
             if(prev != invalidIndex)
             {
                 outerTrisL[prev] = noNeighbor; // previous entry of hanging edge
@@ -603,7 +606,8 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
         }
         else if(loc == PtLineLocation::Right)
         {
-            const IndexSizeType prev = hangingCheck(iVopo, polyR);
+            // hanging edge check
+            const IndexSizeType prev = previousEdgeEncounter(iVopo, polyR);
             if(prev != invalidIndex)
             {
                 outerTrisR[prev] = noNeighbor; // previous entry of hanging edge
@@ -1733,15 +1737,27 @@ void Triangulation<T, TNearPointLocator>::insertVertices_Randomized(
 namespace detail
 {
 
+// log2 implementation backwards compatible with pre c++11
+template <typename T>
+inline double log2_bc(T x)
+{
+#ifdef CDT_CXX11_IS_SUPPORTED
+    return std::log2(x);
+#else
+    static double log2_constant = std::log(2.0);
+    return std::log(x) / log2_constant;
+#endif
+}
+
 /// Since KD-tree bulk load builds a balanced tree the maximum length of a
 /// queue can be pre-calculated: it is calculated as size of a completely
 /// filled tree layer plus the number of the nodes on a completely filled
 /// layer that have two children.
 inline std::size_t maxQueueLengthBFSKDTree(const std::size_t vertexCount)
 {
-    std::size_t filledLayerPow2 = std::floor(std::log2(vertexCount)) - 1;
-    std::size_t nodesInFilledTree = std::pow(2, filledLayerPow2 + 1) - 1;
-    std::size_t nodesInLastFilledLayer = std::pow(2, filledLayerPow2);
+    std::size_t filledLayerPow2 = std::floor(log2_bc(vertexCount)) - 1;
+    std::size_t nodesInFilledTree = std::pow(2., filledLayerPow2 + 1) - 1;
+    std::size_t nodesInLastFilledLayer = std::pow(2., filledLayerPow2);
     std::size_t nodesInLastLayer = vertexCount - nodesInFilledTree;
     return nodesInLastLayer >= nodesInLastFilledLayer
                ? nodesInLastFilledLayer + nodesInLastLayer -
