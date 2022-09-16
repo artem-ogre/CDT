@@ -1022,62 +1022,42 @@ void Triangulation<T, TNearPointLocator>::addNewVertex(
 template <typename T, typename TNearPointLocator>
 std::vector<Edge>
 Triangulation<T, TNearPointLocator>::insertVertex_FlipFixedEdges(
-    const VertInd iV)
+    const VertInd iV1)
 {
     std::vector<Edge> flippedFixedEdges;
 
-    const V2d<T>& v = vertices[iV];
-    const VertInd startVertex = m_nearPtLocator.nearPoint(v, vertices);
-    array<TriInd, 2> trisAt = walkingSearchTrianglesAt(v, startVertex);
+    const V2d<T>& v1 = vertices[iV1];
+    const VertInd startVertex = m_nearPtLocator.nearPoint(v1, vertices);
+    array<TriInd, 2> trisAt = walkingSearchTrianglesAt(v1, startVertex);
     std::stack<TriInd> triStack =
-        trisAt[1] == noNeighbor ? insertVertexInsideTriangle(iV, trisAt[0])
-                                : insertVertexOnEdge(iV, trisAt[0], trisAt[1]);
+        trisAt[1] == noNeighbor ? insertVertexInsideTriangle(iV1, trisAt[0])
+                                : insertVertexOnEdge(iV1, trisAt[0], trisAt[1]);
+
+    TriInd iTopo, n1, n2, n3, n4;
+    VertInd iV2, iV3, iV4;
     while(!triStack.empty())
     {
         const TriInd iT = triStack.top();
         triStack.pop();
 
-        const Triangle& t = triangles[iT];
-        const TriInd iTopo = opposedTriangle(t, iV);
-        if(iTopo == noNeighbor)
-            continue;
-
-        /*
-         *                       v3         original edge: (v1, v3)
-         *                      /|\   flip-candidate edge: (v,  v2)
-         *                    /  |  \
-         *                  /    |    \
-         *                /      |      \
-         * new vertex--> v       |       v2
-         *                \      |      /
-         *                  \    |    /
-         *                    \  |  /
-         *                      \|/
-         *                       v1
-         */
-        const Triangle& tOpo = triangles[iTopo];
-        const Index i = opposedVertexInd(tOpo.neighbors, iT);
-        const VertInd iV2 = tOpo.vertices[i];
-        const VertInd iV1 = tOpo.vertices[cw(i)];
-        const VertInd iV3 = tOpo.vertices[ccw(i)];
-
-        if(isFlipNeeded(v, iV, iV1, iV2, iV3))
+        edgeFlipInfo(iT, iV1, iTopo, iV2, iV3, iV4, n1, n2, n3, n4);
+        if(iTopo != noNeighbor && isFlipNeeded(v1, iV1, iV2, iV3, iV4))
         {
             // if flipped edge is fixed, remember it
-            const Edge flippedEdge(iV1, iV3);
+            const Edge flippedEdge(iV2, iV4);
             if(!fixedEdges.empty() &&
                fixedEdges.find(flippedEdge) != fixedEdges.end())
             {
                 flippedFixedEdges.push_back(flippedEdge);
             }
 
-            flipEdge(iT, iTopo);
+            flipEdge(iT, iTopo, iV1, iV2, iV3, iV4, n1, n2, n3, n4);
             triStack.push(iT);
             triStack.push(iTopo);
         }
     }
 
-    addVertexToLocator(iV);
+    addVertexToLocator(iV1);
     return flippedFixedEdges;
 }
 
@@ -1121,25 +1101,103 @@ void Triangulation<T, TNearPointLocator>::insertVertex(const VertInd iVert)
 
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::ensureDelaunayByEdgeFlips(
-    const V2d<T>& v,
-    const VertInd iV,
+    const V2d<T>& v1,
+    const VertInd iV1,
     std::stack<TriInd>& triStack)
 {
+    TriInd iTopo, n1, n2, n3, n4;
+    VertInd iV2, iV3, iV4;
     while(!triStack.empty())
     {
         const TriInd iT = triStack.top();
         triStack.pop();
 
-        const Triangle& t = triangles[iT];
-        const TriInd iTopo = opposedTriangle(t, iV);
-        if(iTopo == noNeighbor)
-            continue;
-        if(isFlipNeeded(v, iT, iTopo, iV))
+        edgeFlipInfo(iT, iV1, iTopo, iV2, iV3, iV4, n1, n2, n3, n4);
+        if(iTopo != noNeighbor && isFlipNeeded(v1, iV1, iV2, iV3, iV4))
         {
-            flipEdge(iT, iTopo);
+            flipEdge(iT, iTopo, iV1, iV2, iV3, iV4, n1, n2, n3, n4);
             triStack.push(iT);
             triStack.push(iTopo);
         }
+    }
+}
+
+/*
+ *                       v4         original edge: (v1, v3)
+ *                      /|\   flip-candidate edge: (v,  v2)
+ *                    /  |  \
+ *              n3  /    |    \  n4
+ *                /      |      \
+ * new vertex--> v1    T | Topo  v3
+ *                \      |      /
+ *              n1  \    |    /  n2
+ *                    \  |  /
+ *                      \|/
+ *                       v2
+ */
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::edgeFlipInfo(
+    const TriInd iT,
+    const VertInd iV1,
+    TriInd& iTopo,
+    VertInd& iV2,
+    VertInd& iV3,
+    VertInd& iV4,
+    TriInd& n1,
+    TriInd& n2,
+    TriInd& n3,
+    TriInd& n4)
+{
+    /*     v[2]
+           / \
+      n[2]/   \n[1]
+         /_____\
+    v[0]  n[0]  v[1]  */
+    const Triangle& t = triangles[iT];
+    if(t.vertices[0] == iV1)
+    {
+        iV2 = t.vertices[1];
+        iV4 = t.vertices[2];
+        n1 = t.neighbors[0];
+        n3 = t.neighbors[2];
+        iTopo = t.neighbors[1];
+    }
+    else if(t.vertices[1] == iV1)
+    {
+        iV2 = t.vertices[2];
+        iV4 = t.vertices[0];
+        n1 = t.neighbors[1];
+        n3 = t.neighbors[0];
+        iTopo = t.neighbors[2];
+    }
+    else
+    {
+        iV2 = t.vertices[0];
+        iV4 = t.vertices[1];
+        n1 = t.neighbors[2];
+        n3 = t.neighbors[1];
+        iTopo = t.neighbors[0];
+    }
+    if(iTopo == noNeighbor)
+        return;
+    const Triangle& tOpo = triangles[iTopo];
+    if(tOpo.neighbors[0] == iT)
+    {
+        iV3 = tOpo.vertices[2];
+        n2 = tOpo.neighbors[1];
+        n4 = tOpo.neighbors[2];
+    }
+    else if(tOpo.neighbors[1] == iT)
+    {
+        iV3 = tOpo.vertices[0];
+        n2 = tOpo.neighbors[2];
+        n4 = tOpo.neighbors[0];
+    }
+    else
+    {
+        iV3 = tOpo.vertices[1];
+        n2 = tOpo.neighbors[0];
+        n4 = tOpo.neighbors[1];
     }
 }
 
@@ -1154,98 +1212,108 @@ void Triangulation<T, TNearPointLocator>::ensureDelaunayByEdgeFlips(
  *  3.  None of the vertices are super-tri: normal circumcircle test
  */
 /*
- *                       v3         original edge: (v1, v3)
+ *                       v4         original edge: (v1, v3)
  *                      /|\   flip-candidate edge: (v,  v2)
  *                    /  |  \
  *                  /    |    \
  *                /      |      \
- * new vertex--> v       |       v2
+ * new vertex--> v1      |       v3
  *                \      |      /
  *                  \    |    /
  *                    \  |  /
  *                      \|/
- *                       v1
+ *                       v2
  */
 template <typename T, typename TNearPointLocator>
 bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
     const V2d<T>& v,
-    const VertInd iV,
     const VertInd iV1,
     const VertInd iV2,
-    const VertInd iV3) const
+    const VertInd iV3,
+    const VertInd iV4) const
 {
-    const V2d<T>& v1 = vertices[iV1];
     const V2d<T>& v2 = vertices[iV2];
     const V2d<T>& v3 = vertices[iV3];
+    const V2d<T>& v4 = vertices[iV4];
     if(m_superGeomType == SuperGeometryType::SuperTriangle)
     {
         // If flip-candidate edge touches super-triangle in-circumference
         // test has to be replaced with orient2d test against the line
         // formed by two non-artificial vertices (that don't belong to
         // super-triangle)
-        if(iV < 3) // flip-candidate edge touches super-triangle
+        if(iV1 < 3) // flip-candidate edge touches super-triangle
         {
             // does original edge also touch super-triangle?
-            if(iV1 < 3)
-                return locatePointLine(v1, v2, v3) ==
+            if(iV2 < 3)
+                return locatePointLine(v2, v3, v4) ==
+                       locatePointLine(v, v3, v4);
+            if(iV4 < 3)
+                return locatePointLine(v4, v2, v3) ==
                        locatePointLine(v, v2, v3);
-            if(iV3 < 3)
-                return locatePointLine(v3, v1, v2) ==
-                       locatePointLine(v, v1, v2);
             return false; // original edge does not touch super-triangle
         }
-        if(iV2 < 3) // flip-candidate edge touches super-triangle
+        if(iV3 < 3) // flip-candidate edge touches super-triangle
         {
             // does original edge also touch super-triangle?
-            if(iV1 < 3)
-                return locatePointLine(v1, v, v3) == locatePointLine(v2, v, v3);
-            if(iV3 < 3)
-                return locatePointLine(v3, v1, v) == locatePointLine(v2, v1, v);
+            if(iV2 < 3)
+                return locatePointLine(v2, v, v4) == locatePointLine(v3, v, v4);
+            if(iV4 < 3)
+                return locatePointLine(v4, v2, v) == locatePointLine(v3, v2, v);
             return false; // original edge does not touch super-triangle
         }
         // flip-candidate edge does not touch super-triangle
-        if(iV1 < 3)
-            return locatePointLine(v1, v2, v3) == locatePointLine(v, v2, v3);
-        if(iV3 < 3)
-            return locatePointLine(v3, v1, v2) == locatePointLine(v, v1, v2);
+        if(iV2 < 3)
+            return locatePointLine(v2, v3, v4) == locatePointLine(v, v3, v4);
+        if(iV4 < 3)
+            return locatePointLine(v4, v2, v3) == locatePointLine(v, v2, v3);
     }
-    return isInCircumcircle(v, v1, v2, v3);
+    return isInCircumcircle(v, v2, v3, v4);
 }
 
+/* Flip edge between T and Topo:
+ *
+ *                v4         | - old edge
+ *               /|\         ~ - new edge
+ *              / | \
+ *          n3 /  T' \ n4
+ *            /   |   \
+ *           /    |    \
+ *     T -> v1 ~~~~~~~~ v3 <- Topo
+ *           \    |    /
+ *            \   |   /
+ *          n1 \Topo'/ n2
+ *              \ | /
+ *               \|/
+ *                v2
+ */
 template <typename T, typename TNearPointLocator>
-bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
-    const V2d<T>& v,
+void Triangulation<T, TNearPointLocator>::flipEdge(
     const TriInd iT,
     const TriInd iTopo,
-    const VertInd iV) const
+    const VertInd v1,
+    const VertInd v2,
+    const VertInd v3,
+    const VertInd v4,
+    const TriInd n1,
+    const TriInd n2,
+    const TriInd n3,
+    const TriInd n4)
 {
-    /*
-     *                       v3         original edge: (v1, v3)
-     *                      /|\   flip-candidate edge: (v,  v2)
-     *                    /  |  \
-     *                  /    |    \
-     *                /      |      \
-     * new vertex--> v       |       v2
-     *                \      |      /
-     *                  \    |    /
-     *                    \  |  /
-     *                      \|/
-     *                       v1
-     */
-    const Triangle& tOpo = triangles[iTopo];
-    const Index i = opposedVertexInd(tOpo.neighbors, iT);
-    const VertInd iV2 = tOpo.vertices[i];
-    const VertInd iV1 = tOpo.vertices[cw(i)];
-    const VertInd iV3 = tOpo.vertices[ccw(i)];
-
-    // flip not needed if the original edge is fixed
-    if(!fixedEdges.empty() &&
-       fixedEdges.find(Edge(iV1, iV3)) != fixedEdges.end())
+    // change vertices and neighbors
+    using detail::arr3;
+    triangles[iT] = Triangle::make(arr3(v4, v1, v3), arr3(n3, iTopo, n4));
+    triangles[iTopo] = Triangle::make(arr3(v2, v3, v1), arr3(n2, iT, n1));
+    // adjust neighboring triangles and vertices
+    changeNeighbor(n1, iT, iTopo);
+    changeNeighbor(n4, iTopo, iT);
+    // only adjust adjacent triangles if triangulation is not finalized:
+    // can happen when called from outside on an already finalized
+    // triangulation
+    if(!isFinalized())
     {
-        return false;
+        setAdjacentTriangle(v4, iT);
+        setAdjacentTriangle(v2, iTopo);
     }
-
-    return isFlipNeeded(v, iV, iV1, iV2, iV3);
 }
 
 /* Insert point into triangle: split into 3 triangles:
