@@ -664,7 +664,8 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
     const VertInd nExistingVerts(vertices.size());
 
     const VertInd nVerts(nExistingVerts + std::distance(first, last));
-    triangles.reserve(2 * nVerts); // optimization, try to pre-allocate tris
+    // optimization, try to pre-allocate tris
+    triangles.reserve(triangles.size() + 2 * nVerts);
     vertices.reserve(nVerts);
     m_vertTris.reserve(nVerts);
     for(TVertexIter it = first; it != last; ++it)
