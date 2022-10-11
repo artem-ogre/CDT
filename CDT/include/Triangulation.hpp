@@ -568,7 +568,11 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
             }
             detail::insert_unique(pieceToOriginals[half1], newOriginals);
             detail::insert_unique(pieceToOriginals[half2], newOriginals);
-
+            // set adjacent triangles again
+            for(IndexSizeType i = 0; i < outerTrisL.size(); ++i)
+                setAdjacentTriangle(polyL[i + 1], outerTrisL[i]);
+            for(IndexSizeType i = 0; i < outerTrisR.size(); ++i)
+                setAdjacentTriangle(polyR[i + 1], outerTrisR[i]);
             // add a new point at the intersection of two constraint edges
             const V2d<T> newV = detail::intersectionPosition(
                 vertices[iA], vertices[iB], vertices[iVL], vertices[iVR]);
@@ -581,11 +585,6 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
             //  for inserting [iA, iNewVert] edge half?
             remaining.push_back(Edge(iA, iNewVert));
             remaining.push_back(Edge(iNewVert, iB));
-            // Set adjacent triangles again
-            for(IndexSizeType i = 0; i < outerTrisL.size(); ++i)
-                setAdjacentTriangle(polyL[i + 1], outerTrisL[i]);
-            for(IndexSizeType i = 0; i < outerTrisR.size(); ++i)
-                setAdjacentTriangle(polyR[i + 1], outerTrisR[i]);
             return;
         }
 
