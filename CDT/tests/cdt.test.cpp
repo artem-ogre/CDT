@@ -515,7 +515,9 @@ TEMPLATE_LIST_TEST_CASE(
         "points_on_constraint_edge.txt",
         "regression_issue_38_wrong_hull_small.txt",
         "square with crack.txt",
-        "unit square.txt");
+        "test_data_small.txt",
+        "unit square.txt"
+    );
 
     const auto typeSpecific = std::unordered_set<std::string>{
         "guitar no box.txt",
