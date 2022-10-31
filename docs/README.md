@@ -168,7 +168,8 @@ cdt.insertVertices(/* points */);
 cdt.eraseSuperTriangle();
 /* access triangles */ = cdt.triangles;
 /* access vertices */ = cdt.vertices;
-/* access boundary edges */ = cdt.edges;
+/* access boundary (fixed) edges */ = cdt.fixedEdges;
+/* calculate all edges (on demand) */ = CDT::extractEdgesFromTriangles(cdt.triangles);
 ```
 
 **Constrained Delaunay triangulation (auto-detected boundaries and holes)**
@@ -182,7 +183,8 @@ cdt.insertEdges(/* boundary edges */);
 cdt.eraseOuterTrianglesAndHoles();
 /* access triangles */ = cdt.triangles;
 /* access vertices */ = cdt.vertices;
-/* access boundary edges */ = cdt.edges;
+/* access boundary (fixed) edges */ = cdt.fixedEdges;
+/* calculate all edges (on demand) */ = CDT::extractEdgesFromTriangles(cdt.triangles);
 ```
 
 **Conforming Delaunay triangulation**
