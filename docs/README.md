@@ -256,6 +256,7 @@ For attribution you can use the following template:
 This software is based part on CDT (C++ library for constrained Delaunay triangulation):
 Copyright © 2019 Leica Geosystems Technology AB
 Copyright © The CDT Contributors
+Licensed under the MPL-2.0 license.
 https://github.com/artem-ogre/CDT
 ${INSERT_FULL_MPL_2.0_TEXT}
 ```
