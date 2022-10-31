@@ -249,6 +249,15 @@ Any feedback and contributions are welcome.
 
 [Mozilla Public License,  v. 2.0](https://www.mozilla.org/en-US/MPL/2.0/FAQ/)
 
+For attribution you can use the following template:
+```
+This software is based part on CDT (C++ library for constrained Delaunay triangulation):
+Copyright © 2019 Leica Geosystems Technology AB
+Copyright © The CDT Contributors
+https://github.com/artem-ogre/CDT
+${INSERT_FULL_MPL_2.0_TEXT}
+```
+
 <a name="example-gallery"></a>
 
 ## Example Gallery
