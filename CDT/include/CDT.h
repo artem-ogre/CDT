@@ -196,6 +196,7 @@ template <
     typename TEdgeIter,
     typename TGetEdgeVertexStart,
     typename TGetEdgeVertexEnd,
+    typename TIsBoundary,
     typename TMakeEdgeFromStartAndEnd>
 DuplicatesInfo RemoveDuplicatesAndRemapEdges(
     std::vector<TVertex, TVertexAllocator>& vertices,
@@ -205,6 +206,7 @@ DuplicatesInfo RemoveDuplicatesAndRemapEdges(
     TEdgeIter edgesLast,
     TGetEdgeVertexStart getStart,
     TGetEdgeVertexEnd getEnd,
+    TIsBoundary isBoundary,
     TMakeEdgeFromStartAndEnd makeEdge);
 
 /**
@@ -223,7 +225,9 @@ CDT_EXPORT DuplicatesInfo RemoveDuplicatesAndRemapEdges(
  * Extract all edges of triangles
  *
  * @param triangles triangles used to extract edges
- * @return an unordered set of all edges of triangulation
+ * @return an unordered set of directed edges of the triangulation, edges are
+ * marked as a boundary edges if they only appear once (as undirected edges) in
+ * the triangulation
  */
 CDT_EXPORT EdgeUSet extractEdgesFromTriangles(const TriangleVec& triangles);
 
@@ -336,20 +340,23 @@ template <
     typename TEdgeIter,
     typename TGetEdgeVertexStart,
     typename TGetEdgeVertexEnd,
-    typename TMakeEdgeFromStartAndEnd>
+    typename TGetEdgeIsBoundary,
+    typename TMakeEdge>
 void RemapEdges(
     TEdgeIter first,
     const TEdgeIter last,
     const std::vector<std::size_t>& mapping,
     TGetEdgeVertexStart getStart,
     TGetEdgeVertexEnd getEnd,
-    TMakeEdgeFromStartAndEnd makeEdge)
+    TGetEdgeIsBoundary isBoundary,
+    TMakeEdge makeEdge)
 {
     for(; first != last; ++first)
     {
         *first = makeEdge(
             static_cast<VertInd>(mapping[getStart(*first)]),
-            static_cast<VertInd>(mapping[getEnd(*first)]));
+            static_cast<VertInd>(mapping[getEnd(*first)]),
+            isBoundary(*first));
     }
 }
 
@@ -362,6 +369,7 @@ template <
     typename TEdgeIter,
     typename TGetEdgeVertexStart,
     typename TGetEdgeVertexEnd,
+    typename TGetEdgeIsBoundary,
     typename TMakeEdgeFromStartAndEnd>
 DuplicatesInfo RemoveDuplicatesAndRemapEdges(
     std::vector<TVertex, TVertexAllocator>& vertices,
@@ -371,12 +379,20 @@ DuplicatesInfo RemoveDuplicatesAndRemapEdges(
     const TEdgeIter edgesLast,
     TGetEdgeVertexStart getStart,
     TGetEdgeVertexEnd getEnd,
+    TGetEdgeIsBoundary isBoundary,
     TMakeEdgeFromStartAndEnd makeEdge)
 {
     const DuplicatesInfo di =
         FindDuplicates<T>(vertices.begin(), vertices.end(), getX, getY);
     RemoveDuplicates(vertices, di.duplicates);
-    RemapEdges(edgesFirst, edgesLast, di.mapping, getStart, getEnd, makeEdge);
+    RemapEdges(
+        edgesFirst,
+        edgesLast,
+        di.mapping,
+        getStart,
+        getEnd,
+        isBoundary,
+        makeEdge);
     return di;
 }
 

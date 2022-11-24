@@ -208,7 +208,7 @@ CDT_EXPORT Box2d<T> envelopBox(const std::vector<V2d<T> >& vertices);
 struct CDT_EXPORT Edge
 {
     /// Constructor
-    Edge(VertInd iV1, VertInd iV2);
+    Edge(VertInd iV1, VertInd iV2, bool isBoundaryEdge);
     /// Equals operator
     bool operator==(const Edge& other) const;
     /// Not-equals operator
@@ -219,9 +219,12 @@ struct CDT_EXPORT Edge
     VertInd v2() const;
     /// Edges' vertices
     const std::pair<VertInd, VertInd>& verts() const;
+    /// Whether edge is a boundary edge or just an inner edge
+    bool isBoundary() const;
 
 private:
     std::pair<VertInd, VertInd> m_vertices;
+    bool m_isBoundary;
 };
 
 /// Get edge first vertex
@@ -237,9 +240,15 @@ inline VertInd edge_get_v2(const Edge& e)
 }
 
 /// Get edge second vertex
-inline Edge edge_make(VertInd iV1, VertInd iV2)
+inline Edge edge_make(VertInd iV1, VertInd iV2, bool isBoundaryEdge)
 {
-    return Edge(iV1, iV2);
+    return Edge(iV1, iV2, isBoundaryEdge);
+}
+
+// Get isBoundary property of edge
+inline bool edge_is_boundary(const Edge& e)
+{
+    return e.isBoundary();
 }
 
 typedef std::vector<Edge> EdgeVec;                ///< Vector of edges

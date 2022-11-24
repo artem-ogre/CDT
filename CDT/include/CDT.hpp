@@ -12,7 +12,21 @@
 #include <algorithm>
 #include <deque>
 #include <limits>
+#include <map>
 #include <stdexcept>
+
+namespace
+{
+std::pair<CDT::VertInd, CDT::VertInd> orderedEdgeIndices(
+    const CDT::TriangleVec::const_iterator& t,
+    const size_t localIndex)
+{
+    const CDT::VertInd edgeStart{t->vertices[localIndex]};
+    const CDT::VertInd edgeEnd{t->vertices[(localIndex + 1) % 3]};
+    return std::pair<CDT::VertInd, CDT::VertInd>{
+        std::min(edgeStart, edgeEnd), std::max(edgeStart, edgeEnd)};
+}
+} // namespace
 
 namespace CDT
 {
@@ -67,6 +81,7 @@ DuplicatesInfo RemoveDuplicatesAndRemapEdges(
         edges.end(),
         edge_get_v1,
         edge_get_v2,
+        edge_is_boundary,
         edge_make);
 }
 
@@ -75,11 +90,27 @@ extractEdgesFromTriangles(const TriangleVec& triangles)
 {
     EdgeUSet edges;
     typedef TriangleVec::const_iterator CIt;
+
+    // Count how often the edge is used to determine if it is a boundary edge
+    std::map<std::pair<VertInd, VertInd>, int> edgeCounts;
     for(CIt t = triangles.begin(); t != triangles.end(); ++t)
     {
-        edges.insert(Edge(VertInd(t->vertices[0]), VertInd(t->vertices[1])));
-        edges.insert(Edge(VertInd(t->vertices[1]), VertInd(t->vertices[2])));
-        edges.insert(Edge(VertInd(t->vertices[2]), VertInd(t->vertices[0])));
+        for(size_t localIndex = 0; localIndex < 3; ++localIndex)
+        {
+            edgeCounts[orderedEdgeIndices(t, localIndex)]++;
+        }
+    }
+    for(CIt t = triangles.begin(); t != triangles.end(); ++t)
+    {
+        for(size_t localIndex = 0; localIndex < 3; ++localIndex)
+        {
+            const bool isBoundaryEdge =
+                edgeCounts[orderedEdgeIndices(t, localIndex)] == 1;
+            edges.insert(Edge(
+                VertInd(t->vertices[localIndex]),
+                VertInd(t->vertices[(localIndex + 1) % 3]),
+                isBoundaryEdge));
+        }
     }
     return edges;
 }

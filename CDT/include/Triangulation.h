@@ -212,6 +212,9 @@ public:
      * Getter signature: const TEdgeIter::value_type& -> CDT::VertInd
      * @tparam TGetEdgeVertexEnd function object getting end vertex index from
      * an edge. Getter signature: const TEdgeIter::value_type& -> CDT::VertInd
+     * @tparam TGetEdgeIsBoundary function object determining if edge is a
+     * boundary edge.
+     * Getter signature: const TEdgeIter::value_type& -> bool
      * @param first beginning of the range of edges to add
      * @param last end of the range of edges to add
      * @param getStart getter of edge start vertex index
@@ -220,12 +223,17 @@ public:
     template <
         typename TEdgeIter,
         typename TGetEdgeVertexStart,
-        typename TGetEdgeVertexEnd>
+        typename TGetEdgeVertexEnd,
+        typename TIsBoundary>
     void insertEdges(
         TEdgeIter first,
         TEdgeIter last,
         TGetEdgeVertexStart getStart,
-        TGetEdgeVertexEnd getEnd);
+        TGetEdgeVertexEnd getEnd,
+        TIsBoundary isBoundary = [](const typename TEdgeIter::value_type&) {
+            return true;
+        });
+
     /**
      * Insert constraint edges into triangulation
      * @note Each fixed edge is inserted by deleting the triangles it crosses,
@@ -323,6 +331,15 @@ public:
     std::vector<LayerDepth> calculateTriangleDepths() const;
 
     /**
+     * Find a vertex close to a given position.
+     * @param pos position to search from
+     * @return Index of a nearby vertex
+     */
+    VertInd nearbyVertex(const V2d<T>& pos) const;
+
+    array<TriInd, 2> trianglesAtPosition(const V2d<T>& pos) const;
+
+    /**
      * @defgroup Advanced Advanced Triangulation Methods
      * Advanced methods for manually modifying the triangulation from
      * outside. Please only use them when you know what you are doing.
@@ -358,6 +375,13 @@ private:
         std::stack<TriInd>& triStack);
     /// Flip fixed edges and return a list of flipped fixed edges
     std::vector<Edge> insertVertex_FlipFixedEdges(VertInd iVert);
+
+    /**
+     * Checks if an inner- and/or boundary-edge with the specified left and
+     * right vertices exists and returns those edges.
+     */
+    EdgeUSet::const_iterator
+    findFixedEdge(VertInd iVleft, VertInd iVRight) const;
 
     typedef std::vector<VertInd>::const_iterator VertIndCit;
     /// State for an iteration of triangulate pseudo-polygon
@@ -618,12 +642,14 @@ template <typename T, typename TNearPointLocator>
 template <
     typename TEdgeIter,
     typename TGetEdgeVertexStart,
-    typename TGetEdgeVertexEnd>
+    typename TGetEdgeVertexEnd,
+    typename TIsBoundary>
 void Triangulation<T, TNearPointLocator>::insertEdges(
     TEdgeIter first,
     const TEdgeIter last,
     TGetEdgeVertexStart getStart,
-    TGetEdgeVertexEnd getEnd)
+    TGetEdgeVertexEnd getEnd,
+    TIsBoundary isBoundary)
 {
     // state shared between different runs for performance gains
     std::vector<TriangulatePseudopolygonTask> tppIterations;
@@ -639,7 +665,8 @@ void Triangulation<T, TNearPointLocator>::insertEdges(
         // +3 to account for super-triangle vertices
         const Edge edge(
             VertInd(getStart(*first) + m_nTargetVerts),
-            VertInd(getEnd(*first) + m_nTargetVerts));
+            VertInd(getEnd(*first) + m_nTargetVerts),
+            isBoundary(*first));
         insertEdge(edge, edge, remaining, tppIterations);
     }
     eraseDummies();
@@ -669,7 +696,8 @@ void Triangulation<T, TNearPointLocator>::conformToEdges(
         // +3 to account for super-triangle vertices
         const Edge e(
             VertInd(getStart(*first) + m_nTargetVerts),
-            VertInd(getEnd(*first) + m_nTargetVerts));
+            VertInd(getEnd(*first) + m_nTargetVerts),
+            true);
         conformToEdge(e, EdgeVec(1, e), 0, remaining);
     }
     eraseDummies();

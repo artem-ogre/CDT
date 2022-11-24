@@ -39,14 +39,16 @@ Box2d<T> envelopBox(const std::vector<V2d<T> >& vertices)
 //*****************************************************************************
 // Edge
 //*****************************************************************************
-CDT_INLINE_IF_HEADER_ONLY Edge::Edge(VertInd iV1, VertInd iV2)
+CDT_INLINE_IF_HEADER_ONLY
+Edge::Edge(VertInd iV1, VertInd iV2, bool isBoundaryEdge = true)
     : m_vertices(
           iV1 < iV2 ? std::make_pair(iV1, iV2) : std::make_pair(iV2, iV1))
+    , m_isBoundary(isBoundaryEdge)
 {}
 
 CDT_INLINE_IF_HEADER_ONLY bool Edge::operator==(const Edge& other) const
 {
-    return m_vertices == other.m_vertices;
+    return m_vertices == other.m_vertices && m_isBoundary == other.m_isBoundary;
 }
 
 CDT_INLINE_IF_HEADER_ONLY bool Edge::operator!=(const Edge& other) const
@@ -67,6 +69,11 @@ CDT_INLINE_IF_HEADER_ONLY VertInd Edge::v2() const
 CDT_INLINE_IF_HEADER_ONLY const std::pair<VertInd, VertInd>& Edge::verts() const
 {
     return m_vertices;
+}
+
+CDT_INLINE_IF_HEADER_ONLY bool Edge::isBoundary() const
+{
+    return m_isBoundary;
 }
 
 //*****************************************************************************
