@@ -12,6 +12,8 @@
 #include <cassert>
 #include <limits>
 
+namespace CDT
+{
 namespace KDTree
 {
 
@@ -395,5 +397,6 @@ private:
 };
 
 } // namespace KDTree
+} // namespace CDT
 
 #endif // header guard
