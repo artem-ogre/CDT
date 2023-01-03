@@ -378,16 +378,16 @@ private:
         NearestTask()
         {}
         NearestTask(
-            const node_index node,
-            const point_type& min,
-            const point_type& max,
-            const NodeSplitDirection::Enum dir,
-            const coord_type distSq)
-            : node(node)
-            , min(min)
-            , max(max)
-            , dir(dir)
-            , distSq(distSq)
+            const node_index node_,
+            const point_type& min_,
+            const point_type& max_,
+            const NodeSplitDirection::Enum dir_,
+            const coord_type distSq_)
+            : node(node_)
+            , min(min_)
+            , max(max_)
+            , dir(dir_)
+            , distSq(distSq_)
         {}
     };
     // allocated in class (not in the 'nearest' method) for better performance

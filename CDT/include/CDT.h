@@ -396,22 +396,22 @@ unordered_map<Edge, std::vector<VertInd> > EdgeToSplitVertices(
 
     unordered_map<Edge, std::vector<VertInd> > edgeToSplitVerts;
     typedef unordered_map<Edge, EdgeVec>::const_iterator It;
-    for(It it = edgeToPieces.begin(); it != edgeToPieces.end(); ++it)
+    for(It e2pIt = edgeToPieces.begin(); e2pIt != edgeToPieces.end(); ++e2pIt)
     {
-        const Edge& e = it->first;
+        const Edge& e = e2pIt->first;
         const T dX = vertices[e.v2()].x - vertices[e.v1()].x;
         const T dY = vertices[e.v2()].y - vertices[e.v1()].y;
         const bool isX = std::abs(dX) >= std::abs(dY); // X-coord longer
         const bool isAscending =
             isX ? dX >= 0 : dY >= 0; // Longer coordinate ascends
-        const EdgeVec& pieces = it->second;
+        const EdgeVec& pieces = e2pIt->second;
         std::vector<VertCoordPair> splitVerts;
         // size is:  2[ends] + (pieces - 1)[split vertices] = pieces + 1
         splitVerts.reserve(pieces.size() + 1);
         typedef EdgeVec::const_iterator EIt;
-        for(EIt it = pieces.begin(); it != pieces.end(); ++it)
+        for(EIt pieceIt = pieces.begin(); pieceIt != pieces.end(); ++pieceIt)
         {
-            const array<VertInd, 2> vv = {it->v1(), it->v2()};
+            const array<VertInd, 2> vv = {pieceIt->v1(), pieceIt->v2()};
             typedef array<VertInd, 2>::const_iterator VIt;
             for(VIt v = vv.begin(); v != vv.end(); ++v)
             {
