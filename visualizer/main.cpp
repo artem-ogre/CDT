@@ -158,15 +158,15 @@ public slots:
     }
 
 private:
-    void readData(const QString& file)
+    void readData(const QString& fileName)
     {
-        QFile data(file);
-        if(!data.open(QFile::ReadOnly))
+        QFile file(fileName);
+        if(!file.open(QFile::ReadOnly))
         {
             QMessageBox::warning(
-                this, tr("CDT"), tr("Could not open file ") + file);
+                this, tr("CDT"), tr("Could not open file ") + fileName);
         }
-        QTextStream inStream(&data);
+        QTextStream inStream(&file);
         std::size_t nPts, nEdges;
         inStream >> nPts >> nEdges;
         m_points.clear();
@@ -345,7 +345,7 @@ private:
         }
         if(m_isDisplayIndices)
         {
-            int iT = 0;
+            iT = 0;
             for(TCit t = m_cdt.triangles.begin(); t != m_cdt.triangles.end();
                 ++t, ++iT)
             {
