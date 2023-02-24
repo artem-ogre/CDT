@@ -38,6 +38,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install conan
         conan --version
+        conan profile detect
     
     - name: "Build: compiled, shared, boost"
       run: conan create CDT/ -o as_compiled_library=True -o shared=True -o use_boost=True -o enable_testing=True --build missing
