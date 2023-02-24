@@ -2,16 +2,18 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
-from conans import ConanFile, CMake, tools
-
+from conan import ConanFile
+from conan.tools.cmake import CMake, CMakeToolchain
+from conan.tools.files import collect_libs
 
 class CDTConan(ConanFile):
-    name = "CDT"
+    name = "cdt"
     version = "1.0.0"
     license = "MPL-2.0 License"
     url = "https://github.com/artem-ogre/CDT"
     description = "Numerically robust C++ implementation of constrained Delaunay triangulation (CDT)"
     settings = "os", "compiler", "build_type", "arch"
+    generators = "CMakeDeps"
     options = {
         "shared": [True, False],
         "use_boost": [True, False],
@@ -23,39 +25,35 @@ class CDTConan(ConanFile):
         "use_boost": False,
         "as_compiled_library": False,
     }
-    generators = {
-        "cmake",
-        "cmake_find_package",
-    }
     exports_sources = "*", "!.idea", "!conanfile.py"
 
     def requirements(self):
         if self.options.use_boost:
-            self.requires.add("boost/1.71.0")
-        self.requires.add("catch2/3.1.0 ")
+            self.requires("boost/1.81.0")
+        self.requires("catch2/3.3.1")
 
     def configure(self):
         if self.options.use_boost:
             self.options["boost"].header_only = True
 
-    def _configure_cmake(self):
-        cmake = CMake(self)
-        cmake.definitions["CDT_USE_BOOST"] = self.options.use_boost
-        cmake.definitions["CDT_USE_AS_COMPILED_LIBRARY"] = self.options.as_compiled_library
-        cmake.definitions["CMAKE_PROJECT_CDT_INCLUDE"] = "conan_basic_setup.cmake"
-        cmake.definitions["CDT_ENABLE_TESTING"] = self.options.enable_testing
-        cmake.configure()
-        return cmake
+    def generate(self):
+        tc = CMakeToolchain(self)
+        tc.variables["CDT_USE_BOOST"] = self.options.use_boost
+        tc.cache_variables["CDT_USE_AS_COMPILED_LIBRARY"] = self.options.as_compiled_library
+        tc.cache_variables["CMAKE_PROJECT_CDT_INCLUDE"] = "conan_basic_setup.cmake"
+        tc.cache_variables["CDT_ENABLE_TESTING"] = self.options.enable_testing
+        tc.generate()
 
     def build(self):
-        cmake = self._configure_cmake()
+        cmake = CMake(self)
+        cmake.configure()
         cmake.build()
         if self.options.enable_testing:
-            cmake.test(output_on_failure=True)
+            cmake.test(cli_args=["--verbose"])
 
     def package(self):
-        cmake = self._configure_cmake()
+        cmake = CMake(self)
         cmake.install()
 
     def package_info(self):
-        self.cpp_info.libs = tools.collect_libs(self)
+        self.cpp_info.libs = collect_libs(self)
