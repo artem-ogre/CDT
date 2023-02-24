@@ -1717,7 +1717,7 @@ Triangulation<T, TNearPointLocator>::peelLayer(
     {
         const TriInd iT = seeds.top();
         seeds.pop();
-        triDepths[iT] = layerDepth;
+        triDepths[iT] = std::min(triDepths[iT], layerDepth);
         behindBoundary.erase(iT);
         const Triangle& t = triangles[iT];
         for(Index i(0); i < Index(3); ++i)
