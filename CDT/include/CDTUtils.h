@@ -248,11 +248,13 @@ typedef unordered_set<TriInd> TriIndUSet;         ///< Hash table of triangles
 typedef unordered_map<TriInd, TriInd> TriIndUMap; ///< Triangle hash map
 
 /// Triangulation triangle (counter-clockwise winding)
-//     v3
-//     /\
-//  n3/  \n2
-//   /____\
-// v1  n1  v2
+/*
+ *      v3
+ *      /\
+ *   n3/  \n2
+ *    /____\
+ *  v1  n1  v2
+ */
 struct CDT_EXPORT Triangle
 {
     VerticesArr3 vertices;   ///< triangle's three vertices
