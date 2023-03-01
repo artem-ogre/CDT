@@ -8,7 +8,7 @@ from conan.tools.files import collect_libs
 
 class CDTConan(ConanFile):
     name = "cdt"
-    version = "1.0.0"
+    version = "1.3.0"
     license = "MPL-2.0 License"
     url = "https://github.com/artem-ogre/CDT"
     description = "Numerically robust C++ implementation of constrained Delaunay triangulation (CDT)"
