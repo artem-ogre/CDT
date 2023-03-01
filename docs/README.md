@@ -15,20 +15,26 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 
 ***If CDT helped you please consider adding a star to on [GitHub](https://github.com/artem-ogre/CDT). This means a lot to the authors*** 🤩
 
+<a name="table-of-contents"></a>
+
 ## Table of Contents
 
-- [What can CDT do?](#what-can-cdt-do)
-- [Properly Handling the Corner-Cases](#corner-cases)
-- [Online Documentation](#online-documentation)
-- [Algorithm](#algorithm)
-- [Implementation Details](#details)
-- [Installation/Building](#installation)
-- [Using with Code Examples](#using)
-- [Python bindings?](#python)
-- [Contributors](#contributors)
-- [Contributing](#contributing)
-- [Example Gallery](#example-gallery)
-- [Bibliography](#bibliography)
+- [Overview](#overview)
+  - [Table of Contents](#table-of-contents)
+  - [What can CDT do?](#what-can-cdt-do)
+  - [Properly Handling the Corner-Cases](#properly-handling-the-corner-cases)
+  - [Online Documentation](#online-documentation)
+  - [Algorithm](#algorithm)
+  - [Implementation Details](#implementation-details)
+  - [Installation/Building](#installationbuilding)
+  - [Using](#using)
+    - [Code Examples](#code-examples)
+  - [Python bindings?](#python-bindings)
+  - [Contributors](#contributors)
+  - [Contributing](#contributing)
+  - [License](#license)
+  - [Example Gallery](#example-gallery)
+  - [Bibliography](#bibliography)
 
 <a name="what-can-cdt-do"></a>
 
@@ -40,7 +46,7 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 - Convex-hulls
 - Automatically finding and removing holes
 
-<a name="corner-cases"></a>
+<a name="properly-handling-the-corner-cases"></a>
 
 ## Properly Handling the Corner-Cases
 <img src="./images/corner-cases.png" alt="CDT supported corner cases: points on edges, overlapping edges, resolving edge intersections" style='height: 100%; width: 100%; max-height: 300px; object-fit: contain'/>
@@ -59,11 +65,13 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 
 ## Algorithm
 
-- Implementation closely follows incremental construction algorithm by Anglada [[1](#1)]. 
+- Implementation closely follows incremental construction algorithm by Anglada <a href="#[1]">[1]</a>.
 - During the legalization, the cases
-when at least one vertex belongs to super-triangle are resolved using an approach as described in Žalik et. al [[2](#2)].
-- For finding a triangle that contains inserted point remembering randomized triangle walk is used [[3](#3)]. To find the starting triangle for the walk the nearest point is found using a kd-tree with mid-split nodes.
-- By default inserted vertices are randomly shuffled internally to improve performance and avoid worst-case scenarios. The original vertices order can be optied-in using `CDT::VertexInsertionOrder::AsProvided` when constructing a triangulation. 
+when at least one vertex belongs to super-triangle are resolved using an approach as described in Žalik et. al <a href="#[2]">[2]</a>.
+- For finding a triangle that contains inserted point remembering randomized triangle walk is used <a href="#[3]">[3]</a>. To find the starting triangle for the walk the nearest point is found using a kd-tree with mid-split nodes.
+- Order in which vertices are inserted is controlled by `CDT::VertexInsertionOrder`: 
+  - `CDT::VertexInsertionOrder::Auto` uses breadth-first traversal of a Kd-tree for initial bulk-load <a href="#[4]">[4]</a> and randomized insertion order for the subsequent calls of `CDT::Triangulation::insertVertices`. Randomization improves performance and avoid worst-case scenarios. Generally vertex insertion with `CDT::VertexInsertionOrder::Auto` is faster.
+  - The original vertices order can be optied-in using `CDT::VertexInsertionOrder::AsProvided` when constructing a triangulation. 
 
 **Pre-conditions:**
 - No duplicated points (use provided functions for removing duplicate points and re-mapping edges)
@@ -72,7 +80,7 @@ when at least one vertex belongs to super-triangle are resolved using an approac
 **Post-conditions:**
 - Triangles have counter-clockwise (CCW) winding
 
-<a name="details"></a>
+<a name="implementation-details"></a>
 
 ## Implementation Details
 
@@ -92,7 +100,7 @@ when at least one vertex belongs to super-triangle are resolved using an approac
 
 - A demonstrator tool is included: requires Qt for GUI. When running demo-tool **make sure** that working directory contains files from 'data' folder.
 
-<a name="installation"></a>
+<a name="installationbuilding"></a>
 
 ## Installation/Building
 
@@ -154,6 +162,8 @@ Public API is provided in two places:
 - `CDT::Triangulation` class is used for performing constrained Delaunay triangulations.
 - Free functions in `CDT.h` provide some additional functionality for removing duplicates, re-mapping edges and triangle depth-peeling
 
+
+<a name="code-examples"></a>
 
 ### Code Examples
 
@@ -226,7 +236,7 @@ cdt.insertEdges(
 );
 ```
 
-<a name="python"></a>
+<a name="python-bindings"></a>
 
 ## Python bindings?
 For work-in-progress on Python bindings check-out [PythonCDT](https://github.com/artem-ogre/PythonCDT)
@@ -239,6 +249,7 @@ For work-in-progress on Python bindings check-out [PythonCDT](https://github.com
 - [baiwenlei](https://github.com/baiwenlei): dragging and zooming in the viewer
 - [Bärbel Holm](https://github.com/eisbaerli): removing duplicates and re-mapping edges
 - [Andre Fecteau](https://github.com/AndreFecteau): benchmarking, profiling, and providing a kd-tree implementation a derivative of which is included in CDT
+- [msokalski](https://github.com/msokalski): algorithm discussions and suggestions, bug finding
 
 <a name="contributing"></a>
 
@@ -269,7 +280,7 @@ ${INSERT_FULL_MPL_2.0_TEXT}
 <a name="bibliography"></a>
 
 ## Bibliography
-<a name="1">[1]</a> Marc Vigo Anglada,
+<a name="[1]">[1]</a> Marc Vigo Anglada,
 An improved incremental algorithm for constructing restricted Delaunay triangulations,
 _Computers & Graphics_,
 Volume 21, Issue 2,
@@ -277,7 +288,7 @@ Volume 21, Issue 2,
 Pages 215-223,
 ISSN 0097-8493.
 
-<a name="2">[2]</a> Borut   Žalik  and  Ivana   Kolingerová,
+<a name="[2]">[2]</a> Borut   Žalik  and  Ivana   Kolingerová,
 An incremental construction algorithm for Delaunay triangulation using the nearest-point paradigm,
 _International Journal of Geographical Information Science_,
 Volume 17,
@@ -286,7 +297,7 @@ Pages 119-138,
 2003,
 DOI 10.1080/713811749.
 
-<a name="3">[3]</a> Olivier Devillers, Sylvvain Pion, Monique Tellaud,
+<a name="[3]">[3]</a> Olivier Devillers, Sylvvain Pion, Monique Tellaud,
 Walking in a triangulation,
 _International Journal of Foundations of Computer Science_,
 Volume 13,
@@ -294,4 +305,8 @@ Issue 2,
 Pages 181-199,
 2002
 
-
+<a name="[4]">[4]</a> Liu, Jianfei & Yan, Jinhui & Lo, S..
+A new insertion sequence for incremental Delaunay triangulation.
+_Acta Mechanica Sinica_,
+Volume 29,
+2013
