@@ -645,12 +645,6 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
         pivotVertexTriangleCW(iA);
     if(m_vertTris[iB] == intersected.back())
         pivotVertexTriangleCW(iB);
-    // reset adjacent triangle for pseudo-polygons' vertices
-    //    typedef std::vector<VertInd>::const_iterator PolyCit;
-    //    for(PolyCit it = polyL.begin() + 1; it != polyL.end() - 1; ++it)
-    //        removeAdjacentTriangle(*it);
-    //    for(PolyCit it = polyR.begin() + 1; it != polyR.end() - 1; ++it)
-    //        removeAdjacentTriangle(*it);
     // Remove intersected triangles
     typedef std::vector<TriInd>::const_iterator TriIndCit;
     for(TriIndCit it = intersected.begin(); it != intersected.end(); ++it)
