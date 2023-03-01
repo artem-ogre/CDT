@@ -1222,8 +1222,8 @@ void Triangulation<T, TNearPointLocator>::edgeFlipInfo(
  *  3.  None of the vertices are super-tri: normal circumcircle test
  */
 /*
- *                       v4         original edge: (v1, v3)
- *                      /|\   flip-candidate edge: (v,  v2)
+ *                       v4         original edge: (v2, v4)
+ *                      /|\   flip-candidate edge: (v1, v3)
  *                    /  |  \
  *                  /    |    \
  *                /      |      \
@@ -1242,6 +1242,8 @@ bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
     const VertInd iV3,
     const VertInd iV4) const
 {
+    if(fixedEdges.count(Edge(iV2, iV4)))
+        return false; // flip not needed if the original edge is fixed
     const V2d<T>& v2 = vertices[iV2];
     const V2d<T>& v3 = vertices[iV3];
     const V2d<T>& v4 = vertices[iV4];

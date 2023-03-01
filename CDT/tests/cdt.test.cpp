@@ -15,6 +15,8 @@
 
 using namespace CDT;
 
+constexpr bool updateFiles = false;
+
 using CoordTypes = std::tuple<float, double>;
 template <class CoordType>
 using Vertices = std::vector<V2d<CoordType> >;
@@ -516,8 +518,7 @@ TEMPLATE_LIST_TEST_CASE(
         "regression_issue_38_wrong_hull_small.txt",
         "square with crack.txt",
         "test_data_small.txt",
-        "unit square.txt"
-    );
+        "unit square.txt");
 
     const auto typeSpecific = std::unordered_set<std::string>{
         "guitar no box.txt",
@@ -550,8 +551,6 @@ TEMPLATE_LIST_TEST_CASE(
     REQUIRE(CDT::verifyTopology(cdt));
 
     // make true to update expected files (development purposes only)
-    const bool updateFiles = false;
-
     const auto outputFileBase = "expected/" +
                                 inputFile.substr(0, inputFile.size() - 4) +
                                 "__" + typeString + to_string(order) + "_" +
@@ -644,8 +643,6 @@ TEMPLATE_LIST_TEST_CASE(
     REQUIRE(CDT::verifyTopology(cdt));
 
     // make true to update expected files (development purposes only)
-    const bool updateFiles = false;
-
     const auto outputFileBase =
         "expected/" + inputFile.substr(0, inputFile.size() - 4) +
         "__conforming_" + typeString + to_string(order) + "_" +
@@ -682,7 +679,6 @@ TEMPLATE_LIST_TEST_CASE("Ground truth tests: crossing edges", "", CoordTypes)
     triangulationType == "" ? cdt.insertEdges(ee) : cdt.conformToEdges(ee);
     REQUIRE(CDT::verifyTopology(cdt));
     // make true to update expected files (development purposes only)
-    const bool updateFiles = false;
     const auto outputFileBase = "expected/" +
                                 inputFile.substr(0, inputFile.size() - 4) +
                                 "__" + triangulationType + to_string(order) +
@@ -756,5 +752,32 @@ TEMPLATE_LIST_TEST_CASE("Benchmarks", "[benchmark][.]", CoordTypes)
             cdt.insertVertices(vv);
             cdt.insertEdges(ee);
         };
+    }
+}
+
+TEST_CASE("Don't flip constraint edge when resolving intersection", "")
+{
+    const auto inputFile =
+        std::string("dont_flip_constraint_when_resolving_intersection.txt");
+    const auto order = VertexInsertionOrder::AsProvided;
+    const auto intersectingEdgesStrategy = IntersectingConstraintEdges::Resolve;
+    const auto minDistToConstraintEdge = 1e-6;
+    const auto outFile = "expected/" +
+                         inputFile.substr(0, inputFile.size() - 4) + "__f64_" +
+                         to_string(order) + "_" +
+                         to_string(intersectingEdgesStrategy) + "_all.txt";
+
+    const auto [vv, ee] = readInputFromFile<double>("inputs/" + inputFile);
+    auto cdt = Triangulation<double>(
+        order, intersectingEdgesStrategy, minDistToConstraintEdge);
+    cdt.insertVertices(vv);
+    cdt.insertEdges(ee);
+    REQUIRE(CDT::verifyTopology(cdt));
+
+    if(updateFiles)
+        topologyToFile(outFile, cdt);
+    else
+    {
+        REQUIRE(topologyString(cdt) == topologyString(outFile));
     }
 }
