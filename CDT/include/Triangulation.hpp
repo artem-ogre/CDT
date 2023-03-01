@@ -1077,17 +1077,7 @@ void Triangulation<T, TNearPointLocator>::insertVertex(
     const VertInd walkStart)
 {
     const V2d<T>& v = vertices[iVert];
-    array<TriInd, 2> trisAt = {noNeighbor, noNeighbor};
-    // TODO: re-factor this corner case handling out
-    //  and merge with another `insertVertex`
-    if(walkStart != noVertex)
-    {
-        trisAt = walkingSearchTrianglesAt(v, walkStart);
-    }
-    else
-    {
-        trisAt[0] = 0;
-    }
+    const array<TriInd, 2> trisAt = walkingSearchTrianglesAt(v, walkStart);
     std::stack<TriInd> triStack =
         trisAt[1] == noNeighbor
             ? insertVertexInsideTriangle(iVert, trisAt[0])
@@ -1100,12 +1090,7 @@ void Triangulation<T, TNearPointLocator>::insertVertex(const VertInd iVert)
 {
     const V2d<T>& v = vertices[iVert];
     const VertInd walkStart = m_nearPtLocator.nearPoint(v, vertices);
-    array<TriInd, 2> trisAt = walkingSearchTrianglesAt(v, walkStart);
-    std::stack<TriInd> triStack =
-        trisAt[1] == noNeighbor
-            ? insertVertexInsideTriangle(iVert, trisAt[0])
-            : insertVertexOnEdge(iVert, trisAt[0], trisAt[1]);
-    ensureDelaunayByEdgeFlips(v, iVert, triStack);
+    insertVertex(iVert, walkStart);
     addVertexToLocator(iVert);
 }
 
@@ -1939,7 +1924,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices_KDTreeBFS(
     typedef std::vector<VertInd>::iterator It;
     detail::FixedCapacityQueue<tuple<It, It, V2d<T>, V2d<T>, VertInd> > queue(
         detail::maxQueueLengthBFSKDTree(vertexCount));
-    queue.push(make_tuple(ii.begin(), ii.end(), boxMin, boxMax, noVertex));
+    queue.push(make_tuple(ii.begin(), ii.end(), boxMin, boxMax, VertInd(0)));
 
     It first, last;
     V2d<T> newBoxMin, newBoxMax;
