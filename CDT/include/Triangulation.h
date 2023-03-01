@@ -563,7 +563,11 @@ private:
     void setAdjacentTriangle(const VertInd v, const TriInd t);
     void pivotVertexTriangleCW(VertInd v);
     void removeAdjacentTriangle(VertInd v);
-    void addVertexToLocator(VertInd v);
+    /// Add vertex to nearest-point locator if locator is initialized
+    void tryAddVertexToLocator(const VertInd v);
+    /// Perform lazy initialization of nearest-point locator after the Kd-tree
+    /// BFS bulk load if necessary
+    void tryInitNearestPointLocator();
 
     std::vector<TriInd> m_dummyTris;
     TNearPointLocator m_nearPtLocator;
@@ -649,20 +653,14 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
 
     const bool isFirstTime = vertices.empty();
     Box2d<T> box;
-    if(isFirstTime)
+    if(vertices.empty()) // called first time
     {
         box = envelopBox<T>(first, last, getX, getY);
         addSuperTriangle(box);
     }
-    else if(m_vertexInsertionOrder == VertexInsertionOrder::Auto)
-    {
-        // We need to put vertices added during initial Kd-tree BFS bulk load to
-        // the nearest point locator in order to continue adding more points
-        m_nearPtLocator.initialize(vertices);
-    }
+    tryInitNearestPointLocator();
 
     const VertInd nExistingVerts(vertices.size());
-
     const VertInd nVerts(nExistingVerts + std::distance(first, last));
     // optimization, try to pre-allocate tris
     triangles.reserve(triangles.size() + 2 * nVerts);
@@ -731,6 +729,7 @@ void Triangulation<T, TNearPointLocator>::conformToEdges(
             "Triangulation was finalized with 'erase...' method. Conforming to "
             "new edges is not possible");
     }
+    tryInitNearestPointLocator();
     // state shared between different runs for performance gains
     std::vector<ConformToEdgeTask> remaining;
     for(; first != last; ++first)
