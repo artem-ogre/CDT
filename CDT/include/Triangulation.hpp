@@ -579,7 +579,7 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
             addNewVertex(newV, noNeighbor);
             std::stack<TriInd> triStack =
                 insertVertexOnEdge(iNewVert, iT, iTopo);
-            addVertexToLocator(iNewVert);
+            tryAddVertexToLocator(iNewVert);
             ensureDelaunayByEdgeFlips(newV, iNewVert, triStack);
             // TODO: is it's possible to re-use pseudo-polygons
             //  for inserting [iA, iNewVert] edge half?
@@ -804,7 +804,7 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
             addNewVertex(newV, noNeighbor);
             std::stack<TriInd> triStack =
                 insertVertexOnEdge(iNewVert, iT, iTopo);
-            addVertexToLocator(iNewVert);
+            tryAddVertexToLocator(iNewVert);
             ensureDelaunayByEdgeFlips(newV, iNewVert, triStack);
 #ifdef CDT_CXX11_IS_SUPPORTED
             remaining.emplace_back(Edge(iNewVert, iB), originals, overlaps);
@@ -1067,7 +1067,7 @@ Triangulation<T, TNearPointLocator>::insertVertex_FlipFixedEdges(
         }
     }
 
-    addVertexToLocator(iV1);
+    tryAddVertexToLocator(iV1);
     return flippedFixedEdges;
 }
 
@@ -1091,7 +1091,7 @@ void Triangulation<T, TNearPointLocator>::insertVertex(const VertInd iVert)
     const V2d<T>& v = vertices[iVert];
     const VertInd walkStart = m_nearPtLocator.nearPoint(v, vertices);
     insertVertex(iVert, walkStart);
-    addVertexToLocator(iVert);
+    tryAddVertexToLocator(iVert);
 }
 
 template <typename T, typename TNearPointLocator>
@@ -2030,14 +2030,19 @@ void Triangulation<T, TNearPointLocator>::removeAdjacentTriangle(
 }
 
 template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::addVertexToLocator(const VertInd v)
+void Triangulation<T, TNearPointLocator>::tryAddVertexToLocator(const VertInd v)
 {
-    // lazy initialization of near point locator
-    if(!m_nearPtLocator.size())
+    if(!m_nearPtLocator.empty()) // only if locator is initialized already
+        m_nearPtLocator.addPoint(v, vertices);
+}
+
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::tryInitNearestPointLocator()
+{
+    if(!vertices.empty() && m_nearPtLocator.empty())
     {
         m_nearPtLocator.initialize(vertices);
     }
-    m_nearPtLocator.addPoint(v, vertices);
 }
 
 } // namespace CDT

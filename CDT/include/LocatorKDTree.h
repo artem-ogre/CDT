@@ -61,6 +61,11 @@ public:
         return m_kdTree.size();
     }
 
+    bool empty() const
+    {
+        return !size();
+    }
+
 private:
     typedef KDTree::KDTree<
         TCoordType,

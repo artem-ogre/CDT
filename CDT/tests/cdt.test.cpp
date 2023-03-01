@@ -70,14 +70,15 @@ std::ostream& operator<<(std::ostream& o, const Edge& e)
     return o;
 }
 
-std::ostream& operator<<(std::ostream& o, const std::vector<Edge>& edges)
+[[maybe_unused]] std::ostream&
+operator<<(std::ostream& o, const std::vector<Edge>& edges)
 {
     for(const auto& e : edges)
         o << e;
     return o;
 }
 
-std::vector<Edge> sortedEdges(const EdgeUSet& edges)
+[[maybe_unused]] std::vector<Edge> sortedEdges(const EdgeUSet& edges)
 {
     std::vector<Edge> out(edges.begin(), edges.end());
     std::sort(out.begin(), out.end());
