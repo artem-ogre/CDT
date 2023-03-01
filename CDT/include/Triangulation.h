@@ -660,8 +660,9 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
     }
     tryInitNearestPointLocator();
 
-    const VertInd nExistingVerts(vertices.size());
-    const VertInd nVerts(nExistingVerts + std::distance(first, last));
+    const VertInd nExistingVerts = static_cast<VertInd>(vertices.size());
+    const VertInd nVerts =
+        static_cast<VertInd>(nExistingVerts + std::distance(first, last));
     // optimization, try to pre-allocate tris
     triangles.reserve(triangles.size() + 2 * nVerts);
     vertices.reserve(nVerts);

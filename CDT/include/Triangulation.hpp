@@ -467,7 +467,7 @@ IndexSizeType Triangulation<T, TNearPointLocator>::previousEdgeEncounter(
     if(m_vertTris[v] != noNeighbor)
         return invalidIndex;
     // rewind back to the previous entry of the point
-    IndexSizeType i = poly.size() - 1;
+    IndexSizeType i = static_cast<IndexSizeType>(poly.size() - 1);
     while(poly[i] != v)
     {
         assert(i > 0);
@@ -1592,7 +1592,12 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudopolygon(
     assert(poly.size() > 2);
     // note: uses interation instead of recursion to avoid stack overflows
     iterations.clear();
-    iterations.push_back(make_tuple(0, poly.size() - 1, iT, iN, Index(0)));
+    iterations.push_back(make_tuple(
+        IndexSizeType(0),
+        static_cast<IndexSizeType>(poly.size() - 1),
+        iT,
+        iN,
+        Index(0)));
     while(!iterations.empty())
     {
         triangulatePseudopolygonIteration(poly, outerTris, iterations);
@@ -1819,10 +1824,13 @@ inline double log2_bc(T x)
 /// layer that have two children.
 inline std::size_t maxQueueLengthBFSKDTree(const std::size_t vertexCount)
 {
-    int filledLayerPow2 = std::floor(log2_bc(vertexCount)) - 1;
-    std::size_t nodesInFilledTree = std::pow(2., filledLayerPow2 + 1) - 1;
-    std::size_t nodesInLastFilledLayer = std::pow(2., filledLayerPow2);
-    std::size_t nodesInLastLayer = vertexCount - nodesInFilledTree;
+    const int filledLayerPow2 =
+        static_cast<int>(std::floor(log2_bc(vertexCount)) - 1);
+    const std::size_t nodesInFilledTree =
+        static_cast<std::size_t>(std::pow(2., filledLayerPow2 + 1) - 1);
+    const std::size_t nodesInLastFilledLayer =
+        static_cast<std::size_t>(std::pow(2., filledLayerPow2));
+    const std::size_t nodesInLastLayer = vertexCount - nodesInFilledTree;
     return nodesInLastLayer >= nodesInLastFilledLayer
                ? nodesInLastFilledLayer + nodesInLastLayer -
                      nodesInLastFilledLayer
