@@ -13,7 +13,7 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 - **performant:** continuously profiled, measured, and optimized
 - **numerically robust:** triangulation algorithms rely on robust geometric predicates
 
-***If CDT helped you please consider adding a star to on [GitHub](https://github.com/artem-ogre/CDT). This means a lot to the authors*** 🤩
+***If CDT helped you please consider adding a star on [GitHub](https://github.com/artem-ogre/CDT). This means a lot to the authors*** 🤩
 
 <a name="table-of-contents"></a>
 
