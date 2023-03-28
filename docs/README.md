@@ -67,7 +67,7 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 
 - Implementation closely follows incremental construction algorithm by Anglada <a href="#[1]">[1]</a>.
 - During the legalization, the cases
-when at least one vertex belongs to super-triangle are resolved using an approach as described in Žalik et. al <a href="#[2]">[2]</a>.
+when at least one vertex belongs to super-triangle are resolved using an approach as described in Žalik et al. <a href="#[2]">[2]</a>.
 - For finding a triangle that contains inserted point remembering randomized triangle walk is used <a href="#[3]">[3]</a>. To find the starting triangle for the walk the nearest point is found using a kd-tree with mid-split nodes.
 - Order in which vertices are inserted is controlled by `CDT::VertexInsertionOrder`: 
   - `CDT::VertexInsertionOrder::Auto` uses breadth-first traversal of a Kd-tree for initial bulk-load <a href="#[4]">[4]</a> and randomized insertion order for the subsequent calls of `CDT::Triangulation::insertVertices`. Randomization improves performance and avoid worst-case scenarios. Generally vertex insertion with `CDT::VertexInsertionOrder::Auto` is faster.
