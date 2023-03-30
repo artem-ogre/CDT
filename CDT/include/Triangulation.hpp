@@ -438,21 +438,22 @@ V2d<T> intersectionPosition(
     const V2d<T>& d)
 {
     using namespace predicates::adaptive;
-    // interpolate point on the shorter segment
-    if(distanceSquared(a, b) < distanceSquared(c, d))
-    {
-        const T a_cd = orient2d(c.x, c.y, d.x, d.y, a.x, a.y);
-        const T b_cd = orient2d(c.x, c.y, d.x, d.y, b.x, b.y);
-        const T t = a_cd / (a_cd - b_cd);
-        return V2d<T>::make(lerp(a.x, b.x, t), lerp(a.y, b.y, t));
-    }
-    else
-    {
-        const T c_ab = orient2d(a.x, a.y, b.x, b.y, c.x, c.y);
-        const T d_ab = orient2d(a.x, a.y, b.x, b.y, d.x, d.y);
-        const T t = c_ab / (c_ab - d_ab);
-        return V2d<T>::make(lerp(c.x, d.x, t), lerp(c.y, d.y, t));
-    }
+
+    // note: for better accuracy we interpolate x and y separately
+    // on a segment with the shortest x/y-projection correspondingly
+    const T a_cd = orient2d(c.x, c.y, d.x, d.y, a.x, a.y);
+    const T b_cd = orient2d(c.x, c.y, d.x, d.y, b.x, b.y);
+    const T t_ab = a_cd / (a_cd - b_cd);
+
+    const T c_ab = orient2d(a.x, a.y, b.x, b.y, c.x, c.y);
+    const T d_ab = orient2d(a.x, a.y, b.x, b.y, d.x, d.y);
+    const T t_cd = c_ab / (c_ab - d_ab);
+
+    return V2d<T>::make(
+        std::fabs(a.x - b.x) < std::fabs(c.x - d.x) ? lerp(a.x, b.x, t_ab)
+                                                    : lerp(c.x, d.x, t_cd),
+        std::fabs(a.y - b.y) < std::fabs(c.y - d.y) ? lerp(a.y, b.y, t_ab)
+                                                    : lerp(c.y, d.y, t_cd));
 }
 
 } // namespace detail
