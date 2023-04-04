@@ -15,13 +15,7 @@ project(
 # export all symbols as we do it by instantiating templates anyway
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-
 # options
-option(CDT_USE_BOOST
-    "If enabled Boost is used as a fall-back for features missing in C++98
-    and performance tweaks (e.g., using boost::flat_set)"
-    OFF)
-
 option(CDT_USE_AS_COMPILED_LIBRARY
     "If enabled templates for float and double will be instantiated and compiled into a library")
 
@@ -63,16 +57,15 @@ else()
     set(CDT_USE_BOOST ON)
 endif()
 
-message(STATUS "CDT_USE_BOOST is ${CDT_USE_BOOST}")
+if(CDT_USE_STRONG_TYPING)
+    set(CDT_USE_BOOST ON)
+endif()
+
 message(STATUS "CDT_USE_AS_COMPILED_LIBRARY is ${CDT_USE_AS_COMPILED_LIBRARY}")
 message(STATUS "CDT_USE_64_BIT_INDEX_TYPE is ${CDT_USE_64_BIT_INDEX_TYPE}")
 message(STATUS "CDT_ENABLE_TESTING is ${CDT_ENABLE_TESTING}")
 message(STATUS "CDT_USE_STRONG_TYPING is ${CDT_USE_STRONG_TYPING}")
 message(STATUS "CDT_DEVELOPER_BUILD is ${CDT_DEVELOPER_BUILD}")
-
-if(CDT_USE_STRONG_TYPING)
-    set(CDT_USE_BOOST ON)
-endif()
 
 # Use boost for c++98 versions of c++11 containers or for Boost::rtree
 if(CDT_USE_BOOST)
@@ -155,8 +148,12 @@ target_compile_definitions(
 )
 
 if(CDT_USE_BOOST)
-    target_link_libraries(${PROJECT_NAME} INTERFACE Boost::boost)
-endif()
+    if(CDT_USE_AS_COMPILED_LIBRARY)
+        target_link_libraries(${PROJECT_NAME} PUBLIC Boost::boost)
+    else ()
+        target_link_libraries(${PROJECT_NAME} INTERFACE Boost::boost)
+    endif ()
+endif ()
 
 
 # -------------

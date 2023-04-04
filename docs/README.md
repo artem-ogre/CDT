@@ -94,9 +94,7 @@ when at least one vertex belongs to super-triangle are resolved using an approac
 
 - Uses William C. Lenthe's implementation of robust orientation and in-circle geometric predicates: [github.com/wlenthe/GeometricPredicates](https://github.com/wlenthe/GeometricPredicates)
 
-- Boost is an optional (to opt-in define `CDT_USE_BOOST`) dependency used for:
-    * **Fall back** for standard library features missing in C++98 compilers.
-    * **Minor performance tweaks:** `boost::container::flat_set` is used for faster triangle walking.
+- On old compilers without C++11 support Boost is used as a fall back for missing C++11 standard library features.
 
 - A demonstrator tool is included: requires Qt for GUI. When running demo-tool **make sure** that working directory contains files from 'data' folder.
 
@@ -114,7 +112,6 @@ CDT uses modern CMake and should *just work* out of the box without any suprises
 
 | Option                      | Default value | Description                                                                                           |
 | --------------------------- | :-----------: | :---------------------------------------------------------------------------------------------------- |
-| CDT_USE_BOOST               |      OFF      | Use Boost as a fall-back for features missing in C++98 and performance tweaks (e.g., `boost::flat_set`) |
 | CDT_USE_64_BIT_INDEX_TYPE   |      OFF      | Use 64bits to store vertex/triangle index types. Otherwise 32bits are used (up to 4.2bn items)        |
 | CDT_USE_AS_COMPILED_LIBRARY |      OFF      | Instantiate templates for float and double and compiled into a library                                |
 
