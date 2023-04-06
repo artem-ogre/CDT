@@ -136,7 +136,7 @@ CDT provides package config files that can be included by other projects to find
 # from CDT folder
 mkdir build && cd build
 # configure with desired CMake flags
-cmake -DCDT_USE_AS_COMPILED_LIBRARY=ON -DCDT_USE_BOOST=ON ..
+cmake -DCDT_USE_AS_COMPILED_LIBRARY=ON ..
 # build and install
 cmake --build . && cmake --install .
 ```
