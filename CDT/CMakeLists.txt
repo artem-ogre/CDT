@@ -147,14 +147,7 @@ target_compile_definitions(
         $<$<BOOL:${CDT_USE_STRONG_TYPING}>:CDT_USE_STRONG_TYPING>
 )
 
-if(CDT_USE_BOOST)
-    if(CDT_USE_AS_COMPILED_LIBRARY)
-        target_link_libraries(${PROJECT_NAME} PUBLIC Boost::boost)
-    else ()
-        target_link_libraries(${PROJECT_NAME} INTERFACE Boost::boost)
-    endif ()
-endif ()
-
+target_link_libraries(${PROJECT_NAME} ${cdt_scope} $<$<BOOL:${CDT_USE_BOOST}>:Boost::boost>)
 
 # -------------
 # installation
