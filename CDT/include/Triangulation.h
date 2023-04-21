@@ -652,7 +652,8 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
     }
 
     const bool isFirstTime = vertices.empty();
-    Box2d<T> box;
+    const T max = std::numeric_limits<T>::max();
+    Box2d<T> box = {{max, max}, {-max, -max}};
     if(vertices.empty()) // called first time
     {
         box = envelopBox<T>(first, last, getX, getY);
