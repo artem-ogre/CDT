@@ -26,6 +26,7 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
   - [Online Documentation](#online-documentation)
   - [Algorithm](#algorithm)
   - [Implementation Details](#implementation-details)
+  - [Adding CDT to your C++ project Using a Package Manager](#adding-withpackage-manager)
   - [Installation/Building](#installationbuilding)
   - [Using](#using)
     - [Code Examples](#code-examples)
@@ -98,6 +99,18 @@ when at least one vertex belongs to super-triangle are resolved using an approac
 
 - A demonstrator tool is included: requires Qt for GUI. When running demo-tool **make sure** that working directory contains files from 'data' folder.
 
+
+<a name="adding-withpackage-manager"></a>
+
+## Adding CDT to your C++ project Using a Package Manager
+
+### vcpkg
+CDT port is [available](https://github.com/microsoft/vcpkg/tree/master/ports/cdt) in Microsoft's [vcpkg](https://github.com/microsoft/vcpkg).
+
+### Conan
+CDT is not in the conan-center but there's a `conanfile.py` recipe provided (in this repo).
+Note that it might need small adjustments like changing boost version to fit your needs.
+
 <a name="installationbuilding"></a>
 
 ## Installation/Building
@@ -145,11 +158,6 @@ cmake --build . && cmake --install .
 # In consuming CMakeLists.txt
 find_package(CDT REQUIRED CONFIG)
 ```
-
-**Consume as [Conan](https://conan.io/) package**
-
-There's a `conanfile.py` recipe provided.
-Note that it might need small adjustments like changing boost version to fit your needs.
 
 <a name="using"></a>
 
