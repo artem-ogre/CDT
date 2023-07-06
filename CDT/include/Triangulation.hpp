@@ -1920,7 +1920,9 @@ void Triangulation<T, TNearPointLocator>::insertVertices_KDTreeBFS(
     V2d<T> boxMax)
 {
     // calculate original indices
-    std::size_t vertexCount = vertices.size() - superGeomVertCount;
+    const VertInd vertexCount = vertices.size() - superGeomVertCount;
+    if(vertexCount <= 0)
+        return;
     std::vector<VertInd> ii(vertexCount);
     detail::iota(ii.begin(), ii.end(), superGeomVertCount);
 
