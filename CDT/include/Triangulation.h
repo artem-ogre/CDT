@@ -84,6 +84,22 @@ struct CDT_EXPORT IntersectingConstraintEdges
 };
 
 /**
+ * Enum of strategies for triangles refinement
+ */
+struct CDT_EXPORT RefineTriangles
+{
+    /**
+     * The Enum itself
+     * @note needed to pre c++11 compilers that don't support 'class enum'
+     */
+    enum Enum
+    {
+        ByAngle, ///< constraint minimum triangles angle
+        ByArea,  ///< constraint maximum triangles area
+    };
+};
+
+/**
  * Type used for storing layer depths for triangles
  * @note LayerDepth should support 60K+ layers, which could be to much or
  * too little for some use cases. Feel free to re-define this typedef.
@@ -110,8 +126,14 @@ class CDT_EXPORT Triangulation
 {
 public:
     typedef std::vector<V2d<T> > V2dVec; ///< Vertices vector
+    typedef std::vector<bool> boolVec;   ///< Steiner Vertices flag
     V2dVec vertices;                     ///< triangulation's vertices
-    TriangleVec triangles;               ///< triangulation's triangles
+    boolVec isSteinerVertex; ///< triangulation's vertices Steiner point flag
+    IndexSizeType
+        maxSteinerPoints; ///< triangulation's maximum number of Steiner
+    IndexSizeType numOfSteinerPoints; ///< triangulation's maximum number of
+                                      ///< Steiner points to be added
+    TriangleVec triangles;            ///< triangulation's triangles
     EdgeUSet fixedEdges; ///< triangulation's constraints (fixed edges)
 
     /** Stores count of overlapping boundaries for a fixed edge. If no entry is
@@ -276,6 +298,16 @@ public:
      */
     void conformToEdges(const std::vector<Edge>& edges);
     /**
+     * Traingles refinement by removing bad triangles
+     * @note bad triangles don't fulfill constraints defined by the user
+     * @param refinement_constrain refinement strategy that is used to identify
+     * bad triangles
+     * @param threshold threshold value for refinement
+     */
+    void refineTriangles(
+        RefineTriangles::Enum refinementConstrain = RefineTriangles::ByAngle,
+        T threshold = 20 / 180.0 * M_PI);
+    /**
      * Erase triangles adjacent to super triangle
      *
      * @note does nothing if custom geometry is used
@@ -362,7 +394,7 @@ public:
 private:
     /*____ Detail __*/
     void addSuperTriangle(const Box2d<T>& box);
-    void addNewVertex(const V2d<T>& pos, TriInd iT);
+    void addNewVertex(const V2d<T>& pos, TriInd iT, bool isSteiner = false);
     void insertVertex(VertInd iVert);
     void insertVertex(VertInd iVert, VertInd walkStart);
     void ensureDelaunayByEdgeFlips(
@@ -482,6 +514,32 @@ private:
         VertInd iV2,
         VertInd iV3,
         VertInd iV4) const;
+    TriInd edgeTriangle(Edge edge) const;
+    /// Checks if edge e is encroached by vertex v
+    bool isEncroached(const V2d<T>& v, Edge e) const;
+    bool isBadTriangle(
+        const Triangle& tri,
+        RefineTriangles::Enum refinement,
+        T threshold) const;
+    V2d<T> circumcenter(const Triangle& tri) const;
+    /// Search in all fixed edges to find encroached edges, each fixed edge is
+    /// checked against its opposite vertices
+    /// Returns queue of encroached edges
+    EdgeQue detectEncroachedEdges();
+    /// Search in all fixed edges to find encroached edges, each fixed edge is
+    /// checked against its opposite vertices and vertex v
+    /// Returns queue of encroached edges
+    EdgeQue detectEncroachedEdges(const V2d<T>& v);
+    /// Recursively split encroached edges
+    /// returns vector of badly shaped triangles and number of splits
+    std::pair<TriIndVec, IndexSizeType> resolveEncroachedEdges(
+        EdgeQue encroachedEdges,
+        const V2d<T>& v = {},
+        bool validV = false,
+        bool fillBadTriangles = false,
+        RefineTriangles::Enum refinementConstrain = {},
+        T badTriangleThreshold = {});
+    VertInd splitEncroachedEdge(Edge e, TriInd iT, TriInd iTopo);
     void changeNeighbor(TriInd iT, TriInd oldNeighbor, TriInd newNeighbor);
     void changeNeighbor(
         TriInd iT,
@@ -768,6 +826,92 @@ void Triangulation<T, TNearPointLocator>::conformToEdges(
         conformToEdge(e, EdgeVec(1, e), 0, remaining);
     }
     eraseDummies();
+}
+
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::refineTriangles(
+    RefineTriangles::Enum refinementConstrain,
+    T threshold)
+{
+    if(isFinalized())
+    {
+        throw std::runtime_error("Triangulation was finalized with 'erase...' "
+                                 "method. Refinement is not possible");
+    }
+    tryInitNearestPointLocator();
+    resolveEncroachedEdges(detectEncroachedEdges());
+
+    std::queue<TriInd> badTriangles;
+    for(TriInd iT(0), n = triangles.size(); iT < n; ++iT)
+    {
+        const Triangle& t = triangles[iT];
+        if(t.vertices[0] < 3 || t.vertices[1] < 3 || t.vertices[2] < 3)
+            continue;
+
+        if(isBadTriangle(t, refinementConstrain, threshold))
+        {
+            const V2d<T> vert = circumcenter(t);
+            if(locatePointTriangle(
+                   vert, vertices[0], vertices[1], vertices[2]) !=
+               PtTriLocation::Outside)
+            {
+                badTriangles.push(iT);
+            }
+        }
+    }
+
+    while(!badTriangles.empty())
+    {
+        TriInd iT = badTriangles.front();
+        const Triangle& t = triangles[iT];
+        badTriangles.pop();
+        if(!isBadTriangle(t, refinementConstrain, threshold) ||
+           numOfSteinerPoints >= maxSteinerPoints)
+        {
+            continue;
+        }
+        const V2d<T> vert = circumcenter(t);
+        if(locatePointTriangle(vert, vertices[0], vertices[1], vertices[2]) ==
+           PtTriLocation::Outside)
+        {
+            continue;
+        }
+        TriIndVec badTris = resolveEncroachedEdges(
+                                detectEncroachedEdges(vert),
+                                vert,
+                                true,
+                                true,
+                                refinementConstrain,
+                                threshold)
+                                .first;
+
+        for(IndexSizeType i(0); i < TriInd(badTris.size()); ++i)
+        {
+            badTriangles.push(badTris[i]);
+        }
+
+        if(badTris.empty() && numOfSteinerPoints < maxSteinerPoints)
+        {
+            const VertInd iVert = static_cast<VertInd>(vertices.size());
+            addNewVertex(vert, noNeighbor, true);
+            insertVertex(iVert);
+            TriInd start = m_vertTris[iVert];
+            TriInd currTri = start;
+            do
+            {
+                const Triangle& t = triangles[currTri];
+                if(isBadTriangle(t, refinementConstrain, threshold))
+                {
+                    badTriangles.push(currTri);
+                }
+                currTri = t.next(iVert).first;
+            } while(currTri != start);
+        }
+        else
+        {
+            badTriangles.push(iT);
+        }
+    }
 }
 
 } // namespace CDT

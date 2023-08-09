@@ -192,6 +192,7 @@ private:
             CDT::VertexInsertionOrder::Auto,
             CDT::IntersectingConstraintEdges::Resolve,
             1e-3);
+        m_cdt.maxSteinerPoints = 1000U;
         if(!m_points.empty())
         {
             std::vector<V2d> pts =
@@ -219,12 +220,21 @@ private:
                 else
                     m_cdt.insertEdges(edges);
             }
+
             if(m_isRemoveOuterAndHoles)
+            {
+                m_cdt.refineTriangles(
+                    CDT::RefineTriangles::ByAngle, 20 / 180.0 * M_PI);
                 m_cdt.eraseOuterTrianglesAndHoles();
+            }
             else if(m_isRemoveOuter)
                 m_cdt.eraseOuterTriangles();
             else if(m_isHideSuperTri)
+            {
+                m_cdt.refineTriangles(
+                    CDT::RefineTriangles::ByAngle, 20 / 180.0 * M_PI);
                 m_cdt.eraseSuperTriangle();
+            }
             const CDT::unordered_map<Edge, CDT::EdgeVec> tmp =
                 CDT::EdgeToPiecesMapping(m_cdt.pieceToOriginals);
             const CDT::unordered_map<Edge, std::vector<CDT::VertInd> >
