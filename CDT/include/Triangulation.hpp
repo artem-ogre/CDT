@@ -426,7 +426,9 @@ namespace detail
 template <typename T>
 T lerp(const T& a, const T& b, const T t)
 {
-    return (T(1) - t) * a + t * b;
+    if((a <= 0 && b >= 0) || (a >= 0 && b <= 0))
+        return (T(1) - t) * a + t * b;
+    return a + t * (b - a);
 }
 
 // Precondition: ab and cd intersect normally
@@ -1018,9 +1020,11 @@ void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::addNewVertex(
     const V2d<T>& pos,
-    const TriInd iT)
+    const TriInd iT,
+    const bool isSteiner)
 {
     vertices.push_back(pos);
+    isSteinerVertex.push_back(isSteiner);
     m_vertTris.push_back(iT);
 }
 
@@ -1260,6 +1264,282 @@ bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
             return locatePointLine(v4, v2, v3) == locatePointLine(v, v2, v3);
     }
     return isInCircumcircle(v, v2, v3, v4);
+}
+
+template <typename T, typename TNearPointLocator>
+TriInd Triangulation<T, TNearPointLocator>::edgeTriangle(const Edge edge) const
+{
+    TriInd iT = invalidIndex;
+    const TriInd start = m_vertTris[edge.v1()];
+    TriInd currTri = start;
+    do
+    {
+        const Triangle& t = triangles[currTri];
+        if(t.next(edge.v1()).second == edge.v2())
+        {
+            iT = currTri;
+            break;
+        }
+        currTri = t.next(edge.v1()).first;
+    } while(currTri != start);
+    return iT;
+}
+
+/*
+ * Contains a point in its diametral circle
+ * same as checking if the angle between v and edge end points is obtuse
+ */
+template <typename T, typename TNearPointLocator>
+bool Triangulation<T, TNearPointLocator>::isEncroached(
+    const V2d<T>& v,
+    const Edge edge) const
+{
+    const V2d<T> v1 =
+        V2d<T>::make(vertices[edge.v1()].x - v.x, vertices[edge.v1()].y - v.y);
+    const V2d<T> v2 =
+        V2d<T>::make(vertices[edge.v2()].x - v.x, vertices[edge.v2()].y - v.y);
+    return (v1.x * v2.x + v1.y * v2.y) < T(0);
+}
+
+template <typename T, typename TNearPointLocator>
+bool Triangulation<T, TNearPointLocator>::isBadTriangle(
+    const Triangle& tri,
+    const RefineTriangles::Enum refinement,
+    const T threshold) const
+{
+    const V2d<T>& v1 = vertices[tri.vertices[0]];
+    const V2d<T>& v2 = vertices[tri.vertices[1]];
+    const V2d<T>& v3 = vertices[tri.vertices[2]];
+
+    const T twiceArea = std::abs(orient2D(v1, v2, v3));
+    bool ans = false;
+    switch(refinement)
+    {
+    case RefineTriangles::ByAngle: {
+        T opoLenV1 = distance(v2, v3);
+        T opoLenV2 = distance(v1, v3);
+        T opoLenV3 = distance(v1, v2);
+        // Let opoLenV1 is the smallest edge length
+        if((opoLenV2 < opoLenV1) && (opoLenV2 < opoLenV3))
+        {
+            std::swap(opoLenV1, opoLenV2);
+        }
+        else if(opoLenV3 < opoLenV1)
+        {
+            std::swap(opoLenV1, opoLenV3);
+        }
+        assert(opoLenV1 <= opoLenV3);
+        assert(opoLenV1 <= opoLenV2);
+        T samllestAngle = twiceArea / opoLenV3 / opoLenV2;
+        ans = samllestAngle < sin(threshold);
+        break;
+    }
+    case RefineTriangles::ByArea: {
+        T area = 0.5 * twiceArea;
+        ans = area > threshold;
+        break;
+    }
+    }
+    return ans;
+}
+
+template <typename T, typename TNearPointLocator>
+V2d<T>
+Triangulation<T, TNearPointLocator>::circumcenter(const Triangle& tri) const
+{
+    V2d<T> a1 = vertices[tri.vertices[0]];
+    V2d<T> b1 = vertices[tri.vertices[1]];
+    V2d<T> a = vertices[tri.vertices[0]];
+    V2d<T> b = vertices[tri.vertices[1]];
+    const V2d<T>& c = vertices[tri.vertices[2]];
+    const T denom = 0.5 / orient2D(c, a, b);
+    a.x -= c.x;
+    a.y -= c.y;
+    b.x -= c.x;
+    b.y -= c.y;
+    T oX =
+        c.x +
+        (b.y * (a.x * a.x + a.y * a.y) - a.y * (b.x * b.x + b.y * b.y)) * denom;
+    T oY =
+        c.y +
+        (a.x * (b.x * b.x + b.y * b.y) - b.x * (a.x * a.x + a.y * a.y)) * denom;
+    V2d<T> v = V2d<T>::make(oX, oY);
+    return v;
+}
+
+/// Search in all fixed edges to find encroached edges, each fixed edge is
+/// checked against its opposite vertices
+/// Returns queue of encroached edges
+template <typename T, typename TNearPointLocator>
+EdgeQue Triangulation<T, TNearPointLocator>::detectEncroachedEdges()
+{
+    EdgeQue encroachedEdges;
+    for(EdgeUSet::const_iterator cit = fixedEdges.begin();
+        cit != fixedEdges.end();
+        ++cit)
+    {
+        const Edge edge = *cit;
+        const TriInd iT = edgeTriangle(edge);
+        const TriInd iTopo = edgeNeighbor(triangles[iT], edge.v1(), edge.v2());
+        const Triangle& t = triangles[iT];
+        const Triangle& tOpo = triangles[iTopo];
+        VertInd v1 = opposedVertex(t, iTopo);
+        VertInd v2 = opposedVertex(tOpo, iT);
+        if(isEncroached(vertices[v1], edge) || isEncroached(vertices[v2], edge))
+        {
+            encroachedEdges.push(edge);
+        }
+    }
+    return encroachedEdges;
+}
+
+/// Search in all fixed edges to find encroached edges, each fixed edge is
+/// checked against its opposite vertices and vertex v
+/// Returns queue of encroached edges
+template <typename T, typename TNearPointLocator>
+EdgeQue
+Triangulation<T, TNearPointLocator>::detectEncroachedEdges(const V2d<T>& v)
+{
+    EdgeQue encroachedEdges;
+    for(EdgeUSet::const_iterator cit = fixedEdges.begin();
+        cit != fixedEdges.end();
+        ++cit)
+    {
+        const Edge edge = *cit;
+        if(isEncroached(v, edge))
+        {
+            encroachedEdges.push(edge);
+        }
+    }
+    return encroachedEdges;
+}
+
+template <typename T, typename TNearPointLocator>
+std::pair<TriIndVec, IndexSizeType>
+Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
+    EdgeQue encroachedEdges,
+    const V2d<T>& v,
+    const bool validV,
+    const bool fillBadTriangles,
+    const RefineTriangles::Enum refinementConstrain,
+    const T badTriangleThreshold)
+{
+    IndexSizeType numOfSplits = 0;
+    std::vector<TriInd> badTriangles;
+
+    while(!encroachedEdges.empty() && numOfSteinerPoints < maxSteinerPoints)
+    {
+        Edge edge = encroachedEdges.front();
+        encroachedEdges.pop();
+        if(!hasEdge(edge.v1(), edge.v2()))
+        {
+            continue;
+        }
+        TriInd iT = edgeTriangle(edge);
+        const Triangle& t = triangles[iT];
+        VertInd i = splitEncroachedEdge(
+            edge, iT, edgeNeighbor(triangles[iT], edge.v1(), edge.v2()));
+        ++numOfSplits;
+
+        TriInd start = m_vertTris[i];
+        TriInd currTri = start;
+        do
+        {
+            const Triangle& t = triangles[currTri];
+            if(fillBadTriangles &&
+               isBadTriangle(t, refinementConstrain, badTriangleThreshold))
+            {
+                badTriangles.push_back(currTri);
+            }
+            for(int i = 0; i < 3; ++i)
+            {
+                const Edge edge(t.vertices[i], t.vertices[cw(i)]);
+                if(fixedEdges.find(edge) == fixedEdges.end())
+                    continue;
+                const TriInd iT = currTri;
+                const TriInd iTopo =
+                    edgeNeighbor(triangles[iT], edge.v1(), edge.v2());
+                const Triangle& tOpo = triangles[iTopo];
+                VertInd v1 = opposedVertex(t, iTopo);
+                VertInd v2 = opposedVertex(tOpo, iT);
+                if(isEncroached(vertices[v1], edge) ||
+                   isEncroached(vertices[v2], edge) ||
+                   (validV && isEncroached(v, edge)))
+                {
+                    encroachedEdges.push(edge);
+                }
+            }
+            currTri = t.next(i).first;
+        } while(currTri != start);
+    }
+    return std::make_pair(badTriangles, numOfSplits);
+}
+
+template <typename T, typename TNearPointLocator>
+VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
+    const Edge splitEdge,
+    const TriInd iT,
+    const TriInd iTopo)
+{
+    const VertInd iMid = static_cast<VertInd>(vertices.size());
+    const V2d<T>& start = vertices[splitEdge.v1()];
+    const V2d<T>& end = vertices[splitEdge.v2()];
+    T split = T(0.5);
+    if(isSteinerVertex[splitEdge.v1()] || isSteinerVertex[splitEdge.v1()])
+    {
+        // In Ruppert's paper, he used D(0.01) factor to divide edge length, but
+        // that introduces FP rounding erros, so it's avoided.
+        const T len = distance(start.x, start.y, end.x, end.y);
+        const T d = T(0.5) * len;
+        // Find the splitting distance.
+        T nearestPowerOfTwo = T(1);
+        while(d > nearestPowerOfTwo)
+        {
+            nearestPowerOfTwo *= T(2);
+        }
+        while(d < T(0.75) * nearestPowerOfTwo)
+        {
+            nearestPowerOfTwo *= T(0.5);
+        }
+        assert(abs(nearestPowerOfTwo - pow(2, round(log(d) / log(2.0)))) < 1e6);
+        split = nearestPowerOfTwo / len;
+        if(isSteinerVertex[splitEdge.v1()])
+            split = T(1) - split;
+    }
+    V2d<T> mid = V2d<T>::make(
+        detail::lerp(start.x, end.x, split),
+        detail::lerp(start.y, end.y, split));
+
+    // split constraint edge that already exists in triangulation
+    if(fixedEdges.find(splitEdge) != fixedEdges.end())
+    {
+        const Edge half1(splitEdge.v1(), iMid);
+        const Edge half2(iMid, splitEdge.v2());
+        const BoundaryOverlapCount overlaps = overlapCount[splitEdge];
+        // remove the edge that will be split
+        fixedEdges.erase(splitEdge);
+        overlapCount.erase(splitEdge);
+        // add split edge's halves
+        fixEdge(half1, overlaps);
+        fixEdge(half2, overlaps);
+        // maintain piece-to-original mapping
+        EdgeVec newOriginals(1, splitEdge);
+        const unordered_map<Edge, EdgeVec>::const_iterator originalsIt =
+            pieceToOriginals.find(splitEdge);
+        if(originalsIt != pieceToOriginals.end())
+        { // edge being split was split before: pass-through originals
+            newOriginals = originalsIt->second;
+            pieceToOriginals.erase(originalsIt);
+        }
+        detail::insert_unique(pieceToOriginals[half1], newOriginals);
+        detail::insert_unique(pieceToOriginals[half2], newOriginals);
+    }
+    addNewVertex(mid, noNeighbor, true);
+    std::stack<TriInd> triStack = insertVertexOnEdge(iMid, iT, iTopo);
+    tryAddVertexToLocator(iMid);
+    ensureDelaunayByEdgeFlips(mid, iMid, triStack);
+    ++numOfSteinerPoints;
+    return iMid;
 }
 
 /* Flip edge between T and Topo:
