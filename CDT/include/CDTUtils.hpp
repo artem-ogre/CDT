@@ -331,4 +331,35 @@ V2d<T> circumcenter(V2d<T> a, V2d<T> b, const V2d<T>& c)
         c.y + (a.x * bLenSq - b.x * aLenSq) * denom);
 }
 
+template <typename T>
+T doubledArea(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c)
+{
+    return std::abs(orient2D(a, b, c));
+}
+
+template <typename T>
+T area(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c)
+{
+    return doubledArea(a, b, c) / T(2);
+}
+
+template <typename T>
+T sineOfSmallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c)
+{
+    // find sides of the smallest angle using law of sines:
+    T sideA = distance(a, b), sideB = distance(b, c);
+    if(sideA > sideB)
+        std::swap(sideA, sideB);
+    sideA = std::max(sideA, distance(a, c));
+    return (doubledArea(a, b, c) / sideA) / sideB;
+}
+
+template <typename T>
+T smallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c)
+{
+    const T angleSine = sineOfSmallestAngle(a, b, c);
+    assert(angleSine >= -1 && angleSine <= 1);
+    return std::asin(angleSine);
+}
+
 } // namespace CDT
