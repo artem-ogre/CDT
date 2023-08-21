@@ -1255,24 +1255,21 @@ bool Triangulation<T, TNearPointLocator>::isRefinementNeeded(
 }
 
 template <typename T, typename TNearPointLocator>
-EdgeQue Triangulation<T, TNearPointLocator>::detectEncroachedEdges()
+EdgeQueue Triangulation<T, TNearPointLocator>::detectEncroachedEdges()
 {
     // Search in all fixed edges to find encroached edges, each fixed edge is
     // checked against its opposite vertices
     // Returns queue of encroached edges
-    EdgeQue encroachedEdges;
-    for(EdgeUSet::const_iterator cit = fixedEdges.begin();
-        cit != fixedEdges.end();
-        ++cit)
+    EdgeQueue encroachedEdges;
+    typedef EdgeUSet::const_iterator Iter;
+    for(Iter it = fixedEdges.begin(); it != fixedEdges.end(); ++it)
     {
-        const Edge edge = *cit;
+        const Edge edge = *it;
         TriInd iT, iTopo;
         std::tie(iT, iTopo) = edgeTriangles(edge.v1(), edge.v2());
         assert(iT != invalidIndex && iTopo != invalidIndex);
-        const Triangle& t = triangles[iT];
-        const Triangle& tOpo = triangles[iTopo];
-        VertInd v1 = opposedVertex(t, iTopo);
-        VertInd v2 = opposedVertex(tOpo, iT);
+        const VertInd v1 = opposedVertex(triangles[iT], iTopo);
+        const VertInd v2 = opposedVertex(triangles[iTopo], iT);
         const V2d<T>& edgeStart = vertices[edge.v1()];
         const V2d<T>& edgeEnd = vertices[edge.v2()];
         if(isEncroachingOnEdge(vertices[v1], edgeStart, edgeEnd) ||
@@ -1285,18 +1282,17 @@ EdgeQue Triangulation<T, TNearPointLocator>::detectEncroachedEdges()
 }
 
 template <typename T, typename TNearPointLocator>
-EdgeQue
+EdgeQueue
 Triangulation<T, TNearPointLocator>::detectEncroachedEdges(const V2d<T>& v)
 {
     // Search in all fixed edges to find encroached edges, each fixed edge is
     // checked against its opposite vertices and vertex v
     // Returns queue of encroached edges
-    EdgeQue encroachedEdges;
-    for(EdgeUSet::const_iterator cit = fixedEdges.begin();
-        cit != fixedEdges.end();
-        ++cit)
+    EdgeQueue encroachedEdges;
+    typedef EdgeUSet::const_iterator Iter;
+    for(Iter it = fixedEdges.begin(); it != fixedEdges.end(); ++it)
     {
-        const Edge edge = *cit;
+        const Edge edge = *it;
         if(isEncroachingOnEdge(v, vertices[edge.v1()], vertices[edge.v2()]))
         {
             encroachedEdges.push(edge);
@@ -1307,8 +1303,8 @@ Triangulation<T, TNearPointLocator>::detectEncroachedEdges(const V2d<T>& v)
 
 template <typename T, typename TNearPointLocator>
 TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
-    EdgeQue encroachedEdges,
-    VertInd& newVertBudget,
+    EdgeQueue encroachedEdges,
+    VertInd& remainingVertexBudget,
     const VertInd steinerVerticesOffset,
     const V2d<T>* const circumcenterOrNull,
     const RefinementCriterion::Enum refinementCriterion,
@@ -1317,9 +1313,9 @@ TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
     IndexSizeType numOfSplits = 0;
     std::vector<TriInd> badTriangles;
 
-    while(!encroachedEdges.empty() && newVertBudget > 0)
+    while(!encroachedEdges.empty() && remainingVertexBudget > 0)
     {
-        Edge edge = encroachedEdges.front();
+        const Edge edge = encroachedEdges.front();
         encroachedEdges.pop();
         if(!hasEdge(edge.v1(), edge.v2()))
         {
@@ -1330,9 +1326,9 @@ TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
         assert(iT != invalidIndex && iTopo != invalidIndex);
         const VertInd i =
             splitEncroachedEdge(edge, iT, iTopo, steinerVerticesOffset);
-        --newVertBudget;
+        --remainingVertexBudget;
 
-        TriInd start = m_vertTris[i];
+        const TriInd start = m_vertTris[i];
         TriInd currTri = start;
         do
         {
@@ -1389,7 +1385,7 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
         // that introduces FP rounding erros, so it's avoided.
         const T len = distance(start, end);
         const T d = T(0.5) * len;
-        // Find the splitting distance.
+        // Find the splitting distance
         T nearestPowerOfTwo = T(1);
         while(d > nearestPowerOfTwo)
         {
@@ -1404,7 +1400,7 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
         if(splitEdge.v1() >= steinerVerticesOffset)
             split = T(1) - split;
     }
-    V2d<T> mid = V2d<T>::make(
+    const V2d<T> mid = V2d<T>::make(
         detail::lerp(start.x, end.x, split),
         detail::lerp(start.y, end.y, split));
 
@@ -2244,10 +2240,10 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
     }
     tryInitNearestPointLocator();
 
-    VertInd newVertBudget = maxVerticesToInsert;
+    VertInd remainingVertexBudget = maxVerticesToInsert;
     const VertInd steinerVerticesOffset = vertices.size();
     resolveEncroachedEdges(
-        detectEncroachedEdges(), newVertBudget, steinerVerticesOffset);
+        detectEncroachedEdges(), remainingVertexBudget, steinerVerticesOffset);
 
     std::queue<TriInd> badTriangles;
     for(TriInd iT(0), n = triangles.size(); iT < n; ++iT)
@@ -2277,7 +2273,7 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
         const Triangle& t = triangles[iT];
         badTriangles.pop();
         if(!isRefinementNeeded(t, refinementCriterion, refinementThreshold) ||
-           newVertBudget == 0)
+           remainingVertexBudget == 0)
         {
             continue;
         }
@@ -2293,7 +2289,7 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
 
         const TriIndVec badTris = resolveEncroachedEdges(
             detectEncroachedEdges(vert),
-            newVertBudget,
+            remainingVertexBudget,
             steinerVerticesOffset,
             &vert,
             refinementCriterion,
@@ -2303,7 +2299,7 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
             badTriangles.push(badTris[i]);
         }
 
-        if(badTris.empty() && newVertBudget > 0)
+        if(badTris.empty() && remainingVertexBudget > 0)
         {
             const VertInd iVert = static_cast<VertInd>(vertices.size());
             addNewVertex(vert, noNeighbor);

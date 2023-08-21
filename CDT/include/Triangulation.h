@@ -517,15 +517,15 @@ private:
     /// Search in all fixed edges to find encroached edges, each fixed edge is
     /// checked against its opposite vertices
     /// Returns queue of encroached edges
-    EdgeQue detectEncroachedEdges();
+    EdgeQueue detectEncroachedEdges();
     /// Search in all fixed edges to find encroached edges, each fixed edge is
     /// checked against its opposite vertices and vertex v
     /// Returns queue of encroached edges
-    EdgeQue detectEncroachedEdges(const V2d<T>& v);
+    EdgeQueue detectEncroachedEdges(const V2d<T>& v);
     /// Recursively split encroached edges
     /// @return vector of badly shaped triangles
     TriIndVec resolveEncroachedEdges(
-        EdgeQue encroachedEdges,
+        EdgeQueue encroachedEdges,
         VertInd& newVertBudget,
         VertInd steinerVerticesOffset,
         const V2d<T>* circumcenterOrNull = NULL,
