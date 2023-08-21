@@ -519,7 +519,6 @@ private:
         const Triangle& tri,
         RefineTriangles::Enum refinement,
         T threshold) const;
-    V2d<T> circumcenter(const Triangle& tri) const;
     /// Search in all fixed edges to find encroached edges, each fixed edge is
     /// checked against its opposite vertices
     /// Returns queue of encroached edges

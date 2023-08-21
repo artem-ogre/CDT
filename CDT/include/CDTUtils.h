@@ -419,6 +419,14 @@ CDT_EXPORT bool isInCircumcircle(
 CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY bool
 verticesShareEdge(const TriIndVec& aTris, const TriIndVec& bTris);
 
+/// Vector's length
+template <typename T>
+CDT_EXPORT T length(const V2d<T>& v);
+
+/// Vector's squared length
+template <typename T>
+CDT_EXPORT T lengthSquared(const V2d<T>& v);
+
 /// Distance between two 2D points
 template <typename T>
 CDT_EXPORT T distance(const V2d<T>& a, const V2d<T>& b);
@@ -436,6 +444,10 @@ CDT_EXPORT bool isEncroachingOnEdge(
     const V2d<T>& v,
     const V2d<T>& edgeStart,
     const V2d<T>& edgeEnd);
+
+/// Position of ABC triangle circumcenter
+template <typename T>
+CDT_EXPORT V2d<T> circumcenter(V2d<T> a, V2d<T> b, const V2d<T>& c);
 
 } // namespace CDT
 
