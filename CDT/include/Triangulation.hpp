@@ -1285,22 +1285,6 @@ TriInd Triangulation<T, TNearPointLocator>::edgeTriangle(const Edge edge) const
     return iT;
 }
 
-/*
- * Contains a point in its diametral circle
- * same as checking if the angle between v and edge end points is obtuse
- */
-template <typename T, typename TNearPointLocator>
-bool Triangulation<T, TNearPointLocator>::isEncroached(
-    const V2d<T>& v,
-    const Edge edge) const
-{
-    const V2d<T> v1 =
-        V2d<T>::make(vertices[edge.v1()].x - v.x, vertices[edge.v1()].y - v.y);
-    const V2d<T> v2 =
-        V2d<T>::make(vertices[edge.v2()].x - v.x, vertices[edge.v2()].y - v.y);
-    return (v1.x * v2.x + v1.y * v2.y) < T(0);
-}
-
 template <typename T, typename TNearPointLocator>
 bool Triangulation<T, TNearPointLocator>::isBadTriangle(
     const Triangle& tri,
@@ -1385,7 +1369,10 @@ EdgeQue Triangulation<T, TNearPointLocator>::detectEncroachedEdges()
         const Triangle& tOpo = triangles[iTopo];
         VertInd v1 = opposedVertex(t, iTopo);
         VertInd v2 = opposedVertex(tOpo, iT);
-        if(isEncroached(vertices[v1], edge) || isEncroached(vertices[v2], edge))
+        const V2d<T>& edgeStart = vertices[edge.v1()];
+        const V2d<T>& edgeEnd = vertices[edge.v2()];
+        if(isEncroachingOnEdge(vertices[v1], edgeStart, edgeEnd) ||
+           isEncroachingOnEdge(vertices[v2], edgeStart, edgeEnd))
         {
             encroachedEdges.push(edge);
         }
@@ -1406,7 +1393,7 @@ Triangulation<T, TNearPointLocator>::detectEncroachedEdges(const V2d<T>& v)
         ++cit)
     {
         const Edge edge = *cit;
-        if(isEncroached(v, edge))
+        if(isEncroachingOnEdge(v, vertices[edge.v1()], vertices[edge.v2()]))
         {
             encroachedEdges.push(edge);
         }
@@ -1462,9 +1449,11 @@ Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
                 const Triangle& tOpo = triangles[iTopo];
                 VertInd v1 = opposedVertex(t, iTopo);
                 VertInd v2 = opposedVertex(tOpo, iT);
-                if(isEncroached(vertices[v1], edge) ||
-                   isEncroached(vertices[v2], edge) ||
-                   (validV && isEncroached(v, edge)))
+                const V2d<T>& edgeStart = vertices[edge.v1()];
+                const V2d<T>& edgeEnd = vertices[edge.v2()];
+                if(isEncroachingOnEdge(vertices[v1], edgeStart, edgeEnd) ||
+                   isEncroachingOnEdge(vertices[v2], edgeStart, edgeEnd) ||
+                   (validV && isEncroachingOnEdge(v, edgeStart, edgeEnd)))
                 {
                     encroachedEdges.push(edge);
                 }

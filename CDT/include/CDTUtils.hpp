@@ -300,4 +300,19 @@ T distanceSquared(const V2d<T>& a, const V2d<T>& b)
     return distanceSquared(a.x, a.y, b.x, b.y);
 }
 
+template <typename T>
+bool isEncroachingOnEdge(
+    const V2d<T>& v,
+    const V2d<T>& edgeStart,
+    const V2d<T>& edgeEnd)
+{
+    /*
+     * Contains a point in its diametral circle:
+     * the angle between v and edge end points is obtuse
+     */
+    return (edgeStart.x - v.x) * (edgeEnd.x - v.x) +
+               (edgeStart.y - v.y) * (edgeEnd.y - v.y) <=
+           T(0);
+}
+
 } // namespace CDT
