@@ -426,9 +426,7 @@ namespace detail
 template <typename T>
 T lerp(const T& a, const T& b, const T t)
 {
-    if((a <= 0 && b >= 0) || (a >= 0 && b <= 0))
-        return (T(1) - t) * a + t * b;
-    return a + t * (b - a);
+    return (T(1) - t) * a + t * b;
 }
 
 // Precondition: ab and cd intersect normally
