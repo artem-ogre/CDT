@@ -516,7 +516,6 @@ private:
         VertInd iV2,
         VertInd iV3,
         VertInd iV4) const;
-    TriInd edgeTriangle(Edge edge) const;
     bool isRefinementNeeded(
         const Triangle& tri,
         RefinementCriterion::Enum refinementCriterion,
@@ -615,6 +614,7 @@ private:
         VertInd superGeomVertCount,
         V2d<T> boxMin,
         V2d<T> boxMax);
+    std::pair<TriInd, TriInd> edgeTriangles(VertInd a, VertInd b) const;
     bool hasEdge(VertInd a, VertInd b) const;
     void setAdjacentTriangle(const VertInd v, const TriInd t);
     void pivotVertexTriangleCW(VertInd v);
