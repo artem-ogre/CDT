@@ -127,7 +127,6 @@ class CDT_EXPORT Triangulation
 public:
     typedef std::vector<V2d<T> > V2dVec; ///< Vertices vector
     V2dVec vertices;                     ///< triangulation's vertices
-    std::vector<bool> isSteinerVertex; ///< triangulation's vertices Steiner point flag
     TriangleVec triangles;            ///< triangulation's triangles
     EdgeUSet fixedEdges; ///< triangulation's constraints (fixed edges)
 
@@ -535,11 +534,16 @@ private:
     TriIndVec resolveEncroachedEdges(
         EdgeQue encroachedEdges,
         VertInd& newVertBudget,
-        const V2d<T>* const circumcenterOrNull = NULL,
+        VertInd steinerVerticesOffset,
+        const V2d<T>* circumcenterOrNull = NULL,
         RefinementCriterion::Enum refinementCriterion =
             RefinementCriterion::SmallestAngle,
         T badTriangleThreshold = T(0));
-    VertInd splitEncroachedEdge(Edge e, TriInd iT, TriInd iTopo);
+    VertInd splitEncroachedEdge(
+        Edge e,
+        TriInd iT,
+        TriInd iTopo,
+        VertInd steinerVerticesOffset);
     void changeNeighbor(TriInd iT, TriInd oldNeighbor, TriInd newNeighbor);
     void changeNeighbor(
         TriInd iT,

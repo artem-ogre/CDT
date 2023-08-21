@@ -1022,7 +1022,6 @@ void Triangulation<T, TNearPointLocator>::addNewVertex(
     const bool isSteiner)
 {
     vertices.push_back(pos);
-    isSteinerVertex.push_back(isSteiner);
     m_vertTris.push_back(iT);
 }
 
@@ -1280,6 +1279,7 @@ TriInd Triangulation<T, TNearPointLocator>::edgeTriangle(const Edge edge) const
         }
         currTri = t.next(edge.v1()).first;
     } while(currTri != start);
+    assert(iT != invalidIndex);
     return iT;
 }
 
@@ -1303,12 +1303,12 @@ bool Triangulation<T, TNearPointLocator>::isRefinementNeeded(
     return false;
 }
 
-/// Search in all fixed edges to find encroached edges, each fixed edge is
-/// checked against its opposite vertices
-/// Returns queue of encroached edges
 template <typename T, typename TNearPointLocator>
 EdgeQue Triangulation<T, TNearPointLocator>::detectEncroachedEdges()
 {
+    // Search in all fixed edges to find encroached edges, each fixed edge is
+    // checked against its opposite vertices
+    // Returns queue of encroached edges
     EdgeQue encroachedEdges;
     for(EdgeUSet::const_iterator cit = fixedEdges.begin();
         cit != fixedEdges.end();
@@ -1332,13 +1332,13 @@ EdgeQue Triangulation<T, TNearPointLocator>::detectEncroachedEdges()
     return encroachedEdges;
 }
 
-/// Search in all fixed edges to find encroached edges, each fixed edge is
-/// checked against its opposite vertices and vertex v
-/// Returns queue of encroached edges
 template <typename T, typename TNearPointLocator>
 EdgeQue
 Triangulation<T, TNearPointLocator>::detectEncroachedEdges(const V2d<T>& v)
 {
+    // Search in all fixed edges to find encroached edges, each fixed edge is
+    // checked against its opposite vertices and vertex v
+    // Returns queue of encroached edges
     EdgeQue encroachedEdges;
     for(EdgeUSet::const_iterator cit = fixedEdges.begin();
         cit != fixedEdges.end();
@@ -1357,6 +1357,7 @@ template <typename T, typename TNearPointLocator>
 TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
     EdgeQue encroachedEdges,
     VertInd& newVertBudget,
+    const VertInd steinerVerticesOffset,
     const V2d<T>* const circumcenterOrNull,
     const RefinementCriterion::Enum refinementCriterion,
     const T badTriangleThreshold)
@@ -1375,7 +1376,10 @@ TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
         TriInd iT = edgeTriangle(edge);
         const Triangle& t = triangles[iT];
         VertInd i = splitEncroachedEdge(
-            edge, iT, edgeNeighbor(triangles[iT], edge.v1(), edge.v2()));
+            edge,
+            iT,
+            edgeNeighbor(triangles[iT], edge.v1(), edge.v2()),
+            steinerVerticesOffset);
         --newVertBudget;
 
         TriInd start = m_vertTris[i];
@@ -1420,13 +1424,16 @@ template <typename T, typename TNearPointLocator>
 VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
     const Edge splitEdge,
     const TriInd iT,
-    const TriInd iTopo)
+    const TriInd iTopo,
+    const VertInd steinerVerticesOffset)
 {
     const VertInd iMid = static_cast<VertInd>(vertices.size());
     const V2d<T>& start = vertices[splitEdge.v1()];
     const V2d<T>& end = vertices[splitEdge.v2()];
     T split = T(0.5);
-    if(isSteinerVertex[splitEdge.v1()] || isSteinerVertex[splitEdge.v1()])
+    // check if any of the split edge vertices are Steiner vertices
+    if(splitEdge.v1() >= steinerVerticesOffset ||
+       splitEdge.v2() >= steinerVerticesOffset)
     {
         // In Ruppert's paper, he used D(0.01) factor to divide edge length, but
         // that introduces FP rounding erros, so it's avoided.
@@ -1444,7 +1451,7 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
         }
         assert(abs(nearestPowerOfTwo - pow(2, round(log(d) / log(2.0)))) < 1e6);
         split = nearestPowerOfTwo / len;
-        if(isSteinerVertex[splitEdge.v1()])
+        if(splitEdge.v1() >= steinerVerticesOffset)
             split = T(1) - split;
     }
     V2d<T> mid = V2d<T>::make(
@@ -2284,7 +2291,9 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
     tryInitNearestPointLocator();
 
     VertInd newVertBudget = maxVerticesToInsert;
-    resolveEncroachedEdges(detectEncroachedEdges(), newVertBudget);
+    const VertInd steinerVerticesOffset = vertices.size();
+    resolveEncroachedEdges(
+        detectEncroachedEdges(), newVertBudget, steinerVerticesOffset);
 
     std::queue<TriInd> badTriangles;
     for(TriInd iT(0), n = triangles.size(); iT < n; ++iT)
@@ -2327,13 +2336,14 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
         {
             continue;
         }
-        TriIndVec badTris = resolveEncroachedEdges(
+
+        const TriIndVec badTris = resolveEncroachedEdges(
             detectEncroachedEdges(vert),
             newVertBudget,
+            steinerVerticesOffset,
             &vert,
             refinementCriterion,
             refinementThreshold);
-
         for(IndexSizeType i(0); i < TriInd(badTris.size()); ++i)
         {
             badTriangles.push(badTris[i]);
