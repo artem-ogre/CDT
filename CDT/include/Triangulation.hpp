@@ -1327,30 +1327,6 @@ bool Triangulation<T, TNearPointLocator>::isBadTriangle(
     return ans;
 }
 
-template <typename T, typename TNearPointLocator>
-V2d<T>
-Triangulation<T, TNearPointLocator>::circumcenter(const Triangle& tri) const
-{
-    V2d<T> a1 = vertices[tri.vertices[0]];
-    V2d<T> b1 = vertices[tri.vertices[1]];
-    V2d<T> a = vertices[tri.vertices[0]];
-    V2d<T> b = vertices[tri.vertices[1]];
-    const V2d<T>& c = vertices[tri.vertices[2]];
-    const T denom = 0.5 / orient2D(c, a, b);
-    a.x -= c.x;
-    a.y -= c.y;
-    b.x -= c.x;
-    b.y -= c.y;
-    T oX =
-        c.x +
-        (b.y * (a.x * a.x + a.y * a.y) - a.y * (b.x * b.x + b.y * b.y)) * denom;
-    T oY =
-        c.y +
-        (a.x * (b.x * b.x + b.y * b.y) - b.x * (a.x * a.x + a.y * a.y)) * denom;
-    V2d<T> v = V2d<T>::make(oX, oY);
-    return v;
-}
-
 /// Search in all fixed edges to find encroached edges, each fixed edge is
 /// checked against its opposite vertices
 /// Returns queue of encroached edges
@@ -1478,7 +1454,7 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
     {
         // In Ruppert's paper, he used D(0.01) factor to divide edge length, but
         // that introduces FP rounding erros, so it's avoided.
-        const T len = distance(start.x, start.y, end.x, end.y);
+        const T len = distance(start, end);
         const T d = T(0.5) * len;
         // Find the splitting distance.
         T nearestPowerOfTwo = T(1);
@@ -2341,7 +2317,10 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
 
         if(isBadTriangle(t, refinementConstrain, threshold))
         {
-            const V2d<T> vert = circumcenter(t);
+            const V2d<T> vert = circumcenter(
+                vertices[t.vertices[0]],
+                vertices[t.vertices[1]],
+                vertices[t.vertices[2]]);
             if(locatePointTriangle(
                    vert, vertices[0], vertices[1], vertices[2]) !=
                PtTriLocation::Outside)
@@ -2361,7 +2340,10 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
         {
             continue;
         }
-        const V2d<T> vert = circumcenter(t);
+        const V2d<T> vert = circumcenter(
+            vertices[t.vertices[0]],
+            vertices[t.vertices[1]],
+            vertices[t.vertices[2]]);
         if(locatePointTriangle(vert, vertices[0], vertices[1], vertices[2]) ==
            PtTriLocation::Outside)
         {

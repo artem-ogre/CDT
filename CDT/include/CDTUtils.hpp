@@ -275,29 +275,33 @@ bool verticesShareEdge(const TriIndVec& aTris, const TriIndVec& bTris)
 }
 
 template <typename T>
-T distanceSquared(const T ax, const T ay, const T bx, const T by)
+T lengthSquared(const T x, const T y)
 {
-    const T dx = bx - ax;
-    const T dy = by - ay;
-    return dx * dx + dy * dy;
+    return x * x + y * y;
 }
 
 template <typename T>
-T distance(const T ax, const T ay, const T bx, const T by)
+T lengthSquared(const V2d<T>& v)
 {
-    return std::sqrt(distanceSquared(ax, ay, bx, by));
+    return lengthSquared(v.x, v.y);
 }
 
 template <typename T>
-T distance(const V2d<T>& a, const V2d<T>& b)
+T length(const V2d<T>& v)
 {
-    return distance(a.x, a.y, b.x, b.y);
+    return std::sqrt(lengthSquared(v));
 }
 
 template <typename T>
 T distanceSquared(const V2d<T>& a, const V2d<T>& b)
 {
-    return distanceSquared(a.x, a.y, b.x, b.y);
+    return lengthSquared(b.x - a.x, b.y - a.y);
+}
+
+template <typename T>
+T distance(const V2d<T>& a, const V2d<T>& b)
+{
+    return std::sqrt(distanceSquared(a, b));
 }
 
 template <typename T>
@@ -313,6 +317,18 @@ bool isEncroachingOnEdge(
     return (edgeStart.x - v.x) * (edgeEnd.x - v.x) +
                (edgeStart.y - v.y) * (edgeEnd.y - v.y) <=
            T(0);
+}
+
+template <typename T>
+V2d<T> circumcenter(V2d<T> a, V2d<T> b, const V2d<T>& c)
+{
+    const T denom = 0.5 / orient2D(c, a, b);
+    a.x -= c.x, a.y -= c.y;
+    b.x -= c.x, b.y -= c.y;
+    const T aLenSq = lengthSquared(a), bLenSq = lengthSquared(b);
+    return V2d<T>::make(
+        c.x + (b.y * aLenSq - a.y * bLenSq) * denom,
+        c.y + (a.x * bLenSq - b.x * aLenSq) * denom);
 }
 
 } // namespace CDT
