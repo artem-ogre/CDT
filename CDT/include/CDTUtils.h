@@ -244,7 +244,7 @@ inline Edge edge_make(VertInd iV1, VertInd iV2)
 }
 
 typedef std::vector<Edge> EdgeVec;                ///< Vector of edges
-typedef std::queue<Edge> EdgeQue;                 ///< Queue of edges
+typedef std::queue<Edge> EdgeQueue;                 ///< Queue of edges
 typedef unordered_set<Edge> EdgeUSet;             ///< Hash table of edges
 typedef unordered_set<TriInd> TriIndUSet;         ///< Hash table of triangles
 typedef unordered_map<TriInd, TriInd> TriIndUMap; ///< Triangle hash map
