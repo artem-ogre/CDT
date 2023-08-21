@@ -515,8 +515,6 @@ private:
         VertInd iV3,
         VertInd iV4) const;
     TriInd edgeTriangle(Edge edge) const;
-    /// Checks if edge e is encroached by vertex v
-    bool isEncroached(const V2d<T>& v, Edge e) const;
     bool isBadTriangle(
         const Triangle& tri,
         RefineTriangles::Enum refinement,

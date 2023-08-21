@@ -305,4 +305,19 @@ bool touchesSuperTriangle(const Triangle& t)
     return t.vertices[0] < 3 || t.vertices[1] < 3 || t.vertices[2] < 3;
 }
 
+template <typename T>
+bool isEncroachingOnEdge(
+    const V2d<T>& v,
+    const V2d<T>& edgeStart,
+    const V2d<T>& edgeEnd)
+{
+    /*
+     * Contains a point in its diametral circle:
+     * the angle between v and edge end points is obtuse
+     */
+    return (edgeStart.x - v.x) * (edgeEnd.x - v.x) +
+               (edgeStart.y - v.y) * (edgeEnd.y - v.y) <=
+           T(0);
+}
+
 } // namespace CDT
