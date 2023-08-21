@@ -1235,26 +1235,6 @@ bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
 }
 
 template <typename T, typename TNearPointLocator>
-TriInd Triangulation<T, TNearPointLocator>::edgeTriangle(const Edge edge) const
-{
-    TriInd iT = invalidIndex;
-    const TriInd start = m_vertTris[edge.v1()];
-    TriInd currTri = start;
-    do
-    {
-        const Triangle& t = triangles[currTri];
-        if(t.next(edge.v1()).second == edge.v2())
-        {
-            iT = currTri;
-            break;
-        }
-        currTri = t.next(edge.v1()).first;
-    } while(currTri != start);
-    assert(iT != invalidIndex);
-    return iT;
-}
-
-template <typename T, typename TNearPointLocator>
 bool Triangulation<T, TNearPointLocator>::isRefinementNeeded(
     const Triangle& tri,
     const RefinementCriterion::Enum refinementCriterion,
@@ -1286,8 +1266,9 @@ EdgeQue Triangulation<T, TNearPointLocator>::detectEncroachedEdges()
         ++cit)
     {
         const Edge edge = *cit;
-        const TriInd iT = edgeTriangle(edge);
-        const TriInd iTopo = edgeNeighbor(triangles[iT], edge.v1(), edge.v2());
+        TriInd iT, iTopo;
+        std::tie(iT, iTopo) = edgeTriangles(edge.v1(), edge.v2());
+        assert(iT != invalidIndex && iTopo != invalidIndex);
         const Triangle& t = triangles[iT];
         const Triangle& tOpo = triangles[iTopo];
         VertInd v1 = opposedVertex(t, iTopo);
@@ -1344,13 +1325,11 @@ TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
         {
             continue;
         }
-        TriInd iT = edgeTriangle(edge);
-        const Triangle& t = triangles[iT];
-        VertInd i = splitEncroachedEdge(
-            edge,
-            iT,
-            edgeNeighbor(triangles[iT], edge.v1(), edge.v2()),
-            steinerVerticesOffset);
+        TriInd iT, iTopo;
+        std::tie(iT, iTopo) = edgeTriangles(edge.v1(), edge.v2());
+        assert(iT != invalidIndex && iTopo != invalidIndex);
+        const VertInd i =
+            splitEncroachedEdge(edge, iT, iTopo, steinerVerticesOffset);
         --newVertBudget;
 
         TriInd start = m_vertTris[i];

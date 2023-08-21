@@ -510,7 +510,6 @@ private:
         VertInd iV2,
         VertInd iV3,
         VertInd iV4) const;
-    TriInd edgeTriangle(Edge edge) const;
     bool isRefinementNeeded(
         const Triangle& tri,
         RefinementCriterion::Enum refinementCriterion,
