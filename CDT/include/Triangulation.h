@@ -126,13 +126,8 @@ class CDT_EXPORT Triangulation
 {
 public:
     typedef std::vector<V2d<T> > V2dVec; ///< Vertices vector
-    typedef std::vector<bool> boolVec;   ///< Steiner Vertices flag
     V2dVec vertices;                     ///< triangulation's vertices
-    boolVec isSteinerVertex; ///< triangulation's vertices Steiner point flag
-    IndexSizeType
-        maxSteinerPoints; ///< triangulation's maximum number of Steiner
-    IndexSizeType numOfSteinerPoints; ///< triangulation's maximum number of
-                                      ///< Steiner points to be added
+    std::vector<bool> isSteinerVertex; ///< triangulation's vertices Steiner point flag
     TriangleVec triangles;            ///< triangulation's triangles
     EdgeUSet fixedEdges; ///< triangulation's constraints (fixed edges)
 
@@ -302,12 +297,13 @@ public:
      * @note bad triangles don't fulfill constraints defined by the user
      * @param refinement_constrain refinement strategy that is used to identify
      * bad triangles
-     * @param threshold threshold value for refinement
+     * @param refinementThreshold threshold value for refinement
      */
     void refineTriangles(
-        RefinementCriterion::Enum refinementConstrain =
+        VertInd maxVerticesToInsert,
+        RefinementCriterion::Enum refinementCriterion =
             RefinementCriterion::SmallestAngle,
-        T threshold = 20 / 180.0 * M_PI);
+        T refinementThreshold = 20 / 180.0 * M_PI);
     /**
      * Erase triangles adjacent to super triangle
      *
@@ -529,14 +525,14 @@ private:
     /// Returns queue of encroached edges
     EdgeQue detectEncroachedEdges(const V2d<T>& v);
     /// Recursively split encroached edges
-    /// returns vector of badly shaped triangles and number of splits
-    std::pair<TriIndVec, IndexSizeType> resolveEncroachedEdges(
+    /// @return vector of badly shaped triangles
+    TriIndVec resolveEncroachedEdges(
         EdgeQue encroachedEdges,
-        const V2d<T>& v = {},
-        bool validV = false,
-        bool fillBadTriangles = false,
-        RefinementCriterion::Enum refinementConstrain = {},
-        T badTriangleThreshold = {});
+        VertInd& newVertBudget,
+        const V2d<T>* const circumcenterOrNull = NULL,
+        RefinementCriterion::Enum refinementCriterion =
+            RefinementCriterion::SmallestAngle,
+        T badTriangleThreshold = T(0));
     VertInd splitEncroachedEdge(Edge e, TriInd iT, TriInd iTopo);
     void changeNeighbor(TriInd iT, TriInd oldNeighbor, TriInd newNeighbor);
     void changeNeighbor(
