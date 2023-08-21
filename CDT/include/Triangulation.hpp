@@ -1018,8 +1018,7 @@ void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::addNewVertex(
     const V2d<T>& pos,
-    const TriInd iT,
-    const bool isSteiner)
+    const TriInd iT)
 {
     vertices.push_back(pos);
     m_vertTris.push_back(iT);
@@ -1482,7 +1481,7 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
         detail::insert_unique(pieceToOriginals[half1], newOriginals);
         detail::insert_unique(pieceToOriginals[half2], newOriginals);
     }
-    addNewVertex(mid, noNeighbor, true);
+    addNewVertex(mid, noNeighbor);
     std::stack<TriInd> triStack = insertVertexOnEdge(iMid, iT, iTopo);
     tryAddVertexToLocator(iMid);
     ensureDelaunayByEdgeFlips(mid, iMid, triStack);
@@ -2352,7 +2351,7 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
         if(badTris.empty() && newVertBudget > 0)
         {
             const VertInd iVert = static_cast<VertInd>(vertices.size());
-            addNewVertex(vert, noNeighbor, true);
+            addNewVertex(vert, noNeighbor);
             insertVertex(iVert);
             TriInd start = m_vertTris[iVert];
             TriInd currTri = start;

@@ -127,7 +127,7 @@ class CDT_EXPORT Triangulation
 public:
     typedef std::vector<V2d<T> > V2dVec; ///< Vertices vector
     V2dVec vertices;                     ///< triangulation's vertices
-    TriangleVec triangles;            ///< triangulation's triangles
+    TriangleVec triangles;               ///< triangulation's triangles
     EdgeUSet fixedEdges; ///< triangulation's constraints (fixed edges)
 
     /** Stores count of overlapping boundaries for a fixed edge. If no entry is
@@ -388,7 +388,7 @@ public:
 private:
     /*____ Detail __*/
     void addSuperTriangle(const Box2d<T>& box);
-    void addNewVertex(const V2d<T>& pos, TriInd iT, bool isSteiner = false);
+    void addNewVertex(const V2d<T>& pos, TriInd iT);
     void insertVertex(VertInd iVert);
     void insertVertex(VertInd iVert, VertInd walkStart);
     void ensureDelaunayByEdgeFlips(
