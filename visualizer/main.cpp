@@ -224,7 +224,7 @@ private:
             if(m_isRemoveOuterAndHoles)
             {
                 m_cdt.refineTriangles(
-                    CDT::RefineTriangles::ByAngle, 20 / 180.0 * M_PI);
+                    CDT::RefinementCriterion::SmallestAngle, 20 / 180.0 * M_PI);
                 m_cdt.eraseOuterTrianglesAndHoles();
             }
             else if(m_isRemoveOuter)
@@ -232,7 +232,7 @@ private:
             else if(m_isHideSuperTri)
             {
                 m_cdt.refineTriangles(
-                    CDT::RefineTriangles::ByAngle, 20 / 180.0 * M_PI);
+                    CDT::RefinementCriterion::SmallestAngle, 20 / 180.0 * M_PI);
                 m_cdt.eraseSuperTriangle();
             }
             const CDT::unordered_map<Edge, CDT::EdgeVec> tmp =

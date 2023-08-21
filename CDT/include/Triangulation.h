@@ -86,7 +86,7 @@ struct CDT_EXPORT IntersectingConstraintEdges
 /**
  * Enum of strategies for triangles refinement
  */
-struct CDT_EXPORT RefineTriangles
+struct CDT_EXPORT RefinementCriterion
 {
     /**
      * The Enum itself
@@ -94,8 +94,8 @@ struct CDT_EXPORT RefineTriangles
      */
     enum Enum
     {
-        ByAngle, ///< constraint minimum triangles angle
-        ByArea,  ///< constraint maximum triangles area
+        SmallestAngle, ///< constraint minimum triangles angle
+        LargestArea,   ///< constraint maximum triangles area
     };
 };
 
@@ -305,7 +305,8 @@ public:
      * @param threshold threshold value for refinement
      */
     void refineTriangles(
-        RefineTriangles::Enum refinementConstrain = RefineTriangles::ByAngle,
+        RefinementCriterion::Enum refinementConstrain =
+            RefinementCriterion::SmallestAngle,
         T threshold = 20 / 180.0 * M_PI);
     /**
      * Erase triangles adjacent to super triangle
@@ -515,10 +516,10 @@ private:
         VertInd iV3,
         VertInd iV4) const;
     TriInd edgeTriangle(Edge edge) const;
-    bool isBadTriangle(
+    bool isRefinementNeeded(
         const Triangle& tri,
-        RefineTriangles::Enum refinement,
-        T threshold) const;
+        RefinementCriterion::Enum refinementCriterion,
+        T refinementThreshold) const;
     /// Search in all fixed edges to find encroached edges, each fixed edge is
     /// checked against its opposite vertices
     /// Returns queue of encroached edges
@@ -534,7 +535,7 @@ private:
         const V2d<T>& v = {},
         bool validV = false,
         bool fillBadTriangles = false,
-        RefineTriangles::Enum refinementConstrain = {},
+        RefinementCriterion::Enum refinementConstrain = {},
         T badTriangleThreshold = {});
     VertInd splitEncroachedEdge(Edge e, TriInd iT, TriInd iTopo);
     void changeNeighbor(TriInd iT, TriInd oldNeighbor, TriInd newNeighbor);

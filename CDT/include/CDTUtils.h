@@ -449,6 +449,23 @@ CDT_EXPORT bool isEncroachingOnEdge(
 template <typename T>
 CDT_EXPORT V2d<T> circumcenter(V2d<T> a, V2d<T> b, const V2d<T>& c);
 
+/// Doubled surface area of a triangle ABC
+template <typename T>
+CDT_EXPORT T doubledArea(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
+
+/// Surface area of a triangle ABC
+template <typename T>
+CDT_EXPORT T area(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
+
+/// Sine of smallest angle of triangle ABC
+template <typename T>
+CDT_EXPORT T
+sineOfSmallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
+
+/// Smallest angle of triangle ABC in radians
+template <typename T>
+CDT_EXPORT T smallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
+
 } // namespace CDT
 
 #ifndef CDT_USE_AS_COMPILED_LIBRARY

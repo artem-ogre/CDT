@@ -1258,45 +1258,23 @@ TriInd Triangulation<T, TNearPointLocator>::edgeTriangle(const Edge edge) const
 }
 
 template <typename T, typename TNearPointLocator>
-bool Triangulation<T, TNearPointLocator>::isBadTriangle(
+bool Triangulation<T, TNearPointLocator>::isRefinementNeeded(
     const Triangle& tri,
-    const RefineTriangles::Enum refinement,
-    const T threshold) const
+    RefinementCriterion::Enum refinementCriterion,
+    const T refinementThreshold) const
 {
-    const V2d<T>& v1 = vertices[tri.vertices[0]];
-    const V2d<T>& v2 = vertices[tri.vertices[1]];
-    const V2d<T>& v3 = vertices[tri.vertices[2]];
-
-    const T twiceArea = std::abs(orient2D(v1, v2, v3));
-    bool ans = false;
-    switch(refinement)
+    const V2d<T>& a = vertices[tri.vertices[0]];
+    const V2d<T>& b = vertices[tri.vertices[1]];
+    const V2d<T>& c = vertices[tri.vertices[2]];
+    switch(refinementCriterion)
     {
-    case RefineTriangles::ByAngle: {
-        T opoLenV1 = distance(v2, v3);
-        T opoLenV2 = distance(v1, v3);
-        T opoLenV3 = distance(v1, v2);
-        // Let opoLenV1 is the smallest edge length
-        if((opoLenV2 < opoLenV1) && (opoLenV2 < opoLenV3))
-        {
-            std::swap(opoLenV1, opoLenV2);
-        }
-        else if(opoLenV3 < opoLenV1)
-        {
-            std::swap(opoLenV1, opoLenV3);
-        }
-        assert(opoLenV1 <= opoLenV3);
-        assert(opoLenV1 <= opoLenV2);
-        T samllestAngle = twiceArea / opoLenV3 / opoLenV2;
-        ans = samllestAngle < sin(threshold);
-        break;
+    case RefinementCriterion::SmallestAngle:
+        return smallestAngle(a, b, c) <= refinementThreshold;
+    case RefinementCriterion::LargestArea:
+        return area(a, b, c) >= refinementThreshold;
     }
-    case RefineTriangles::ByArea: {
-        T area = 0.5 * twiceArea;
-        ans = area > threshold;
-        break;
-    }
-    }
-    return ans;
+    assert(false); // unreachable code
+    return false;
 }
 
 /// Search in all fixed edges to find encroached edges, each fixed edge is
@@ -1356,7 +1334,7 @@ Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
     const V2d<T>& v,
     const bool validV,
     const bool fillBadTriangles,
-    const RefineTriangles::Enum refinementConstrain,
+    const RefinementCriterion::Enum refinementConstrain,
     const T badTriangleThreshold)
 {
     IndexSizeType numOfSplits = 0;
@@ -1382,7 +1360,7 @@ Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
         {
             const Triangle& t = triangles[currTri];
             if(fillBadTriangles &&
-               isBadTriangle(t, refinementConstrain, badTriangleThreshold))
+               isRefinementNeeded(t, refinementConstrain, badTriangleThreshold))
             {
                 badTriangles.push_back(currTri);
             }
@@ -2273,7 +2251,7 @@ void Triangulation<T, TNearPointLocator>::tryInitNearestPointLocator()
 
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::refineTriangles(
-    RefineTriangles::Enum refinementConstrain,
+    RefinementCriterion::Enum refinementConstrain,
     T threshold)
 {
     if(isFinalized())
@@ -2291,7 +2269,7 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
         if(t.vertices[0] < 3 || t.vertices[1] < 3 || t.vertices[2] < 3)
             continue;
 
-        if(isBadTriangle(t, refinementConstrain, threshold))
+        if(isRefinementNeeded(t, refinementConstrain, threshold))
         {
             const V2d<T> vert = circumcenter(
                 vertices[t.vertices[0]],
@@ -2311,7 +2289,7 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
         TriInd iT = badTriangles.front();
         const Triangle& t = triangles[iT];
         badTriangles.pop();
-        if(!isBadTriangle(t, refinementConstrain, threshold) ||
+        if(!isRefinementNeeded(t, refinementConstrain, threshold) ||
            numOfSteinerPoints >= maxSteinerPoints)
         {
             continue;
@@ -2349,7 +2327,7 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
             do
             {
                 const Triangle& t = triangles[currTri];
-                if(isBadTriangle(t, refinementConstrain, threshold))
+                if(isRefinementNeeded(t, refinementConstrain, threshold))
                 {
                     badTriangles.push(currTri);
                 }
