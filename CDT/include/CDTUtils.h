@@ -447,7 +447,7 @@ CDT_EXPORT bool isEncroachingOnEdge(
 
 /// Position of ABC triangle circumcenter
 template <typename T>
-CDT_EXPORT V2d<T> circumcenter(V2d<T> a, V2d<T> b, const V2d<T>& c);
+CDT_EXPORT V2d<T> circumcenter(V2d<T> a, V2d<T> b, V2d<T> c);
 
 /// Doubled surface area of a triangle ABC
 template <typename T>
