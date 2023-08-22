@@ -2478,6 +2478,7 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
 
         if(badTris.empty() && remainingVertexBudget > 0)
         {
+            --remainingVertexBudget;
             const VertInd iVert = static_cast<VertInd>(vertices.size());
             addNewVertex(vert, noNeighbor);
             insertVertex(iVert);
