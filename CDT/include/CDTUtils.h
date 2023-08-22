@@ -466,6 +466,8 @@ sineOfSmallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
 template <typename T>
 CDT_EXPORT T smallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
 
+CDT_EXPORT bool touchesSuperTriangle(const Triangle& t);
+
 } // namespace CDT
 
 #ifndef CDT_USE_AS_COMPILED_LIBRARY

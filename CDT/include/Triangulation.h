@@ -514,16 +514,14 @@ private:
         const Triangle& tri,
         RefinementCriterion::Enum refinementCriterion,
         T refinementThreshold) const;
-    /// Search in all fixed edges to find encroached edges, each fixed edge is
-    /// checked against its opposite vertices
-    /// Returns queue of encroached edges
-    EdgeQueue detectEncroachedEdges();
-    /// Search in all fixed edges to find encroached edges, each fixed edge is
-    /// checked against its opposite vertices and vertex v
-    /// Returns queue of encroached edges
-    EdgeQueue detectEncroachedEdges(const V2d<T>& v);
+    /// Check if edge is encroached by its opposed vertices
+    bool isEdgeEncroached(const Edge& edge) const;
+    bool isEdgeEncroachedBy(const Edge& edge, const V2d<T>& v) const;
+    /// Find all fixed edges encroached by its opposed vertices
+    EdgeQueue allEncroachedEdges() const;
+    /// Find all fixed edges encroached by a given vertex
+    EdgeQueue edgesEncroachedBy(const V2d<T>& v) const;
     /// Recursively split encroached edges
-    /// @return vector of badly shaped triangles
     TriIndVec resolveEncroachedEdges(
         EdgeQueue encroachedEdges,
         VertInd& newVertBudget,
@@ -532,11 +530,7 @@ private:
         RefinementCriterion::Enum refinementCriterion =
             RefinementCriterion::SmallestAngle,
         T badTriangleThreshold = T(0));
-    VertInd splitEncroachedEdge(
-        Edge e,
-        TriInd iT,
-        TriInd iTopo,
-        VertInd steinerVerticesOffset);
+    VertInd splitEncroachedEdge(Edge edge, VertInd steinerVerticesOffset);
     void changeNeighbor(TriInd iT, TriInd oldNeighbor, TriInd newNeighbor);
     void changeNeighbor(
         TriInd iT,
