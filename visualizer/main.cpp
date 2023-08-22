@@ -12,7 +12,9 @@
 #include <QCheckBox>
 #include <QColor>
 #include <QDir>
+#include <QFormLayout>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QListWidget>
 #include <QMessageBox>
 #include <QPaintEvent>
@@ -82,6 +84,12 @@ public slots:
         updateCDT();
     }
 
+    void setRefinementLimit(int limit)
+    {
+        m_refinementLimit = static_cast<std::size_t>(limit);
+        updateCDT();
+    }
+
     void hidePoints(int isHidePoints)
     {
         m_isHidePoints = (isHidePoints != 0);
@@ -91,6 +99,12 @@ public slots:
     void hideSuperTriangle(int isHideSuperTri)
     {
         m_isHideSuperTri = (isHideSuperTri != 0);
+        updateCDT();
+    }
+
+    void doRuppertRefinement(int isDoRuppert)
+    {
+        m_isDoRuppert = (isDoRuppert != 0);
         updateCDT();
     }
 
@@ -220,24 +234,25 @@ private:
                     m_cdt.insertEdges(edges);
             }
 
-            if(m_isRemoveOuterAndHoles)
+            if(m_isDoRuppert)
             {
                 m_cdt.refineTriangles(
-                    1000,
+                    m_refinementLimit,
                     CDT::RefinementCriterion::SmallestAngle,
                     20 / 180.0 * M_PI);
+            }
+
+            if(m_isRemoveOuterAndHoles)
+            {
                 m_cdt.eraseOuterTrianglesAndHoles();
             }
             else if(m_isRemoveOuter)
                 m_cdt.eraseOuterTriangles();
             else if(m_isHideSuperTri)
             {
-                m_cdt.refineTriangles(
-                    1000,
-                    CDT::RefinementCriterion::SmallestAngle,
-                    20 / 180.0 * M_PI);
                 m_cdt.eraseSuperTriangle();
             }
+
             const CDT::unordered_map<Edge, CDT::EdgeVec> tmp =
                 CDT::EdgeToPiecesMapping(m_cdt.pieceToOriginals);
             const CDT::unordered_map<Edge, std::vector<CDT::VertInd> >
@@ -468,9 +483,11 @@ private:
     std::vector<Edge> m_edges;
     std::size_t m_ptLimit;
     std::size_t m_edgeLimit;
+    std::size_t m_refinementLimit;
     bool m_isConformToEdges;
     bool m_isHidePoints;
     bool m_isHideSuperTri;
+    bool m_isDoRuppert;
     bool m_isRemoveOuter;
     bool m_isRemoveOuterAndHoles;
     bool m_isDisplayIndices;
@@ -507,6 +524,8 @@ public:
             m_cdtWidget,
             SLOT(setPointsLimit(int)));
         ptsSpinbox->setValue(999999);
+        QFormLayout* ptsLayout = new QFormLayout;
+        ptsLayout->addRow(new QLabel(tr("# points:")), ptsSpinbox);
 
         QSpinBox* edgesSpinbox = new QSpinBox;
         edgesSpinbox->setRange(0, 999999);
@@ -516,6 +535,20 @@ public:
             m_cdtWidget,
             SLOT(setEdgeLimit(int)));
         edgesSpinbox->setValue(999999);
+        QFormLayout* edgesLayout = new QFormLayout;
+        edgesLayout->addRow(new QLabel(tr("# edges:")), edgesSpinbox);
+
+        QSpinBox* refinementSpinbox = new QSpinBox;
+        refinementSpinbox->setRange(0, 999999);
+        connect(
+            refinementSpinbox,
+            SIGNAL(valueChanged(int)),
+            m_cdtWidget,
+            SLOT(setRefinementLimit(int)));
+        refinementSpinbox->setValue(999999);
+        QFormLayout* refinementLayout = new QFormLayout;
+        edgesLayout->addRow(
+            new QLabel(tr("# refinement points:")), refinementSpinbox);
 
         QCheckBox* displayIndices =
             new QCheckBox(QStringLiteral("Display point/triangle indices"));
@@ -576,6 +609,16 @@ public:
         m_cdtWidget->removeOuterTrianglesAndHoles(0);
         removeOuterHoles->setChecked(false);
 
+        QCheckBox* doRuppert =
+            new QCheckBox(QStringLiteral("Ruppert refinement"));
+        connect(
+            doRuppert,
+            SIGNAL(stateChanged(int)),
+            m_cdtWidget,
+            SLOT(doRuppertRefinement(int)));
+        m_cdtWidget->hideSuperTriangle(0);
+        hideSuperTri->setChecked(false);
+
         QPushButton* screenshotBtn = new QPushButton(tr("Make Screenshot"));
         connect(screenshotBtn, SIGNAL(clicked()), m_cdtWidget, SLOT(prtScn()));
         screenshotBtn->setMinimumHeight(50);
@@ -587,14 +630,16 @@ public:
         QGridLayout* rightLayout = new QGridLayout;
         int cntr = 0;
         rightLayout->addWidget(filesList, cntr++, 0);
-        rightLayout->addWidget(ptsSpinbox, cntr++, 0);
-        rightLayout->addWidget(edgesSpinbox, cntr++, 0);
+        rightLayout->addLayout(ptsLayout, cntr++, 0);
+        rightLayout->addLayout(edgesLayout, cntr++, 0);
+        rightLayout->addLayout(refinementLayout, cntr++, 0);
         rightLayout->addWidget(displayIndices, cntr++, 0);
         rightLayout->addWidget(conformToEdges, cntr++, 0);
         rightLayout->addWidget(hidePoints, cntr++, 0);
         rightLayout->addWidget(removeOuter, cntr++, 0);
         rightLayout->addWidget(removeOuterHoles, cntr++, 0);
         rightLayout->addWidget(hideSuperTri, cntr++, 0);
+        rightLayout->addWidget(doRuppert, cntr++, 0);
         rightLayout->addWidget(screenshotBtn, cntr++, 0);
         rightLayout->addWidget(saveBtn, cntr++, 0);
 
