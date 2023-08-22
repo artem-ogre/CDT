@@ -300,9 +300,22 @@ public:
      */
     void refineTriangles(
         VertInd maxVerticesToInsert,
+        TriIndUSet& toErase,
         RefinementCriterion::Enum refinementCriterion =
             RefinementCriterion::SmallestAngle,
         T refinementThreshold = 20 / 180.0 * M_PI);
+    /**
+     * Collect triangles adjacent to super triangle
+     */
+    TriIndUSet collectSuperTriangle();
+    /**
+     * Collect outside of constrained boundary using growing
+     */
+    TriIndUSet collectOuterTriangles();
+    /**
+     * Collect outside of constrained boundary and auto-detected holes
+     */
+    TriIndUSet collectOuterTrianglesAndHoles();
     /**
      * Erase triangles adjacent to super triangle
      *
@@ -384,6 +397,13 @@ public:
     /// Access internal vertex adjacent triangles
     TriIndVec& VertTrisInternal();
     /// @}
+
+    /**
+     * Remove super-triangle (if used) and triangles with specified indices.
+     * Adjust internal triangulation state accordingly.
+     * @removedTriangles indices of triangles to remove
+     */
+    void finalizeTriangulation(const TriIndUSet& removedTriangles);
 
 private:
     /*____ Detail __*/
@@ -534,6 +554,7 @@ private:
         EdgeQueue encroachedEdges,
         VertInd& newVertBudget,
         VertInd steinerVerticesOffset,
+        TriIndUSet& toErase,
         const V2d<T>* circumcenterOrNull = NULL,
         RefinementCriterion::Enum refinementCriterion =
             RefinementCriterion::SmallestAngle,
@@ -542,7 +563,8 @@ private:
         Edge e,
         TriInd iT,
         TriInd iTopo,
-        VertInd steinerVerticesOffset);
+        VertInd steinerVerticesOffset,
+        TriIndUSet& toErase);
     void changeNeighbor(TriInd iT, TriInd oldNeighbor, TriInd newNeighbor);
     void changeNeighbor(
         TriInd iT,
@@ -565,12 +587,6 @@ private:
         IndexSizeType iB) const;
     TriInd addTriangle(const Triangle& t); // note: invalidates iterators!
     TriInd addTriangle(); // note: invalidates triangle iterators!
-    /**
-     * Remove super-triangle (if used) and triangles with specified indices.
-     * Adjust internal triangulation state accordingly.
-     * @removedTriangles indices of triangles to remove
-     */
-    void finalizeTriangulation(const TriIndUSet& removedTriangles);
     TriIndUSet growToBoundary(std::stack<TriInd> seeds) const;
     void fixEdge(const Edge& edge, BoundaryOverlapCount overlaps);
     void fixEdge(const Edge& edge);

@@ -37,7 +37,9 @@ public:
         : QWidget(parent)
         , m_ptLimit(9999999)
         , m_edgeLimit(9999999)
+        , m_steinerPtsLimit(1000)
         , m_isConformToEdges(false)
+        , m_isRefineTriangles(false)
         , m_isHidePoints(false)
         , m_isHideSuperTri(false)
         , m_isRemoveOuter(false)
@@ -70,6 +72,12 @@ public slots:
         updateCDT();
     }
 
+    void setRefineTriangles(int isRefine)
+    {
+        m_isRefineTriangles = (isRefine != 0);
+        updateCDT();
+    }
+
     void setPointsLimit(int limit)
     {
         m_ptLimit = static_cast<std::size_t>(limit);
@@ -79,6 +87,12 @@ public slots:
     void setEdgeLimit(int limit)
     {
         m_edgeLimit = static_cast<std::size_t>(limit);
+        updateCDT();
+    }
+
+    void setSteinerPtsLimit(int limit)
+    {
+        m_steinerPtsLimit = static_cast<std::size_t>(limit);
         updateCDT();
     }
 
@@ -222,21 +236,45 @@ private:
 
             if(m_isRemoveOuterAndHoles)
             {
-                m_cdt.refineTriangles(
-                    1000,
-                    CDT::RefinementCriterion::SmallestAngle,
-                    20 / 180.0 * M_PI);
-                m_cdt.eraseOuterTrianglesAndHoles();
+                CDT::TriIndUSet toErase = m_cdt.collectOuterTrianglesAndHoles();
+                if(m_isRefineTriangles)
+                    m_cdt.refineTriangles(
+                        m_steinerPtsLimit,
+                        toErase,
+                        CDT::RefinementCriterion::SmallestAngle,
+                        20 / 180.0 * M_PI);
+                m_cdt.finalizeTriangulation(toErase);
             }
             else if(m_isRemoveOuter)
-                m_cdt.eraseOuterTriangles();
+            {
+                CDT::TriIndUSet toErase = m_cdt.collectOuterTriangles();
+                if(m_isRefineTriangles)
+                    m_cdt.refineTriangles(
+                        m_steinerPtsLimit,
+                        toErase,
+                        CDT::RefinementCriterion::SmallestAngle,
+                        20 / 180.0 * M_PI);
+                m_cdt.finalizeTriangulation(toErase);
+            }
             else if(m_isHideSuperTri)
             {
+                CDT::TriIndUSet toErase = m_cdt.collectSuperTriangle();
+                if(m_isRefineTriangles)
+                    m_cdt.refineTriangles(
+                        m_steinerPtsLimit,
+                        toErase,
+                        CDT::RefinementCriterion::SmallestAngle,
+                        20 / 180.0 * M_PI);
+                m_cdt.finalizeTriangulation(toErase);
+            }
+            else if(m_isRefineTriangles)
+            {
+                CDT::TriIndUSet toErase;
                 m_cdt.refineTriangles(
-                    1000,
+                    m_steinerPtsLimit,
+                    toErase,
                     CDT::RefinementCriterion::SmallestAngle,
                     20 / 180.0 * M_PI);
-                m_cdt.eraseSuperTriangle();
             }
             const CDT::unordered_map<Edge, CDT::EdgeVec> tmp =
                 CDT::EdgeToPiecesMapping(m_cdt.pieceToOriginals);
@@ -468,7 +506,9 @@ private:
     std::vector<Edge> m_edges;
     std::size_t m_ptLimit;
     std::size_t m_edgeLimit;
+    std::size_t m_steinerPtsLimit;
     bool m_isConformToEdges;
+    bool m_isRefineTriangles;
     bool m_isHidePoints;
     bool m_isHideSuperTri;
     bool m_isRemoveOuter;
@@ -517,6 +557,15 @@ public:
             SLOT(setEdgeLimit(int)));
         edgesSpinbox->setValue(999999);
 
+        QSpinBox* steinerPtsSpinbox = new QSpinBox;
+        steinerPtsSpinbox->setRange(0, 999999);
+        connect(
+            steinerPtsSpinbox,
+            SIGNAL(valueChanged(int)),
+            m_cdtWidget,
+            SLOT(setSteinerPtsLimit(int)));
+        steinerPtsSpinbox->setValue(1000);
+
         QCheckBox* displayIndices =
             new QCheckBox(QStringLiteral("Display point/triangle indices"));
         connect(
@@ -536,6 +585,16 @@ public:
             SLOT(setConformToEdges(int)));
         m_cdtWidget->setConformToEdges(0);
         conformToEdges->setChecked(false);
+
+        QCheckBox* refineTriangles =
+            new QCheckBox(QStringLiteral("Refine triangles"));
+        connect(
+            refineTriangles,
+            SIGNAL(stateChanged(int)),
+            m_cdtWidget,
+            SLOT(setRefineTriangles(int)));
+        m_cdtWidget->setRefineTriangles(0);
+        refineTriangles->setChecked(false);
 
         QCheckBox* hidePoints = new QCheckBox(QStringLiteral("Hide points"));
         connect(
@@ -589,8 +648,10 @@ public:
         rightLayout->addWidget(filesList, cntr++, 0);
         rightLayout->addWidget(ptsSpinbox, cntr++, 0);
         rightLayout->addWidget(edgesSpinbox, cntr++, 0);
+        rightLayout->addWidget(steinerPtsSpinbox, cntr++, 0);
         rightLayout->addWidget(displayIndices, cntr++, 0);
         rightLayout->addWidget(conformToEdges, cntr++, 0);
+        rightLayout->addWidget(refineTriangles, cntr++, 0);
         rightLayout->addWidget(hidePoints, cntr++, 0);
         rightLayout->addWidget(removeOuter, cntr++, 0);
         rightLayout->addWidget(removeOuterHoles, cntr++, 0);

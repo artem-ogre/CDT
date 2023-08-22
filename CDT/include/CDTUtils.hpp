@@ -315,7 +315,7 @@ bool isEncroachingOnEdge(
      * the angle between v and edge end points is obtuse
      */
     return (edgeStart.x - v.x) * (edgeEnd.x - v.x) +
-               (edgeStart.y - v.y) * (edgeEnd.y - v.y) <=
+               (edgeStart.y - v.y) * (edgeEnd.y - v.y) <
            T(0);
 }
 
