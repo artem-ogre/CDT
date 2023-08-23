@@ -111,11 +111,14 @@ CDT port is [available](https://github.com/microsoft/vcpkg/tree/master/ports/cdt
 CDT is not in the conan-center but there's a `conanfile.py` recipe provided (in this repo).
 Note that it might need small adjustments like changing boost version to fit your needs.
 
+### spack
+A [recipe](https://github.com/spack/spack/blob/develop/var/spack/repos/builtin/packages/cdt/package.py) for CDT is [available](https://spack.readthedocs.io/en/latest/package_list.html#cdt) in [spack](https://spack.io).
+
 <a name="installationbuilding"></a>
 
 ## Installation/Building
 
-CDT uses modern CMake and should *just work* out of the box without any suprises. The are many ways to consume CDT: 
+CDT uses modern CMake and should *just work* out of the box without any surprises. The are many ways to consume CDT:
 - copy headers and use as a header-only library
 - add to CMake project directly with `add_subdirectory`
 - pre-build and add to CMake project as a dependency with `find_package`
