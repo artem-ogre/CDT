@@ -42,6 +42,7 @@ public:
         , m_isConformToEdges(false)
         , m_isHidePoints(false)
         , m_isHideSuperTri(false)
+        , m_isDoRuppert(false)
         , m_isRemoveOuter(false)
         , m_isRemoveOuterAndHoles(false)
         , m_isDisplayIndices(false)
