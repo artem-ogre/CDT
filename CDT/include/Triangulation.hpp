@@ -459,29 +459,6 @@ V2d<T> intersectionPosition(
 } // namespace detail
 
 template <typename T, typename TNearPointLocator>
-IndexSizeType Triangulation<T, TNearPointLocator>::previousEdgeEncounter(
-    const VertInd v,
-    const std::vector<VertInd>& poly) const
-{
-    // check if vertex was encountered earlier in the pseudo-polygons:
-    // it's triangle was reset
-    if(m_vertTris[v] != noNeighbor)
-        return invalidIndex;
-    // rewind back to the previous entry of the point
-    IndexSizeType i = static_cast<IndexSizeType>(poly.size() - 1);
-    while(poly[i] != v)
-    {
-        assert(i > 0);
-        --i;
-    }
-    // was the edge or only the vertex encountered before?
-    // check if previous 'next' is same as current 'previous'
-    if(poly[i + 1] == poly.back())
-        return i;        // edge was encountered earlier
-    return invalidIndex; // edge was not encountered earlier
-}
-
-template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
     const Edge edge,
     const Edge originalEdge,
@@ -530,8 +507,6 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
     polyR.push_back(iA);
     polyR.push_back(iVR);
     outerTrisR.push_back(edgeNeighbor(t, iA, iVR));
-    removeAdjacentTriangle(iVL);
-    removeAdjacentTriangle(iVR);
     VertInd iV = iA;
 
     while(!t.containsVertex(iB))
@@ -569,11 +544,6 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
             }
             detail::insert_unique(pieceToOriginals[half1], newOriginals);
             detail::insert_unique(pieceToOriginals[half2], newOriginals);
-            // set adjacent triangles again
-            for(IndexSizeType i = 0; i < outerTrisL.size(); ++i)
-                setAdjacentTriangle(polyL[i + 1], outerTrisL[i]);
-            for(IndexSizeType i = 0; i < outerTrisR.size(); ++i)
-                setAdjacentTriangle(polyR[i + 1], outerTrisR[i]);
             // add a new point at the intersection of two constraint edges
             const V2d<T> newV = detail::intersectionPosition(
                 vertices[iA], vertices[iB], vertices[iVL], vertices[iVR]);
@@ -594,36 +564,36 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
         if(loc == PtLineLocation::Left)
         {
             // hanging edge check
-            const IndexSizeType prev = previousEdgeEncounter(iVopo, polyL);
-            if(prev != invalidIndex)
-            {
-                outerTrisL[prev] = noNeighbor; // previous entry of hanging edge
+            // previous entry of the vertex in poly if edge is hanging
+            const IndexSizeType prev = polyL.size() - 2;
+            if(iVopo == polyL[prev])
+            { // hanging edge
+                outerTrisL[prev] = noNeighbor;
                 outerTrisL.push_back(noNeighbor);
             }
             else
-            {
+            { // normal case
                 outerTrisL.push_back(edgeNeighbor(tOpo, polyL.back(), iVopo));
             }
             polyL.push_back(iVopo);
-            removeAdjacentTriangle(iVopo);
             iV = iVL;
             iVL = iVopo;
         }
         else if(loc == PtLineLocation::Right)
         {
             // hanging edge check
-            const IndexSizeType prev = previousEdgeEncounter(iVopo, polyR);
-            if(prev != invalidIndex)
-            {
-                outerTrisR[prev] = noNeighbor; // previous entry of hanging edge
+            // previous entry of the vertex in poly if edge is hanging
+            const IndexSizeType prev = polyR.size() - 2;
+            if(iVopo == polyR[prev])
+            { // hanging edge
+                outerTrisR[prev] = noNeighbor;
                 outerTrisR.push_back(noNeighbor);
             }
             else
-            {
+            { // normal case
                 outerTrisR.push_back(edgeNeighbor(tOpo, polyR.back(), iVopo));
             }
             polyR.push_back(iVopo);
-            removeAdjacentTriangle(iVopo);
             iV = iVR;
             iVR = iVopo;
         }
