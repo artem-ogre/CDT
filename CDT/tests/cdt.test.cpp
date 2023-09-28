@@ -11,6 +11,8 @@
 #include <chrono>
 #include <fstream>
 #include <iostream>
+#include <map>
+#include <numeric>
 #include <sstream>
 
 using namespace CDT;
@@ -761,6 +763,35 @@ TEST_CASE("Don't flip constraint edge when resolving intersection", "")
     const auto inputFile =
         std::string("dont_flip_constraint_when_resolving_intersection.txt");
     const auto order = VertexInsertionOrder::AsProvided;
+    const auto intersectingEdgesStrategy = IntersectingConstraintEdges::Resolve;
+    const auto minDistToConstraintEdge = 1e-6;
+    const auto outFile = "expected/" +
+                         inputFile.substr(0, inputFile.size() - 4) + "__f64_" +
+                         to_string(order) + "_" +
+                         to_string(intersectingEdgesStrategy) + "_all.txt";
+
+    const auto [vv, ee] = readInputFromFile<double>("inputs/" + inputFile);
+    auto cdt = Triangulation<double>(
+        order, intersectingEdgesStrategy, minDistToConstraintEdge);
+    cdt.insertVertices(vv);
+    cdt.insertEdges(ee);
+    REQUIRE(CDT::verifyTopology(cdt));
+
+    if(updateFiles)
+        topologyToFile(outFile, cdt);
+    else
+    {
+        REQUIRE(topologyString(cdt) == topologyString(outFile));
+    }
+}
+
+TEST_CASE(
+    "Regression: resolving edges intersection with a hanging edge in a "
+    "pseudo-polygon",
+    "")
+{
+    const auto inputFile = std::string("HangingIntersection.txt");
+    const auto order = VertexInsertionOrder::Auto;
     const auto intersectingEdgesStrategy = IntersectingConstraintEdges::Resolve;
     const auto minDistToConstraintEdge = 1e-6;
     const auto outFile = "expected/" +
