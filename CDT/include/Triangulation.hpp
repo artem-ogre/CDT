@@ -1278,7 +1278,7 @@ bool Triangulation<T, TNearPointLocator>::isEdgeEncroachedBy(
 }
 
 template <typename T, typename TNearPointLocator>
-EdgeQueue Triangulation<T, TNearPointLocator>::allEncroachedEdges() const
+EdgeQueue Triangulation<T, TNearPointLocator>::findEncroachedFixedEdges() const
 {
     // Search in all fixed edges to find encroached edges
     // Returns queue of encroached edges
@@ -1322,7 +1322,6 @@ TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
     const RefinementCriterion::Enum refinementCriterion,
     const T badTriangleThreshold)
 {
-    IndexSizeType numOfSplits = 0;
     std::vector<TriInd> badTriangles;
 
     while(!encroachedEdges.empty() && remainingVertexBudget > 0)
@@ -1371,10 +1370,6 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
     const Edge edge,
     const VertInd steinerVerticesOffset)
 {
-    TriInd iT, iTopo;
-    std::tie(iT, iTopo) = edgeTriangles(edge.v1(), edge.v2());
-    assert(iT != invalidIndex && iTopo != invalidIndex);
-    const VertInd iMid = static_cast<VertInd>(vertices.size());
     const V2d<T>& start = vertices[edge.v1()];
     const V2d<T>& end = vertices[edge.v2()];
     T split = T(0.5);
@@ -1382,7 +1377,7 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
     if(edge.v1() >= steinerVerticesOffset || edge.v2() >= steinerVerticesOffset)
     {
         // In Ruppert's paper, he used D(0.01) factor to divide edge length, but
-        // that introduces FP rounding erros, so it's avoided.
+        // that introduces FP rounding errors, so it's avoided.
         const T len = distance(start, end);
         const T d = len / T(2);
         // Find the splitting distance
@@ -1400,38 +1395,19 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
         if(edge.v1() >= steinerVerticesOffset)
             split = T(1) - split;
     }
+
     const V2d<T> mid = V2d<T>::make(
         detail::lerp(start.x, end.x, split),
         detail::lerp(start.y, end.y, split));
+    TriInd iT, iTopo;
+    std::tie(iT, iTopo) = edgeTriangles(edge.v1(), edge.v2());
+    assert(iT != invalidIndex && iTopo != invalidIndex);
 
-    // split constraint edge that already exists in triangulation
+    const VertInd iMid = addSplitEdgeVertex(mid, iT, iTopo);
     if(fixedEdges.find(edge) != fixedEdges.end())
     {
-        const Edge half1(edge.v1(), iMid);
-        const Edge half2(iMid, edge.v2());
-        const BoundaryOverlapCount overlaps = overlapCount[edge];
-        // remove the edge that will be split
-        fixedEdges.erase(edge);
-        overlapCount.erase(edge);
-        // add split edge's halves
-        fixEdge(half1, overlaps);
-        fixEdge(half2, overlaps);
-        // maintain piece-to-original mapping
-        EdgeVec newOriginals(1, edge);
-        const unordered_map<Edge, EdgeVec>::const_iterator originalsIt =
-            pieceToOriginals.find(edge);
-        if(originalsIt != pieceToOriginals.end())
-        { // edge being split was split before: pass-through originals
-            newOriginals = originalsIt->second;
-            pieceToOriginals.erase(originalsIt);
-        }
-        detail::insert_unique(pieceToOriginals[half1], newOriginals);
-        detail::insert_unique(pieceToOriginals[half2], newOriginals);
+        splitFixedEdge(edge, iMid);
     }
-    addNewVertex(mid, noNeighbor);
-    std::stack<TriInd> triStack = insertVertexOnEdge(iMid, iT, iTopo);
-    tryAddVertexToLocator(iMid);
-    ensureDelaunayByEdgeFlips(mid, iMid, triStack);
     return iMid;
 }
 
@@ -2242,10 +2218,34 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
 
     VertInd remainingVertexBudget = maxVerticesToInsert;
     const VertInd steinerVerticesOffset = vertices.size();
-    resolveEncroachedEdges(
-        allEncroachedEdges(), remainingVertexBudget, steinerVerticesOffset);
 
-    std::queue<TriInd> badTriangles;
+    // split all the encroached constrained (fixed) edges
+    EdgeQueue encroachedEdges = findEncroachedFixedEdges();
+    for(; !encroachedEdges.empty() && remainingVertexBudget > 0;
+        --remainingVertexBudget)
+    {
+        const Edge edge = encroachedEdges.front();
+        encroachedEdges.pop();
+        const VertInd iSplitVert =
+            splitEncroachedEdge(edge, steinerVerticesOffset);
+        // if resulting halves are encroached, add them to the queue
+        const Edge half1(edge.v1(), iSplitVert);
+        if(isEdgeEncroached(half1))
+        {
+            encroachedEdges.push(half1);
+        }
+        const Edge half2(iSplitVert, edge.v2());
+        if(isEdgeEncroached(half2))
+        {
+            encroachedEdges.push(half2);
+        }
+    }
+
+    if(!remainingVertexBudget)
+        return;
+
+    // refine triangulation by inserting bad-quality triangles' circumcenters
+    TriIndQueue badTriangles;
     for(TriInd iT(0), n = triangles.size(); iT < n; ++iT)
     {
         const Triangle& t = triangles[iT];
@@ -2256,61 +2256,63 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
         }
     }
 
-    while(!badTriangles.empty())
+    while(!badTriangles.empty() && remainingVertexBudget > 0)
     {
-        TriInd iT = badTriangles.front();
-        const Triangle& t = triangles[iT];
+        const TriInd iT = badTriangles.front();
         badTriangles.pop();
-        if(!isRefinementNeeded(t, refinementCriterion, refinementThreshold) ||
-           remainingVertexBudget == 0)
+        const Triangle& badT = triangles[iT];
+        if(!isRefinementNeeded(badT, refinementCriterion, refinementThreshold))
         {
             continue;
         }
-        const V2d<T> vert = circumcenter(
-            vertices[t.vertices[0]],
-            vertices[t.vertices[1]],
-            vertices[t.vertices[2]]);
-        if(locatePointTriangle(vert, vertices[0], vertices[1], vertices[2]) ==
+        const V2d<T> triCircumenter = circumcenter(
+            vertices[badT.vertices[0]],
+            vertices[badT.vertices[1]],
+            vertices[badT.vertices[2]]);
+        if(locatePointTriangle(
+               triCircumenter, vertices[0], vertices[1], vertices[2]) ==
            PtTriLocation::Outside)
         {
             continue;
         }
 
         const TriIndVec badTris = resolveEncroachedEdges(
-            edgesEncroachedBy(vert),
+            edgesEncroachedBy(triCircumenter),
             remainingVertexBudget,
             steinerVerticesOffset,
-            &vert,
+            &triCircumenter,
             refinementCriterion,
             refinementThreshold);
-        for(IndexSizeType i(0); i < TriInd(badTris.size()); ++i)
+        if(!remainingVertexBudget)
+            break;
+        if(!badTris.empty())
         {
-            badTriangles.push(badTris[i]);
+            typedef TriIndVec::const_iterator It;
+            for(It it = badTris.begin(); it != badTris.end(); ++it)
+            {
+                badTriangles.push(*it);
+            }
+            badTriangles.push(iT);
+            continue;
         }
 
-        if(badTris.empty() && remainingVertexBudget > 0)
+        --remainingVertexBudget;
+        const VertInd iVert = static_cast<VertInd>(vertices.size());
+        addNewVertex(triCircumenter, noNeighbor);
+        insertVertex(iVert);
+
+        TriInd start = m_vertTris[iVert];
+        TriInd currTri = start;
+        do
         {
-            --remainingVertexBudget;
-            const VertInd iVert = static_cast<VertInd>(vertices.size());
-            addNewVertex(vert, noNeighbor);
-            insertVertex(iVert);
-            TriInd start = m_vertTris[iVert];
-            TriInd currTri = start;
-            do
+            const Triangle& t = triangles[currTri];
+            if(isRefinementNeeded(t, refinementCriterion, refinementThreshold))
             {
-                const Triangle& t = triangles[currTri];
-                if(isRefinementNeeded(
-                       t, refinementCriterion, refinementThreshold))
-                {
-                    badTriangles.push(currTri);
-                }
-                currTri = t.next(iVert).first;
-            } while(currTri != start);
-        }
-        else
-        {
-            badTriangles.push(iT);
-        }
+                badTriangles.push(currTri);
+            }
+            currTri = t.next(iVert).first;
+        } while(currTri != start);
     }
 }
+
 } // namespace CDT

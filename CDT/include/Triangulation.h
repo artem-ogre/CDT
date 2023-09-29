@@ -518,7 +518,7 @@ private:
     bool isEdgeEncroached(const Edge& edge) const;
     bool isEdgeEncroachedBy(const Edge& edge, const V2d<T>& v) const;
     /// Find all fixed edges encroached by its opposed vertices
-    EdgeQueue allEncroachedEdges() const;
+    EdgeQueue findEncroachedFixedEdges() const;
     /// Find all fixed edges encroached by a given vertex
     EdgeQueue edgesEncroachedBy(const V2d<T>& v) const;
     /// Recursively split encroached edges
