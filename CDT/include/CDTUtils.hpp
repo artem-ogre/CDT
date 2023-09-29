@@ -326,11 +326,6 @@ T smallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c)
     return std::asin(angleSine);
 }
 
-bool touchesSuperTriangle(const Triangle& t)
-{
-    return t.vertices[0] < 3 || t.vertices[1] < 3 || t.vertices[2] < 3;
-}
-
 } // namespace CDT
 
 #endif // header-guard
