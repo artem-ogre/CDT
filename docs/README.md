@@ -258,6 +258,7 @@ For work-in-progress on Python bindings check-out [PythonCDT](https://github.com
 - [Bärbel Holm](https://github.com/eisbaerli): removing duplicates and re-mapping edges
 - [Andre Fecteau](https://github.com/AndreFecteau): benchmarking, profiling, and providing a kd-tree implementation a derivative of which is included in CDT
 - [msokalski](https://github.com/msokalski): algorithm discussions and suggestions, bug finding
+- [alkonior](https://github.com/alkonior): finding, reproducing, and reporting a bug ([issue #142](https://github.com/artem-ogre/CDT/issues/142))
 
 <a name="contributing"></a>
 
