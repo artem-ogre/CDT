@@ -18,11 +18,10 @@ jobs:
             name: "Ubuntu", 
             os: ubuntu-latest
           }
-        # Disable macOS untill https://github.com/conan-io/conan/issues/14835 is fixed in Conan 2.0.13
-        # - {
-        #     name: "macOS", 
-        #     os: macos-latest
-        #   }
+        - {
+            name: "macOS",
+            os: macos-latest
+          }
 
     steps:
     - uses: actions/checkout@v4
