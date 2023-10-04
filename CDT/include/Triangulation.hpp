@@ -136,8 +136,7 @@ void Triangulation<T, TNearPointLocator>::eraseSuperTriangle()
     TriIndUSet toErase;
     for(TriInd iT(0); iT < TriInd(triangles.size()); ++iT)
     {
-        Triangle& t = triangles[iT];
-        if(t.vertices[0] < 3 || t.vertices[1] < 3 || t.vertices[2] < 3)
+        if(touchesSuperTriangle(triangles[iT]))
             toErase.insert(iT);
     }
     finalizeTriangulation(toErase);
@@ -402,6 +401,67 @@ void insert_unique(
 } // namespace detail
 
 template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::splitFixedEdge(
+    const Edge& edge,
+    const VertInd iSplitVert)
+{
+    // split constraint (fixed) edge that already exists in triangulation
+    const Edge half1(edge.v1(), iSplitVert);
+    const Edge half2(iSplitVert, edge.v2());
+    // remove the edge that and add its halves
+    fixedEdges.erase(edge);
+    fixEdge(half1);
+    fixEdge(half2);
+    // maintain overlaps
+    typedef unordered_map<Edge, BoundaryOverlapCount>::const_iterator It;
+    const It overlapIt = overlapCount.find(edge);
+    if(overlapIt != overlapCount.end())
+    {
+        overlapCount[half1] += overlapIt->second;
+        overlapCount[half2] += overlapIt->second;
+        overlapCount.erase(overlapIt);
+    }
+    // maintain piece-to-original mapping
+    EdgeVec newOriginals(1, edge);
+    const unordered_map<Edge, EdgeVec>::const_iterator originalsIt =
+        pieceToOriginals.find(edge);
+    if(originalsIt != pieceToOriginals.end())
+    { // edge being split was split before: pass-through originals
+        newOriginals = originalsIt->second;
+        pieceToOriginals.erase(originalsIt);
+    }
+    detail::insert_unique(pieceToOriginals[half1], newOriginals);
+    detail::insert_unique(pieceToOriginals[half2], newOriginals);
+}
+
+template <typename T, typename TNearPointLocator>
+VertInd Triangulation<T, TNearPointLocator>::addSplitEdgeVertex(
+    const V2d<T>& splitVert,
+    const TriInd iT,
+    const TriInd iTopo)
+{
+    // add a new point on the edge that splits an edge in two
+    const VertInd iSplitVert = static_cast<VertInd>(vertices.size());
+    addNewVertex(splitVert, noNeighbor);
+    std::stack<TriInd> triStack = insertVertexOnEdge(iSplitVert, iT, iTopo);
+    tryAddVertexToLocator(iSplitVert);
+    ensureDelaunayByEdgeFlips(splitVert, iSplitVert, triStack);
+    return iSplitVert;
+}
+
+template <typename T, typename TNearPointLocator>
+VertInd Triangulation<T, TNearPointLocator>::splitFixedEdgeAt(
+    const Edge& edge,
+    const V2d<T>& splitVert,
+    const TriInd iT,
+    const TriInd iTopo)
+{
+    const VertInd iSplitVert = addSplitEdgeVertex(splitVert, iT, iTopo);
+    splitFixedEdge(edge, iSplitVert);
+    return iSplitVert;
+}
+
+template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::fixEdge(
     const Edge& edge,
     const Edge& originalEdge)
@@ -409,15 +469,6 @@ void Triangulation<T, TNearPointLocator>::fixEdge(
     fixEdge(edge);
     if(edge != originalEdge)
         detail::insert_unique(pieceToOriginals[edge], originalEdge);
-}
-
-template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::fixEdge(
-    const Edge& edge,
-    const BoundaryOverlapCount overlaps)
-{
-    fixedEdges.insert(edge);
-    overlapCount[edge] = overlaps; // override overlap counter
 }
 
 namespace detail
@@ -508,6 +559,8 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
     polyR.push_back(iVR);
     outerTrisR.push_back(edgeNeighbor(t, iA, iVR));
     VertInd iV = iA;
+    IndexSizeType nChainedHangingEdgesL = 0;
+    IndexSizeType nChainedHangingEdgesR = 0;
 
     while(!t.containsVertex(iB))
     {
@@ -520,38 +573,11 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
                IntersectingConstraintEdges::Resolve &&
            fixedEdges.count(Edge(iVL, iVR)))
         {
-            const VertInd iNewVert = static_cast<VertInd>(vertices.size());
-
-            // split constraint edge that already exists in triangulation
-            const Edge splitEdge(iVL, iVR);
-            const Edge half1(iVL, iNewVert);
-            const Edge half2(iNewVert, iVR);
-            const BoundaryOverlapCount overlaps = overlapCount[splitEdge];
-            // remove the edge that will be split
-            fixedEdges.erase(splitEdge);
-            overlapCount.erase(splitEdge);
-            // add split edge's halves
-            fixEdge(half1, overlaps);
-            fixEdge(half2, overlaps);
-            // maintain piece-to-original mapping
-            EdgeVec newOriginals(1, splitEdge);
-            const unordered_map<Edge, EdgeVec>::const_iterator originalsIt =
-                pieceToOriginals.find(splitEdge);
-            if(originalsIt != pieceToOriginals.end())
-            { // edge being split was split before: pass-through originals
-                newOriginals = originalsIt->second;
-                pieceToOriginals.erase(originalsIt);
-            }
-            detail::insert_unique(pieceToOriginals[half1], newOriginals);
-            detail::insert_unique(pieceToOriginals[half2], newOriginals);
-            // add a new point at the intersection of two constraint edges
+            // split edge at the intersection of two constraint edges
             const V2d<T> newV = detail::intersectionPosition(
                 vertices[iA], vertices[iB], vertices[iVL], vertices[iVR]);
-            addNewVertex(newV, noNeighbor);
-            std::stack<TriInd> triStack =
-                insertVertexOnEdge(iNewVert, iT, iTopo);
-            tryAddVertexToLocator(iNewVert);
-            ensureDelaunayByEdgeFlips(newV, iNewVert, triStack);
+            const VertInd iNewVert =
+                splitFixedEdgeAt(Edge(iVL, iVR), newV, iT, iTopo);
             // TODO: is it's possible to re-use pseudo-polygons
             //  for inserting [iA, iNewVert] edge half?
             remaining.push_back(Edge(iA, iNewVert));
@@ -565,17 +591,21 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
         {
             // hanging edge check
             // previous entry of the vertex in poly if edge is hanging
-            const IndexSizeType prev = polyL.size() - 2;
+            const IndexSizeType prev =
+                (polyL.size() - 2) - 2 * nChainedHangingEdgesL;
             if(iVopo == polyL[prev])
             { // hanging edge
+                ++nChainedHangingEdgesL;
                 outerTrisL[prev] = noNeighbor;
                 outerTrisL.push_back(noNeighbor);
             }
             else
             { // normal case
+                nChainedHangingEdgesL = 0;
                 outerTrisL.push_back(edgeNeighbor(tOpo, polyL.back(), iVopo));
             }
             polyL.push_back(iVopo);
+            removeAdjacentTriangle(iVopo);
             iV = iVL;
             iVL = iVopo;
         }
@@ -583,17 +613,21 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
         {
             // hanging edge check
             // previous entry of the vertex in poly if edge is hanging
-            const IndexSizeType prev = polyR.size() - 2;
+            const IndexSizeType prev =
+                (polyR.size() - 2) - 2 * nChainedHangingEdgesR;
             if(iVopo == polyR[prev])
             { // hanging edge
+                ++nChainedHangingEdgesR;
                 outerTrisR[prev] = noNeighbor;
                 outerTrisR.push_back(noNeighbor);
             }
             else
             { // normal case
+                nChainedHangingEdgesR = 0;
                 outerTrisR.push_back(edgeNeighbor(tOpo, polyR.back(), iVopo));
             }
             polyR.push_back(iVopo);
+            removeAdjacentTriangle(iVopo);
             iV = iVR;
             iVR = iVopo;
         }
@@ -620,13 +654,14 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
     typedef std::vector<TriInd>::const_iterator TriIndCit;
     for(TriIndCit it = intersected.begin(); it != intersected.end(); ++it)
         makeDummy(*it);
-    // Triangulate pseudo-polygons on both sides
-    std::reverse(polyR.begin(), polyR.end());
-    std::reverse(outerTrisR.begin(), outerTrisR.end());
-    const TriInd iTL = addTriangle();
-    const TriInd iTR = addTriangle();
-    triangulatePseudopolygon(polyL, outerTrisL, iTL, iTR, tppIterations);
-    triangulatePseudopolygon(polyR, outerTrisR, iTR, iTL, tppIterations);
+    { // Triangulate pseudo-polygons on both sides
+        std::reverse(polyR.begin(), polyR.end());
+        std::reverse(outerTrisR.begin(), outerTrisR.end());
+        const TriInd iTL = addTriangle();
+        const TriInd iTR = addTriangle();
+        triangulatePseudopolygon(polyL, outerTrisL, iTL, iTR, tppIterations);
+        triangulatePseudopolygon(polyR, outerTrisR, iTR, iTL, tppIterations);
+    }
 
     if(iB != edge.v2()) // encountered point on the edge
     {
@@ -674,7 +709,9 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
 
     if(hasEdge(iA, iB))
     {
-        overlaps > 0 ? fixEdge(edge, overlaps) : fixEdge(edge);
+        fixEdge(edge);
+        if(overlaps > 0)
+            overlapCount[edge] = overlaps;
         // avoid marking edge as a part of itself
         if(!originals.empty() && edge != originals.front())
         {
@@ -696,7 +733,9 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
     if(iT == noNeighbor)
     {
         const Edge edgePart(iA, iVleft);
-        overlaps > 0 ? fixEdge(edgePart, overlaps) : fixEdge(edgePart);
+        fixEdge(edgePart);
+        if(overlaps > 0)
+            overlapCount[edgePart] = overlaps;
         detail::insert_unique(pieceToOriginals[edgePart], originals);
 #ifdef CDT_CXX11_IS_SUPPORTED
         remaining.emplace_back(Edge(iVleft, iB), originals, overlaps);
@@ -721,56 +760,14 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
                IntersectingConstraintEdges::Resolve &&
            fixedEdges.count(Edge(iVleft, iVright)))
         {
-            const VertInd iNewVert = static_cast<VertInd>(vertices.size());
-
-            // split constraint edge that already exists in triangulation
-            const Edge splitEdge(iVleft, iVright);
-            const Edge half1(iVleft, iNewVert);
-            const Edge half2(iNewVert, iVright);
-
-            const unordered_map<Edge, BoundaryOverlapCount>::const_iterator
-                splitEdgeOverlapsIt = overlapCount.find(splitEdge);
-            const BoundaryOverlapCount splitEdgeOverlaps =
-                splitEdgeOverlapsIt != overlapCount.end()
-                    ? splitEdgeOverlapsIt->second
-                    : 0;
-            // remove the edge that will be split and add split edge's
-            // halves
-            fixedEdges.erase(splitEdge);
-            if(splitEdgeOverlaps > 0)
-            {
-                overlapCount.erase(splitEdgeOverlapsIt);
-                fixEdge(half1, splitEdgeOverlaps);
-                fixEdge(half2, splitEdgeOverlaps);
-            }
-            else
-            {
-                fixEdge(half1);
-                fixEdge(half2);
-            }
-            // maintain piece-to-original mapping
-            EdgeVec newOriginals(1, splitEdge);
-            const unordered_map<Edge, EdgeVec>::const_iterator originalsIt =
-                pieceToOriginals.find(splitEdge);
-            if(originalsIt != pieceToOriginals.end())
-            { // edge being split was split before: pass-through originals
-                newOriginals = originalsIt->second;
-                pieceToOriginals.erase(originalsIt);
-            }
-            detail::insert_unique(pieceToOriginals[half1], newOriginals);
-            detail::insert_unique(pieceToOriginals[half2], newOriginals);
-
-            // add a new point at the intersection of two constraint edges
+            // split edge at the intersection of two constraint edges
             const V2d<T> newV = detail::intersectionPosition(
                 vertices[iA],
                 vertices[iB],
                 vertices[iVleft],
                 vertices[iVright]);
-            addNewVertex(newV, noNeighbor);
-            std::stack<TriInd> triStack =
-                insertVertexOnEdge(iNewVert, iT, iTopo);
-            tryAddVertexToLocator(iNewVert);
-            ensureDelaunayByEdgeFlips(newV, iNewVert, triStack);
+            const VertInd iNewVert =
+                splitFixedEdgeAt(Edge(iVleft, iVright), newV, iT, iTopo);
 #ifdef CDT_CXX11_IS_SUPPORTED
             remaining.emplace_back(Edge(iNewVert, iB), originals, overlaps);
             remaining.emplace_back(Edge(iA, iNewVert), originals, overlaps);
@@ -1633,7 +1630,7 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudopolygonIteration(
     triangles[iParent].neighbors[iInParent] = iT;
     t.neighbors[0] = iParent;
     t.vertices = detail::arr3(a, b, c);
-    // needs to be done at the end not to affect finding edge triangles
+    setAdjacentTriangle(a, iT);
     setAdjacentTriangle(c, iT);
 }
 
@@ -1954,23 +1951,34 @@ void Triangulation<T, TNearPointLocator>::insertVertices_KDTreeBFS(
 }
 
 template <typename T, typename TNearPointLocator>
-bool Triangulation<T, TNearPointLocator>::hasEdge(
+std::pair<TriInd, TriInd> Triangulation<T, TNearPointLocator>::edgeTriangles(
     const VertInd a,
     const VertInd b) const
 {
     const TriInd triStart = m_vertTris[a];
     assert(triStart != noNeighbor);
-    TriInd iT = triStart;
+    TriInd iT = triStart, iTNext = triStart;
     VertInd iV = noVertex;
     do
     {
         const Triangle& t = triangles[iT];
-        tie(iT, iV) = t.next(a);
-        assert(iT != noNeighbor);
+        tie(iTNext, iV) = t.next(a);
+        assert(iTNext != noNeighbor);
         if(iV == b)
-            return true;
+        {
+            return std::make_pair(iT, iTNext);
+        }
+        iT = iTNext;
     } while(iT != triStart);
-    return false;
+    return std::make_pair(invalidIndex, invalidIndex);
+}
+
+template <typename T, typename TNearPointLocator>
+bool Triangulation<T, TNearPointLocator>::hasEdge(
+    const VertInd a,
+    const VertInd b) const
+{
+    return edgeTriangles(a, b).first != invalidIndex;
 }
 
 template <typename T, typename TNearPointLocator>

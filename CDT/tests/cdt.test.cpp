@@ -498,29 +498,33 @@ TEMPLATE_LIST_TEST_CASE(
     const auto inputFile = GENERATE(
         as<std::string>{},
         "Capital A.txt",
-        "Hanging.txt",
-        "Hanging2.txt",
-        "Letter u.txt",
-        "OnEdge.txt",
-        "ProblematicCase1.txt",
         "cdt.txt",
         "corner cases.txt",
         "ditch.txt",
+        "double-hanging.txt",
         "gh_issue.txt",
         "guitar no box.txt",
+        "Hanging.txt",
+        "Hanging2.txt",
         "island.txt",
+        "issue-142-double-hanging-edge.txt",
         "issue-42-full-boundary-overlap.txt",
         "issue-42-hole-overlaps-bondary.txt",
         "issue-42-multiple-boundary-overlaps-conform-to-edge.txt",
         "issue-42-multiple-boundary-overlaps.txt",
         "issue-65-wrong-edges.txt",
         "kidney.txt",
+        "Letter u.txt",
+        "OnEdge.txt",
         "overlapping constraints.txt",
         "overlapping constraints2.txt",
         "points_on_constraint_edge.txt",
+        "ProblematicCase1.txt",
         "regression_issue_38_wrong_hull_small.txt",
         "square with crack.txt",
         "test_data_small.txt",
+        "triple-hanging-flipped.txt",
+        "triple-hanging.txt",
         "unit square.txt");
 
     const auto typeSpecific = std::unordered_set<std::string>{
@@ -609,15 +613,19 @@ TEMPLATE_LIST_TEST_CASE(
     const auto inputFile = GENERATE(
         as<std::string>{},
         "Capital A.txt",
-        "Hanging2.txt",
-        "ProblematicCase1.txt",
         "cdt.txt",
         "corner cases.txt",
         "ditch.txt",
+        "double-hanging.txt",
         "gh_issue.txt",
         "guitar no box.txt",
+        "Hanging2.txt",
+        "issue-142-double-hanging-edge.txt",
         "issue-42-multiple-boundary-overlaps.txt",
         "points_on_constraint_edge.txt",
+        "ProblematicCase1.txt",
+        "triple-hanging-flipped.txt",
+        "triple-hanging.txt",
         "unit square.txt");
 
     const auto typeSpecific = std::unordered_set<std::string>{
@@ -789,6 +797,32 @@ TEST_CASE(
     "Regression: resolving edges intersection with a hanging edge in a "
     "pseudo-polygon",
     "")
+{
+    const auto inputFile = std::string("HangingIntersection.txt");
+    const auto order = VertexInsertionOrder::Auto;
+    const auto intersectingEdgesStrategy = IntersectingConstraintEdges::Resolve;
+    const auto minDistToConstraintEdge = 1e-6;
+    const auto outFile = "expected/" +
+                         inputFile.substr(0, inputFile.size() - 4) + "__f64_" +
+                         to_string(order) + "_" +
+                         to_string(intersectingEdgesStrategy) + "_all.txt";
+
+    const auto [vv, ee] = readInputFromFile<double>("inputs/" + inputFile);
+    auto cdt = Triangulation<double>(
+        order, intersectingEdgesStrategy, minDistToConstraintEdge);
+    cdt.insertVertices(vv);
+    cdt.insertEdges(ee);
+    REQUIRE(CDT::verifyTopology(cdt));
+
+    if(updateFiles)
+        topologyToFile(outFile, cdt);
+    else
+    {
+        REQUIRE(topologyString(cdt) == topologyString(outFile));
+    }
+}
+
+TEST_CASE("Regression: multiple hanging edges", "")
 {
     const auto inputFile = std::string("HangingIntersection.txt");
     const auto order = VertexInsertionOrder::Auto;

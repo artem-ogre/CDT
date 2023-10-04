@@ -426,12 +426,12 @@ private:
     void wheelEvent(QWheelEvent* event)
     {
         const double newScale =
-            m_scale * std::max(0.3, (1. + event->delta() * 8e-4));
+            m_scale * std::max(0.3, (1. + event->angleDelta().y() * 8e-4));
         if(m_scale == newScale)
         {
             return;
         }
-        const QPointF cursor = event->posF();
+        const QPointF cursor = event->position();
         const QPointF scenePt = screenToScene(cursor);
         const QPointF screenCenter = QPointF(width(), height()) / 2.0;
         m_translation = cursor - newScale * QPointF(scenePt.x(), -scenePt.y()) -

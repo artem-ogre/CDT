@@ -509,9 +509,40 @@ private:
      */
     void finalizeTriangulation(const TriIndUSet& removedTriangles);
     TriIndUSet growToBoundary(std::stack<TriInd> seeds) const;
-    void fixEdge(const Edge& edge, BoundaryOverlapCount overlaps);
     void fixEdge(const Edge& edge);
     void fixEdge(const Edge& edge, const Edge& originalEdge);
+    /**
+     *  Split existing constraint (fixed) edge
+     * @param edge fixed edge to split
+     * @param iSplitVert index of the vertex to be used as a split vertex
+     */
+    void splitFixedEdge(const Edge& edge, const VertInd iSplitVert);
+    /**
+     * Add a vertex that splits an edge into the triangulation
+     * @param splitVert position of split vertex
+     * @param iT index of a first triangle adjacent to the split edge
+     * @param iTopo index of a second triangle adjacent to the split edge
+     * (opposed to the first triangle)
+     * @return index of a newly added split vertex
+     */
+    VertInd addSplitEdgeVertex(
+        const V2d<T>& splitVert,
+        const TriInd iT,
+        const TriInd iTopo);
+    /**
+     * Split fixed edge and add a split vertex into the triangulation
+     * @param edge fixed edge to split
+     * @param splitVert position of split vertex
+     * @param iT index of a first triangle adjacent to the split edge
+     * @param iTopo index of a second triangle adjacent to the split edge
+     * (opposed to the first triangle)
+     * @return index of a newly added split vertex
+     */
+    VertInd splitFixedEdgeAt(
+        const Edge& edge,
+        const V2d<T>& splitVert,
+        const TriInd iT,
+        const TriInd iTopo);
     /**
      * Flag triangle as dummy
      * @note Advanced method for manually modifying the triangulation from
@@ -551,6 +582,7 @@ private:
         VertInd superGeomVertCount,
         V2d<T> boxMin,
         V2d<T> boxMax);
+    std::pair<TriInd, TriInd> edgeTriangles(VertInd a, VertInd b) const;
     bool hasEdge(VertInd a, VertInd b) const;
     void setAdjacentTriangle(const VertInd v, const TriInd t);
     void pivotVertexTriangleCW(VertInd v);
