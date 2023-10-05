@@ -300,6 +300,7 @@ T distanceSquared(const V2d<T>& a, const V2d<T>& b)
     return distanceSquared(a.x, a.y, b.x, b.y);
 }
 
+CDT_INLINE_IF_HEADER_ONLY
 bool touchesSuperTriangle(const Triangle& t)
 {
     return t.vertices[0] < 3 || t.vertices[1] < 3 || t.vertices[2] < 3;
