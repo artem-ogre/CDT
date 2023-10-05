@@ -426,7 +426,7 @@ template <typename T>
 CDT_EXPORT T distanceSquared(const V2d<T>& a, const V2d<T>& b);
 
 /// Check if any of triangle's vertices belongs to a super-triangle
-CDT_EXPORT bool touchesSuperTriangle(const Triangle& t);
+CDT_INLINE_IF_HEADER_ONLY bool touchesSuperTriangle(const Triangle& t);
 
 } // namespace CDT
 
