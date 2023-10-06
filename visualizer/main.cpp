@@ -30,6 +30,8 @@ typedef CDT::Triangle Triangle;
 typedef CDT::Box2d<CoordType> Box2d;
 typedef CDT::Edge Edge;
 
+const int defaultRefinementLimit = 999999;
+
 class CDTWidget : public QWidget
 {
     Q_OBJECT
@@ -312,6 +314,14 @@ private:
 
     void paint_(QPaintDevice* pd)
     {
+        const QColor highlightColor(100, 100, 0);
+        const QColor outerTrisColor(220, 220, 220);
+        const QColor trianglesColor(150, 150, 150);
+        const QColor fixedEdgeColor(50, 50, 50);
+        const QColor pointColor(3, 102, 214);
+        const QColor pointLabelColor(150, 0, 150);
+        const QColor triangleLabelColor(0, 150, 150);
+
         QPainter p(pd);
         p.setRenderHints(QPainter::Antialiasing);
 
@@ -325,9 +335,11 @@ private:
         // Draw triangles
         pen.setWidthF(2.0);
         // outer triangles
-        if(!m_isHideSuperTri && !m_isRemoveOuter && !m_isRemoveOuterAndHoles)
+        const bool hasSuperTriangle =
+            !m_isHideSuperTri && !m_isRemoveOuter && !m_isRemoveOuterAndHoles;
+        if(hasSuperTriangle)
         {
-            pen.setColor(QColor(220, 220, 220));
+            pen.setColor(outerTrisColor);
             p.setPen(pen);
             typedef CDT::TriangleVec::const_iterator TCit;
             for(TCit t = m_cdt.triangles.begin(); t != m_cdt.triangles.end();
@@ -349,7 +361,7 @@ private:
         }
 
         // actual triangles
-        pen.setColor(QColor(150, 150, 150));
+        pen.setColor(trianglesColor);
         p.setPen(pen);
         typedef CDT::TriangleVec::const_iterator TCit;
         int iT = 0;
@@ -377,6 +389,8 @@ private:
         }
         if(m_isDisplayIndices)
         {
+            pen.setColor(triangleLabelColor);
+            p.setPen(pen);
             iT = 0;
             for(TCit t = m_cdt.triangles.begin(); t != m_cdt.triangles.end();
                 ++t, ++iT)
@@ -393,7 +407,7 @@ private:
             }
         }
         // constraint edges
-        pen.setColor(QColor(50, 50, 50));
+        pen.setColor(fixedEdgeColor);
         p.setPen(pen);
         typedef CDT::EdgeUSet::const_iterator ECit;
         for(ECit e = m_cdt.fixedEdges.begin(); e != m_cdt.fixedEdges.end(); ++e)
@@ -402,11 +416,21 @@ private:
             const V2d& v2 = m_cdt.vertices[e->v2()];
             p.drawLine(sceneToScreen(v1), sceneToScreen(v2));
         }
+        // last added edge
+        if(m_edgeLimit && m_edgeLimit <= m_edges.size())
+        {
+            pen.setColor(highlightColor);
+            pen.setWidthF(4.0);
+            p.setPen(pen);
+            p.drawLine(
+                sceneToScreen(m_points[m_edges[m_edgeLimit - 1].v1()]),
+                sceneToScreen(m_points[m_edges[m_edgeLimit - 1].v2()]));
+        }
 
         if(m_isHidePoints)
             return;
         // draw points
-        pen.setColor(QColor(3, 102, 214));
+        pen.setColor(pointColor);
         pen.setWidthF(7.0);
         p.setPen(pen);
         for(std::size_t i = 0; i < m_cdt.vertices.size(); ++i)
@@ -416,7 +440,7 @@ private:
         }
         if(m_isDisplayIndices)
         {
-            pen.setColor(QColor(100, 100, 255));
+            pen.setColor(pointLabelColor);
             p.setPen(pen);
             for(std::size_t i = 0; i < m_cdt.vertices.size(); ++i)
             {
@@ -425,13 +449,21 @@ private:
             }
         }
         // last added point
-        if(m_ptLimit <= m_points.size())
+        if(m_ptLimit && m_ptLimit <= m_points.size())
         {
-            pen.setColor(QColor(200, 50, 50));
+            pen.setColor(highlightColor);
             pen.setWidthF(9.0);
             p.setPen(pen);
-            const V2d& v = m_cdt.vertices.back();
-            p.drawPoint(sceneToScreen(v));
+            p.drawPoint(sceneToScreen(m_points[m_ptLimit - 1]));
+        }
+        else if(
+            m_isDoRuppert && m_refinementLimit &&
+            m_refinementLimit != defaultRefinementLimit)
+        {
+            pen.setColor(highlightColor);
+            pen.setWidthF(9.0);
+            p.setPen(pen);
+            p.drawPoint(sceneToScreen(m_cdt.vertices.back()));
         }
     }
 
@@ -546,7 +578,7 @@ public:
             SIGNAL(valueChanged(int)),
             m_cdtWidget,
             SLOT(setRefinementLimit(int)));
-        refinementSpinbox->setValue(999999);
+        refinementSpinbox->setValue(defaultRefinementLimit);
         QFormLayout* refinementLayout = new QFormLayout;
         edgesLayout->addRow(
             new QLabel(tr("# refinement points:")), refinementSpinbox);
