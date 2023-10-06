@@ -32,6 +32,8 @@ typedef CDT::Triangle Triangle;
 typedef CDT::Box2d<CoordType> Box2d;
 typedef CDT::Edge Edge;
 
+const int defaultRefinementLimit = 999999;
+
 enum class TriangulationType
 {
     ConstraintDelaunay,
@@ -682,6 +684,15 @@ private:
             p.setPen(pen);
             p.drawPoint(sceneToScreen(m_points[m_ptLimit - 1]));
         }
+        else if(
+            m_isDoRuppert && m_refinementLimit &&
+            m_refinementLimit != defaultRefinementLimit)
+        {
+            pen.setColor(highlightColor);
+            pen.setWidthF(9.0);
+            p.setPen(pen);
+            p.drawPoint(sceneToScreen(m_cdt.vertices.back()));
+        }
     }
 
     void mousePressEvent(QMouseEvent* event)
@@ -871,7 +882,7 @@ public:
             SIGNAL(valueChanged(int)),
             m_cdtWidget,
             SLOT(setRefinementLimit(int)));
-        refinementSpinbox->setValue(9999999);
+        refinementSpinbox->setValue(defaultRefinementLimit);
 
         QFormLayout* limitsLayout = new QFormLayout;
         limitsLayout->addRow(new QLabel(tr("Points")), ptsSpinbox);
