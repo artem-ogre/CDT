@@ -556,6 +556,7 @@ TEMPLATE_LIST_TEST_CASE(
     cdt.insertVertices(vv);
     cdt.insertEdges(ee);
     REQUIRE(CDT::verifyTopology(cdt));
+    REQUIRE(CDT::eachVertexHasNeighborTriangle(cdt));
 
     // make true to update expected files (development purposes only)
     const auto outputFileBase = "expected/" +
@@ -671,7 +672,10 @@ TEMPLATE_LIST_TEST_CASE(
 
 TEMPLATE_LIST_TEST_CASE("Ground truth tests: crossing edges", "", CoordTypes)
 {
-    const auto inputFile = std::string("crossing-edges.txt");
+    const auto inputFile = GENERATE(
+        as<std::string>{},
+        "crossing-edges.txt",
+        "issue-148-crossing-edges.txt");
 
     const auto order = VertexInsertionOrder::Auto;
     const auto intersectingEdgesStrategy = IntersectingConstraintEdges::Resolve;
@@ -689,6 +693,7 @@ TEMPLATE_LIST_TEST_CASE("Ground truth tests: crossing edges", "", CoordTypes)
     cdt.insertVertices(vv);
     triangulationType == "" ? cdt.insertEdges(ee) : cdt.conformToEdges(ee);
     REQUIRE(CDT::verifyTopology(cdt));
+    REQUIRE(CDT::eachVertexHasNeighborTriangle(cdt));
     // make true to update expected files (development purposes only)
     const auto outputFileBase = "expected/" +
                                 inputFile.substr(0, inputFile.size() - 4) +

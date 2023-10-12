@@ -74,6 +74,17 @@ inline bool verifyTopology(const CDT::Triangulation<T, TNearPointLocator>& cdt)
     return true;
 }
 
+/// Check that each vertex has a neighbor triangle
+template <typename T, typename TNearPointLocator>
+inline bool eachVertexHasNeighborTriangle(
+    const CDT::Triangulation<T, TNearPointLocator>& cdt)
+{
+    for(const auto& vt : cdt.VertTrisInternal())
+        if(vt == noNeighbor)
+            return false;
+    return true;
+}
+
 } // namespace CDT
 
 #endif

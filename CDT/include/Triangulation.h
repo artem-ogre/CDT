@@ -355,6 +355,8 @@ public:
 
     /// Access internal vertex adjacent triangles
     TriIndVec& VertTrisInternal();
+    /// Access internal vertex adjacent triangles
+    const TriIndVec& VertTrisInternal() const;
     /// @}
 
 private:
@@ -586,7 +588,6 @@ private:
     bool hasEdge(VertInd a, VertInd b) const;
     void setAdjacentTriangle(const VertInd v, const TriInd t);
     void pivotVertexTriangleCW(VertInd v);
-    void removeAdjacentTriangle(VertInd v);
     /// Add vertex to nearest-point locator if locator is initialized
     void tryAddVertexToLocator(const VertInd v);
     /// Perform lazy initialization of nearest-point locator after the Kd-tree
