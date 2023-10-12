@@ -208,8 +208,15 @@ void Triangulation<T, TNearPointLocator>::removeTriangles(
         }
     }
 }
+
 template <typename T, typename TNearPointLocator>
 TriIndVec& Triangulation<T, TNearPointLocator>::VertTrisInternal()
+{
+    return m_vertTris;
+}
+
+template <typename T, typename TNearPointLocator>
+const TriIndVec& Triangulation<T, TNearPointLocator>::VertTrisInternal() const
 {
     return m_vertTris;
 }
@@ -605,7 +612,6 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
                 outerTrisL.push_back(edgeNeighbor(tOpo, polyL.back(), iVopo));
             }
             polyL.push_back(iVopo);
-            removeAdjacentTriangle(iVopo);
             iV = iVL;
             iVL = iVopo;
         }
@@ -627,7 +633,6 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
                 outerTrisR.push_back(edgeNeighbor(tOpo, polyR.back(), iVopo));
             }
             polyR.push_back(iVopo);
-            removeAdjacentTriangle(iVopo);
             iV = iVR;
             iVR = iVopo;
         }
@@ -2003,13 +2008,6 @@ void Triangulation<T, TNearPointLocator>::pivotVertexTriangleCW(const VertInd v)
         triangles[m_vertTris[v]].vertices[0] == v ||
         triangles[m_vertTris[v]].vertices[1] == v ||
         triangles[m_vertTris[v]].vertices[2] == v);
-}
-
-template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::removeAdjacentTriangle(
-    const VertInd v)
-{
-    m_vertTris[v] = noNeighbor;
 }
 
 template <typename T, typename TNearPointLocator>
