@@ -852,3 +852,13 @@ TEST_CASE("Regression: multiple hanging edges", "")
         REQUIRE(topologyString(cdt) == topologyString(outFile));
     }
 }
+
+TEST_CASE("Regression test", "")
+{
+    const auto inputFile = std::string("debug2.txt");
+    const auto [vv, ee] = readInputFromFile<double>("inputs/" + inputFile);
+    auto cdt = Triangulation<double>(VertexInsertionOrder::Auto);
+    cdt.insertVertices(vv);
+    cdt.insertEdges(ee);
+    REQUIRE(CDT::verifyTopology(cdt));
+}

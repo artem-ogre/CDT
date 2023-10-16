@@ -1557,6 +1557,14 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudopolygon(
     std::vector<TriangulatePseudopolygonTask>& iterations)
 {
     assert(poly.size() > 2);
+
+    // note: needed for proper linking with outer triangles
+    // during pseudo-polygon triangulation, vertex triangle
+    // will be set back, see asserts at the end
+    for(std::size_t i = 1; i < outerTris.size(); ++i)
+        if(outerTris[i] == noNeighbor)
+            m_vertTris[poly[i]] = noNeighbor;
+
     // note: uses interation instead of recursion to avoid stack overflows
     iterations.clear();
     iterations.push_back(make_tuple(
@@ -1569,6 +1577,10 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudopolygon(
     {
         triangulatePseudopolygonIteration(poly, outerTris, iterations);
     }
+
+    // make sure adjacent triangles were restored
+    for(std::size_t i = 0; i < poly.size(); ++i)
+        assert(m_vertTris[poly[i]] != noNeighbor);
 }
 
 template <typename T, typename TNearPointLocator>
