@@ -79,7 +79,7 @@ when at least one vertex belongs to super-triangle are resolved using an approac
 - No two constraint edges intersect each other (overlapping boundaries are allowed)
 
 **Post-conditions:**
-- Triangles have counter-clockwise (CCW) winding
+- Triangles have counter-clockwise (CCW) winding in a 2D coordinate system where X-asix points right and Y-axis points up.
 
 <a name="implementation-details"></a>
 
