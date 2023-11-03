@@ -261,6 +261,7 @@ For work-in-progress on Python bindings check-out [PythonCDT](https://github.com
 - [alkonior](https://github.com/alkonior): finding, reproducing, and reporting a bug ([#142](https://github.com/artem-ogre/CDT/issues/142))
 - [ldcMasa](https://github.com/ldcMasa): finding compilation issue ([#144](https://github.com/artem-ogre/CDT/issues/144))
 - [egladil86](https://github.com/egladil86): finding, reproducing, and reporting a bug ([#148](https://github.com/artem-ogre/CDT/issues/148))
+- [Som1Lse](https://github.com/Som1Lse): fuzzing CDT: finding, reproducing, and reporting bugs ([#154](https://github.com/artem-ogre/CDT/issues/148))
 
 <a name="contributing"></a>
 
