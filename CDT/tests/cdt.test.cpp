@@ -862,3 +862,22 @@ TEST_CASE("Regression test", "")
     cdt.insertEdges(ee);
     REQUIRE(CDT::verifyTopology(cdt));
 }
+
+TEST_CASE("Regression test issue #154 (1)", "")
+{
+    // Very large coordinate values lead to wrong super-triangle coordinates due
+    // to the floating-point rounding
+    auto cdt = Triangulation<double>{};
+    cdt.insertVertices({
+        {0.0, 1e38},
+        {1.0, 1e38},
+    });
+    REQUIRE(CDT::verifyTopology(cdt));
+    const auto outFile = "expected/154_1.txt";
+    if(updateFiles)
+        topologyToFile(outFile, cdt);
+    else
+    {
+        REQUIRE(topologyString(cdt) == topologyString(outFile));
+    }
+}
