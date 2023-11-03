@@ -881,3 +881,63 @@ TEST_CASE("Regression test issue #154 (1)", "")
         REQUIRE(topologyString(cdt) == topologyString(outFile));
     }
 }
+
+TEST_CASE("Regression test issue #154 (2)", "")
+{
+    // Explanation: There was an incorrect assumptions that there are no 'loops'
+    // in the pseudo-polygons, only 'hanging' edges. The loops are possible as
+    // shown by this test case.
+    auto cdt = Triangulation<double>{};
+    cdt.insertVertices({
+        {2.0, -2.18933983E-5},
+        {-0.0896810815, -2.18407786E-5},
+        {-2.19008489E-5, -7.64692231E-6},
+        {8.73939061E-5, 0.00568488613},
+        {-0.00142463227, -0.00142461748},
+        {-7.67273832E-6, 8.7602064E-5},
+        {0.00569847599, -0.00142463227},
+        {-2.18156383E-5, -7.6295637E-6},
+    });
+    REQUIRE(CDT::verifyTopology(cdt));
+    cdt.insertEdges({
+        {0, 1},
+    });
+    REQUIRE(CDT::verifyTopology(cdt));
+    const auto outFile = "expected/154_2.txt";
+    if(updateFiles)
+        topologyToFile(outFile, cdt);
+    else
+    {
+        REQUIRE(topologyString(cdt) == topologyString(outFile));
+    }
+}
+
+TEST_CASE("Regression test issue #154 (3)", "")
+{
+    // Explanation: There was an incorrect assumptions that there are no 'loops'
+    // in the pseudo-polygons, only 'hanging' edges. The loops are possible as
+    // shown by this test case.
+    auto cdt = Triangulation<double>{};
+    cdt.insertVertices({
+        {-2.0, 1.47656155},
+        {-6.40527344, -40.4999084},
+        {0.0, -7.96960115},
+        {-2.00152564, 1.46877956},
+        {-2.70361328, -7.99999619},
+        {-2.70465064, -7.99901962},
+        {-7.97778273, -19.3754253},
+        {7.96885204, -5.37488127},
+        {-7.97180128, -39.7499695},
+    });
+    cdt.insertEdges({
+        {0, 8},
+    });
+    REQUIRE(CDT::verifyTopology(cdt));
+    const auto outFile = "expected/154_3.txt";
+    if(updateFiles)
+        topologyToFile(outFile, cdt);
+    else
+    {
+        REQUIRE(topologyString(cdt) == topologyString(outFile));
+    }
+}
