@@ -566,8 +566,6 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
     polyR.push_back(iVR);
     outerTrisR.push_back(edgeNeighbor(t, iA, iVR));
     VertInd iV = iA;
-    IndexSizeType nChainedHangingEdgesL = 0;
-    IndexSizeType nChainedHangingEdgesR = 0;
 
     while(!t.containsVertex(iB))
     {
@@ -596,42 +594,14 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
             locatePointLine(vertices[iVopo], a, b, distanceTolerance);
         if(loc == PtLineLocation::Left)
         {
-            // hanging edge check
-            // previous entry of the vertex in poly if edge is hanging
-            const IndexSizeType prev =
-                (polyL.size() - 2) - 2 * nChainedHangingEdgesL;
-            if(iVopo == polyL[prev])
-            { // hanging edge
-                ++nChainedHangingEdgesL;
-                outerTrisL[prev] = noNeighbor;
-                outerTrisL.push_back(noNeighbor);
-            }
-            else
-            { // normal case
-                nChainedHangingEdgesL = 0;
-                outerTrisL.push_back(edgeNeighbor(tOpo, polyL.back(), iVopo));
-            }
+            outerTrisL.push_back(edgeNeighbor(tOpo, polyL.back(), iVopo));
             polyL.push_back(iVopo);
             iV = iVL;
             iVL = iVopo;
         }
         else if(loc == PtLineLocation::Right)
         {
-            // hanging edge check
-            // previous entry of the vertex in poly if edge is hanging
-            const IndexSizeType prev =
-                (polyR.size() - 2) - 2 * nChainedHangingEdgesR;
-            if(iVopo == polyR[prev])
-            { // hanging edge
-                ++nChainedHangingEdgesR;
-                outerTrisR[prev] = noNeighbor;
-                outerTrisR.push_back(noNeighbor);
-            }
-            else
-            { // normal case
-                nChainedHangingEdgesR = 0;
-                outerTrisR.push_back(edgeNeighbor(tOpo, polyR.back(), iVopo));
-            }
+            outerTrisR.push_back(edgeNeighbor(tOpo, polyR.back(), iVopo));
             polyR.push_back(iVopo);
             iV = iVR;
             iVR = iVopo;
@@ -655,6 +625,15 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
         pivotVertexTriangleCW(iA);
     if(m_vertTris[iB] == intersected.back())
         pivotVertexTriangleCW(iB);
+    // Handle outer triangles for the cases of hanging edges
+    typedef std::vector<TriInd>::iterator TriIndIt;
+    std::sort(intersected.begin(), intersected.end());
+    for(TriIndIt it = outerTrisR.begin(); it != outerTrisR.end(); ++it)
+        if(std::binary_search(intersected.begin(), intersected.end(), *it))
+            *it = noNeighbor;
+    for(TriIndIt it = outerTrisL.begin(); it != outerTrisL.end(); ++it)
+        if(std::binary_search(intersected.begin(), intersected.end(), *it))
+            *it = noNeighbor;
     // Remove intersected triangles
     typedef std::vector<TriInd>::const_iterator TriIndCit;
     for(TriIndCit it = intersected.begin(); it != intersected.end(); ++it)
