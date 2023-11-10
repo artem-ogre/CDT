@@ -435,22 +435,12 @@ TEMPLATE_LIST_TEST_CASE(
         readInputFromFile<TestType>("inputs/corner cases.txt");
     auto cdt = Triangulation<TestType>(
         CDT::VertexInsertionOrder::Auto,
-        CDT::IntersectingConstraintEdges::Resolve,
+        CDT::IntersectingConstraintEdges::TryResolve,
         0.);
     cdt.insertVertices(vv);
     cdt.insertEdges(ee);
     cdt.eraseSuperTriangle();
     const auto topo = TriangulationTopo(cdt);
-
-    /*
-    // Write to file for debugging
-    std::ofstream f("tmp.txt");
-    if(f.is_open())
-    {
-        ENHANCED_THROW(std::runtime_error, "Can't open file for writing");
-    }
-    topo.write(f);
-    */
     std::ostringstream out_s;
     topo.write(out_s);
     std::istringstream in_s(out_s.str());
@@ -480,9 +470,11 @@ std::string to_string(const IntersectingConstraintEdges::Enum& ice)
 {
     switch(ice)
     {
-    case IntersectingConstraintEdges::Ignore:
+    case IntersectingConstraintEdges::DontCheck:
+        return "no-check";
+    case IntersectingConstraintEdges::NotAllowed:
         return "ignore";
-    case IntersectingConstraintEdges::Resolve:
+    case IntersectingConstraintEdges::TryResolve:
         return "resolve";
     }
     ENHANCED_THROW(std::runtime_error, "Reached unreachable");
@@ -499,7 +491,6 @@ TEMPLATE_LIST_TEST_CASE(
         as<std::string>{},
         "Capital A.txt",
         "cdt.txt",
-        "corner cases.txt",
         "ditch.txt",
         "double-hanging.txt",
         "gh_issue.txt",
@@ -542,8 +533,8 @@ TEMPLATE_LIST_TEST_CASE(
     const auto order =
         GENERATE(VertexInsertionOrder::AsProvided, VertexInsertionOrder::Auto);
     const auto intersectingEdgesStrategy = GENERATE(
-        IntersectingConstraintEdges::Ignore,
-        IntersectingConstraintEdges::Resolve);
+        IntersectingConstraintEdges::NotAllowed,
+        IntersectingConstraintEdges::TryResolve);
     const auto minDistToConstraintEdge = 0.;
 
     auto cdt = Triangulation<TestType>(
@@ -615,7 +606,6 @@ TEMPLATE_LIST_TEST_CASE(
         as<std::string>{},
         "Capital A.txt",
         "cdt.txt",
-        "corner cases.txt",
         "ditch.txt",
         "double-hanging.txt",
         "gh_issue.txt",
@@ -640,7 +630,8 @@ TEMPLATE_LIST_TEST_CASE(
             : "";
 
     const auto order = VertexInsertionOrder::Auto;
-    const auto intersectingEdgesStrategy = IntersectingConstraintEdges::Ignore;
+    const auto intersectingEdgesStrategy =
+        IntersectingConstraintEdges::NotAllowed;
     const auto minDistToConstraintEdge = 0.;
 
     auto cdt = Triangulation<TestType>(
@@ -678,7 +669,8 @@ TEMPLATE_LIST_TEST_CASE("Ground truth tests: crossing edges", "", CoordTypes)
         "issue-148-crossing-edges.txt");
 
     const auto order = VertexInsertionOrder::Auto;
-    const auto intersectingEdgesStrategy = IntersectingConstraintEdges::Resolve;
+    const auto intersectingEdgesStrategy =
+        IntersectingConstraintEdges::TryResolve;
     const auto minDistToConstraintEdge = 0.;
 
     auto cdt = Triangulation<TestType>(
@@ -715,7 +707,7 @@ TEMPLATE_LIST_TEST_CASE("Inserting vertices in two batches", "", CoordTypes)
         readInputFromFile<TestType>("inputs/Constrained Sweden.txt");
     auto cdt = Triangulation<TestType>(
         CDT::VertexInsertionOrder::Auto,
-        CDT::IntersectingConstraintEdges::Resolve,
+        CDT::IntersectingConstraintEdges::TryResolve,
         0.);
     cdt.insertVertices(vv);
     cdt.insertEdges(ee);
@@ -726,7 +718,7 @@ TEMPLATE_LIST_TEST_CASE("Inserting vertices in two batches", "", CoordTypes)
     const auto vv_hi = Vertices<TestType>(vv.begin() + halfSize, vv.end());
     auto cdtBatches = Triangulation<TestType>(
         CDT::VertexInsertionOrder::Auto,
-        CDT::IntersectingConstraintEdges::Resolve,
+        CDT::IntersectingConstraintEdges::TryResolve,
         0.);
     cdtBatches.insertVertices(vv_lo);
     cdtBatches.insertVertices(vv_hi);
@@ -776,7 +768,8 @@ TEST_CASE("Don't flip constraint edge when resolving intersection", "")
     const auto inputFile =
         std::string("dont_flip_constraint_when_resolving_intersection.txt");
     const auto order = VertexInsertionOrder::AsProvided;
-    const auto intersectingEdgesStrategy = IntersectingConstraintEdges::Resolve;
+    const auto intersectingEdgesStrategy =
+        IntersectingConstraintEdges::TryResolve;
     const auto minDistToConstraintEdge = 1e-6;
     const auto outFile = "expected/" +
                          inputFile.substr(0, inputFile.size() - 4) + "__f64_" +
@@ -805,7 +798,8 @@ TEST_CASE(
 {
     const auto inputFile = std::string("HangingIntersection.txt");
     const auto order = VertexInsertionOrder::Auto;
-    const auto intersectingEdgesStrategy = IntersectingConstraintEdges::Resolve;
+    const auto intersectingEdgesStrategy =
+        IntersectingConstraintEdges::TryResolve;
     const auto minDistToConstraintEdge = 1e-6;
     const auto outFile = "expected/" +
                          inputFile.substr(0, inputFile.size() - 4) + "__f64_" +
@@ -831,7 +825,8 @@ TEST_CASE("Regression: multiple hanging edges", "")
 {
     const auto inputFile = std::string("HangingIntersection.txt");
     const auto order = VertexInsertionOrder::Auto;
-    const auto intersectingEdgesStrategy = IntersectingConstraintEdges::Resolve;
+    const auto intersectingEdgesStrategy =
+        IntersectingConstraintEdges::TryResolve;
     const auto minDistToConstraintEdge = 1e-6;
     const auto outFile = "expected/" +
                          inputFile.substr(0, inputFile.size() - 4) + "__f64_" +

@@ -40,7 +40,7 @@ const SuperGeometryType::Enum superGeomType = SuperGeometryType::SuperTriangle;
 const VertexInsertionOrder::Enum vertexInsertionOrder =
     VertexInsertionOrder::Auto;
 const IntersectingConstraintEdges::Enum intersectingEdgesStrategy =
-    IntersectingConstraintEdges::Ignore;
+    IntersectingConstraintEdges::NotAllowed;
 const float minDistToConstraintEdge(0);
 
 } // namespace defaults
@@ -573,11 +573,15 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
         const Triangle& tOpo = triangles[iTopo];
         const VertInd iVopo = opposedVertex(tOpo, iT);
 
-        // Resolve intersection between two constraint edges if needed
-        if(m_intersectingEdgesStrategy ==
-               IntersectingConstraintEdges::Resolve &&
-           fixedEdges.count(Edge(iVL, iVR)))
+        switch(m_intersectingEdgesStrategy)
         {
+        case IntersectingConstraintEdges::NotAllowed:
+            if(fixedEdges.count(Edge(iVL, iVR)))
+                throw IntersectingConstraintsNotAllowed(CDT_SOURCE_LOCATION);
+            break;
+        case IntersectingConstraintEdges::TryResolve: {
+            if(!fixedEdges.count(Edge(iVL, iVR)))
+                break;
             // split edge at the intersection of two constraint edges
             const V2d<T> newV = detail::intersectionPosition(
                 vertices[iA], vertices[iB], vertices[iVL], vertices[iVR]);
@@ -588,6 +592,10 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
             remaining.push_back(Edge(iA, iNewVert));
             remaining.push_back(Edge(iNewVert, iB));
             return;
+        }
+        case IntersectingConstraintEdges::DontCheck:
+            assert(!fixedEdges.count(Edge(iVL, iVR)));
+            break;
         }
 
         const PtLineLocation::Enum loc =
@@ -739,11 +747,15 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
         const VertInd iVopo = opposedVertex(tOpo, iT);
         const V2d<T> vOpo = vertices[iVopo];
 
-        // Resolve intersection between two constraint edges if needed
-        if(m_intersectingEdgesStrategy ==
-               IntersectingConstraintEdges::Resolve &&
-           fixedEdges.count(Edge(iVleft, iVright)))
+        switch(m_intersectingEdgesStrategy)
         {
+        case IntersectingConstraintEdges::NotAllowed:
+            if(fixedEdges.count(Edge(iVleft, iVright)))
+                throw IntersectingConstraintsNotAllowed(CDT_SOURCE_LOCATION);
+            break;
+        case IntersectingConstraintEdges::TryResolve: {
+            if(!fixedEdges.count(Edge(iVleft, iVright)))
+                break;
             // split edge at the intersection of two constraint edges
             const V2d<T> newV = detail::intersectionPosition(
                 vertices[iA],
@@ -762,6 +774,10 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
                 make_tuple(Edge(iA, iNewVert), originals, overlaps));
 #endif
             return;
+        }
+        case IntersectingConstraintEdges::DontCheck:
+            assert(!fixedEdges.count(Edge(iVleft, iVright)));
+            break;
         }
 
         iT = iTopo;
@@ -932,8 +948,10 @@ Triangulation<T, TNearPointLocator>::intersectedTriangle(
         }
         iT = t.next(iA).first;
     } while(iT != startTri);
-    throw std::runtime_error("Could not find vertex triangle intersected by "
-                             "edge. Note: can be caused by duplicate points.");
+
+    throw Error(
+        "Could not find vertex triangle intersected by an edge.",
+        CDT_SOURCE_LOCATION);
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1390,7 +1408,7 @@ Triangulation<T, TNearPointLocator>::trianglesAt(const V2d<T>& pos) const
             out[1] = t.neighbors[edgeNeighbor(loc)];
         return out;
     }
-    throw std::runtime_error("No triangle was found at position");
+    throw Error("No triangle was found at position", CDT_SOURCE_LOCATION);
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1419,7 +1437,7 @@ TriInd Triangulation<T, TNearPointLocator>::walkTriangles(
             if(edgeCheck == PtLineLocation::Right && iN != noNeighbor)
             {
                 found = false;
-                currTri = t.neighbors[i];
+                currTri = iN;
                 break;
             }
         }
@@ -1440,8 +1458,12 @@ array<TriInd, 2> Triangulation<T, TNearPointLocator>::walkingSearchTrianglesAt(
     const V2d<T>& v2 = vertices[t.vertices[1]];
     const V2d<T>& v3 = vertices[t.vertices[2]];
     const PtTriLocation::Enum loc = locatePointTriangle(pos, v1, v2, v3);
+
     if(loc == PtTriLocation::Outside)
-        throw std::runtime_error("No triangle was found at position");
+        throw Error("No triangle was found at position", CDT_SOURCE_LOCATION);
+    if(loc == PtTriLocation::OnVertex)
+        throw DuplicateVertexError(CDT_SOURCE_LOCATION);
+
     out[0] = iT;
     if(isOnEdge(loc))
         out[1] = t.neighbors[edgeNeighbor(loc)];

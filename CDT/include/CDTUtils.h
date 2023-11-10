@@ -324,6 +324,7 @@ struct CDT_EXPORT PtTriLocation
         OnEdge1,
         OnEdge2,
         OnEdge3,
+        OnVertex,
     };
 };
 
