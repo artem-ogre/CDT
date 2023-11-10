@@ -11,8 +11,12 @@
 #include <QApplication>
 #include <QCheckBox>
 #include <QColor>
+#include <QComboBox>
 #include <QDir>
+#include <QFormLayout>
+#include <QGroupBox>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QListWidget>
 #include <QMessageBox>
 #include <QPaintEvent>
@@ -28,6 +32,20 @@ typedef CDT::Triangle Triangle;
 typedef CDT::Box2d<CoordType> Box2d;
 typedef CDT::Edge Edge;
 
+enum class TriangulationType
+{
+    ConstraintDelaunay,
+    ConformingDelaunay,
+};
+
+enum class FinalizeTriangulation
+{
+    DontFinalize,
+    EraseSuperTriangle,
+    EraseOuterTriangles,
+    EraseOuterTrianglesAndHoles,
+};
+
 class CDTWidget : public QWidget
 {
     Q_OBJECT
@@ -37,11 +55,14 @@ public:
         : QWidget(parent)
         , m_ptLimit(9999999)
         , m_edgeLimit(9999999)
-        , m_isConformToEdges(false)
+        , m_vertexInsertionOrder(CDT::VertexInsertionOrder::Enum::Auto)
+        , m_intersectingEdgesStrategy(
+              CDT::IntersectingConstraintEdges::Enum::TryResolve)
+        , m_minDistToConstraintEdge(1e-6)
+        , m_triangulationType(TriangulationType::ConstraintDelaunay)
+        , m_finalizeType(FinalizeTriangulation::DontFinalize)
+        , m_fixDuplicates(true)
         , m_isHidePoints(false)
-        , m_isHideSuperTri(false)
-        , m_isRemoveOuter(false)
-        , m_isRemoveOuterAndHoles(false)
         , m_isDisplayIndices(false)
         , m_translation(0., 0.)
         , m_scale(1.0)
@@ -64,9 +85,43 @@ public slots:
         updateCDT();
     }
 
-    void setConformToEdges(int isConform)
+    void setTriangulationType(int index)
     {
-        m_isConformToEdges = (isConform != 0);
+        switch(index)
+        {
+        case 0:
+            m_triangulationType = TriangulationType::ConstraintDelaunay;
+            break;
+        case 1:
+            m_triangulationType = TriangulationType::ConformingDelaunay;
+            break;
+        }
+        updateCDT();
+    }
+
+    void setMinDistToConstraintEdge(double tolerance)
+    {
+        m_minDistToConstraintEdge = tolerance;
+        updateCDT();
+    }
+
+    void setIntersectingEdgesStrategy(int index)
+    {
+        switch(index)
+        {
+        case 0:
+            m_intersectingEdgesStrategy =
+                CDT::IntersectingConstraintEdges::Enum::NotAllowed;
+            break;
+        case 1:
+            m_intersectingEdgesStrategy =
+                CDT::IntersectingConstraintEdges::Enum::TryResolve;
+            break;
+        case 2:
+            m_intersectingEdgesStrategy =
+                CDT::IntersectingConstraintEdges::Enum::DontCheck;
+            break;
+        }
         updateCDT();
     }
 
@@ -88,21 +143,29 @@ public slots:
         update();
     }
 
-    void hideSuperTriangle(int isHideSuperTri)
+    void setFinalizeType(int index)
     {
-        m_isHideSuperTri = (isHideSuperTri != 0);
+        switch(index)
+        {
+        case 0:
+            m_finalizeType = FinalizeTriangulation::DontFinalize;
+            break;
+        case 1:
+            m_finalizeType = FinalizeTriangulation::EraseSuperTriangle;
+            break;
+        case 2:
+            m_finalizeType = FinalizeTriangulation::EraseOuterTriangles;
+            break;
+        case 3:
+            m_finalizeType = FinalizeTriangulation::EraseOuterTrianglesAndHoles;
+            break;
+        }
         updateCDT();
     }
 
-    void removeOuterTriangles(int isRemoveOuter)
+    void setFixDuplicates(int index)
     {
-        m_isRemoveOuter = (isRemoveOuter != 0);
-        updateCDT();
-    }
-
-    void removeOuterTrianglesAndHoles(int isRemoveOuterAndHoles)
-    {
-        m_isRemoveOuterAndHoles = (isRemoveOuterAndHoles != 0);
+        m_fixDuplicates = (index == 0);
         updateCDT();
     }
 
@@ -140,10 +203,11 @@ public slots:
         typedef Triangulation::V2dVec::const_iterator VCit;
         for(VCit v = m_cdt.vertices.begin(); v != m_cdt.vertices.end(); ++v)
         {
-            const CoordType z = !m_isRemoveOuterAndHoles && !m_isRemoveOuter &&
-                                        !m_isHideSuperTri && counter < 3
-                                    ? stZ
-                                    : 0.0;
+            const CoordType z =
+                m_finalizeType == FinalizeTriangulation::DontFinalize &&
+                        counter < 3
+                    ? stZ
+                    : 0.0;
             fout << v->x << ' ' << v->y << ' ' << z << "\n";
             counter++;
         }
@@ -189,42 +253,83 @@ private:
     void updateCDT()
     {
         m_cdt = Triangulation(
-            CDT::VertexInsertionOrder::Auto,
-            CDT::IntersectingConstraintEdges::TryResolve,
-            1e-3);
+            m_vertexInsertionOrder,
+            m_intersectingEdgesStrategy,
+            m_minDistToConstraintEdge);
         if(!m_points.empty())
         {
             std::vector<V2d> pts =
                 m_ptLimit < m_points.size()
                     ? std::vector<V2d>(&m_points[0], &m_points[m_ptLimit])
                     : m_points;
-            const CDT::DuplicatesInfo duplInfo = CDT::RemoveDuplicates(pts);
-            if(!duplInfo.duplicates.empty())
+
+            CDT::DuplicatesInfo dupeInfo;
+            if(m_fixDuplicates)
             {
-                QMessageBox errBox;
-                errBox.setText(QStringLiteral("Triangulation has duplicates"));
-                errBox.exec();
+                dupeInfo = CDT::RemoveDuplicates(pts);
+                if(!dupeInfo.duplicates.empty())
+                {
+                    QMessageBox errBox;
+                    errBox.setText("Duplicate vertices were found and fixed");
+                    errBox.exec();
+                }
             }
 
-            m_cdt.insertVertices(pts);
+            try
+            {
+                m_cdt.insertVertices(pts);
+            }
+            catch(const CDT::Error& e)
+            {
+                QMessageBox errBox;
+                errBox.setText(e.what());
+                errBox.exec();
+                return;
+            }
             if(m_ptLimit >= m_points.size() && !m_edges.empty())
             {
                 std::vector<Edge> edges =
                     m_edgeLimit < m_edges.size()
                         ? std::vector<Edge>(&m_edges[0], &m_edges[m_edgeLimit])
                         : m_edges;
-                CDT::RemapEdges(edges, duplInfo.mapping);
-                if(m_isConformToEdges)
-                    m_cdt.conformToEdges(edges);
-                else
-                    m_cdt.insertEdges(edges);
+                if(m_fixDuplicates)
+                {
+                    CDT::RemapEdges(edges, dupeInfo.mapping);
+                }
+                try
+                {
+                    switch(m_triangulationType)
+                    {
+                    case TriangulationType::ConstraintDelaunay:
+                        m_cdt.insertEdges(edges);
+                        break;
+                    case TriangulationType::ConformingDelaunay:
+                        m_cdt.conformToEdges(edges);
+                        break;
+                    }
+                }
+                catch(const CDT::Error& e)
+                {
+                    QMessageBox errBox;
+                    errBox.setText(e.what());
+                    errBox.exec();
+                    return;
+                }
             }
-            if(m_isRemoveOuterAndHoles)
-                m_cdt.eraseOuterTrianglesAndHoles();
-            else if(m_isRemoveOuter)
-                m_cdt.eraseOuterTriangles();
-            else if(m_isHideSuperTri)
+            switch(m_finalizeType)
+            {
+            case FinalizeTriangulation::DontFinalize:
+                break;
+            case FinalizeTriangulation::EraseSuperTriangle:
                 m_cdt.eraseSuperTriangle();
+                break;
+            case FinalizeTriangulation::EraseOuterTriangles:
+                m_cdt.eraseOuterTriangles();
+                break;
+            case FinalizeTriangulation::EraseOuterTrianglesAndHoles:
+                m_cdt.eraseOuterTrianglesAndHoles();
+                break;
+            }
             const CDT::unordered_map<Edge, CDT::EdgeVec> tmp =
                 CDT::EdgeToPiecesMapping(m_cdt.pieceToOriginals);
             const CDT::unordered_map<Edge, std::vector<CDT::VertInd> >
@@ -283,6 +388,14 @@ private:
 
     void paint_(QPaintDevice* pd)
     {
+        const QColor highlightColor(100, 100, 0);
+        const QColor outerTrisColor(220, 220, 220);
+        const QColor trianglesColor(150, 150, 150);
+        const QColor fixedEdgeColor(50, 50, 50);
+        const QColor pointColor(3, 102, 214);
+        const QColor pointLabelColor(150, 0, 150);
+        const QColor triangleLabelColor(0, 150, 150);
+
         QPainter p(pd);
         p.setRenderHints(QPainter::Antialiasing);
 
@@ -296,9 +409,9 @@ private:
         // Draw triangles
         pen.setWidthF(2.0);
         // outer triangles
-        if(!m_isHideSuperTri && !m_isRemoveOuter && !m_isRemoveOuterAndHoles)
+        if(m_finalizeType == FinalizeTriangulation::DontFinalize)
         {
-            pen.setColor(QColor(220, 220, 220));
+            pen.setColor(outerTrisColor);
             p.setPen(pen);
             typedef CDT::TriangleVec::const_iterator TCit;
             for(TCit t = m_cdt.triangles.begin(); t != m_cdt.triangles.end();
@@ -320,15 +433,14 @@ private:
         }
 
         // actual triangles
-        pen.setColor(QColor(150, 150, 150));
+        pen.setColor(trianglesColor);
         p.setPen(pen);
         typedef CDT::TriangleVec::const_iterator TCit;
         int iT = 0;
         for(TCit t = m_cdt.triangles.begin(); t != m_cdt.triangles.end();
             ++t, ++iT)
         {
-            if(!m_isHideSuperTri && !m_isRemoveOuter &&
-               !m_isRemoveOuterAndHoles)
+            if(m_finalizeType == FinalizeTriangulation::DontFinalize)
             {
                 if(t->vertices[0] < 3 || t->vertices[1] < 3 ||
                    t->vertices[2] < 3)
@@ -348,6 +460,8 @@ private:
         }
         if(m_isDisplayIndices)
         {
+            pen.setColor(triangleLabelColor);
+            p.setPen(pen);
             iT = 0;
             for(TCit t = m_cdt.triangles.begin(); t != m_cdt.triangles.end();
                 ++t, ++iT)
@@ -364,7 +478,7 @@ private:
             }
         }
         // constraint edges
-        pen.setColor(QColor(50, 50, 50));
+        pen.setColor(fixedEdgeColor);
         p.setPen(pen);
         typedef CDT::EdgeUSet::const_iterator ECit;
         for(ECit e = m_cdt.fixedEdges.begin(); e != m_cdt.fixedEdges.end(); ++e)
@@ -373,11 +487,21 @@ private:
             const V2d& v2 = m_cdt.vertices[e->v2()];
             p.drawLine(sceneToScreen(v1), sceneToScreen(v2));
         }
+        // last added edge
+        if(m_edgeLimit && m_edgeLimit <= m_edges.size())
+        {
+            pen.setColor(highlightColor);
+            pen.setWidthF(4.0);
+            p.setPen(pen);
+            p.drawLine(
+                sceneToScreen(m_points[m_edges[m_edgeLimit - 1].v1()]),
+                sceneToScreen(m_points[m_edges[m_edgeLimit - 1].v2()]));
+        }
 
         if(m_isHidePoints)
             return;
         // draw points
-        pen.setColor(QColor(3, 102, 214));
+        pen.setColor(pointColor);
         pen.setWidthF(7.0);
         p.setPen(pen);
         for(std::size_t i = 0; i < m_cdt.vertices.size(); ++i)
@@ -387,7 +511,7 @@ private:
         }
         if(m_isDisplayIndices)
         {
-            pen.setColor(QColor(100, 100, 255));
+            pen.setColor(pointLabelColor);
             p.setPen(pen);
             for(std::size_t i = 0; i < m_cdt.vertices.size(); ++i)
             {
@@ -396,13 +520,12 @@ private:
             }
         }
         // last added point
-        if(m_ptLimit <= m_points.size())
+        if(m_ptLimit && m_ptLimit <= m_points.size())
         {
-            pen.setColor(QColor(200, 50, 50));
+            pen.setColor(highlightColor);
             pen.setWidthF(9.0);
             p.setPen(pen);
-            const V2d& v = m_cdt.vertices.back();
-            p.drawPoint(sceneToScreen(v));
+            p.drawPoint(sceneToScreen(m_points[m_ptLimit - 1]));
         }
     }
 
@@ -455,11 +578,13 @@ private:
     std::vector<Edge> m_edges;
     std::size_t m_ptLimit;
     std::size_t m_edgeLimit;
-    bool m_isConformToEdges;
+    CDT::VertexInsertionOrder::Enum m_vertexInsertionOrder;
+    CDT::IntersectingConstraintEdges::Enum m_intersectingEdgesStrategy;
+    CoordType m_minDistToConstraintEdge;
+    TriangulationType m_triangulationType;
+    FinalizeTriangulation m_finalizeType;
+    bool m_fixDuplicates;
     bool m_isHidePoints;
-    bool m_isHideSuperTri;
-    bool m_isRemoveOuter;
-    bool m_isRemoveOuterAndHoles;
     bool m_isDisplayIndices;
 
     QPointF m_prevMousePos;
@@ -479,12 +604,87 @@ public:
         m_cdtWidget = new CDTWidget();
         m_cdtWidget->setMinimumSize(QSize(1, 1));
         // Right pane
-        QListWidget* filesList = new QListWidget();
+        QPushButton* refreshFiles = new QPushButton(tr("Refresh files list"));
+        connect(refreshFiles, SIGNAL(clicked()), this, SLOT(updateFilesList()));
+
+        m_filesList = new QListWidget();
         connect(
-            filesList,
+            m_filesList,
             SIGNAL(itemDoubleClicked(QListWidgetItem*)),
             m_cdtWidget,
             SLOT(buildCDT(QListWidgetItem*)));
+
+        QComboBox* vOrder = new QComboBox;
+        vOrder->addItem("Auto");
+        vOrder->addItem("AsProvided");
+        connect(
+            vOrder,
+            SIGNAL(currentIndexChanged(int)),
+            m_cdtWidget,
+            SLOT(setVertexInsertionOrder(int)));
+
+        QComboBox* isecStrategy = new QComboBox;
+        isecStrategy->addItem("NotAllowed");
+        isecStrategy->addItem("TryResolve");
+        isecStrategy->addItem("DontCheck");
+        isecStrategy->setCurrentIndex(1);
+        connect(
+            isecStrategy,
+            SIGNAL(currentIndexChanged(int)),
+            m_cdtWidget,
+            SLOT(setIntersectingEdgesStrategy(int)));
+
+        QDoubleSpinBox* distTolerance = new QDoubleSpinBox;
+        distTolerance->setDecimals(6);
+        distTolerance->setRange(0.0, 0.1);
+        distTolerance->setSingleStep(1e-6);
+        distTolerance->setValue(1e-6);
+        connect(
+            distTolerance,
+            SIGNAL(valueChanged(double)),
+            m_cdtWidget,
+            SLOT(setMinDistToConstraintEdge(double)));
+
+        QComboBox* triType = new QComboBox;
+        triType->addItem("constraint Delaunay triangulation");
+        triType->addItem("conforming Delaunay triangulation");
+        connect(
+            triType,
+            SIGNAL(currentIndexChanged(int)),
+            m_cdtWidget,
+            SLOT(setTriangulationType(int)));
+
+        QComboBox* finalizeWith = new QComboBox;
+        finalizeWith->addItem("don't finalize");
+        finalizeWith->addItem("eraseSuperTriangle");
+        finalizeWith->addItem("eraseOuterTriangles");
+        finalizeWith->addItem("eraseOuterTrianglesAndHoles");
+        connect(
+            finalizeWith,
+            SIGNAL(currentIndexChanged(int)),
+            m_cdtWidget,
+            SLOT(setFinalizeType(int)));
+
+        QComboBox* fixDupes = new QComboBox;
+        fixDupes->addItem("fix duplicated vertices and remap edges");
+        fixDupes->addItem("don't fix duplicated vertices");
+        connect(
+            fixDupes,
+            SIGNAL(currentIndexChanged(int)),
+            m_cdtWidget,
+            SLOT(setFixDuplicates(int)));
+
+        QFormLayout* triangulationConfig = new QFormLayout;
+        triangulationConfig->addRow(new QLabel("vertexInsertionOrder"), vOrder);
+        triangulationConfig->addRow(
+            new QLabel("intersectingEdgesStrategy"), isecStrategy);
+        triangulationConfig->addRow(
+            new QLabel("minDistToConstraintEdge"), distTolerance);
+        triangulationConfig->addRow(triType);
+        triangulationConfig->addRow(finalizeWith);
+        triangulationConfig->addRow(fixDupes);
+        QGroupBox* triOptGroup = new QGroupBox("Triangulation");
+        triOptGroup->setLayout(triangulationConfig);
 
         QSpinBox* ptsSpinbox = new QSpinBox;
         ptsSpinbox->setRange(0, 999999);
@@ -504,6 +704,12 @@ public:
             SLOT(setEdgeLimit(int)));
         edgesSpinbox->setValue(999999);
 
+        QFormLayout* limitsLayout = new QFormLayout;
+        limitsLayout->addRow(new QLabel(tr("Points")), ptsSpinbox);
+        limitsLayout->addRow(new QLabel(tr("Edges")), edgesSpinbox);
+        QGroupBox* limitsGroup = new QGroupBox("Limits");
+        limitsGroup->setLayout(limitsLayout);
+
         QCheckBox* displayIndices =
             new QCheckBox(QStringLiteral("Display point/triangle indices"));
         connect(
@@ -514,16 +720,6 @@ public:
         m_cdtWidget->displayIndices(0);
         displayIndices->setChecked(false);
 
-        QCheckBox* conformToEdges =
-            new QCheckBox(QStringLiteral("Conform to fixed edges"));
-        connect(
-            conformToEdges,
-            SIGNAL(stateChanged(int)),
-            m_cdtWidget,
-            SLOT(setConformToEdges(int)));
-        m_cdtWidget->setConformToEdges(0);
-        conformToEdges->setChecked(false);
-
         QCheckBox* hidePoints = new QCheckBox(QStringLiteral("Hide points"));
         connect(
             hidePoints,
@@ -533,55 +729,25 @@ public:
         m_cdtWidget->hidePoints(0);
         hidePoints->setChecked(false);
 
-        QCheckBox* hideSuperTri =
-            new QCheckBox(QStringLiteral("Hide super-triangle"));
-        connect(
-            hideSuperTri,
-            SIGNAL(stateChanged(int)),
-            m_cdtWidget,
-            SLOT(hideSuperTriangle(int)));
-        m_cdtWidget->hideSuperTriangle(0);
-        hideSuperTri->setChecked(false);
-
-        QCheckBox* removeOuter =
-            new QCheckBox(QStringLiteral("Remove outer triangles"));
-        connect(
-            removeOuter,
-            SIGNAL(stateChanged(int)),
-            m_cdtWidget,
-            SLOT(removeOuterTriangles(int)));
-        m_cdtWidget->removeOuterTriangles(0);
-        removeOuter->setChecked(false);
-
-        QCheckBox* removeOuterHoles = new QCheckBox(
-            QStringLiteral("Remove outer triangles, auto-detect holes"));
-        connect(
-            removeOuterHoles,
-            SIGNAL(stateChanged(int)),
-            m_cdtWidget,
-            SLOT(removeOuterTrianglesAndHoles(int)));
-        m_cdtWidget->removeOuterTrianglesAndHoles(0);
-        removeOuterHoles->setChecked(false);
+        QFormLayout* visOptions = new QFormLayout;
+        visOptions->addRow(displayIndices);
+        visOptions->addRow(hidePoints);
+        QGroupBox* visOptionsGroup = new QGroupBox("Visualization");
+        visOptionsGroup->setLayout(visOptions);
 
         QPushButton* screenshotBtn = new QPushButton(tr("Make Screenshot"));
         connect(screenshotBtn, SIGNAL(clicked()), m_cdtWidget, SLOT(prtScn()));
-        screenshotBtn->setMinimumHeight(50);
 
         QPushButton* saveBtn = new QPushButton(tr("Save to .OFF"));
         connect(saveBtn, SIGNAL(clicked()), m_cdtWidget, SLOT(saveToOff()));
-        saveBtn->setMinimumHeight(50);
 
         QGridLayout* rightLayout = new QGridLayout;
         int cntr = 0;
-        rightLayout->addWidget(filesList, cntr++, 0);
-        rightLayout->addWidget(ptsSpinbox, cntr++, 0);
-        rightLayout->addWidget(edgesSpinbox, cntr++, 0);
-        rightLayout->addWidget(displayIndices, cntr++, 0);
-        rightLayout->addWidget(conformToEdges, cntr++, 0);
-        rightLayout->addWidget(hidePoints, cntr++, 0);
-        rightLayout->addWidget(removeOuter, cntr++, 0);
-        rightLayout->addWidget(removeOuterHoles, cntr++, 0);
-        rightLayout->addWidget(hideSuperTri, cntr++, 0);
+        rightLayout->addWidget(refreshFiles, cntr++, 0);
+        rightLayout->addWidget(m_filesList, cntr++, 0);
+        rightLayout->addWidget(triOptGroup, cntr++, 0);
+        rightLayout->addWidget(limitsGroup, cntr++, 0);
+        rightLayout->addWidget(visOptionsGroup, cntr++, 0);
         rightLayout->addWidget(screenshotBtn, cntr++, 0);
         rightLayout->addWidget(saveBtn, cntr++, 0);
 
@@ -594,17 +760,24 @@ public:
         setWindowTitle(tr("CDT Visualizer"));
 
         // Read files list
+        updateFilesList();
+    }
+public slots:
+    void updateFilesList()
+    {
+        // Read files list
         QDir dir = QDir(QString(), tr("*.txt"));
         QFileInfoList list = dir.entryInfoList();
-        filesList->clear();
+        m_filesList->clear();
         QFileInfoList::iterator it;
         for(it = list.begin(); it != list.end(); ++it)
-            filesList->addItem(it->fileName());
-        filesList->setCurrentRow(0);
+            m_filesList->addItem(it->fileName());
+        m_filesList->setCurrentRow(0);
     }
 
 private:
     CDTWidget* m_cdtWidget;
+    QListWidget* m_filesList;
 };
 
 int main(int argc, char* argv[])
