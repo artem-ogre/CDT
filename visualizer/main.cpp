@@ -105,6 +105,21 @@ public slots:
         updateCDT();
     }
 
+    void setVertexInsertionOrder(int index)
+    {
+        switch(index)
+        {
+        case 0:
+            m_vertexInsertionOrder = CDT::VertexInsertionOrder::Enum::Auto;
+            break;
+        case 1:
+            m_vertexInsertionOrder =
+                CDT::VertexInsertionOrder::Enum::AsProvided;
+            break;
+        }
+        updateCDT();
+    }
+
     void setIntersectingEdgesStrategy(int index)
     {
         switch(index)
