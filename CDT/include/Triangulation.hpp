@@ -965,7 +965,7 @@ void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
     const T w = box.max.x - box.min.x;
     const T h = box.max.y - box.min.y;
     T r = std::sqrt(w * w + h * h) / T(2); // incircle radius
-    r = r > 0 ? r * T(1.1) : T(1.);
+    r = r > 0 ? r * T(1.1) : T(1e-6);
 
     // Note: for very large floating point numbers rounding can lead to wrong
     // super-triangle coordinates. This is a very rare corner-case so the
