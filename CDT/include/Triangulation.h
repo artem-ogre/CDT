@@ -78,8 +78,13 @@ struct CDT_EXPORT IntersectingConstraintEdges
      */
     enum Enum
     {
-        Ignore,  ///< constraint edge intersections are not checked
-        Resolve, ///< constraint edge intersections are resolved
+        NotAllowed, ///< constraint edge intersections are not allowed
+        TryResolve, ///< attempt to resolve constraint edge intersections
+        /**
+         * No checks: slightly faster but less safe.
+         * User must provide a valid input without intersecting constraints.
+         */
+        DontCheck,
     };
 };
 
@@ -90,6 +95,115 @@ struct CDT_EXPORT IntersectingConstraintEdges
  */
 typedef unsigned short LayerDepth;
 typedef LayerDepth BoundaryOverlapCount;
+
+/**
+ * Contains source location info: file, function, line
+ */
+class SourceLocation
+{
+public:
+    SourceLocation(const std::string& file, const std::string& func, int line)
+        : m_file(file)
+        , m_func(func)
+        , m_line(line)
+    {}
+    const std::string& file() const
+    {
+        return m_file;
+    }
+    const std::string& func() const
+    {
+        return m_func;
+    }
+    int line() const
+    {
+        return m_line;
+    }
+
+private:
+    std::string m_file;
+    std::string m_func;
+    int m_line;
+};
+
+/// Macro for getting source location
+#define CDT_SOURCE_LOCATION                                                    \
+    SourceLocation(std::string(__FILE__), std::string(__func__), __LINE__)
+
+/**
+ * Base class for errors. Contains error description and source location: file,
+ * function, line
+ */
+class Error : public std::runtime_error
+{
+public:
+    /// Constructor
+    Error(const std::string& description, const SourceLocation& srcLoc)
+        : std::runtime_error(
+              description + "\nin '" + srcLoc.func() + "' at " + srcLoc.file() +
+              ":" + std::to_string(srcLoc.line()))
+        , m_description(description)
+        , m_srcLoc(srcLoc)
+    {}
+    /// Get error description
+    const std::string& description() const
+    {
+        return m_description;
+    }
+    /// Get source location from where the error was thrown
+    const SourceLocation& sourceLocation() const
+    {
+        return m_srcLoc;
+    }
+
+private:
+    std::string m_description;
+    SourceLocation m_srcLoc;
+};
+
+/**
+ * Error thrown when triangulation modification is attempted after it was
+ * finalized
+ */
+class FinalizedError : public Error
+{
+public:
+    FinalizedError(const SourceLocation& srcLoc)
+        : Error(
+              "Triangulation was finalized with 'erase...' method. Further "
+              "modification is not possible.",
+              srcLoc)
+    {}
+};
+
+/**
+ * Error thrown when duplicate vertex is detected during vertex insertion
+ */
+class DuplicateVertexError : public Error
+{
+public:
+    DuplicateVertexError(const SourceLocation& srcLoc)
+        : Error(
+              "Duplicate vertex detected: a vertex with exactly the same "
+              "coordinates already exists in the triangulation",
+              srcLoc)
+    {}
+};
+
+/**
+ * Error thrown when intersecting constraint edges are detected, but
+ * triangulation is not configured to attempt to resolve them
+ */
+class IntersectingConstraintsNotAllowed : public Error
+{
+public:
+    IntersectingConstraintsNotAllowed(const SourceLocation& srcLoc)
+        : Error(
+              "Intersecting constraint edges are not allowed. Triangulation "
+              "was configured with 'IntersectingConstraintEdges::NotAllowed'",
+              srcLoc)
+    {}
+};
 
 /**
  * @defgroup Triangulation Triangulation Class
@@ -670,11 +784,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
     TGetVertexCoordY getY)
 {
     if(isFinalized())
-    {
-        throw std::runtime_error(
-            "Triangulation was finalized with 'erase...' method. Inserting new "
-            "vertices is not possible");
-    }
+        throw FinalizedError(CDT_SOURCE_LOCATION);
 
     const bool isFirstTime = vertices.empty();
     const T max = std::numeric_limits<T>::max();
@@ -719,15 +829,11 @@ void Triangulation<T, TNearPointLocator>::insertEdges(
     TGetEdgeVertexStart getStart,
     TGetEdgeVertexEnd getEnd)
 {
-    // state shared between different runs for performance gains
+    if(isFinalized())
+        throw FinalizedError(CDT_SOURCE_LOCATION);
+
     std::vector<TriangulatePseudopolygonTask> tppIterations;
     EdgeVec remaining;
-    if(isFinalized())
-    {
-        throw std::runtime_error(
-            "Triangulation was finalized with 'erase...' method. Inserting new "
-            "edges is not possible");
-    }
     for(; first != last; ++first)
     {
         // +3 to account for super-triangle vertices
@@ -751,11 +857,8 @@ void Triangulation<T, TNearPointLocator>::conformToEdges(
     TGetEdgeVertexEnd getEnd)
 {
     if(isFinalized())
-    {
-        throw std::runtime_error(
-            "Triangulation was finalized with 'erase...' method. Conforming to "
-            "new edges is not possible");
-    }
+        throw FinalizedError(CDT_SOURCE_LOCATION);
+
     tryInitNearestPointLocator();
     // state shared between different runs for performance gains
     std::vector<ConformToEdgeTask> remaining;

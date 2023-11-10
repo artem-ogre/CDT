@@ -190,7 +190,7 @@ private:
     {
         m_cdt = Triangulation(
             CDT::VertexInsertionOrder::Auto,
-            CDT::IntersectingConstraintEdges::Resolve,
+            CDT::IntersectingConstraintEdges::TryResolve,
             1e-3);
         if(!m_points.empty())
         {
