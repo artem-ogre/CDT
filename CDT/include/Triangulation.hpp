@@ -452,7 +452,7 @@ VertInd Triangulation<T, TNearPointLocator>::addSplitEdgeVertex(
     addNewVertex(splitVert, noNeighbor);
     std::stack<TriInd> triStack = insertVertexOnEdge(iSplitVert, iT, iTopo);
     tryAddVertexToLocator(iSplitVert);
-    ensureDelaunayByEdgeFlips(splitVert, iSplitVert, triStack);
+    ensureDelaunayByEdgeFlips(iSplitVert, triStack);
     return iSplitVert;
 }
 
@@ -577,7 +577,21 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
         {
         case IntersectingConstraintEdges::NotAllowed:
             if(fixedEdges.count(Edge(iVL, iVR)))
-                throw IntersectingConstraintsNotAllowed(CDT_SOURCE_LOCATION);
+            {
+                // make sure to report original input edges in the exception
+                Edge e1 = originalEdge;
+                Edge e2 = Edge(iVL, iVR);
+                e2 = pieceToOriginals.count(e2) ? pieceToOriginals[e2].front()
+                                                : e2;
+                // don't count super-triangle vertices
+                e1 = Edge(e1.v1() - m_nTargetVerts, e1.v2() - m_nTargetVerts);
+                e2 = Edge(e2.v1() - m_nTargetVerts, e2.v2() - m_nTargetVerts);
+                throw IntersectingConstraintsNotAllowed(
+                    e1,
+                    pieceToOriginals.count(e2) ? pieceToOriginals[e2].front()
+                                               : e2,
+                    CDT_SOURCE_LOCATION);
+            }
             break;
         case IntersectingConstraintEdges::TryResolve: {
             if(!fixedEdges.count(Edge(iVL, iVR)))
@@ -751,7 +765,20 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
         {
         case IntersectingConstraintEdges::NotAllowed:
             if(fixedEdges.count(Edge(iVleft, iVright)))
-                throw IntersectingConstraintsNotAllowed(CDT_SOURCE_LOCATION);
+            {
+                // make sure to report original input edges in the exception
+                Edge e1 = pieceToOriginals.count(edge)
+                              ? pieceToOriginals[e1].front()
+                              : edge;
+                Edge e2(iVleft, iVright);
+                e2 = pieceToOriginals.count(e2) ? pieceToOriginals[e2].front()
+                                                : e2;
+                // don't count super-triangle vertices
+                e1 = Edge(e1.v1() - m_nTargetVerts, e1.v2() - m_nTargetVerts);
+                e2 = Edge(e2.v1() - m_nTargetVerts, e2.v2() - m_nTargetVerts);
+                throw IntersectingConstraintsNotAllowed(
+                    e1, e2, CDT_SOURCE_LOCATION);
+            }
             break;
         case IntersectingConstraintEdges::TryResolve: {
             if(!fixedEdges.count(Edge(iVleft, iVright)))
@@ -1011,7 +1038,7 @@ Triangulation<T, TNearPointLocator>::insertVertex_FlipFixedEdges(
 
     const V2d<T>& v1 = vertices[iV1];
     const VertInd startVertex = m_nearPtLocator.nearPoint(v1, vertices);
-    array<TriInd, 2> trisAt = walkingSearchTrianglesAt(v1, startVertex);
+    array<TriInd, 2> trisAt = walkingSearchTrianglesAt(iV1, startVertex);
     std::stack<TriInd> triStack =
         trisAt[1] == noNeighbor ? insertVertexInsideTriangle(iV1, trisAt[0])
                                 : insertVertexOnEdge(iV1, trisAt[0], trisAt[1]);
@@ -1024,7 +1051,7 @@ Triangulation<T, TNearPointLocator>::insertVertex_FlipFixedEdges(
         triStack.pop();
 
         edgeFlipInfo(iT, iV1, iTopo, iV2, iV3, iV4, n1, n2, n3, n4);
-        if(iTopo != noNeighbor && isFlipNeeded(v1, iV1, iV2, iV3, iV4))
+        if(iTopo != noNeighbor && isFlipNeeded(iV1, iV2, iV3, iV4))
         {
             // if flipped edge is fixed, remember it
             const Edge flippedEdge(iV2, iV4);
@@ -1049,13 +1076,12 @@ void Triangulation<T, TNearPointLocator>::insertVertex(
     const VertInd iVert,
     const VertInd walkStart)
 {
-    const V2d<T>& v = vertices[iVert];
-    const array<TriInd, 2> trisAt = walkingSearchTrianglesAt(v, walkStart);
+    const array<TriInd, 2> trisAt = walkingSearchTrianglesAt(iVert, walkStart);
     std::stack<TriInd> triStack =
         trisAt[1] == noNeighbor
             ? insertVertexInsideTriangle(iVert, trisAt[0])
             : insertVertexOnEdge(iVert, trisAt[0], trisAt[1]);
-    ensureDelaunayByEdgeFlips(v, iVert, triStack);
+    ensureDelaunayByEdgeFlips(iVert, triStack);
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1069,7 +1095,6 @@ void Triangulation<T, TNearPointLocator>::insertVertex(const VertInd iVert)
 
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::ensureDelaunayByEdgeFlips(
-    const V2d<T>& v1,
     const VertInd iV1,
     std::stack<TriInd>& triStack)
 {
@@ -1081,7 +1106,7 @@ void Triangulation<T, TNearPointLocator>::ensureDelaunayByEdgeFlips(
         triStack.pop();
 
         edgeFlipInfo(iT, iV1, iTopo, iV2, iV3, iV4, n1, n2, n3, n4);
-        if(iTopo != noNeighbor && isFlipNeeded(v1, iV1, iV2, iV3, iV4))
+        if(iTopo != noNeighbor && isFlipNeeded(iV1, iV2, iV3, iV4))
         {
             flipEdge(iT, iTopo, iV1, iV2, iV3, iV4, n1, n2, n3, n4);
             triStack.push(iT);
@@ -1194,7 +1219,6 @@ void Triangulation<T, TNearPointLocator>::edgeFlipInfo(
  */
 template <typename T, typename TNearPointLocator>
 bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
-    const V2d<T>& v,
     const VertInd iV1,
     const VertInd iV2,
     const VertInd iV3,
@@ -1202,6 +1226,7 @@ bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
 {
     if(fixedEdges.count(Edge(iV2, iV4)))
         return false; // flip not needed if the original edge is fixed
+    const V2d<T>& v1 = vertices[iV1];
     const V2d<T>& v2 = vertices[iV2];
     const V2d<T>& v3 = vertices[iV3];
     const V2d<T>& v4 = vertices[iV4];
@@ -1216,28 +1241,34 @@ bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
             // does original edge also touch super-triangle?
             if(iV2 < 3)
                 return locatePointLine(v2, v3, v4) ==
-                       locatePointLine(v, v3, v4);
+                       locatePointLine(v1, v3, v4);
             if(iV4 < 3)
                 return locatePointLine(v4, v2, v3) ==
-                       locatePointLine(v, v2, v3);
+                       locatePointLine(v1, v2, v3);
             return false; // original edge does not touch super-triangle
         }
         if(iV3 < 3) // flip-candidate edge touches super-triangle
         {
             // does original edge also touch super-triangle?
             if(iV2 < 3)
-                return locatePointLine(v2, v, v4) == locatePointLine(v3, v, v4);
+            {
+                return locatePointLine(v2, v1, v4) ==
+                       locatePointLine(v3, v1, v4);
+            }
             if(iV4 < 3)
-                return locatePointLine(v4, v2, v) == locatePointLine(v3, v2, v);
+            {
+                return locatePointLine(v4, v2, v1) ==
+                       locatePointLine(v3, v2, v1);
+            }
             return false; // original edge does not touch super-triangle
         }
         // flip-candidate edge does not touch super-triangle
         if(iV2 < 3)
-            return locatePointLine(v2, v3, v4) == locatePointLine(v, v3, v4);
+            return locatePointLine(v2, v3, v4) == locatePointLine(v1, v3, v4);
         if(iV4 < 3)
-            return locatePointLine(v4, v2, v3) == locatePointLine(v, v2, v3);
+            return locatePointLine(v4, v2, v3) == locatePointLine(v1, v2, v3);
     }
-    return isInCircumcircle(v, v2, v3, v4);
+    return isInCircumcircle(v1, v2, v3, v4);
 }
 
 /* Flip edge between T and Topo:
@@ -1449,22 +1480,29 @@ TriInd Triangulation<T, TNearPointLocator>::walkTriangles(
 
 template <typename T, typename TNearPointLocator>
 array<TriInd, 2> Triangulation<T, TNearPointLocator>::walkingSearchTrianglesAt(
-    const V2d<T>& pos,
+    const VertInd iV,
     const VertInd startVertex) const
 {
+    const V2d<T> v = vertices[iV];
     array<TriInd, 2> out = {noNeighbor, noNeighbor};
-    const TriInd iT = walkTriangles(startVertex, pos);
+    const TriInd iT = walkTriangles(startVertex, v);
     // Finished walk, locate point in current triangle
     const Triangle& t = triangles[iT];
     const V2d<T>& v1 = vertices[t.vertices[0]];
     const V2d<T>& v2 = vertices[t.vertices[1]];
     const V2d<T>& v3 = vertices[t.vertices[2]];
-    const PtTriLocation::Enum loc = locatePointTriangle(pos, v1, v2, v3);
+    const PtTriLocation::Enum loc = locatePointTriangle(v, v1, v2, v3);
 
     if(loc == PtTriLocation::Outside)
         throw Error("No triangle was found at position", CDT_SOURCE_LOCATION);
     if(loc == PtTriLocation::OnVertex)
-        throw DuplicateVertexError(CDT_SOURCE_LOCATION);
+    {
+        const Index iDupe = v1 == v   ? t.vertices[0]
+                            : v2 == v ? t.vertices[1]
+                                      : t.vertices[2];
+        throw DuplicateVertexError(
+            iV - m_nTargetVerts, iDupe - m_nTargetVerts, CDT_SOURCE_LOCATION);
+    }
 
     out[0] = iT;
     if(isOnEdge(loc))
