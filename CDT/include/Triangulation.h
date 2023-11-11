@@ -182,12 +182,28 @@ public:
 class DuplicateVertexError : public Error
 {
 public:
-    DuplicateVertexError(const SourceLocation& srcLoc)
+    DuplicateVertexError(
+        const VertInd v1,
+        const VertInd v2,
+        const SourceLocation& srcLoc)
         : Error(
-              "Duplicate vertex detected: a vertex with exactly the same "
-              "coordinates already exists in the triangulation",
+              "Duplicate vertex detected: #" + std::to_string(v1) +
+                  " is a duplicate of #" + std::to_string(v2),
               srcLoc)
+        , m_v1(v1)
+        , m_v2(v2)
     {}
+    VertInd v1() const
+    {
+        return m_v1;
+    }
+    VertInd v2() const
+    {
+        return m_v2;
+    }
+
+private:
+    VertInd m_v1, m_v2;
 };
 
 /**
@@ -197,12 +213,22 @@ public:
 class IntersectingConstraintsNotAllowed : public Error
 {
 public:
-    IntersectingConstraintsNotAllowed(const SourceLocation& srcLoc)
+    IntersectingConstraintsNotAllowed(
+        const Edge& e1,
+        const Edge& e2,
+        const SourceLocation& srcLoc)
         : Error(
-              "Intersecting constraint edges are not allowed. Triangulation "
-              "was configured with 'IntersectingConstraintEdges::NotAllowed'",
+              "Intersecting constraint edges detected: (" +
+                  std::to_string(e1.v1()) + ", " + std::to_string(e1.v2()) +
+                  ") intersects (" + std::to_string(e2.v1()) + ", " +
+                  std::to_string(e2.v2()) + ")",
               srcLoc)
+        , m_e1(e1)
+        , m_e2(e2)
     {}
+
+private:
+    Edge m_e1, m_e2;
 };
 
 /**
@@ -479,10 +505,7 @@ private:
     void addNewVertex(const V2d<T>& pos, TriInd iT);
     void insertVertex(VertInd iVert);
     void insertVertex(VertInd iVert, VertInd walkStart);
-    void ensureDelaunayByEdgeFlips(
-        const V2d<T>& v1,
-        VertInd iV1,
-        std::stack<TriInd>& triStack);
+    void ensureDelaunayByEdgeFlips(VertInd iV1, std::stack<TriInd>& triStack);
     /// Flip fixed edges and return a list of flipped fixed edges
     std::vector<Edge> insertVertex_FlipFixedEdges(VertInd iV1);
 
@@ -575,7 +598,7 @@ private:
     std::stack<TriInd> insertVertexOnEdge(VertInd v, TriInd iT1, TriInd iT2);
     array<TriInd, 2> trianglesAt(const V2d<T>& pos) const;
     array<TriInd, 2>
-    walkingSearchTrianglesAt(const V2d<T>& pos, VertInd startVertex) const;
+    walkingSearchTrianglesAt(VertInd iV, VertInd startVertex) const;
     TriInd walkTriangles(VertInd startVertex, const V2d<T>& pos) const;
     /// Given triangle and its vertex find opposite triangle and the other three
     /// vertices and surrounding neighbors
@@ -590,12 +613,7 @@ private:
         TriInd& n2,
         TriInd& n3,
         TriInd& n4);
-    bool isFlipNeeded(
-        const V2d<T>& v,
-        VertInd iV1,
-        VertInd iV2,
-        VertInd iV3,
-        VertInd iV4) const;
+    bool isFlipNeeded(VertInd iV1, VertInd iV2, VertInd iV3, VertInd iV4) const;
     void changeNeighbor(TriInd iT, TriInd oldNeighbor, TriInd newNeighbor);
     void changeNeighbor(
         TriInd iT,
