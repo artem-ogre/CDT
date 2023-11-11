@@ -18,6 +18,7 @@
 #include <iterator>
 #include <stack>
 #include <stdexcept>
+#include <string>
 #include <utility>
 #include <vector>
 
