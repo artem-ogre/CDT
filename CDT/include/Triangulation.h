@@ -211,10 +211,10 @@ private:
  * Error thrown when intersecting constraint edges are detected, but
  * triangulation is not configured to attempt to resolve them
  */
-class IntersectingConstraintsNotAllowed : public Error
+class IntersectingConstraintsError : public Error
 {
 public:
-    IntersectingConstraintsNotAllowed(
+    IntersectingConstraintsError(
         const Edge& e1,
         const Edge& e2,
         const SourceLocation& srcLoc)
@@ -227,6 +227,14 @@ public:
         , m_e1(e1)
         , m_e2(e2)
     {}
+    const Edge& e1() const
+    {
+        return m_e1;
+    }
+    const Edge& e2() const
+    {
+        return m_e2;
+    }
 
 private:
     Edge m_e1, m_e2;
