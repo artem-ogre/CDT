@@ -586,7 +586,7 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
                 // don't count super-triangle vertices
                 e1 = Edge(e1.v1() - m_nTargetVerts, e1.v2() - m_nTargetVerts);
                 e2 = Edge(e2.v1() - m_nTargetVerts, e2.v2() - m_nTargetVerts);
-                throw IntersectingConstraintsNotAllowed(
+                throw IntersectingConstraintsError(
                     e1,
                     pieceToOriginals.count(e2) ? pieceToOriginals[e2].front()
                                                : e2,
@@ -776,7 +776,7 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
                 // don't count super-triangle vertices
                 e1 = Edge(e1.v1() - m_nTargetVerts, e1.v2() - m_nTargetVerts);
                 e2 = Edge(e2.v1() - m_nTargetVerts, e2.v2() - m_nTargetVerts);
-                throw IntersectingConstraintsNotAllowed(
+                throw IntersectingConstraintsError(
                     e1, e2, CDT_SOURCE_LOCATION);
             }
             break;
