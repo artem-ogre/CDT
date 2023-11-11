@@ -54,7 +54,7 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 
 - Points exactly on the edges
 - Exactly overlapping edges
-- Resolving intersecting edges by adding points at the intersections (with `CDT::IntersectingConstraintEdges::Resolve`)
+- Resolving intersecting edges by adding points at the intersections (with `CDT::IntersectingConstraintEdges::TryResolve`)
 
 
 <a name="online-documentation"></a>
@@ -211,7 +211,7 @@ Use `CDT::Triangulation::conformToEdges` instead of `CDT::Triangulation::insertE
 
 **Resolve edge intersections by adding new points and splitting edges**
 
-Pass `CDT::IntersectingConstraintEdges::Resolve` to `CDT::Triangulation` constructor.
+Pass `CDT::IntersectingConstraintEdges::TryResolve` to `CDT::Triangulation` constructor.
 
 **Custom point/edge type**
 
