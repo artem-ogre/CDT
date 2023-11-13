@@ -164,6 +164,7 @@ CDT_INLINE_IF_HEADER_ONLY Index opoNbr(const Index vertIndex)
     if(vertIndex == Index(2))
         return Index(0);
     assert(false && "Invalid vertex index");
+    throw std::runtime_error("Invalid vertex index");
 }
 
 CDT_INLINE_IF_HEADER_ONLY Index opoVrt(const Index neighborIndex)
@@ -175,6 +176,7 @@ CDT_INLINE_IF_HEADER_ONLY Index opoVrt(const Index neighborIndex)
     if(neighborIndex == Index(2))
         return Index(1);
     assert(false && "Invalid neighbor index");
+    throw std::runtime_error("Invalid neighbor index");
 }
 
 CDT_INLINE_IF_HEADER_ONLY Index
