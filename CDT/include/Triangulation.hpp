@@ -620,7 +620,7 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
             const Edge e(polyL.back(), iVopo);
             const TriInd outer = edgeNeighbor(tOpo, e.v1(), e.v2());
             if(!outerTris.insert(std::make_pair(e, outer)).second)
-                outerTris[e] = noNeighbor; // hanging edge detected
+                outerTris.at(e) = noNeighbor; // hanging edge detected
             polyL.push_back(iVopo);
             iV = iVL;
             iVL = iVopo;
@@ -630,7 +630,7 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
             const Edge e(polyR.back(), iVopo);
             const TriInd outer = edgeNeighbor(tOpo, e.v1(), e.v2());
             if(!outerTris.insert(std::make_pair(e, outer)).second)
-                outerTris[e] = noNeighbor; // hanging edge detected
+                outerTris.at(e) = noNeighbor; // hanging edge detected
             polyR.push_back(iVopo);
             iV = iVR;
             iVR = iVopo;
