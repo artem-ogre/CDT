@@ -521,7 +521,7 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
     const Edge edge,
     const Edge originalEdge,
     EdgeVec& remaining,
-    std::vector<TriangulatePseudopolygonTask>& tppIterations)
+    std::vector<TriangulatePseudoPolygonTask>& tppIterations)
 {
     const VertInd iA = edge.v1();
     VertInd iB = edge.v2();
@@ -556,15 +556,15 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
     Triangle t = triangles[iT];
     std::vector<TriInd> intersected(1, iT);
     std::vector<VertInd> polyL, polyR;
-    std::vector<TriInd> outerTrisL, outerTrisR;
     polyL.reserve(2);
     polyL.push_back(iA);
     polyL.push_back(iVL);
-    outerTrisL.push_back(edgeNeighbor(t, iA, iVL));
     polyR.reserve(2);
     polyR.push_back(iA);
     polyR.push_back(iVR);
-    outerTrisR.push_back(edgeNeighbor(t, iA, iVR));
+    unordered_map<Edge, TriInd> outerTris;
+    outerTris[Edge(iA, iVL)] = edgeNeighbor(t, iA, iVL);
+    outerTris[Edge(iA, iVR)] = edgeNeighbor(t, iA, iVR);
     VertInd iV = iA;
 
     while(!t.containsVertex(iB))
@@ -616,14 +616,20 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
             locatePointLine(vertices[iVopo], a, b, distanceTolerance);
         if(loc == PtLineLocation::Left)
         {
-            outerTrisL.push_back(edgeNeighbor(tOpo, polyL.back(), iVopo));
+            const Edge e(polyL.back(), iVopo);
+            const TriInd outer = edgeNeighbor(tOpo, e.v1(), e.v2());
+            if(!outerTris.insert(std::make_pair(e, outer)).second)
+                outerTris[e] = noNeighbor; // hanging edge detected
             polyL.push_back(iVopo);
             iV = iVL;
             iVL = iVopo;
         }
         else if(loc == PtLineLocation::Right)
         {
-            outerTrisR.push_back(edgeNeighbor(tOpo, polyR.back(), iVopo));
+            const Edge e(polyR.back(), iVopo);
+            const TriInd outer = edgeNeighbor(tOpo, e.v1(), e.v2());
+            if(!outerTris.insert(std::make_pair(e, outer)).second)
+                outerTris[e] = noNeighbor; // hanging edge detected
             polyR.push_back(iVopo);
             iV = iVR;
             iVR = iVopo;
@@ -635,8 +641,8 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
         iT = iTopo;
         t = triangles[iT];
     }
-    outerTrisL.push_back(edgeNeighbor(t, polyL.back(), iB));
-    outerTrisR.push_back(edgeNeighbor(t, polyR.back(), iB));
+    outerTris[Edge(polyL.back(), iB)] = edgeNeighbor(t, polyL.back(), iB);
+    outerTris[Edge(polyR.back(), iB)] = edgeNeighbor(t, polyR.back(), iB);
     polyL.push_back(iB);
     polyR.push_back(iB);
 
@@ -647,26 +653,16 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
         pivotVertexTriangleCW(iA);
     if(m_vertTris[iB] == intersected.back())
         pivotVertexTriangleCW(iB);
-    // Handle outer triangles for the cases of hanging edges
-    typedef std::vector<TriInd>::iterator TriIndIt;
-    std::sort(intersected.begin(), intersected.end());
-    for(TriIndIt it = outerTrisR.begin(); it != outerTrisR.end(); ++it)
-        if(std::binary_search(intersected.begin(), intersected.end(), *it))
-            *it = noNeighbor;
-    for(TriIndIt it = outerTrisL.begin(); it != outerTrisL.end(); ++it)
-        if(std::binary_search(intersected.begin(), intersected.end(), *it))
-            *it = noNeighbor;
     // Remove intersected triangles
     typedef std::vector<TriInd>::const_iterator TriIndCit;
     for(TriIndCit it = intersected.begin(); it != intersected.end(); ++it)
         makeDummy(*it);
     { // Triangulate pseudo-polygons on both sides
         std::reverse(polyR.begin(), polyR.end());
-        std::reverse(outerTrisR.begin(), outerTrisR.end());
         const TriInd iTL = addTriangle();
         const TriInd iTR = addTriangle();
-        triangulatePseudopolygon(polyL, outerTrisL, iTL, iTR, tppIterations);
-        triangulatePseudopolygon(polyR, outerTrisR, iTR, iTL, tppIterations);
+        triangulatePseudoPolygon(polyL, outerTris, iTL, iTR, tppIterations);
+        triangulatePseudoPolygon(polyR, outerTris, iTR, iTL, tppIterations);
     }
 
     if(iB != edge.v2()) // encountered point on the edge
@@ -688,7 +684,7 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
     Edge edge,
     const Edge originalEdge,
     EdgeVec& remaining,
-    std::vector<TriangulatePseudopolygonTask>& tppIterations)
+    std::vector<TriangulatePseudoPolygonTask>& tppIterations)
 {
     // use iteration over recursion to avoid stack overflows
     remaining.clear();
@@ -776,8 +772,7 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
                 // don't count super-triangle vertices
                 e1 = Edge(e1.v1() - m_nTargetVerts, e1.v2() - m_nTargetVerts);
                 e2 = Edge(e2.v1() - m_nTargetVerts, e2.v2() - m_nTargetVerts);
-                throw IntersectingConstraintsError(
-                    e1, e2, CDT_SOURCE_LOCATION);
+                throw IntersectingConstraintsError(e1, e2, CDT_SOURCE_LOCATION);
             }
             break;
         case IntersectingConstraintEdges::TryResolve: {
@@ -1597,23 +1592,15 @@ void Triangulation<T, TNearPointLocator>::changeNeighbor(
 }
 
 template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::triangulatePseudopolygon(
+void Triangulation<T, TNearPointLocator>::triangulatePseudoPolygon(
     const std::vector<VertInd>& poly,
-    const std::vector<TriInd>& outerTris,
-    const TriInd iT,
-    const TriInd iN,
-    std::vector<TriangulatePseudopolygonTask>& iterations)
+    unordered_map<Edge, TriInd>& outerTris,
+    TriInd iT,
+    TriInd iN,
+    std::vector<TriangulatePseudoPolygonTask>& iterations)
 {
     assert(poly.size() > 2);
-
-    // note: needed for proper linking with outer triangles
-    // during pseudo-polygon triangulation, vertex triangle
-    // will be set back, see asserts at the end
-    for(std::size_t i = 1; i < outerTris.size(); ++i)
-        if(outerTris[i] == noNeighbor)
-            m_vertTris[poly[i]] = noNeighbor;
-
-    // note: uses interation instead of recursion to avoid stack overflows
+    // note: uses iteration instead of recursion to avoid stack overflows
     iterations.clear();
     iterations.push_back(make_tuple(
         IndexSizeType(0),
@@ -1623,19 +1610,15 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudopolygon(
         Index(0)));
     while(!iterations.empty())
     {
-        triangulatePseudopolygonIteration(poly, outerTris, iterations);
+        triangulatePseudoPolygonIteration(poly, outerTris, iterations);
     }
-
-    // make sure adjacent triangles were restored
-    for(std::size_t i = 0; i < poly.size(); ++i)
-        assert(m_vertTris[poly[i]] != noNeighbor);
 }
 
 template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::triangulatePseudopolygonIteration(
+void Triangulation<T, TNearPointLocator>::triangulatePseudoPolygonIteration(
     const std::vector<VertInd>& poly,
-    const std::vector<TriInd>& outerTris,
-    std::vector<TriangulatePseudopolygonTask>& iterations)
+    unordered_map<Edge, TriInd>& outerTris,
+    std::vector<TriangulatePseudoPolygonTask>& iterations)
 {
     IndexSizeType iA, iB;
     TriInd iT, iParent;
@@ -1651,11 +1634,10 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudopolygonIteration(
     const VertInd a = poly[iA];
     const VertInd b = poly[iB];
     const VertInd c = poly[iC];
+
     // split pseudo-polygon in two parts and triangulate them
-    //
-    // note: first part needs to be pushed on stack last
-    // in order to be processed first
-    //
+    // note: second part needs to be pushed on stack first to be processed first
+
     // second part: points after the Delaunay point
     if(iB - iC > 1)
     {
@@ -1664,13 +1646,16 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudopolygonIteration(
     }
     else // pseudo-poly is reduced to a single outer edge
     {
-        const TriInd outerTri = outerTris[iC];
+        const Edge outerEdge(b, c);
+        const TriInd outerTri = outerTris.at(outerEdge);
         if(outerTri != noNeighbor)
         {
             assert(outerTri != iT);
             t.neighbors[1] = outerTri;
             changeNeighbor(outerTri, c, b, iT);
         }
+        else
+            outerTris.at(outerEdge) = iT;
     }
     // first part: points before the Delaunay point
     if(iC - iA > 1)
@@ -1680,14 +1665,16 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudopolygonIteration(
     }
     else
     { // pseudo-poly is reduced to a single outer edge
-        const TriInd outerTri =
-            outerTris[iA] != noNeighbor ? outerTris[iA] : m_vertTris[c];
+        const Edge outerEdge(c, a);
+        const TriInd outerTri = outerTris.at(outerEdge);
         if(outerTri != noNeighbor)
         {
             assert(outerTri != iT);
             t.neighbors[2] = outerTri;
             changeNeighbor(outerTri, c, a, iT);
         }
+        else
+            outerTris.at(outerEdge) = iT;
     }
     // Finalize triangle
     // note: only when triangle is finalized to we add it as a neighbor to
@@ -1695,7 +1682,6 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudopolygonIteration(
     triangles[iParent].neighbors[iInParent] = iT;
     t.neighbors[0] = iParent;
     t.vertices = detail::arr3(a, b, c);
-    setAdjacentTriangle(a, iT);
     setAdjacentTriangle(c, iT);
 }
 
