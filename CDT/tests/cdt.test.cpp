@@ -936,3 +936,12 @@ TEST_CASE("Regression test issue #154 (3)", "")
         REQUIRE(topologyString(cdt) == topologyString(outFile));
     }
 }
+
+TEST_CASE("Regression test: hanging edge in pseudo-poly", "")
+{
+    auto [vv, ee] = readInputFromFile<double>("inputs/hanging3.txt");
+    auto cdt = Triangulation<double>{};
+    cdt.insertVertices(vv);
+    cdt.insertEdges(ee);
+    REQUIRE(CDT::verifyTopology(cdt));
+}

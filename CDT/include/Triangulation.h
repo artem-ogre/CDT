@@ -520,7 +520,7 @@ private:
 
     /// State for an iteration of triangulate pseudo-polygon
     typedef tuple<IndexSizeType, IndexSizeType, TriInd, TriInd, Index>
-        TriangulatePseudopolygonTask;
+        TriangulatePseudoPolygonTask;
 
     /**
      * Insert an edge into constraint Delaunay triangulation
@@ -538,7 +538,7 @@ private:
         Edge edge,
         Edge originalEdge,
         EdgeVec& remaining,
-        std::vector<TriangulatePseudopolygonTask>& tppIterations);
+        std::vector<TriangulatePseudoPolygonTask>& tppIterations);
 
     /**
      * Insert an edge or its part into constraint Delaunay triangulation
@@ -556,7 +556,7 @@ private:
         Edge edge,
         Edge originalEdge,
         EdgeVec& remaining,
-        std::vector<TriangulatePseudopolygonTask>& tppIterations);
+        std::vector<TriangulatePseudoPolygonTask>& tppIterations);
 
     /// State for iteration of conforming to edge
     typedef tuple<Edge, EdgeVec, BoundaryOverlapCount> ConformToEdgeTask;
@@ -629,16 +629,16 @@ private:
         VertInd iVedge1,
         VertInd iVedge2,
         TriInd newNeighbor);
-    void triangulatePseudopolygon(
+    void triangulatePseudoPolygon(
         const std::vector<VertInd>& poly,
-        const std::vector<TriInd>& outerTris,
+        unordered_map<Edge, TriInd>& outerTris,
         TriInd iT,
         TriInd iN,
-        std::vector<TriangulatePseudopolygonTask>& iterations);
-    void triangulatePseudopolygonIteration(
+        std::vector<TriangulatePseudoPolygonTask>& iterations);
+    void triangulatePseudoPolygonIteration(
         const std::vector<VertInd>& poly,
-        const std::vector<TriInd>& outerTris,
-        std::vector<TriangulatePseudopolygonTask>& iterations);
+        unordered_map<Edge, TriInd>& outerTris,
+        std::vector<TriangulatePseudoPolygonTask>& iterations);
     IndexSizeType findDelaunayPoint(
         const std::vector<VertInd>& poly,
         IndexSizeType iA,
@@ -859,7 +859,7 @@ void Triangulation<T, TNearPointLocator>::insertEdges(
     if(isFinalized())
         throw FinalizedError(CDT_SOURCE_LOCATION);
 
-    std::vector<TriangulatePseudopolygonTask> tppIterations;
+    std::vector<TriangulatePseudoPolygonTask> tppIterations;
     EdgeVec remaining;
     for(; first != last; ++first)
     {
