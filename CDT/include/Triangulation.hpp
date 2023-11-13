@@ -1906,29 +1906,33 @@ private:
 };
 
 template <typename T>
-struct less_than_x
+class less_than_x
 {
+    const std::vector<V2d<T> >& m_vertices;
+
+public:
     less_than_x(const std::vector<V2d<T> >& vertices)
-        : vertices(vertices)
+        : m_vertices(vertices)
     {}
     bool operator()(const VertInd a, const VertInd b) const
     {
-        return vertices[a].x < vertices[b].x;
+        return m_vertices[a].x < m_vertices[b].x;
     }
-    const std::vector<V2d<T> >& vertices;
 };
 
 template <typename T>
-struct less_than_y
+class less_than_y
 {
+    const std::vector<V2d<T> >& m_vertices;
+
+public:
     less_than_y(const std::vector<V2d<T> >& vertices)
-        : vertices(vertices)
+        : m_vertices(vertices)
     {}
     bool operator()(const VertInd a, const VertInd b) const
     {
-        return vertices[a].y < vertices[b].y;
+        return m_vertices[a].y < m_vertices[b].y;
     }
-    const std::vector<V2d<T> >& vertices;
 };
 
 } // namespace detail
