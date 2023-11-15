@@ -737,7 +737,7 @@ private:
 
     std::vector<TriInd> m_dummyTris;
     TNearPointLocator m_nearPtLocator;
-    std::size_t m_nTargetVerts;
+    IndexSizeType m_nTargetVerts;
     SuperGeometryType::Enum m_superGeomType;
     VertexInsertionOrder::Enum m_vertexInsertionOrder;
     IntersectingConstraintEdges::Enum m_intersectingEdgesStrategy;

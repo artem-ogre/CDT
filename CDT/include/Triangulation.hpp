@@ -291,7 +291,7 @@ template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::initializedWithCustomSuperGeometry()
 {
     m_nearPtLocator.initialize(vertices);
-    m_nTargetVerts = vertices.size();
+    m_nTargetVerts = static_cast<IndexSizeType>(vertices.size());
     m_superGeomType = SuperGeometryType::Custom;
 }
 
@@ -1944,7 +1944,8 @@ void Triangulation<T, TNearPointLocator>::insertVertices_KDTreeBFS(
     V2d<T> boxMax)
 {
     // calculate original indices
-    const VertInd vertexCount = vertices.size() - superGeomVertCount;
+    const VertInd vertexCount =
+        static_cast<IndexSizeType>(vertices.size()) - superGeomVertCount;
     if(vertexCount <= 0)
         return;
     std::vector<VertInd> ii(vertexCount);
