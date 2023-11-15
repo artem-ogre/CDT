@@ -1494,9 +1494,9 @@ array<TriInd, 2> Triangulation<T, TNearPointLocator>::walkingSearchTrianglesAt(
         throw Error("No triangle was found at position", CDT_SOURCE_LOCATION);
     if(loc == PtTriLocation::OnVertex)
     {
-        const Index iDupe = v1 == v   ? t.vertices[0]
-                            : v2 == v ? t.vertices[1]
-                                      : t.vertices[2];
+        const VertInd iDupe = v1 == v   ? t.vertices[0]
+                              : v2 == v ? t.vertices[1]
+                                        : t.vertices[2];
         throw DuplicateVertexError(
             iV - m_nTargetVerts, iDupe - m_nTargetVerts, CDT_SOURCE_LOCATION);
     }
