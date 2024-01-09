@@ -19,17 +19,17 @@ jobs:
             os: ubuntu-latest
           }
         - {
-            name: "macOS", 
+            name: "macOS",
             os: macos-latest
           }
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         submodules: true
 
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: '3.x'
 
@@ -39,7 +39,7 @@ jobs:
         pip install conan
         conan --version
         conan profile detect
-    
+
     - name: "Build: compiled, shared, boost"
       run: conan create CDT/ -o as_compiled_library=True -o shared=True -o use_boost=True -o enable_testing=True --build missing
     - name: "Build: compiled, shared, without boost"

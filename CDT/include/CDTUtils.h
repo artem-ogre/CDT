@@ -326,6 +326,7 @@ struct CDT_EXPORT PtTriLocation
         OnEdge1,
         OnEdge2,
         OnEdge3,
+        OnVertex,
     };
 };
 
@@ -462,6 +463,8 @@ sineOfSmallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
 /// Smallest angle of triangle ABC in radians
 template <typename T>
 CDT_EXPORT T smallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
+/// Check if any of triangle's vertices belongs to a super-triangle
+CDT_INLINE_IF_HEADER_ONLY bool touchesSuperTriangle(const Triangle& t);
 
 } // namespace CDT
 

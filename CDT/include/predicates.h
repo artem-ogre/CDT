@@ -276,7 +276,8 @@ namespace detail {
 	};
 
 // See: https://stackoverflow.com/a/40765925/1597714
-#if defined(__FMA__) || defined(__FMA4__) || defined(__AVX2__)
+// Standard defines: https://en.cppreference.com/w/cpp/numeric/math/fma
+#if defined(__FMA__) || defined(__FMA4__) || defined(__AVX2__) || (defined(FP_FAST_FMA) && defined(FP_FAST_FMAF))
 #define PREDICATES_FAST_FMA 1
 #endif
 
