@@ -539,7 +539,8 @@ private:
     bool isRefinementNeeded(
         const Triangle& tri,
         RefinementCriterion::Enum refinementCriterion,
-        T refinementThreshold) const;
+        T refinementThreshold,
+        VertInd steinerVerticesOffset) const;
     /// Search in all fixed edges to find encroached edges, each fixed edge is
     /// checked against its opposite vertices
     /// Returns queue of encroached edges

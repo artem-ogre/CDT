@@ -454,15 +454,6 @@ CDT_EXPORT T doubledArea(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
 template <typename T>
 CDT_EXPORT T area(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
 
-/// Sine of smallest angle of triangle ABC
-template <typename T>
-CDT_EXPORT T
-sineOfSmallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
-
-/// Smallest angle of triangle ABC in radians
-template <typename T>
-CDT_EXPORT T smallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
-
 } // namespace CDT
 
 #ifndef CDT_USE_AS_COMPILED_LIBRARY

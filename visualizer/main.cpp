@@ -242,7 +242,7 @@ private:
                         m_steinerPtsLimit,
                         toErase,
                         CDT::RefinementCriterion::SmallestAngle,
-                        20 / 180.0 * M_PI);
+                        30 / 180.0 * M_PI);
                 m_cdt.finalizeTriangulation(toErase);
             }
             else if(m_isRemoveOuter)
@@ -253,7 +253,7 @@ private:
                         m_steinerPtsLimit,
                         toErase,
                         CDT::RefinementCriterion::SmallestAngle,
-                        20 / 180.0 * M_PI);
+                        30 / 180.0 * M_PI);
                 m_cdt.finalizeTriangulation(toErase);
             }
             else if(m_isHideSuperTri)
@@ -264,7 +264,7 @@ private:
                         m_steinerPtsLimit,
                         toErase,
                         CDT::RefinementCriterion::SmallestAngle,
-                        20 / 180.0 * M_PI);
+                        30 / 180.0 * M_PI);
                 m_cdt.finalizeTriangulation(toErase);
             }
             else if(m_isRefineTriangles)
@@ -274,7 +274,7 @@ private:
                     m_steinerPtsLimit,
                     toErase,
                     CDT::RefinementCriterion::SmallestAngle,
-                    20 / 180.0 * M_PI);
+                    30 / 180.0 * M_PI);
             }
             const CDT::unordered_map<Edge, CDT::EdgeVec> tmp =
                 CDT::EdgeToPiecesMapping(m_cdt.pieceToOriginals);
