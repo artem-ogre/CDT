@@ -11,8 +11,6 @@
 #include <chrono>
 #include <fstream>
 #include <iostream>
-#include <map>
-#include <numeric>
 #include <sstream>
 
 using namespace CDT;
@@ -435,12 +433,22 @@ TEMPLATE_LIST_TEST_CASE(
         readInputFromFile<TestType>("inputs/corner cases.txt");
     auto cdt = Triangulation<TestType>(
         CDT::VertexInsertionOrder::Auto,
-        CDT::IntersectingConstraintEdges::TryResolve,
+        CDT::IntersectingConstraintEdges::Resolve,
         0.);
     cdt.insertVertices(vv);
     cdt.insertEdges(ee);
     cdt.eraseSuperTriangle();
     const auto topo = TriangulationTopo(cdt);
+
+    /*
+    // Write to file for debugging
+    std::ofstream f("tmp.txt");
+    if(f.is_open())
+    {
+        ENHANCED_THROW(std::runtime_error, "Can't open file for writing");
+    }
+    topo.write(f);
+    */
     std::ostringstream out_s;
     topo.write(out_s);
     std::istringstream in_s(out_s.str());
@@ -470,11 +478,9 @@ std::string to_string(const IntersectingConstraintEdges::Enum& ice)
 {
     switch(ice)
     {
-    case IntersectingConstraintEdges::DontCheck:
-        return "no-check";
-    case IntersectingConstraintEdges::NotAllowed:
+    case IntersectingConstraintEdges::Ignore:
         return "ignore";
-    case IntersectingConstraintEdges::TryResolve:
+    case IntersectingConstraintEdges::Resolve:
         return "resolve";
     }
     ENHANCED_THROW(std::runtime_error, "Reached unreachable");
@@ -490,32 +496,29 @@ TEMPLATE_LIST_TEST_CASE(
     const auto inputFile = GENERATE(
         as<std::string>{},
         "Capital A.txt",
-        "cdt.txt",
-        "ditch.txt",
-        "double-hanging.txt",
-        "gh_issue.txt",
-        "guitar no box.txt",
         "Hanging.txt",
         "Hanging2.txt",
+        "Letter u.txt",
+        "OnEdge.txt",
+        "ProblematicCase1.txt",
+        "cdt.txt",
+        "corner cases.txt",
+        "ditch.txt",
+        "gh_issue.txt",
+        "guitar no box.txt",
         "island.txt",
-        "issue-142-double-hanging-edge.txt",
         "issue-42-full-boundary-overlap.txt",
         "issue-42-hole-overlaps-bondary.txt",
         "issue-42-multiple-boundary-overlaps-conform-to-edge.txt",
         "issue-42-multiple-boundary-overlaps.txt",
         "issue-65-wrong-edges.txt",
         "kidney.txt",
-        "Letter u.txt",
-        "OnEdge.txt",
         "overlapping constraints.txt",
         "overlapping constraints2.txt",
         "points_on_constraint_edge.txt",
-        "ProblematicCase1.txt",
         "regression_issue_38_wrong_hull_small.txt",
         "square with crack.txt",
         "test_data_small.txt",
-        "triple-hanging-flipped.txt",
-        "triple-hanging.txt",
         "unit square.txt");
 
     const auto typeSpecific = std::unordered_set<std::string>{
@@ -533,8 +536,8 @@ TEMPLATE_LIST_TEST_CASE(
     const auto order =
         GENERATE(VertexInsertionOrder::AsProvided, VertexInsertionOrder::Auto);
     const auto intersectingEdgesStrategy = GENERATE(
-        IntersectingConstraintEdges::NotAllowed,
-        IntersectingConstraintEdges::TryResolve);
+        IntersectingConstraintEdges::Ignore,
+        IntersectingConstraintEdges::Resolve);
     const auto minDistToConstraintEdge = 0.;
 
     auto cdt = Triangulation<TestType>(
@@ -547,7 +550,6 @@ TEMPLATE_LIST_TEST_CASE(
     cdt.insertVertices(vv);
     cdt.insertEdges(ee);
     REQUIRE(CDT::verifyTopology(cdt));
-    REQUIRE(CDT::eachVertexHasNeighborTriangle(cdt));
 
     // make true to update expected files (development purposes only)
     const auto outputFileBase = "expected/" +
@@ -605,18 +607,15 @@ TEMPLATE_LIST_TEST_CASE(
     const auto inputFile = GENERATE(
         as<std::string>{},
         "Capital A.txt",
+        "Hanging2.txt",
+        "ProblematicCase1.txt",
         "cdt.txt",
+        "corner cases.txt",
         "ditch.txt",
-        "double-hanging.txt",
         "gh_issue.txt",
         "guitar no box.txt",
-        "Hanging2.txt",
-        "issue-142-double-hanging-edge.txt",
         "issue-42-multiple-boundary-overlaps.txt",
         "points_on_constraint_edge.txt",
-        "ProblematicCase1.txt",
-        "triple-hanging-flipped.txt",
-        "triple-hanging.txt",
         "unit square.txt");
 
     const auto typeSpecific = std::unordered_set<std::string>{
@@ -630,8 +629,7 @@ TEMPLATE_LIST_TEST_CASE(
             : "";
 
     const auto order = VertexInsertionOrder::Auto;
-    const auto intersectingEdgesStrategy =
-        IntersectingConstraintEdges::NotAllowed;
+    const auto intersectingEdgesStrategy = IntersectingConstraintEdges::Ignore;
     const auto minDistToConstraintEdge = 0.;
 
     auto cdt = Triangulation<TestType>(
@@ -663,14 +661,10 @@ TEMPLATE_LIST_TEST_CASE(
 
 TEMPLATE_LIST_TEST_CASE("Ground truth tests: crossing edges", "", CoordTypes)
 {
-    const auto inputFile = GENERATE(
-        as<std::string>{},
-        "crossing-edges.txt",
-        "issue-148-crossing-edges.txt");
+    const auto inputFile = std::string("crossing-edges.txt");
 
     const auto order = VertexInsertionOrder::Auto;
-    const auto intersectingEdgesStrategy =
-        IntersectingConstraintEdges::TryResolve;
+    const auto intersectingEdgesStrategy = IntersectingConstraintEdges::Resolve;
     const auto minDistToConstraintEdge = 0.;
 
     auto cdt = Triangulation<TestType>(
@@ -685,7 +679,6 @@ TEMPLATE_LIST_TEST_CASE("Ground truth tests: crossing edges", "", CoordTypes)
     cdt.insertVertices(vv);
     triangulationType == "" ? cdt.insertEdges(ee) : cdt.conformToEdges(ee);
     REQUIRE(CDT::verifyTopology(cdt));
-    REQUIRE(CDT::eachVertexHasNeighborTriangle(cdt));
     // make true to update expected files (development purposes only)
     const auto outputFileBase = "expected/" +
                                 inputFile.substr(0, inputFile.size() - 4) +
@@ -707,7 +700,7 @@ TEMPLATE_LIST_TEST_CASE("Inserting vertices in two batches", "", CoordTypes)
         readInputFromFile<TestType>("inputs/Constrained Sweden.txt");
     auto cdt = Triangulation<TestType>(
         CDT::VertexInsertionOrder::Auto,
-        CDT::IntersectingConstraintEdges::TryResolve,
+        CDT::IntersectingConstraintEdges::Resolve,
         0.);
     cdt.insertVertices(vv);
     cdt.insertEdges(ee);
@@ -718,7 +711,7 @@ TEMPLATE_LIST_TEST_CASE("Inserting vertices in two batches", "", CoordTypes)
     const auto vv_hi = Vertices<TestType>(vv.begin() + halfSize, vv.end());
     auto cdtBatches = Triangulation<TestType>(
         CDT::VertexInsertionOrder::Auto,
-        CDT::IntersectingConstraintEdges::TryResolve,
+        CDT::IntersectingConstraintEdges::Resolve,
         0.);
     cdtBatches.insertVertices(vv_lo);
     cdtBatches.insertVertices(vv_hi);
@@ -768,8 +761,7 @@ TEST_CASE("Don't flip constraint edge when resolving intersection", "")
     const auto inputFile =
         std::string("dont_flip_constraint_when_resolving_intersection.txt");
     const auto order = VertexInsertionOrder::AsProvided;
-    const auto intersectingEdgesStrategy =
-        IntersectingConstraintEdges::TryResolve;
+    const auto intersectingEdgesStrategy = IntersectingConstraintEdges::Resolve;
     const auto minDistToConstraintEdge = 1e-6;
     const auto outFile = "expected/" +
                          inputFile.substr(0, inputFile.size() - 4) + "__f64_" +
@@ -789,159 +781,4 @@ TEST_CASE("Don't flip constraint edge when resolving intersection", "")
     {
         REQUIRE(topologyString(cdt) == topologyString(outFile));
     }
-}
-
-TEST_CASE(
-    "Regression: resolving edges intersection with a hanging edge in a "
-    "pseudo-polygon",
-    "")
-{
-    const auto inputFile = std::string("HangingIntersection.txt");
-    const auto order = VertexInsertionOrder::Auto;
-    const auto intersectingEdgesStrategy =
-        IntersectingConstraintEdges::TryResolve;
-    const auto minDistToConstraintEdge = 1e-6;
-    const auto outFile = "expected/" +
-                         inputFile.substr(0, inputFile.size() - 4) + "__f64_" +
-                         to_string(order) + "_" +
-                         to_string(intersectingEdgesStrategy) + "_all.txt";
-
-    const auto [vv, ee] = readInputFromFile<double>("inputs/" + inputFile);
-    auto cdt = Triangulation<double>(
-        order, intersectingEdgesStrategy, minDistToConstraintEdge);
-    cdt.insertVertices(vv);
-    cdt.insertEdges(ee);
-    REQUIRE(CDT::verifyTopology(cdt));
-
-    if(updateFiles)
-        topologyToFile(outFile, cdt);
-    else
-    {
-        REQUIRE(topologyString(cdt) == topologyString(outFile));
-    }
-}
-
-TEST_CASE("Regression: multiple hanging edges", "")
-{
-    const auto inputFile = std::string("HangingIntersection.txt");
-    const auto order = VertexInsertionOrder::Auto;
-    const auto intersectingEdgesStrategy =
-        IntersectingConstraintEdges::TryResolve;
-    const auto minDistToConstraintEdge = 1e-6;
-    const auto outFile = "expected/" +
-                         inputFile.substr(0, inputFile.size() - 4) + "__f64_" +
-                         to_string(order) + "_" +
-                         to_string(intersectingEdgesStrategy) + "_all.txt";
-
-    const auto [vv, ee] = readInputFromFile<double>("inputs/" + inputFile);
-    auto cdt = Triangulation<double>(
-        order, intersectingEdgesStrategy, minDistToConstraintEdge);
-    cdt.insertVertices(vv);
-    cdt.insertEdges(ee);
-    REQUIRE(CDT::verifyTopology(cdt));
-
-    if(updateFiles)
-        topologyToFile(outFile, cdt);
-    else
-    {
-        REQUIRE(topologyString(cdt) == topologyString(outFile));
-    }
-}
-
-TEST_CASE("Regression test", "")
-{
-    const auto inputFile = std::string("debug2.txt");
-    const auto [vv, ee] = readInputFromFile<double>("inputs/" + inputFile);
-    auto cdt = Triangulation<double>(VertexInsertionOrder::Auto);
-    cdt.insertVertices(vv);
-    cdt.insertEdges(ee);
-    REQUIRE(CDT::verifyTopology(cdt));
-}
-
-TEST_CASE("Regression test issue #154 (1)", "")
-{
-    // Very large coordinate values lead to wrong super-triangle coordinates due
-    // to the floating-point rounding
-    auto cdt = Triangulation<double>{};
-    cdt.insertVertices({
-        {0.0, 1e38},
-        {1.0, 1e38},
-    });
-    REQUIRE(CDT::verifyTopology(cdt));
-    const auto outFile = "expected/154_1.txt";
-    if(updateFiles)
-        topologyToFile(outFile, cdt);
-    else
-    {
-        REQUIRE(topologyString(cdt) == topologyString(outFile));
-    }
-}
-
-TEST_CASE("Regression test issue #154 (2)", "")
-{
-    // Explanation: There was an incorrect assumptions that there are no 'loops'
-    // in the pseudo-polygons, only 'hanging' edges. The loops are possible as
-    // shown by this test case.
-    auto cdt = Triangulation<double>{};
-    cdt.insertVertices({
-        {2.0, -2.18933983E-5},
-        {-0.0896810815, -2.18407786E-5},
-        {-2.19008489E-5, -7.64692231E-6},
-        {8.73939061E-5, 0.00568488613},
-        {-0.00142463227, -0.00142461748},
-        {-7.67273832E-6, 8.7602064E-5},
-        {0.00569847599, -0.00142463227},
-        {-2.18156383E-5, -7.6295637E-6},
-    });
-    REQUIRE(CDT::verifyTopology(cdt));
-    cdt.insertEdges({
-        {0, 1},
-    });
-    REQUIRE(CDT::verifyTopology(cdt));
-    const auto outFile = "expected/154_2.txt";
-    if(updateFiles)
-        topologyToFile(outFile, cdt);
-    else
-    {
-        REQUIRE(topologyString(cdt) == topologyString(outFile));
-    }
-}
-
-TEST_CASE("Regression test issue #154 (3)", "")
-{
-    // Explanation: There was an incorrect assumptions that there are no 'loops'
-    // in the pseudo-polygons, only 'hanging' edges. The loops are possible as
-    // shown by this test case.
-    auto cdt = Triangulation<double>{};
-    cdt.insertVertices({
-        {-2.0, 1.47656155},
-        {-6.40527344, -40.4999084},
-        {0.0, -7.96960115},
-        {-2.00152564, 1.46877956},
-        {-2.70361328, -7.99999619},
-        {-2.70465064, -7.99901962},
-        {-7.97778273, -19.3754253},
-        {7.96885204, -5.37488127},
-        {-7.97180128, -39.7499695},
-    });
-    cdt.insertEdges({
-        {0, 8},
-    });
-    REQUIRE(CDT::verifyTopology(cdt));
-    const auto outFile = "expected/154_3.txt";
-    if(updateFiles)
-        topologyToFile(outFile, cdt);
-    else
-    {
-        REQUIRE(topologyString(cdt) == topologyString(outFile));
-    }
-}
-
-TEST_CASE("Regression test: hanging edge in pseudo-poly", "")
-{
-    auto [vv, ee] = readInputFromFile<double>("inputs/hanging3.txt");
-    auto cdt = Triangulation<double>{};
-    cdt.insertVertices(vv);
-    cdt.insertEdges(ee);
-    REQUIRE(CDT::verifyTopology(cdt));
 }

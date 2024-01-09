@@ -44,6 +44,7 @@ typedef char couldnt_parse_cxx_standard[-1]; ///< Error: couldn't parse standard
 #include <cassert>
 #include <cmath>
 #include <limits>
+#include <queue>
 #include <vector>
 
 #ifdef CDT_USE_STRONG_TYPING
@@ -243,6 +244,7 @@ inline Edge edge_make(VertInd iV1, VertInd iV2)
 }
 
 typedef std::vector<Edge> EdgeVec;                ///< Vector of edges
+typedef std::queue<Edge> EdgeQueue;                 ///< Queue of edges
 typedef unordered_set<Edge> EdgeUSet;             ///< Hash table of edges
 typedef unordered_set<TriInd> TriIndUSet;         ///< Hash table of triangles
 typedef unordered_map<TriInd, TriInd> TriIndUMap; ///< Triangle hash map
@@ -324,7 +326,6 @@ struct CDT_EXPORT PtTriLocation
         OnEdge1,
         OnEdge2,
         OnEdge3,
-        OnVertex,
     };
 };
 
@@ -418,6 +419,14 @@ CDT_EXPORT bool isInCircumcircle(
 CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY bool
 verticesShareEdge(const TriIndVec& aTris, const TriIndVec& bTris);
 
+/// Vector's length
+template <typename T>
+CDT_EXPORT T length(const V2d<T>& v);
+
+/// Vector's squared length
+template <typename T>
+CDT_EXPORT T lengthSquared(const V2d<T>& v);
+
 /// Distance between two 2D points
 template <typename T>
 CDT_EXPORT T distance(const V2d<T>& a, const V2d<T>& b);
@@ -426,8 +435,24 @@ CDT_EXPORT T distance(const V2d<T>& a, const V2d<T>& b);
 template <typename T>
 CDT_EXPORT T distanceSquared(const V2d<T>& a, const V2d<T>& b);
 
-/// Check if any of triangle's vertices belongs to a super-triangle
-CDT_INLINE_IF_HEADER_ONLY bool touchesSuperTriangle(const Triangle& t);
+/// Check if vertex V is encroaching on diametral circle of an edge
+template <typename T>
+CDT_EXPORT bool isEncroachingOnEdge(
+    const V2d<T>& v,
+    const V2d<T>& edgeStart,
+    const V2d<T>& edgeEnd);
+
+/// Position of ABC triangle circumcenter
+template <typename T>
+CDT_EXPORT V2d<T> circumcenter(V2d<T> a, V2d<T> b, const V2d<T>& c);
+
+/// Doubled surface area of a triangle ABC
+template <typename T>
+CDT_EXPORT T doubledArea(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
+
+/// Surface area of a triangle ABC
+template <typename T>
+CDT_EXPORT T area(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
 
 } // namespace CDT
 

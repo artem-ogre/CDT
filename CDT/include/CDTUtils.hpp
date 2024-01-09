@@ -84,14 +84,12 @@ CDT_INLINE_IF_HEADER_ONLY Index cw(Index i)
 
 CDT_INLINE_IF_HEADER_ONLY bool isOnEdge(const PtTriLocation::Enum location)
 {
-    return location == PtTriLocation::OnEdge1 ||
-           location == PtTriLocation::OnEdge2 ||
-           location == PtTriLocation::OnEdge3;
+    return location > PtTriLocation::Outside;
 }
 
 CDT_INLINE_IF_HEADER_ONLY Index edgeNeighbor(const PtTriLocation::Enum location)
 {
-    assert(isOnEdge(location));
+    assert(location >= PtTriLocation::OnEdge1);
     return static_cast<Index>(location - PtTriLocation::OnEdge1);
 }
 
@@ -140,18 +138,12 @@ PtTriLocation::Enum locatePointTriangle(
     if(edgeCheck == PtLineLocation::Right)
         return PtTriLocation::Outside;
     if(edgeCheck == PtLineLocation::OnLine)
-    {
-        result = (result == PtTriLocation::Inside) ? PtTriLocation::OnEdge2
-                                                   : PtTriLocation::OnVertex;
-    }
+        result = PtTriLocation::OnEdge2;
     edgeCheck = locatePointLine(p, v3, v1);
     if(edgeCheck == PtLineLocation::Right)
         return PtTriLocation::Outside;
     if(edgeCheck == PtLineLocation::OnLine)
-    {
-        result = (result == PtTriLocation::Inside) ? PtTriLocation::OnEdge3
-                                                   : PtTriLocation::OnVertex;
-    }
+        result = PtTriLocation::OnEdge3;
     return result;
 }
 
@@ -163,7 +155,6 @@ CDT_INLINE_IF_HEADER_ONLY Index opoNbr(const Index vertIndex)
         return Index(2);
     if(vertIndex == Index(2))
         return Index(0);
-    assert(false && "Invalid vertex index");
     throw std::runtime_error("Invalid vertex index");
 }
 
@@ -175,7 +166,6 @@ CDT_INLINE_IF_HEADER_ONLY Index opoVrt(const Index neighborIndex)
         return Index(0);
     if(neighborIndex == Index(2))
         return Index(1);
-    assert(false && "Invalid neighbor index");
     throw std::runtime_error("Invalid neighbor index");
 }
 
@@ -285,34 +275,72 @@ bool verticesShareEdge(const TriIndVec& aTris, const TriIndVec& bTris)
 }
 
 template <typename T>
-T distanceSquared(const T ax, const T ay, const T bx, const T by)
+T lengthSquared(const T x, const T y)
 {
-    const T dx = bx - ax;
-    const T dy = by - ay;
-    return dx * dx + dy * dy;
+    return x * x + y * y;
 }
 
 template <typename T>
-T distance(const T ax, const T ay, const T bx, const T by)
+T lengthSquared(const V2d<T>& v)
 {
-    return std::sqrt(distanceSquared(ax, ay, bx, by));
+    return lengthSquared(v.x, v.y);
 }
 
 template <typename T>
-T distance(const V2d<T>& a, const V2d<T>& b)
+T length(const V2d<T>& v)
 {
-    return distance(a.x, a.y, b.x, b.y);
+    return std::sqrt(lengthSquared(v));
 }
 
 template <typename T>
 T distanceSquared(const V2d<T>& a, const V2d<T>& b)
 {
-    return distanceSquared(a.x, a.y, b.x, b.y);
+    return lengthSquared(b.x - a.x, b.y - a.y);
 }
 
-bool touchesSuperTriangle(const Triangle& t)
+template <typename T>
+T distance(const V2d<T>& a, const V2d<T>& b)
 {
-    return t.vertices[0] < 3 || t.vertices[1] < 3 || t.vertices[2] < 3;
+    return std::sqrt(distanceSquared(a, b));
+}
+
+template <typename T>
+bool isEncroachingOnEdge(
+    const V2d<T>& v,
+    const V2d<T>& edgeStart,
+    const V2d<T>& edgeEnd)
+{
+    /*
+     * Contains a point in its diametral circle:
+     * the angle between v and edge end points is obtuse
+     */
+    return (edgeStart.x - v.x) * (edgeEnd.x - v.x) +
+               (edgeStart.y - v.y) * (edgeEnd.y - v.y) <
+           T(0);
+}
+
+template <typename T>
+V2d<T> circumcenter(V2d<T> a, V2d<T> b, const V2d<T>& c)
+{
+    const T denom = 0.5 / orient2D(c, a, b);
+    a.x -= c.x, a.y -= c.y;
+    b.x -= c.x, b.y -= c.y;
+    const T aLenSq = lengthSquared(a), bLenSq = lengthSquared(b);
+    return V2d<T>::make(
+        c.x + (b.y * aLenSq - a.y * bLenSq) * denom,
+        c.y + (a.x * bLenSq - b.x * aLenSq) * denom);
+}
+
+template <typename T>
+T doubledArea(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c)
+{
+    return std::abs(orient2D(a, b, c));
+}
+
+template <typename T>
+T area(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c)
+{
+    return doubledArea(a, b, c) / T(2);
 }
 
 } // namespace CDT
