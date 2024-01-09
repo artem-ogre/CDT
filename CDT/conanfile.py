@@ -29,8 +29,8 @@ class CDTConan(ConanFile):
 
     def requirements(self):
         if self.options.use_boost:
-            self.requires("boost/1.83.0")
-        self.requires("catch2/3.4.0")
+            self.requires("boost/1.81.0")
+        self.requires("catch2/3.3.1")
 
     def configure(self):
         if self.options.use_boost:

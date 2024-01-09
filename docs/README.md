@@ -54,7 +54,7 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 
 - Points exactly on the edges
 - Exactly overlapping edges
-- Resolving intersecting edges by adding points at the intersections (with `CDT::IntersectingConstraintEdges::TryResolve`)
+- Resolving intersecting edges by adding points at the intersections (with `CDT::IntersectingConstraintEdges::Resolve`)
 
 
 <a name="online-documentation"></a>
@@ -79,7 +79,7 @@ when at least one vertex belongs to super-triangle are resolved using an approac
 - No two constraint edges intersect each other (overlapping boundaries are allowed)
 
 **Post-conditions:**
-- Triangles have counter-clockwise (CCW) winding in a 2D coordinate system where X-axis points right and Y-axis points up.
+- Triangles have counter-clockwise (CCW) winding
 
 <a name="implementation-details"></a>
 
@@ -111,14 +111,11 @@ CDT port is [available](https://github.com/microsoft/vcpkg/tree/master/ports/cdt
 CDT is not in the conan-center but there's a `conanfile.py` recipe provided (in this repo).
 Note that it might need small adjustments like changing boost version to fit your needs.
 
-### spack
-A [recipe](https://github.com/spack/spack/blob/develop/var/spack/repos/builtin/packages/cdt/package.py) for CDT is [available](https://spack.readthedocs.io/en/latest/package_list.html#cdt) in [spack](https://spack.io).
-
 <a name="installationbuilding"></a>
 
 ## Installation/Building
 
-CDT uses modern CMake and should *just work* out of the box without any surprises. The are many ways to consume CDT:
+CDT uses modern CMake and should *just work* out of the box without any suprises. The are many ways to consume CDT: 
 - copy headers and use as a header-only library
 - add to CMake project directly with `add_subdirectory`
 - pre-build and add to CMake project as a dependency with `find_package`
@@ -211,7 +208,7 @@ Use `CDT::Triangulation::conformToEdges` instead of `CDT::Triangulation::insertE
 
 **Resolve edge intersections by adding new points and splitting edges**
 
-Pass `CDT::IntersectingConstraintEdges::TryResolve` to `CDT::Triangulation` constructor.
+Pass `CDT::IntersectingConstraintEdges::Resolve` to `CDT::Triangulation` constructor.
 
 **Custom point/edge type**
 
@@ -258,10 +255,6 @@ For work-in-progress on Python bindings check-out [PythonCDT](https://github.com
 - [Bärbel Holm](https://github.com/eisbaerli): removing duplicates and re-mapping edges
 - [Andre Fecteau](https://github.com/AndreFecteau): benchmarking, profiling, and providing a kd-tree implementation a derivative of which is included in CDT
 - [msokalski](https://github.com/msokalski): algorithm discussions and suggestions, bug finding
-- [alkonior](https://github.com/alkonior): finding, reproducing, and reporting a bug ([#142](https://github.com/artem-ogre/CDT/issues/142))
-- [ldcMasa](https://github.com/ldcMasa): finding compilation issue ([#144](https://github.com/artem-ogre/CDT/issues/144))
-- [egladil86](https://github.com/egladil86): finding, reproducing, and reporting a bug ([#148](https://github.com/artem-ogre/CDT/issues/148))
-- [Som1Lse](https://github.com/Som1Lse): fuzzing CDT: finding, reproducing, and reporting bugs ([#154](https://github.com/artem-ogre/CDT/issues/148))
 
 <a name="contributing"></a>
 

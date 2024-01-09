@@ -40,7 +40,7 @@ const SuperGeometryType::Enum superGeomType = SuperGeometryType::SuperTriangle;
 const VertexInsertionOrder::Enum vertexInsertionOrder =
     VertexInsertionOrder::Auto;
 const IntersectingConstraintEdges::Enum intersectingEdgesStrategy =
-    IntersectingConstraintEdges::NotAllowed;
+    IntersectingConstraintEdges::Ignore;
 const float minDistToConstraintEdge(0);
 
 } // namespace defaults
@@ -137,7 +137,8 @@ TriIndUSet Triangulation<T, TNearPointLocator>::collectSuperTriangle()
     // find triangles adjacent to super-triangle's vertices
     for(TriInd iT(0); iT < TriInd(triangles.size()); ++iT)
     {
-        if(touchesSuperTriangle(triangles[iT]))
+        Triangle& t = triangles[iT];
+        if(t.vertices[0] < 3 || t.vertices[1] < 3 || t.vertices[2] < 3)
             toErase.insert(iT);
     }
     return toErase;
@@ -233,15 +234,8 @@ void Triangulation<T, TNearPointLocator>::removeTriangles(
         }
     }
 }
-
 template <typename T, typename TNearPointLocator>
 TriIndVec& Triangulation<T, TNearPointLocator>::VertTrisInternal()
-{
-    return m_vertTris;
-}
-
-template <typename T, typename TNearPointLocator>
-const TriIndVec& Triangulation<T, TNearPointLocator>::VertTrisInternal() const
 {
     return m_vertTris;
 }
@@ -316,7 +310,7 @@ template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::initializedWithCustomSuperGeometry()
 {
     m_nearPtLocator.initialize(vertices);
-    m_nTargetVerts = static_cast<IndexSizeType>(vertices.size());
+    m_nTargetVerts = vertices.size();
     m_superGeomType = SuperGeometryType::Custom;
 }
 
@@ -433,67 +427,6 @@ void insert_unique(
 } // namespace detail
 
 template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::splitFixedEdge(
-    const Edge& edge,
-    const VertInd iSplitVert)
-{
-    // split constraint (fixed) edge that already exists in triangulation
-    const Edge half1(edge.v1(), iSplitVert);
-    const Edge half2(iSplitVert, edge.v2());
-    // remove the edge that and add its halves
-    fixedEdges.erase(edge);
-    fixEdge(half1);
-    fixEdge(half2);
-    // maintain overlaps
-    typedef unordered_map<Edge, BoundaryOverlapCount>::const_iterator It;
-    const It overlapIt = overlapCount.find(edge);
-    if(overlapIt != overlapCount.end())
-    {
-        overlapCount[half1] += overlapIt->second;
-        overlapCount[half2] += overlapIt->second;
-        overlapCount.erase(overlapIt);
-    }
-    // maintain piece-to-original mapping
-    EdgeVec newOriginals(1, edge);
-    const unordered_map<Edge, EdgeVec>::const_iterator originalsIt =
-        pieceToOriginals.find(edge);
-    if(originalsIt != pieceToOriginals.end())
-    { // edge being split was split before: pass-through originals
-        newOriginals = originalsIt->second;
-        pieceToOriginals.erase(originalsIt);
-    }
-    detail::insert_unique(pieceToOriginals[half1], newOriginals);
-    detail::insert_unique(pieceToOriginals[half2], newOriginals);
-}
-
-template <typename T, typename TNearPointLocator>
-VertInd Triangulation<T, TNearPointLocator>::addSplitEdgeVertex(
-    const V2d<T>& splitVert,
-    const TriInd iT,
-    const TriInd iTopo)
-{
-    // add a new point on the edge that splits an edge in two
-    const VertInd iSplitVert = static_cast<VertInd>(vertices.size());
-    addNewVertex(splitVert, noNeighbor);
-    std::stack<TriInd> triStack = insertVertexOnEdge(iSplitVert, iT, iTopo);
-    tryAddVertexToLocator(iSplitVert);
-    ensureDelaunayByEdgeFlips(iSplitVert, triStack);
-    return iSplitVert;
-}
-
-template <typename T, typename TNearPointLocator>
-VertInd Triangulation<T, TNearPointLocator>::splitFixedEdgeAt(
-    const Edge& edge,
-    const V2d<T>& splitVert,
-    const TriInd iT,
-    const TriInd iTopo)
-{
-    const VertInd iSplitVert = addSplitEdgeVertex(splitVert, iT, iTopo);
-    splitFixedEdge(edge, iSplitVert);
-    return iSplitVert;
-}
-
-template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::fixEdge(
     const Edge& edge,
     const Edge& originalEdge)
@@ -501,6 +434,15 @@ void Triangulation<T, TNearPointLocator>::fixEdge(
     fixEdge(edge);
     if(edge != originalEdge)
         detail::insert_unique(pieceToOriginals[edge], originalEdge);
+}
+
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::fixEdge(
+    const Edge& edge,
+    const BoundaryOverlapCount overlaps)
+{
+    fixedEdges.insert(edge);
+    overlapCount[edge] = overlaps; // override overlap counter
 }
 
 namespace detail
@@ -542,11 +484,34 @@ V2d<T> intersectionPosition(
 } // namespace detail
 
 template <typename T, typename TNearPointLocator>
+IndexSizeType Triangulation<T, TNearPointLocator>::previousEdgeEncounter(
+    const VertInd v,
+    const std::vector<VertInd>& poly) const
+{
+    // check if vertex was encountered earlier in the pseudo-polygons:
+    // it's triangle was reset
+    if(m_vertTris[v] != noNeighbor)
+        return invalidIndex;
+    // rewind back to the previous entry of the point
+    IndexSizeType i = static_cast<IndexSizeType>(poly.size() - 1);
+    while(poly[i] != v)
+    {
+        assert(i > 0);
+        --i;
+    }
+    // was the edge or only the vertex encountered before?
+    // check if previous 'next' is same as current 'previous'
+    if(poly[i + 1] == poly.back())
+        return i;        // edge was encountered earlier
+    return invalidIndex; // edge was not encountered earlier
+}
+
+template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
     const Edge edge,
     const Edge originalEdge,
     EdgeVec& remaining,
-    std::vector<TriangulatePseudoPolygonTask>& tppIterations)
+    std::vector<TriangulatePseudopolygonTask>& tppIterations)
 {
     const VertInd iA = edge.v1();
     VertInd iB = edge.v2();
@@ -581,15 +546,17 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
     Triangle t = triangles[iT];
     std::vector<TriInd> intersected(1, iT);
     std::vector<VertInd> polyL, polyR;
+    std::vector<TriInd> outerTrisL, outerTrisR;
     polyL.reserve(2);
     polyL.push_back(iA);
     polyL.push_back(iVL);
+    outerTrisL.push_back(edgeNeighbor(t, iA, iVL));
     polyR.reserve(2);
     polyR.push_back(iA);
     polyR.push_back(iVR);
-    unordered_map<Edge, TriInd> outerTris;
-    outerTris[Edge(iA, iVL)] = edgeNeighbor(t, iA, iVL);
-    outerTris[Edge(iA, iVR)] = edgeNeighbor(t, iA, iVR);
+    outerTrisR.push_back(edgeNeighbor(t, iA, iVR));
+    removeAdjacentTriangle(iVL);
+    removeAdjacentTriangle(iVR);
     VertInd iV = iA;
 
     while(!t.containsVertex(iB))
@@ -598,65 +565,90 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
         const Triangle& tOpo = triangles[iTopo];
         const VertInd iVopo = opposedVertex(tOpo, iT);
 
-        switch(m_intersectingEdgesStrategy)
+        // Resolve intersection between two constraint edges if needed
+        if(m_intersectingEdgesStrategy ==
+               IntersectingConstraintEdges::Resolve &&
+           fixedEdges.count(Edge(iVL, iVR)))
         {
-        case IntersectingConstraintEdges::NotAllowed:
-            if(fixedEdges.count(Edge(iVL, iVR)))
-            {
-                // make sure to report original input edges in the exception
-                Edge e1 = originalEdge;
-                Edge e2 = Edge(iVL, iVR);
-                e2 = pieceToOriginals.count(e2)
-                         ? pieceToOriginals.at(e2).front()
-                         : e2;
-                // don't count super-triangle vertices
-                e1 = Edge(e1.v1() - m_nTargetVerts, e1.v2() - m_nTargetVerts);
-                e2 = Edge(e2.v1() - m_nTargetVerts, e2.v2() - m_nTargetVerts);
-                throw IntersectingConstraintsError(
-                    e1,
-                    pieceToOriginals.count(e2) ? pieceToOriginals.at(e2).front()
-                                               : e2,
-                    CDT_SOURCE_LOCATION);
+            const VertInd iNewVert = static_cast<VertInd>(vertices.size());
+
+            // split constraint edge that already exists in triangulation
+            const Edge splitEdge(iVL, iVR);
+            const Edge half1(iVL, iNewVert);
+            const Edge half2(iNewVert, iVR);
+            const BoundaryOverlapCount overlaps = overlapCount[splitEdge];
+            // remove the edge that will be split
+            fixedEdges.erase(splitEdge);
+            overlapCount.erase(splitEdge);
+            // add split edge's halves
+            fixEdge(half1, overlaps);
+            fixEdge(half2, overlaps);
+            // maintain piece-to-original mapping
+            EdgeVec newOriginals(1, splitEdge);
+            const unordered_map<Edge, EdgeVec>::const_iterator originalsIt =
+                pieceToOriginals.find(splitEdge);
+            if(originalsIt != pieceToOriginals.end())
+            { // edge being split was split before: pass-through originals
+                newOriginals = originalsIt->second;
+                pieceToOriginals.erase(originalsIt);
             }
-            break;
-        case IntersectingConstraintEdges::TryResolve: {
-            if(!fixedEdges.count(Edge(iVL, iVR)))
-                break;
-            // split edge at the intersection of two constraint edges
+            detail::insert_unique(pieceToOriginals[half1], newOriginals);
+            detail::insert_unique(pieceToOriginals[half2], newOriginals);
+            // set adjacent triangles again
+            for(IndexSizeType i = 0; i < outerTrisL.size(); ++i)
+                setAdjacentTriangle(polyL[i + 1], outerTrisL[i]);
+            for(IndexSizeType i = 0; i < outerTrisR.size(); ++i)
+                setAdjacentTriangle(polyR[i + 1], outerTrisR[i]);
+            // add a new point at the intersection of two constraint edges
             const V2d<T> newV = detail::intersectionPosition(
                 vertices[iA], vertices[iB], vertices[iVL], vertices[iVR]);
-            const VertInd iNewVert =
-                splitFixedEdgeAt(Edge(iVL, iVR), newV, iT, iTopo);
+            addNewVertex(newV, noNeighbor);
+            std::stack<TriInd> triStack =
+                insertVertexOnEdge(iNewVert, iT, iTopo);
+            tryAddVertexToLocator(iNewVert);
+            ensureDelaunayByEdgeFlips(newV, iNewVert, triStack);
             // TODO: is it's possible to re-use pseudo-polygons
             //  for inserting [iA, iNewVert] edge half?
             remaining.push_back(Edge(iA, iNewVert));
             remaining.push_back(Edge(iNewVert, iB));
             return;
         }
-        case IntersectingConstraintEdges::DontCheck:
-            assert(!fixedEdges.count(Edge(iVL, iVR)));
-            break;
-        }
 
         const PtLineLocation::Enum loc =
             locatePointLine(vertices[iVopo], a, b, distanceTolerance);
         if(loc == PtLineLocation::Left)
         {
-            const Edge e(polyL.back(), iVopo);
-            const TriInd outer = edgeNeighbor(tOpo, e.v1(), e.v2());
-            if(!outerTris.insert(std::make_pair(e, outer)).second)
-                outerTris.at(e) = noNeighbor; // hanging edge detected
+            // hanging edge check
+            const IndexSizeType prev = previousEdgeEncounter(iVopo, polyL);
+            if(prev != invalidIndex)
+            {
+                outerTrisL[prev] = noNeighbor; // previous entry of hanging edge
+                outerTrisL.push_back(noNeighbor);
+            }
+            else
+            {
+                outerTrisL.push_back(edgeNeighbor(tOpo, polyL.back(), iVopo));
+            }
             polyL.push_back(iVopo);
+            removeAdjacentTriangle(iVopo);
             iV = iVL;
             iVL = iVopo;
         }
         else if(loc == PtLineLocation::Right)
         {
-            const Edge e(polyR.back(), iVopo);
-            const TriInd outer = edgeNeighbor(tOpo, e.v1(), e.v2());
-            if(!outerTris.insert(std::make_pair(e, outer)).second)
-                outerTris.at(e) = noNeighbor; // hanging edge detected
+            // hanging edge check
+            const IndexSizeType prev = previousEdgeEncounter(iVopo, polyR);
+            if(prev != invalidIndex)
+            {
+                outerTrisR[prev] = noNeighbor; // previous entry of hanging edge
+                outerTrisR.push_back(noNeighbor);
+            }
+            else
+            {
+                outerTrisR.push_back(edgeNeighbor(tOpo, polyR.back(), iVopo));
+            }
             polyR.push_back(iVopo);
+            removeAdjacentTriangle(iVopo);
             iV = iVR;
             iVR = iVopo;
         }
@@ -667,8 +659,8 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
         iT = iTopo;
         t = triangles[iT];
     }
-    outerTris[Edge(polyL.back(), iB)] = edgeNeighbor(t, polyL.back(), iB);
-    outerTris[Edge(polyR.back(), iB)] = edgeNeighbor(t, polyR.back(), iB);
+    outerTrisL.push_back(edgeNeighbor(t, polyL.back(), iB));
+    outerTrisR.push_back(edgeNeighbor(t, polyR.back(), iB));
     polyL.push_back(iB);
     polyR.push_back(iB);
 
@@ -683,13 +675,13 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
     typedef std::vector<TriInd>::const_iterator TriIndCit;
     for(TriIndCit it = intersected.begin(); it != intersected.end(); ++it)
         makeDummy(*it);
-    { // Triangulate pseudo-polygons on both sides
-        std::reverse(polyR.begin(), polyR.end());
-        const TriInd iTL = addTriangle();
-        const TriInd iTR = addTriangle();
-        triangulatePseudoPolygon(polyL, outerTris, iTL, iTR, tppIterations);
-        triangulatePseudoPolygon(polyR, outerTris, iTR, iTL, tppIterations);
-    }
+    // Triangulate pseudo-polygons on both sides
+    std::reverse(polyR.begin(), polyR.end());
+    std::reverse(outerTrisR.begin(), outerTrisR.end());
+    const TriInd iTL = addTriangle();
+    const TriInd iTR = addTriangle();
+    triangulatePseudopolygon(polyL, outerTrisL, iTL, iTR, tppIterations);
+    triangulatePseudopolygon(polyR, outerTrisR, iTR, iTL, tppIterations);
 
     if(iB != edge.v2()) // encountered point on the edge
     {
@@ -710,7 +702,7 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
     Edge edge,
     const Edge originalEdge,
     EdgeVec& remaining,
-    std::vector<TriangulatePseudoPolygonTask>& tppIterations)
+    std::vector<TriangulatePseudopolygonTask>& tppIterations)
 {
     // use iteration over recursion to avoid stack overflows
     remaining.clear();
@@ -737,9 +729,7 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
 
     if(hasEdge(iA, iB))
     {
-        fixEdge(edge);
-        if(overlaps > 0)
-            overlapCount[edge] = overlaps;
+        overlaps > 0 ? fixEdge(edge, overlaps) : fixEdge(edge);
         // avoid marking edge as a part of itself
         if(!originals.empty() && edge != originals.front())
         {
@@ -761,9 +751,7 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
     if(iT == noNeighbor)
     {
         const Edge edgePart(iA, iVleft);
-        fixEdge(edgePart);
-        if(overlaps > 0)
-            overlapCount[edgePart] = overlaps;
+        overlaps > 0 ? fixEdge(edgePart, overlaps) : fixEdge(edgePart);
         detail::insert_unique(pieceToOriginals[edgePart], originals);
 #ifdef CDT_CXX11_IS_SUPPORTED
         remaining.emplace_back(Edge(iVleft, iB), originals, overlaps);
@@ -783,36 +771,61 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
         const VertInd iVopo = opposedVertex(tOpo, iT);
         const V2d<T> vOpo = vertices[iVopo];
 
-        switch(m_intersectingEdgesStrategy)
+        // Resolve intersection between two constraint edges if needed
+        if(m_intersectingEdgesStrategy ==
+               IntersectingConstraintEdges::Resolve &&
+           fixedEdges.count(Edge(iVleft, iVright)))
         {
-        case IntersectingConstraintEdges::NotAllowed:
-            if(fixedEdges.count(Edge(iVleft, iVright)))
+            const VertInd iNewVert = static_cast<VertInd>(vertices.size());
+
+            // split constraint edge that already exists in triangulation
+            const Edge splitEdge(iVleft, iVright);
+            const Edge half1(iVleft, iNewVert);
+            const Edge half2(iNewVert, iVright);
+
+            const unordered_map<Edge, BoundaryOverlapCount>::const_iterator
+                splitEdgeOverlapsIt = overlapCount.find(splitEdge);
+            const BoundaryOverlapCount splitEdgeOverlaps =
+                splitEdgeOverlapsIt != overlapCount.end()
+                    ? splitEdgeOverlapsIt->second
+                    : 0;
+            // remove the edge that will be split and add split edge's
+            // halves
+            fixedEdges.erase(splitEdge);
+            if(splitEdgeOverlaps > 0)
             {
-                // make sure to report original input edges in the exception
-                Edge e1 = pieceToOriginals.count(edge)
-                              ? pieceToOriginals.at(edge).front()
-                              : edge;
-                Edge e2(iVleft, iVright);
-                e2 = pieceToOriginals.count(e2)
-                         ? pieceToOriginals.at(e2).front()
-                         : e2;
-                // don't count super-triangle vertices
-                e1 = Edge(e1.v1() - m_nTargetVerts, e1.v2() - m_nTargetVerts);
-                e2 = Edge(e2.v1() - m_nTargetVerts, e2.v2() - m_nTargetVerts);
-                throw IntersectingConstraintsError(e1, e2, CDT_SOURCE_LOCATION);
+                overlapCount.erase(splitEdgeOverlapsIt);
+                fixEdge(half1, splitEdgeOverlaps);
+                fixEdge(half2, splitEdgeOverlaps);
             }
-            break;
-        case IntersectingConstraintEdges::TryResolve: {
-            if(!fixedEdges.count(Edge(iVleft, iVright)))
-                break;
-            // split edge at the intersection of two constraint edges
+            else
+            {
+                fixEdge(half1);
+                fixEdge(half2);
+            }
+            // maintain piece-to-original mapping
+            EdgeVec newOriginals(1, splitEdge);
+            const unordered_map<Edge, EdgeVec>::const_iterator originalsIt =
+                pieceToOriginals.find(splitEdge);
+            if(originalsIt != pieceToOriginals.end())
+            { // edge being split was split before: pass-through originals
+                newOriginals = originalsIt->second;
+                pieceToOriginals.erase(originalsIt);
+            }
+            detail::insert_unique(pieceToOriginals[half1], newOriginals);
+            detail::insert_unique(pieceToOriginals[half2], newOriginals);
+
+            // add a new point at the intersection of two constraint edges
             const V2d<T> newV = detail::intersectionPosition(
                 vertices[iA],
                 vertices[iB],
                 vertices[iVleft],
                 vertices[iVright]);
-            const VertInd iNewVert =
-                splitFixedEdgeAt(Edge(iVleft, iVright), newV, iT, iTopo);
+            addNewVertex(newV, noNeighbor);
+            std::stack<TriInd> triStack =
+                insertVertexOnEdge(iNewVert, iT, iTopo);
+            tryAddVertexToLocator(iNewVert);
+            ensureDelaunayByEdgeFlips(newV, iNewVert, triStack);
 #ifdef CDT_CXX11_IS_SUPPORTED
             remaining.emplace_back(Edge(iNewVert, iB), originals, overlaps);
             remaining.emplace_back(Edge(iA, iNewVert), originals, overlaps);
@@ -823,10 +836,6 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
                 make_tuple(Edge(iA, iNewVert), originals, overlaps));
 #endif
             return;
-        }
-        case IntersectingConstraintEdges::DontCheck:
-            assert(!fixedEdges.count(Edge(iVleft, iVright)));
-            break;
         }
 
         iT = iTopo;
@@ -997,10 +1006,8 @@ Triangulation<T, TNearPointLocator>::intersectedTriangle(
         }
         iT = t.next(iA).first;
     } while(iT != startTri);
-
-    throw Error(
-        "Could not find vertex triangle intersected by an edge.",
-        CDT_SOURCE_LOCATION);
+    throw std::runtime_error("Could not find vertex triangle intersected by "
+                             "edge. Note: can be caused by duplicate points.");
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1014,16 +1021,7 @@ void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
     const T w = box.max.x - box.min.x;
     const T h = box.max.y - box.min.y;
     T r = std::sqrt(w * w + h * h) / T(2); // incircle radius
-    r = r > 0 ? r * T(1.1) : T(1e-6);
-
-    // Note: for very large floating point numbers rounding can lead to wrong
-    // super-triangle coordinates. This is a very rare corner-case so the
-    // handling is very primitive.
-    { // note: '<=' means '==' but avoids the warning
-        while(center.y <= center.y - r)
-            r *= T(2);
-    }
-
+    r *= T(1.1);
     const T R = T(2) * r;                        // excircle radius
     const T shiftX = R * std::sqrt(T(3)) / T(2); // R * cos(30 deg)
     const V2d<T> posV1 = {center.x - shiftX, center.y - r};
@@ -1060,7 +1058,7 @@ Triangulation<T, TNearPointLocator>::insertVertex_FlipFixedEdges(
 
     const V2d<T>& v1 = vertices[iV1];
     const VertInd startVertex = m_nearPtLocator.nearPoint(v1, vertices);
-    array<TriInd, 2> trisAt = walkingSearchTrianglesAt(iV1, startVertex);
+    array<TriInd, 2> trisAt = walkingSearchTrianglesAt(v1, startVertex);
     std::stack<TriInd> triStack =
         trisAt[1] == noNeighbor ? insertVertexInsideTriangle(iV1, trisAt[0])
                                 : insertVertexOnEdge(iV1, trisAt[0], trisAt[1]);
@@ -1073,7 +1071,7 @@ Triangulation<T, TNearPointLocator>::insertVertex_FlipFixedEdges(
         triStack.pop();
 
         edgeFlipInfo(iT, iV1, iTopo, iV2, iV3, iV4, n1, n2, n3, n4);
-        if(iTopo != noNeighbor && isFlipNeeded(iV1, iV2, iV3, iV4))
+        if(iTopo != noNeighbor && isFlipNeeded(v1, iV1, iV2, iV3, iV4))
         {
             // if flipped edge is fixed, remember it
             const Edge flippedEdge(iV2, iV4);
@@ -1098,12 +1096,13 @@ void Triangulation<T, TNearPointLocator>::insertVertex(
     const VertInd iVert,
     const VertInd walkStart)
 {
-    const array<TriInd, 2> trisAt = walkingSearchTrianglesAt(iVert, walkStart);
+    const V2d<T>& v = vertices[iVert];
+    const array<TriInd, 2> trisAt = walkingSearchTrianglesAt(v, walkStart);
     std::stack<TriInd> triStack =
         trisAt[1] == noNeighbor
             ? insertVertexInsideTriangle(iVert, trisAt[0])
             : insertVertexOnEdge(iVert, trisAt[0], trisAt[1]);
-    ensureDelaunayByEdgeFlips(iVert, triStack);
+    ensureDelaunayByEdgeFlips(v, iVert, triStack);
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1117,6 +1116,7 @@ void Triangulation<T, TNearPointLocator>::insertVertex(const VertInd iVert)
 
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::ensureDelaunayByEdgeFlips(
+    const V2d<T>& v1,
     const VertInd iV1,
     std::stack<TriInd>& triStack)
 {
@@ -1128,7 +1128,7 @@ void Triangulation<T, TNearPointLocator>::ensureDelaunayByEdgeFlips(
         triStack.pop();
 
         edgeFlipInfo(iT, iV1, iTopo, iV2, iV3, iV4, n1, n2, n3, n4);
-        if(iTopo != noNeighbor && isFlipNeeded(iV1, iV2, iV3, iV4))
+        if(iTopo != noNeighbor && isFlipNeeded(v1, iV1, iV2, iV3, iV4))
         {
             flipEdge(iT, iTopo, iV1, iV2, iV3, iV4, n1, n2, n3, n4);
             triStack.push(iT);
@@ -1241,6 +1241,7 @@ void Triangulation<T, TNearPointLocator>::edgeFlipInfo(
  */
 template <typename T, typename TNearPointLocator>
 bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
+    const V2d<T>& v,
     const VertInd iV1,
     const VertInd iV2,
     const VertInd iV3,
@@ -1248,7 +1249,6 @@ bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
 {
     if(fixedEdges.count(Edge(iV2, iV4)))
         return false; // flip not needed if the original edge is fixed
-    const V2d<T>& v1 = vertices[iV1];
     const V2d<T>& v2 = vertices[iV2];
     const V2d<T>& v3 = vertices[iV3];
     const V2d<T>& v4 = vertices[iV4];
@@ -1263,34 +1263,28 @@ bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
             // does original edge also touch super-triangle?
             if(iV2 < 3)
                 return locatePointLine(v2, v3, v4) ==
-                       locatePointLine(v1, v3, v4);
+                       locatePointLine(v, v3, v4);
             if(iV4 < 3)
                 return locatePointLine(v4, v2, v3) ==
-                       locatePointLine(v1, v2, v3);
+                       locatePointLine(v, v2, v3);
             return false; // original edge does not touch super-triangle
         }
         if(iV3 < 3) // flip-candidate edge touches super-triangle
         {
             // does original edge also touch super-triangle?
             if(iV2 < 3)
-            {
-                return locatePointLine(v2, v1, v4) ==
-                       locatePointLine(v3, v1, v4);
-            }
+                return locatePointLine(v2, v, v4) == locatePointLine(v3, v, v4);
             if(iV4 < 3)
-            {
-                return locatePointLine(v4, v2, v1) ==
-                       locatePointLine(v3, v2, v1);
-            }
+                return locatePointLine(v4, v2, v) == locatePointLine(v3, v2, v);
             return false; // original edge does not touch super-triangle
         }
         // flip-candidate edge does not touch super-triangle
         if(iV2 < 3)
-            return locatePointLine(v2, v3, v4) == locatePointLine(v1, v3, v4);
+            return locatePointLine(v2, v3, v4) == locatePointLine(v, v3, v4);
         if(iV4 < 3)
-            return locatePointLine(v4, v2, v3) == locatePointLine(v1, v2, v3);
+            return locatePointLine(v4, v2, v3) == locatePointLine(v, v2, v3);
     }
-    return isInCircumcircle(v1, v2, v3, v4);
+    return isInCircumcircle(v, v2, v3, v4);
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1678,7 +1672,7 @@ Triangulation<T, TNearPointLocator>::trianglesAt(const V2d<T>& pos) const
             out[1] = t.neighbors[edgeNeighbor(loc)];
         return out;
     }
-    throw Error("No triangle was found at position", CDT_SOURCE_LOCATION);
+    throw std::runtime_error("No triangle was found at position");
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1707,7 +1701,7 @@ TriInd Triangulation<T, TNearPointLocator>::walkTriangles(
             if(edgeCheck == PtLineLocation::Right && iN != noNeighbor)
             {
                 found = false;
-                currTri = iN;
+                currTri = t.neighbors[i];
                 break;
             }
         }
@@ -1717,30 +1711,19 @@ TriInd Triangulation<T, TNearPointLocator>::walkTriangles(
 
 template <typename T, typename TNearPointLocator>
 array<TriInd, 2> Triangulation<T, TNearPointLocator>::walkingSearchTrianglesAt(
-    const VertInd iV,
+    const V2d<T>& pos,
     const VertInd startVertex) const
 {
-    const V2d<T> v = vertices[iV];
     array<TriInd, 2> out = {noNeighbor, noNeighbor};
-    const TriInd iT = walkTriangles(startVertex, v);
+    const TriInd iT = walkTriangles(startVertex, pos);
     // Finished walk, locate point in current triangle
     const Triangle& t = triangles[iT];
     const V2d<T>& v1 = vertices[t.vertices[0]];
     const V2d<T>& v2 = vertices[t.vertices[1]];
     const V2d<T>& v3 = vertices[t.vertices[2]];
-    const PtTriLocation::Enum loc = locatePointTriangle(v, v1, v2, v3);
-
+    const PtTriLocation::Enum loc = locatePointTriangle(pos, v1, v2, v3);
     if(loc == PtTriLocation::Outside)
-        throw Error("No triangle was found at position", CDT_SOURCE_LOCATION);
-    if(loc == PtTriLocation::OnVertex)
-    {
-        const VertInd iDupe = v1 == v   ? t.vertices[0]
-                              : v2 == v ? t.vertices[1]
-                                        : t.vertices[2];
-        throw DuplicateVertexError(
-            iV - m_nTargetVerts, iDupe - m_nTargetVerts, CDT_SOURCE_LOCATION);
-    }
-
+        throw std::runtime_error("No triangle was found at position");
     out[0] = iT;
     if(isOnEdge(loc))
         out[1] = t.neighbors[edgeNeighbor(loc)];
@@ -1834,15 +1817,15 @@ void Triangulation<T, TNearPointLocator>::changeNeighbor(
 }
 
 template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::triangulatePseudoPolygon(
+void Triangulation<T, TNearPointLocator>::triangulatePseudopolygon(
     const std::vector<VertInd>& poly,
-    unordered_map<Edge, TriInd>& outerTris,
-    TriInd iT,
-    TriInd iN,
-    std::vector<TriangulatePseudoPolygonTask>& iterations)
+    const std::vector<TriInd>& outerTris,
+    const TriInd iT,
+    const TriInd iN,
+    std::vector<TriangulatePseudopolygonTask>& iterations)
 {
     assert(poly.size() > 2);
-    // note: uses iteration instead of recursion to avoid stack overflows
+    // note: uses interation instead of recursion to avoid stack overflows
     iterations.clear();
     iterations.push_back(make_tuple(
         IndexSizeType(0),
@@ -1852,15 +1835,15 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudoPolygon(
         Index(0)));
     while(!iterations.empty())
     {
-        triangulatePseudoPolygonIteration(poly, outerTris, iterations);
+        triangulatePseudopolygonIteration(poly, outerTris, iterations);
     }
 }
 
 template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::triangulatePseudoPolygonIteration(
+void Triangulation<T, TNearPointLocator>::triangulatePseudopolygonIteration(
     const std::vector<VertInd>& poly,
-    unordered_map<Edge, TriInd>& outerTris,
-    std::vector<TriangulatePseudoPolygonTask>& iterations)
+    const std::vector<TriInd>& outerTris,
+    std::vector<TriangulatePseudopolygonTask>& iterations)
 {
     IndexSizeType iA, iB;
     TriInd iT, iParent;
@@ -1876,10 +1859,11 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudoPolygonIteration(
     const VertInd a = poly[iA];
     const VertInd b = poly[iB];
     const VertInd c = poly[iC];
-
     // split pseudo-polygon in two parts and triangulate them
-    // note: second part needs to be pushed on stack first to be processed first
-
+    //
+    // note: first part needs to be pushed on stack last
+    // in order to be processed first
+    //
     // second part: points after the Delaunay point
     if(iB - iC > 1)
     {
@@ -1888,16 +1872,13 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudoPolygonIteration(
     }
     else // pseudo-poly is reduced to a single outer edge
     {
-        const Edge outerEdge(b, c);
-        const TriInd outerTri = outerTris.at(outerEdge);
+        const TriInd outerTri = outerTris[iC];
         if(outerTri != noNeighbor)
         {
             assert(outerTri != iT);
             t.neighbors[1] = outerTri;
             changeNeighbor(outerTri, c, b, iT);
         }
-        else
-            outerTris.at(outerEdge) = iT;
     }
     // first part: points before the Delaunay point
     if(iC - iA > 1)
@@ -1907,16 +1888,14 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudoPolygonIteration(
     }
     else
     { // pseudo-poly is reduced to a single outer edge
-        const Edge outerEdge(c, a);
-        const TriInd outerTri = outerTris.at(outerEdge);
+        const TriInd outerTri =
+            outerTris[iA] != noNeighbor ? outerTris[iA] : m_vertTris[c];
         if(outerTri != noNeighbor)
         {
             assert(outerTri != iT);
             t.neighbors[2] = outerTri;
             changeNeighbor(outerTri, c, a, iT);
         }
-        else
-            outerTris.at(outerEdge) = iT;
     }
     // Finalize triangle
     // note: only when triangle is finalized to we add it as a neighbor to
@@ -1924,6 +1903,7 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudoPolygonIteration(
     triangles[iParent].neighbors[iInParent] = iT;
     t.neighbors[0] = iParent;
     t.vertices = detail::arr3(a, b, c);
+    // needs to be done at the end not to affect finding edge triangles
     setAdjacentTriangle(c, iT);
 }
 
@@ -2146,33 +2126,29 @@ private:
 };
 
 template <typename T>
-class less_than_x
+struct less_than_x
 {
-    const std::vector<V2d<T> >& m_vertices;
-
-public:
     less_than_x(const std::vector<V2d<T> >& vertices)
-        : m_vertices(vertices)
+        : vertices(vertices)
     {}
     bool operator()(const VertInd a, const VertInd b) const
     {
-        return m_vertices[a].x < m_vertices[b].x;
+        return vertices[a].x < vertices[b].x;
     }
+    const std::vector<V2d<T> >& vertices;
 };
 
 template <typename T>
-class less_than_y
+struct less_than_y
 {
-    const std::vector<V2d<T> >& m_vertices;
-
-public:
     less_than_y(const std::vector<V2d<T> >& vertices)
-        : m_vertices(vertices)
+        : vertices(vertices)
     {}
     bool operator()(const VertInd a, const VertInd b) const
     {
-        return m_vertices[a].y < m_vertices[b].y;
+        return vertices[a].y < vertices[b].y;
     }
+    const std::vector<V2d<T> >& vertices;
 };
 
 } // namespace detail
@@ -2184,8 +2160,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices_KDTreeBFS(
     V2d<T> boxMax)
 {
     // calculate original indices
-    const VertInd vertexCount =
-        static_cast<IndexSizeType>(vertices.size()) - superGeomVertCount;
+    const VertInd vertexCount = vertices.size() - superGeomVertCount;
     if(vertexCount <= 0)
         return;
     std::vector<VertInd> ii(vertexCount);
@@ -2301,6 +2276,13 @@ void Triangulation<T, TNearPointLocator>::pivotVertexTriangleCW(const VertInd v)
         triangles[m_vertTris[v]].vertices[0] == v ||
         triangles[m_vertTris[v]].vertices[1] == v ||
         triangles[m_vertTris[v]].vertices[2] == v);
+}
+
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::removeAdjacentTriangle(
+    const VertInd v)
+{
+    m_vertTris[v] = noNeighbor;
 }
 
 template <typename T, typename TNearPointLocator>
