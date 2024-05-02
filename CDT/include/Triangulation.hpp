@@ -988,8 +988,12 @@ void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
         (box.min.x + box.max.x) / T(2), (box.min.y + box.max.y) / T(2)};
     const T w = box.max.x - box.min.x;
     const T h = box.max.y - box.min.y;
-    T r = std::sqrt(w * w + h * h) / T(2); // incircle radius
-    r = r > 0 ? r * T(1.1) : T(1e-6);
+    T r = std::max(w, h); // incircle radius upper bound
+
+    // Note: make sure radius is big enough. Constants chosen experimentally.
+    // - for tiny bounding boxes: use 1.0 as the smallest radius
+    // - multiply radius by 2.0 for extra safety margin
+    r = std::max(T(2) * r, T(1));
 
     // Note: for very large floating point numbers rounding can lead to wrong
     // super-triangle coordinates. This is a very rare corner-case so the
@@ -999,8 +1003,9 @@ void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
             r *= T(2);
     }
 
-    const T R = T(2) * r;                        // excircle radius
-    const T shiftX = R * std::sqrt(T(3)) / T(2); // R * cos(30 deg)
+    const T R = T(2) * r;                    // excircle radius
+    const T cos_30_deg = 0.8660254037844386; // note: (std::sqrt(3.0) / 2.0)
+    const T shiftX = R * cos_30_deg;
     const V2d<T> posV1 = {center.x - shiftX, center.y - r};
     const V2d<T> posV2 = {center.x + shiftX, center.y - r};
     const V2d<T> posV3 = {center.x, center.y + R};
