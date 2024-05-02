@@ -945,3 +945,17 @@ TEST_CASE("Regression test: hanging edge in pseudo-poly", "")
     cdt.insertEdges(ee);
     REQUIRE(CDT::verifyTopology(cdt));
 }
+
+TEST_CASE("Regression test #174: super-triangle of tiny bounding box", "")
+{
+    auto cdt = Triangulation<double>{};
+    const auto vv = Vertices<double>{
+        {{45802.2779561576462583616375923, 169208.540894783218391239643097},
+         {45802.2779561576317064464092255, 169208.540894783218391239643097},
+         {45802.2779561576462583616375923, 169208.540894783247495070099831}},
+    };
+    REQUIRE_NOTHROW(cdt.insertVertices(vv));
+    REQUIRE(CDT::verifyTopology(cdt));
+    cdt.eraseSuperTriangle();
+    REQUIRE(cdt.triangles.size() == std::size_t(1));
+}
