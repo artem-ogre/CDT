@@ -1,4 +1,5 @@
 #include <CDT.h>
+#include <InitializeWithGrid.h>
 #include <VerifyTopology.h>
 
 #include <catch2/benchmark/catch_benchmark.hpp>
@@ -958,4 +959,33 @@ TEST_CASE("Regression test #174: super-triangle of tiny bounding box", "")
     REQUIRE(CDT::verifyTopology(cdt));
     cdt.eraseSuperTriangle();
     REQUIRE(cdt.triangles.size() == std::size_t(1));
+}
+
+TEST_CASE("Regression test #175", "")
+{
+    CDT::Triangulation<double> cdt;
+    CDT::initializeWithRegularGrid(0., 3., 0., 4., 3, 4, cdt);
+    REQUIRE(CDT::verifyTopology(cdt));
+    saveToOff("/tmp/grid.off", cdt);
+
+    const std::vector<CDT::V2d<double> > vv = {
+        {0.5, 0.5},
+        {0.5, 3.5},
+        {2.5, 3.5},
+        {2.5, 0.5},
+    };
+    const std::vector<CDT::Edge> ee = {
+        CDT::Edge(0, 1),
+        CDT::Edge(1, 2),
+        CDT::Edge(2, 3),
+        CDT::Edge(0, 3),
+    };
+
+    cdt.insertVertices(vv);
+    REQUIRE(CDT::verifyTopology(cdt));
+    cdt.insertEdges(ee);
+    REQUIRE(CDT::verifyTopology(cdt));
+    cdt.eraseOuterTriangles();
+    REQUIRE(cdt.triangles.size() == std::size_t(14));
+    saveToOff("/tmp/after.off", cdt);
 }

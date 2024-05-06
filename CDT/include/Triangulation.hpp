@@ -1655,7 +1655,12 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudoPolygonIteration(
     {
         const Edge outerEdge(b, c);
         const TriInd outerTri = outerTris.at(outerEdge);
-        if(outerTri != noNeighbor)
+        if(outerEdge.v2() <= m_nTargetVerts && outerTri == noNeighbor)
+        {
+            assert(outerTri != iT);
+            t.neighbors[1] = outerTri;
+        }
+        else if(outerTri != noNeighbor)
         {
             assert(outerTri != iT);
             t.neighbors[1] = outerTri;
@@ -1674,6 +1679,11 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudoPolygonIteration(
     { // pseudo-poly is reduced to a single outer edge
         const Edge outerEdge(c, a);
         const TriInd outerTri = outerTris.at(outerEdge);
+        if(outerEdge.v2() <= m_nTargetVerts && outerTri == noNeighbor)
+        {
+            assert(outerTri != iT);
+            t.neighbors[2] = outerTri;
+        }
         if(outerTri != noNeighbor)
         {
             assert(outerTri != iT);
