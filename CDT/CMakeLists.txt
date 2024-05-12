@@ -31,6 +31,10 @@ option(CDT_USE_STRONG_TYPING
     "If enabled uses strong typing for types: useful for development and debugging"
     OFF)
 
+option(CDT_CALLBACK_DISABLED
+    "If enabled a callbeack function can be registered if a triabngle is created or changed (>=C++11 necessary)"
+    OFF)
+
 option(CDT_DEVELOPER_BUILD
     "Enables all warnings."
     OFF)
@@ -52,13 +56,20 @@ if(cxx_std_11 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
         message(STATUS "AppleClang work-around: set CMAKE_CXX_STANDARD to 11")
         set(CMAKE_CXX_STANDARD 11)
     endif()
+
+    message(STATUS "Compiler supports C++11")
 else()
     message(STATUS "Compiler does not support C++11: falling back to Boost")
     set(CDT_USE_BOOST ON)
+    set(CDT_CALLBACK_DISABLED ON)
 endif()
 
 if(CDT_USE_STRONG_TYPING)
     set(CDT_USE_BOOST ON)
+endif()
+
+if (CDT_DISABLE_CALLBACK)
+    add_definitions(-DCDT_CALLBACK_DISABLED)
 endif()
 
 message(STATUS "CDT_USE_AS_COMPILED_LIBRARY is ${CDT_USE_AS_COMPILED_LIBRARY}")
@@ -66,6 +77,7 @@ message(STATUS "CDT_USE_64_BIT_INDEX_TYPE is ${CDT_USE_64_BIT_INDEX_TYPE}")
 message(STATUS "CDT_ENABLE_TESTING is ${CDT_ENABLE_TESTING}")
 message(STATUS "CDT_USE_STRONG_TYPING is ${CDT_USE_STRONG_TYPING}")
 message(STATUS "CDT_DEVELOPER_BUILD is ${CDT_DEVELOPER_BUILD}")
+message(STATUS "CDT_CALLBACK_DISABLED is ${CDT_CALLBACK_DISABLED}")
 
 # Use boost for c++98 versions of c++11 containers or for Boost::rtree
 if(CDT_USE_BOOST)

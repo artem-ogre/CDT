@@ -21,10 +21,25 @@
 #include <string>
 #include <utility>
 #include <vector>
+#ifndef CDT_CALLBACK_DISABLED
+#include <functional>
+#endif
 
 /// Namespace containing triangulation functionality
 namespace CDT
 {
+
+#ifndef CDT_CALLBACK_DISABLED
+/**
+ * Types of callbacks to indicate what happened
+ */
+enum CallbackType
+{
+    Unknown,
+    Added,
+    Changed,
+};
+#endif
 
 /// @addtogroup API
 /// @{
@@ -451,7 +466,30 @@ public:
      * @return true if triangulation is finalized, false otherwise
      */
     bool isFinalized() const;
+    
+    #ifndef CDT_CALLBACK_DISABLED
+    /**
+     * Register a callback function for triangles has been created
+     * currently one callback function is supported
+     * Example using lambda function:
+     * CDT::Triangulation<double> cdt = CDT::Triangulation<double> {};
+     * auto onTriCreated = [](CDT::TriInd ind, CDT::CallbackType type) -> void
+     * {
+     *    std::cout << "Triangle created/changed with index " << ind << " and type";
+     *    if (type == CDT::CallbackType::Added)
+     *        std::cout << "ADDED" << std::endl;
+     *    else if (type == CDT::CallbackType::Changed)
+     *        std::cout << "CHANGED" << std::endl;
+     * };
+     *  cdt.registerTriangleCallback(onTriCreated);
+     */
+    void registerTriangleCallback(std::function<void(TriInd, CallbackType)> fnc);
 
+    /**
+    * Register a callback function for vertexes has been inserted
+    */
+    void registerVertexCallback(std::function<void(VertInd, CallbackType)> fnc);
+    #endif
     /**
      * Calculate depth of each triangle in constraint triangulation. Supports
      * overlapping boundaries.
@@ -743,6 +781,12 @@ private:
     IntersectingConstraintEdges::Enum m_intersectingEdgesStrategy;
     T m_minDistToConstraintEdge;
     TriIndVec m_vertTris; /// one triangle adjacent to each vertex
+
+    // C++11 required for std::fucntion callbacks
+    #ifndef CDT_CALLBACK_DISABLED    
+    std::function<void(TriInd, CallbackType)> callback_tri; // callback function for triangle creation
+    std::function<void(VertInd, CallbackType)> callback_vertex; // callback function for vertex insertation
+    #endif
 };
 
 /// @}
