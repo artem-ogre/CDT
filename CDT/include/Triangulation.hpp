@@ -1003,8 +1003,8 @@ void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
             r *= T(2);
     }
 
-    const T R = T(2) * r;                    // excircle radius
-    const T cos_30_deg = 0.8660254037844386; // note: (std::sqrt(3.0) / 2.0)
+    const T R = T(2) * r;                   // excircle radius
+    const T cos_30_deg(0.8660254037844386); // note: (std::sqrt(3.0) / 2.0)
     const T shiftX = R * cos_30_deg;
     const V2d<T> posV1 = {center.x - shiftX, center.y - r};
     const V2d<T> posV2 = {center.x + shiftX, center.y - r};
