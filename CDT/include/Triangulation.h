@@ -358,7 +358,16 @@ public:
      */
     void insertVertices(const std::vector<V2d<T> >& vertices);
     /**
-     * Insert constraints (custom-type fixed edges) into triangulation
+     * Insert constraint edges into triangulation for <b/>Constrained Delaunay
+     * Triangulation</b> (for example see figure below).
+     *
+     * Uses only original vertices: no new verties are added
+     *
+     * <img src="./images/show-case.png" alt="CDT show-case: constrained and
+     * conforming triangulations, convex hulls, automatically removing holes"
+     * style='height: 100%; width: 100%; max-height: 300px; object-fit:
+     * contain'/>
+     *
      * @note Each fixed edge is inserted by deleting the triangles it crosses,
      * followed by the triangulation of the polygons on each side of the edge.
      * <b> No new vertices are inserted.</b>
@@ -387,7 +396,16 @@ public:
         TGetEdgeVertexStart getStart,
         TGetEdgeVertexEnd getEnd);
     /**
-     * Insert constraint edges into triangulation
+     * Insert constraint edges into triangulation for <b/>Constrained Delaunay
+     * Triangulation</b> (for example see figure below).
+     *
+     * Uses only original vertices: no new verties are added
+     *
+     * <img src="./images/show-case.png" alt="CDT show-case: constrained and
+     * conforming triangulations, convex hulls, automatically removing holes"
+     * style='height: 100%; width: 100%; max-height: 300px; object-fit:
+     * contain'/>
+     *
      * @note Each fixed edge is inserted by deleting the triangles it crosses,
      * followed by the triangulation of the polygons on each side of the edge.
      * <b> No new vertices are inserted.</b>
@@ -399,7 +417,16 @@ public:
      */
     void insertEdges(const std::vector<Edge>& edges);
     /**
-     * Ensure that triangulation conforms to constraints (fixed edges)
+     * Insert constraint edges into triangulation for <b>Conforming Delaunay
+     * Triangulation</b> (for example see figure below).
+     *
+     * May add new vertices.
+     *
+     * <img src="./images/show-case.png" alt="CDT show-case: constrained and
+     * conforming triangulations, convex hulls, automatically removing holes"
+     * style='height: 100%; width: 100%; max-height: 300px; object-fit:
+     * contain'/>
+     *
      * @note For each fixed edge that is not present in the triangulation its
      * midpoint is recursively added until the original edge is represented by a
      * sequence of its pieces. <b> New vertices are inserted.</b>
@@ -428,7 +455,16 @@ public:
         TGetEdgeVertexStart getStart,
         TGetEdgeVertexEnd getEnd);
     /**
-     * Ensure that triangulation conforms to constraints (fixed edges)
+     * Insert constraint edges into triangulation for <b/>Conforming Delaunay
+     * Triangulation</b> (for example see figure below).
+     *
+     * May add new vertices.
+     *
+     * <img src="./images/show-case.png" alt="CDT show-case: constrained and
+     * conforming triangulations, convex hulls, automatically removing holes"
+     * style='height: 100%; width: 100%; max-height: 300px; object-fit:
+     * contain'/>
+     *
      * @note For each fixed edge that is not present in the triangulation its
      * midpoint is recursively added until the original edge is represented by a
      * sequence of its pieces. <b> New vertices are inserted.</b>
