@@ -214,7 +214,7 @@ template <typename T>
 CDT_EXPORT Box2d<T> envelopBox(const std::vector<V2d<T> >& vertices);
 
 /// Edge connecting two vertices: vertex with smaller index is always first
-/// \note: hash Edge is specialized at the bottom
+/// @note: hash Edge is specialized at the bottom
 struct CDT_EXPORT Edge
 {
     /// Constructor
@@ -348,7 +348,7 @@ struct CDT_EXPORT PtTriLocation
 CDT_EXPORT bool isOnEdge(PtTriLocation::Enum location);
 
 /// Neighbor index from a on-edge location
-/// \note Call only if located on the edge!
+/// @note Call only if located on the edge!
 CDT_EXPORT Index edgeNeighbor(PtTriLocation::Enum location);
 
 /// Relative location of point to a line
