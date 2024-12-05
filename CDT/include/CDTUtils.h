@@ -55,15 +55,18 @@ typedef char couldnt_parse_cxx_standard[-1]; ///< Error: couldn't parse standard
 
 #include <array>
 #include <functional>
+#include <string>
 #include <tuple>
 #include <unordered_map>
 #include <unordered_set>
+
 namespace CDT
 {
 using std::array;
 using std::get;
 using std::make_tuple;
 using std::tie;
+using std::to_string;
 using std::tuple;
 using std::unordered_map;
 using std::unordered_set;
@@ -72,6 +75,7 @@ using std::unordered_set;
 #else
 #include <boost/array.hpp>
 #include <boost/functional/hash.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/tuple/tuple.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
@@ -84,12 +88,17 @@ using boost::tie;
 using boost::tuple;
 using boost::unordered_map;
 using boost::unordered_set;
+
+template <typename T>
+std::string to_string(const T& value)
+{
+    return boost::lexical_cast<std::string>(value);
+}
 } // namespace CDT
 #endif
 
 namespace CDT
 {
-
 /// 2D vector
 template <typename T>
 struct CDT_EXPORT V2d
@@ -168,6 +177,7 @@ struct CDT_EXPORT Box2d
     {
         envelopPoint(p.x, p.y);
     }
+
     /// Envelop box around a point with given coordinates
     void envelopPoint(const T x, const T y)
     {
@@ -209,14 +219,19 @@ struct CDT_EXPORT Edge
 {
     /// Constructor
     Edge(VertInd iV1, VertInd iV2);
+
     /// Equals operator
     bool operator==(const Edge& other) const;
+
     /// Not-equals operator
     bool operator!=(const Edge& other) const;
+
     /// V1 getter
     VertInd v1() const;
+
     /// V2 getter
     VertInd v2() const;
+
     /// Edges' vertices
     const std::pair<VertInd, VertInd>& verts() const;
 
@@ -287,6 +302,7 @@ struct CDT_EXPORT Triangle
         }
         return std::make_pair(neighbors[2], vertices[0]);
     }
+
     /// Previous triangle adjacent to a vertex (counter-clockwise)
     /// @returns pair of previous triangle and the other vertex of a common edge
     std::pair<TriInd, VertInd> prev(const VertInd i) const
@@ -428,7 +444,6 @@ CDT_EXPORT T distanceSquared(const V2d<T>& a, const V2d<T>& b);
 
 /// Check if any of triangle's vertices belongs to a super-triangle
 CDT_INLINE_IF_HEADER_ONLY bool touchesSuperTriangle(const Triangle& t);
-
 } // namespace CDT
 
 #ifndef CDT_USE_AS_COMPILED_LIBRARY
@@ -444,7 +459,6 @@ namespace std
 namespace boost
 #endif
 {
-
 #ifdef CDT_USE_STRONG_TYPING
 
 /// Vertex index hasher
@@ -491,6 +505,7 @@ private:
 #endif
         seed ^= Hasher()(key) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     }
+
     static std::size_t hashEdge(const CDT::Edge& e)
     {
         const std::pair<CDT::VertInd, CDT::VertInd>& vv = e.verts();

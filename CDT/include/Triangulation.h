@@ -142,7 +142,7 @@ public:
     Error(const std::string& description, const SourceLocation& srcLoc)
         : std::runtime_error(
               description + "\nin '" + srcLoc.func() + "' at " + srcLoc.file() +
-              ":" + std::to_string(srcLoc.line()))
+              ":" + CDT::to_string(srcLoc.line()))
         , m_description(description)
         , m_srcLoc(srcLoc)
     {}
@@ -188,8 +188,8 @@ public:
         const VertInd v2,
         const SourceLocation& srcLoc)
         : Error(
-              "Duplicate vertex detected: #" + std::to_string(v1) +
-                  " is a duplicate of #" + std::to_string(v2),
+              "Duplicate vertex detected: #" + CDT::to_string(v1) +
+                  " is a duplicate of #" + CDT::to_string(v2),
               srcLoc)
         , m_v1(v1)
         , m_v2(v2)
@@ -220,9 +220,9 @@ public:
         const SourceLocation& srcLoc)
         : Error(
               "Intersecting constraint edges detected: (" +
-                  std::to_string(e1.v1()) + ", " + std::to_string(e1.v2()) +
-                  ") intersects (" + std::to_string(e2.v1()) + ", " +
-                  std::to_string(e2.v2()) + ")",
+                  CDT::to_string(e1.v1()) + ", " + CDT::to_string(e1.v2()) +
+                  ") intersects (" + CDT::to_string(e2.v1()) + ", " +
+                  CDT::to_string(e2.v2()) + ")",
               srcLoc)
         , m_e1(e1)
         , m_e2(e2)
