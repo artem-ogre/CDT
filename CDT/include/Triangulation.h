@@ -670,16 +670,17 @@ private:
         unordered_map<Edge, TriInd>& outerTris,
         TriInd iT,
         TriInd iN,
+        std::vector<TriInd>& trianglesToReuse,
         std::vector<TriangulatePseudoPolygonTask>& iterations);
     void triangulatePseudoPolygonIteration(
         const std::vector<VertInd>& poly,
         unordered_map<Edge, TriInd>& outerTris,
+        std::vector<TriInd>& trianglesToReuse,
         std::vector<TriangulatePseudoPolygonTask>& iterations);
     IndexSizeType findDelaunayPoint(
         const std::vector<VertInd>& poly,
         IndexSizeType iA,
         IndexSizeType iB) const;
-    TriInd addTriangle(const Triangle& t); // note: invalidates iterators!
     TriInd addTriangle(); // note: invalidates triangle iterators!
     /**
      * Remove super-triangle (if used) and triangles with specified indices.
@@ -723,19 +724,6 @@ private:
         const TriInd iT,
         const TriInd iTopo);
     /**
-     * Flag triangle as dummy
-     * @note Advanced method for manually modifying the triangulation from
-     * outside. Please call it when you know what you are doing.
-     * @param iT index of a triangle to flag
-     */
-    void makeDummy(TriInd iT);
-    /**
-     * Erase all dummy triangles
-     * @note Advanced method for manually modifying the triangulation from
-     * outside. Please call it when you know what you are doing.
-     */
-    void eraseDummies();
-    /**
      * Depth-peel a layer in triangulation, used when calculating triangle
      * depths
      *
@@ -771,7 +759,6 @@ private:
     /// BFS bulk load if necessary
     void tryInitNearestPointLocator();
 
-    std::vector<TriInd> m_dummyTris;
     TNearPointLocator m_nearPtLocator;
     IndexSizeType m_nTargetVerts;
     SuperGeometryType::Enum m_superGeomType;
@@ -850,22 +837,32 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
         throw FinalizedError(CDT_SOURCE_LOCATION);
 
     const bool isFirstTime = vertices.empty();
+
+    // performance optimization: pre-allocate triangles and vertices
+    {
+        const std::size_t n = std::distance(first, last);
+        std::size_t capTris = triangles.size() + 2 * n;
+        std::size_t capVert = vertices.size() + n;
+        if(isFirstTime) // account for adding super-triangle on the first run
+        {
+            capTris += 1;
+            capVert += nSuperTriangleVertices;
+        }
+        triangles.reserve(capTris);
+        vertices.reserve(capVert);
+        m_vertTris.reserve(capVert);
+    }
+
     const T max = std::numeric_limits<T>::max();
     Box2d<T> box = {{max, max}, {-max, -max}};
-    if(vertices.empty()) // called first time
+    if(isFirstTime)
     {
         box = envelopBox<T>(first, last, getX, getY);
         addSuperTriangle(box);
     }
     tryInitNearestPointLocator();
-
     const VertInd nExistingVerts = static_cast<VertInd>(vertices.size());
-    const VertInd nVerts =
-        static_cast<VertInd>(nExistingVerts + std::distance(first, last));
-    // optimization, try to pre-allocate tris
-    triangles.reserve(triangles.size() + 2 * nVerts);
-    vertices.reserve(nVerts);
-    m_vertTris.reserve(nVerts);
+
     for(TVertexIter it = first; it != last; ++it)
         addNewVertex(V2d<T>::make(getX(*it), getY(*it)), noNeighbor);
 
@@ -905,7 +902,6 @@ void Triangulation<T, TNearPointLocator>::insertEdges(
             VertInd(getEnd(*first) + m_nTargetVerts));
         insertEdge(edge, edge, remaining, tppIterations);
     }
-    eraseDummies();
 }
 
 template <typename T, typename TNearPointLocator>
@@ -933,7 +929,6 @@ void Triangulation<T, TNearPointLocator>::conformToEdges(
             VertInd(getEnd(*first) + m_nTargetVerts));
         conformToEdge(e, EdgeVec(1, e), 0, remaining);
     }
-    eraseDummies();
 }
 
 } // namespace CDT

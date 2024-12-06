@@ -93,41 +93,6 @@ Triangulation<T, TNearPointLocator>::Triangulation(
 {}
 
 template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::eraseDummies()
-{
-    if(m_dummyTris.empty())
-        return;
-    const TriIndUSet dummySet(m_dummyTris.begin(), m_dummyTris.end());
-    TriIndUMap triIndMap;
-    triIndMap[noNeighbor] = noNeighbor;
-    for(TriInd iT(0), iTnew(0); iT < TriInd(triangles.size()); ++iT)
-    {
-        if(dummySet.count(iT))
-            continue;
-        triIndMap[iT] = iTnew;
-        triangles[iTnew] = triangles[iT];
-        iTnew++;
-    }
-    triangles.erase(triangles.end() - dummySet.size(), triangles.end());
-
-    // remap adjacent triangle indices for vertices
-    for(TriIndVec::iterator iT = m_vertTris.begin(); iT != m_vertTris.end();
-        ++iT)
-    {
-        *iT = triIndMap[*iT];
-    }
-    // remap neighbor indices for triangles
-    for(TriangleVec::iterator t = triangles.begin(); t != triangles.end(); ++t)
-    {
-        NeighborsArr3& nn = t->neighbors;
-        for(NeighborsArr3::iterator iN = nn.begin(); iN != nn.end(); ++iN)
-            *iN = triIndMap[*iN];
-    }
-    // clear dummy triangles
-    m_dummyTris = std::vector<TriInd>();
-}
-
-template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::eraseSuperTriangle()
 {
     if(m_superGeomType != SuperGeometryType::SuperTriangle)
@@ -145,7 +110,6 @@ void Triangulation<T, TNearPointLocator>::eraseSuperTriangle()
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::eraseOuterTriangles()
 {
-    // make dummy triangles adjacent to super-triangle's vertices
     assert(m_vertTris[0] != noNeighbor);
     const std::stack<TriInd> seed(std::deque<TriInd>(1, m_vertTris[0]));
     const TriIndUSet toErase = growToBoundary(seed);
@@ -225,12 +189,12 @@ template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::finalizeTriangulation(
     const TriIndUSet& removedTriangles)
 {
-    eraseDummies();
     m_vertTris = TriIndVec();
     // remove super-triangle
     if(m_superGeomType == SuperGeometryType::SuperTriangle)
     {
-        vertices.erase(vertices.begin(), vertices.begin() + nSuperTriangleVertices);
+        vertices.erase(
+            vertices.begin(), vertices.begin() + nSuperTriangleVertices);
         // Edge re-mapping
         { // fixed edges
             EdgeUSet updatedFixedEdges;
@@ -247,8 +211,9 @@ void Triangulation<T, TNearPointLocator>::finalizeTriangulation(
                 It;
             for(It it = overlapCount.begin(); it != overlapCount.end(); ++it)
             {
-                updatedOverlapCount.insert(std::make_pair(
-                    RemapNoSuperTriangle(it->first), it->second));
+                updatedOverlapCount.insert(
+                    std::make_pair(
+                        RemapNoSuperTriangle(it->first), it->second));
             }
             overlapCount = updatedOverlapCount;
         }
@@ -320,39 +285,10 @@ TriIndUSet Triangulation<T, TNearPointLocator>::growToBoundary(
 }
 
 template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::makeDummy(const TriInd iT)
-{
-    m_dummyTris.push_back(iT);
-}
-
-template <typename T, typename TNearPointLocator>
-TriInd Triangulation<T, TNearPointLocator>::addTriangle(const Triangle& t)
-{
-    if(m_dummyTris.empty())
-    {
-        triangles.push_back(t);
-        return TriInd(triangles.size() - 1);
-    }
-    const TriInd nxtDummy = m_dummyTris.back();
-    m_dummyTris.pop_back();
-    triangles[nxtDummy] = t;
-    return nxtDummy;
-}
-
-template <typename T, typename TNearPointLocator>
 TriInd Triangulation<T, TNearPointLocator>::addTriangle()
 {
-    if(m_dummyTris.empty())
-    {
-        const Triangle dummy = {
-            {noVertex, noVertex, noVertex},
-            {noNeighbor, noNeighbor, noNeighbor}};
-        triangles.push_back(dummy);
-        return TriInd(triangles.size() - 1);
-    }
-    const TriInd nxtDummy = m_dummyTris.back();
-    m_dummyTris.pop_back();
-    return nxtDummy;
+    triangles.push_back(Triangle::uninitialized());
+    return TriInd(triangles.size() - 1);
 }
 
 template <typename T, typename TNearPointLocator>
@@ -654,16 +590,24 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
         pivotVertexTriangleCW(iA);
     if(m_vertTris[iB] == intersected.back())
         pivotVertexTriangleCW(iB);
-    // Remove intersected triangles
-    typedef std::vector<TriInd>::const_iterator TriIndCit;
-    for(TriIndCit it = intersected.begin(); it != intersected.end(); ++it)
-        makeDummy(*it);
+
     { // Triangulate pseudo-polygons on both sides
         std::reverse(polyR.begin(), polyR.end());
-        const TriInd iTL = addTriangle();
-        const TriInd iTR = addTriangle();
-        triangulatePseudoPolygon(polyL, outerTris, iTL, iTR, tppIterations);
-        triangulatePseudoPolygon(polyR, outerTris, iTR, iTL, tppIterations);
+
+        // note: intersected triangles are re-used for new triangles
+        // every triangulation of an n-gon has n − 2 triangles
+        // even if outer polygon has hanging edges it holds
+        assert(intersected.size() >= 2);
+        const TriInd iTL = intersected.back();
+        intersected.pop_back();
+        const TriInd iTR = intersected.back();
+        intersected.pop_back();
+
+        triangulatePseudoPolygon(
+            polyL, outerTris, iTL, iTR, intersected, tppIterations);
+        triangulatePseudoPolygon(
+            polyR, outerTris, iTR, iTL, intersected, tppIterations);
+        assert(intersected.empty());
     }
 
     if(iB != edge.v2()) // encountered point on the edge
@@ -1012,10 +956,10 @@ void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
     addNewVertex(posV1, TriInd(0));
     addNewVertex(posV2, TriInd(0));
     addNewVertex(posV3, TriInd(0));
-    const Triangle superTri = {
+    const TriInd iSuperTri = addTriangle();
+    triangles[iSuperTri] = Triangle::make(
         {VertInd(0), VertInd(1), VertInd(2)},
-        {noNeighbor, noNeighbor, noNeighbor}};
-    addTriangle(superTri);
+        {noNeighbor, noNeighbor, noNeighbor});
     if(m_vertexInsertionOrder != VertexInsertionOrder::Auto)
     {
         m_nearPtLocator.initialize(vertices);
@@ -1604,6 +1548,7 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudoPolygon(
     unordered_map<Edge, TriInd>& outerTris,
     TriInd iT,
     TriInd iN,
+    std::vector<TriInd>& trianglesToReuse,
     std::vector<TriangulatePseudoPolygonTask>& iterations)
 {
     assert(poly.size() > 2);
@@ -1617,7 +1562,8 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudoPolygon(
         Index(0)));
     while(!iterations.empty())
     {
-        triangulatePseudoPolygonIteration(poly, outerTris, iterations);
+        triangulatePseudoPolygonIteration(
+            poly, outerTris, trianglesToReuse, iterations);
     }
 }
 
@@ -1625,6 +1571,7 @@ template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::triangulatePseudoPolygonIteration(
     const std::vector<VertInd>& poly,
     unordered_map<Edge, TriInd>& outerTris,
+    std::vector<TriInd>& trianglesToReuse,
     std::vector<TriangulatePseudoPolygonTask>& iterations)
 {
     IndexSizeType iA, iB;
@@ -1648,7 +1595,9 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudoPolygonIteration(
     // second part: points after the Delaunay point
     if(iB - iC > 1)
     {
-        const TriInd iNext = addTriangle();
+        assert(!trianglesToReuse.empty());
+        const TriInd iNext = trianglesToReuse.back();
+        trianglesToReuse.pop_back();
         iterations.push_back(make_tuple(iC, iB, iNext, iT, Index(1)));
     }
     else // pseudo-poly is reduced to a single outer edge
@@ -1667,7 +1616,9 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudoPolygonIteration(
     // first part: points before the Delaunay point
     if(iC - iA > 1)
     { // add next triangle and add another iteration
-        const TriInd iNext = addTriangle();
+        assert(!trianglesToReuse.empty());
+        const TriInd iNext = trianglesToReuse.back();
+        trianglesToReuse.pop_back();
         iterations.push_back(make_tuple(iA, iC, iNext, iT, Index(2)));
     }
     else
