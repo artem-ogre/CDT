@@ -290,6 +290,18 @@ struct CDT_EXPORT Triangle
         return t;
     }
 
+    /**
+     * Factory method for creating uninitialized triangle
+     * @note needed for c++03 compatibility (no uniform initialization
+     * available)
+     */
+    static Triangle uninitialized()
+    {
+        return Triangle::make(
+            {noVertex, noVertex, noVertex},
+            {noNeighbor, noNeighbor, noNeighbor});
+    }
+
     /// Next triangle adjacent to a vertex (clockwise)
     /// @returns pair of next triangle and the other vertex of a common edge
     std::pair<TriInd, VertInd> next(const VertInd i) const
