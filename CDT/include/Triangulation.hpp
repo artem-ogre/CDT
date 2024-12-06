@@ -230,7 +230,7 @@ void Triangulation<T, TNearPointLocator>::finalizeTriangulation(
     // remove super-triangle
     if(m_superGeomType == SuperGeometryType::SuperTriangle)
     {
-        vertices.erase(vertices.begin(), vertices.begin() + 3);
+        vertices.erase(vertices.begin(), vertices.begin() + nSuperTriangleVertices);
         // Edge re-mapping
         { // fixed edges
             EdgeUSet updatedFixedEdges;
@@ -281,7 +281,7 @@ void Triangulation<T, TNearPointLocator>::finalizeTriangulation(
             VerticesArr3& vv = t->vertices;
             for(VerticesArr3::iterator v = vv.begin(); v != vv.end(); ++v)
             {
-                *v -= 3;
+                *v -= nSuperTriangleVertices;
             }
         }
     }
@@ -981,7 +981,7 @@ Triangulation<T, TNearPointLocator>::intersectedTriangle(
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
 {
-    m_nTargetVerts = 3;
+    m_nTargetVerts = nSuperTriangleVertices;
     m_superGeomType = SuperGeometryType::SuperTriangle;
 
     const V2d<T> center = {

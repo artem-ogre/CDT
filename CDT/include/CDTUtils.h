@@ -156,6 +156,9 @@ typedef IndexSizeType TriInd;
 /// Constant representing no valid value for index
 const static IndexSizeType
     invalidIndex(std::numeric_limits<IndexSizeType>::max());
+/// Number of super triangle vertices
+/// @note placed in a constant so that it's easier to find usages in code
+const static IndexSizeType nSuperTriangleVertices(3);
 /// Constant representing no valid neighbor for a triangle
 const static TriInd noNeighbor(invalidIndex);
 /// Constant representing no valid vertex for a triangle
