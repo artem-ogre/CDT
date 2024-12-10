@@ -839,20 +839,38 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
 
     const bool isFirstTime = vertices.empty();
 
+    //
     // performance optimization: pre-allocate triangles and vertices
+    //
+    const std::size_t nNewVertices = std::distance(first, last);
+    std::size_t exactCapacityTriangles = triangles.size() + 2 * nNewVertices;
+    std::size_t exactCapacityVertices = vertices.size() + nNewVertices;
+    if(isFirstTime) // account for adding super-triangle on the first run
     {
-        const std::size_t n = std::distance(first, last);
-        std::size_t capTris = triangles.size() + 2 * n;
-        std::size_t capVert = vertices.size() + n;
-        if(isFirstTime) // account for adding super-triangle on the first run
-        {
-            capTris += 1;
-            capVert += nSuperTriangleVertices;
-        }
-        triangles.reserve(capTris);
-        vertices.reserve(capVert);
-        m_vertTris.reserve(capVert);
+        exactCapacityTriangles += 1;
+        exactCapacityVertices += nSuperTriangleVertices;
     }
+    std::size_t capacityTriangles = exactCapacityTriangles;
+    std::size_t capacityVertices = exactCapacityVertices;
+    // to avoid re-allocation and unused memory
+    // over-allocate by a fixed factor
+    // when constraint edge intersections are resolved and vertices are many
+    // because vertex is added for each intersection
+    // and total number of intersections is unknown
+    const VertInd overAllocationVerticesThreshold(1000);
+    const T overAllocationFactor(1.1);
+    const bool isOverPreAllocated =
+        m_intersectingEdgesStrategy ==
+            IntersectingConstraintEdges::TryResolve &&
+        nNewVertices >= overAllocationVerticesThreshold;
+    if(isOverPreAllocated)
+    {
+        capacityTriangles *= overAllocationFactor;
+        capacityVertices *= overAllocationFactor;
+    }
+    triangles.reserve(capacityTriangles);
+    vertices.reserve(capacityVertices);
+    m_vertTris.reserve(capacityVertices);
 
     const T max = std::numeric_limits<T>::max();
     Box2d<T> box = {{max, max}, {-max, -max}};
@@ -877,6 +895,10 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
                     : insertVertices_Randomized(nExistingVerts);
         break;
     }
+
+    // make sure pre-allocation was correct
+    assert(vertices.size() == exactCapacityVertices);
+    assert(triangles.size() == exactCapacityTriangles);
 }
 
 template <typename T, typename TNearPointLocator>
