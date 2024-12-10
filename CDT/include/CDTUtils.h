@@ -99,6 +99,18 @@ std::string to_string(const T& value)
 
 namespace CDT
 {
+
+namespace detail
+{
+/// Needed for c++03 compatibility (no uniform initialization available)
+template <typename T>
+array<T, 3> arr3(const T& v0, const T& v1, const T& v2)
+{
+    const array<T, 3> out = {v0, v1, v2};
+    return out;
+}
+} // namespace detail
+
 /// 2D vector
 template <typename T>
 struct CDT_EXPORT V2d
@@ -286,7 +298,7 @@ struct CDT_EXPORT Triangle
     static Triangle
     make(const array<VertInd, 3>& vertices, const array<TriInd, 3>& neighbors)
     {
-        Triangle t = {vertices, neighbors};
+        const Triangle t = {vertices, neighbors};
         return t;
     }
 
@@ -297,9 +309,10 @@ struct CDT_EXPORT Triangle
      */
     static Triangle uninitialized()
     {
-        return Triangle::make(
-            {noVertex, noVertex, noVertex},
-            {noNeighbor, noNeighbor, noNeighbor});
+        const Triangle t = {
+            detail::arr3(noVertex, noVertex, noVertex),
+            detail::arr3(noNeighbor, noNeighbor, noNeighbor)};
+        return t;
     }
 
     /// Next triangle adjacent to a vertex (clockwise)
