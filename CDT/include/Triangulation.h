@@ -681,7 +681,8 @@ private:
         const std::vector<VertInd>& poly,
         IndexSizeType iA,
         IndexSizeType iB) const;
-    TriInd addTriangle(); // note: invalidates triangle iterators!
+    TriInd addTriangle(const Triangle& t);
+    TriInd addTriangle();
     /**
      * Remove super-triangle (if used) and triangles with specified indices.
      * Adjust internal triangulation state accordingly.

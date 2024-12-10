@@ -24,14 +24,6 @@ typedef std::deque<TriInd> TriDeque;
 namespace detail
 {
 
-/// Needed for c++03 compatibility (no uniform initialization available)
-template <typename T>
-array<T, 3> arr3(const T& v0, const T& v1, const T& v2)
-{
-    const array<T, 3> out = {v0, v1, v2};
-    return out;
-}
-
 namespace defaults
 {
 
@@ -285,10 +277,16 @@ TriIndUSet Triangulation<T, TNearPointLocator>::growToBoundary(
 }
 
 template <typename T, typename TNearPointLocator>
+TriInd Triangulation<T, TNearPointLocator>::addTriangle(const Triangle& t)
+{
+    triangles.push_back(t);
+    return TriInd(triangles.size() - 1);
+}
+
+template <typename T, typename TNearPointLocator>
 TriInd Triangulation<T, TNearPointLocator>::addTriangle()
 {
-    triangles.push_back(Triangle::uninitialized());
-    return TriInd(triangles.size() - 1);
+    return addTriangle(Triangle::uninitialized());
 }
 
 template <typename T, typename TNearPointLocator>
@@ -956,10 +954,10 @@ void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
     addNewVertex(posV1, TriInd(0));
     addNewVertex(posV2, TriInd(0));
     addNewVertex(posV3, TriInd(0));
-    const TriInd iSuperTri = addTriangle();
-    triangles[iSuperTri] = Triangle::make(
-        {VertInd(0), VertInd(1), VertInd(2)},
-        {noNeighbor, noNeighbor, noNeighbor});
+    addTriangle(
+        Triangle::make(
+            {VertInd(0), VertInd(1), VertInd(2)},
+            {noNeighbor, noNeighbor, noNeighbor}));
     if(m_vertexInsertionOrder != VertexInsertionOrder::Auto)
     {
         m_nearPtLocator.initialize(vertices);
