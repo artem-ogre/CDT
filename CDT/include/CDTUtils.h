@@ -100,8 +100,6 @@ std::string to_string(const T& value)
 namespace CDT
 {
 
-namespace detail
-{
 /// Needed for c++03 compatibility (no uniform initialization available)
 template <typename T>
 array<T, 3> arr3(const T& v0, const T& v1, const T& v2)
@@ -109,7 +107,14 @@ array<T, 3> arr3(const T& v0, const T& v1, const T& v2)
     const array<T, 3> out = {v0, v1, v2};
     return out;
 }
-} // namespace detail
+
+/// Needed for c++03 compatibility (no uniform initialization available)
+template <typename T>
+array<T, 3> arr3(const T& v)
+{
+    const array<T, 3> out = {v, v, v};
+    return out;
+}
 
 /// 2D vector
 template <typename T>
@@ -118,8 +123,17 @@ struct CDT_EXPORT V2d
     T x; ///< X-coordinate
     T y; ///< Y-coordinate
 
-    /// Create vector from X and Y coordinates
-    static V2d make(T x, T y);
+    /// Vertex with zero coordinates
+    V2d()
+        : x(T(0))
+        , y(T(0))
+    {}
+
+    /// Vertex with given coordinates
+    V2d(const T x, const T y)
+        : x(x)
+        , y(y)
+    {}
 };
 
 /// X- coordinate getter for V2d
@@ -187,6 +201,12 @@ struct CDT_EXPORT Box2d
     V2d<T> min; ///< min box corner
     V2d<T> max; ///< max box corner
 
+    /// Box that doesn't contain any point
+    Box2d()
+        : min(std::numeric_limits<T>::max(), std::numeric_limits<T>::max())
+        , max(-std::numeric_limits<T>::max(), -std::numeric_limits<T>::max())
+    {}
+
     /// Envelop box around a point
     void envelopPoint(const V2d<T>& p)
     {
@@ -201,54 +221,71 @@ struct CDT_EXPORT Box2d
         min.y = std::min(y, min.y);
         max.y = std::max(y, max.y);
     }
-};
 
-/// Bounding box of a collection of custom 2D points given coordinate getters
-template <
-    typename T,
-    typename TVertexIter,
-    typename TGetVertexCoordX,
-    typename TGetVertexCoordY>
-Box2d<T> envelopBox(
-    TVertexIter first,
-    TVertexIter last,
-    TGetVertexCoordX getX,
-    TGetVertexCoordY getY)
-{
-    const T max = std::numeric_limits<T>::max();
-    Box2d<T> box = {{max, max}, {-max, -max}};
-    for(; first != last; ++first)
+    /// Envelop box around a collection of custom points
+    template <
+        typename TVertexIter,
+        typename TGetVertexCoordX,
+        typename TGetVertexCoordY>
+    void envelopPoints(
+        TVertexIter first,
+        TVertexIter last,
+        TGetVertexCoordX getX,
+        TGetVertexCoordY getY)
     {
-        box.envelopPoint(getX(*first), getY(*first));
+        for(; first != last; ++first)
+        {
+            envelopPoint(getX(*first), getY(*first));
+        }
     }
-    return box;
-}
 
-/// Bounding box of a collection of 2D points
-template <typename T>
-CDT_EXPORT Box2d<T> envelopBox(const std::vector<V2d<T> >& vertices);
+    /// Envelop box around a collection of points
+    void envelopPoints(const std::vector<V2d<T> >& vertices)
+    {
+        envelopPoints(
+            vertices.begin(), vertices.end(), getX_V2d<T>, getY_V2d<T>);
+    }
+};
 
 /// Edge connecting two vertices: vertex with smaller index is always first
 /// @note: hash Edge is specialized at the bottom
 struct CDT_EXPORT Edge
 {
     /// Constructor
-    Edge(VertInd iV1, VertInd iV2);
+    Edge(const VertInd iV1, const VertInd iV2)
+        : m_vertices(
+              iV1 < iV2 ? std::make_pair(iV1, iV2) : std::make_pair(iV2, iV1))
+    {}
 
     /// Equals operator
-    bool operator==(const Edge& other) const;
+    bool operator==(const Edge& other) const
+    {
+        return m_vertices == other.m_vertices;
+    }
 
     /// Not-equals operator
-    bool operator!=(const Edge& other) const;
+    bool operator!=(const Edge& other) const
+    {
+        return !(this->operator==(other));
+    }
 
     /// V1 getter
-    VertInd v1() const;
+    VertInd v1() const
+    {
+        return m_vertices.first;
+    }
 
     /// V2 getter
-    VertInd v2() const;
+    VertInd v2() const
+    {
+        return m_vertices.second;
+    }
 
     /// Edges' vertices
-    const std::pair<VertInd, VertInd>& verts() const;
+    const std::pair<VertInd, VertInd>& verts() const
+    {
+        return m_vertices;
+    }
 
 private:
     std::pair<VertInd, VertInd> m_vertices;
@@ -290,30 +327,17 @@ struct CDT_EXPORT Triangle
     VerticesArr3 vertices;   ///< triangle's three vertices
     NeighborsArr3 neighbors; ///< triangle's three neighbors
 
-    /**
-     * Factory method
-     * @note needed for c++03 compatibility (no uniform initialization
-     * available)
-     */
-    static Triangle
-    make(const array<VertInd, 3>& vertices, const array<TriInd, 3>& neighbors)
-    {
-        const Triangle t = {vertices, neighbors};
-        return t;
-    }
+    /// Triangle with no vertices and no neighbors
+    Triangle()
+        : vertices(arr3(noVertex))
+        , neighbors(arr3(noNeighbor))
+    {}
 
-    /**
-     * Factory method for creating uninitialized triangle
-     * @note needed for c++03 compatibility (no uniform initialization
-     * available)
-     */
-    static Triangle uninitialized()
-    {
-        const Triangle t = {
-            detail::arr3(noVertex, noVertex, noVertex),
-            detail::arr3(noNeighbor, noNeighbor, noNeighbor)};
-        return t;
-    }
+    /// Triangle with given vertices and neighbors
+    Triangle(const VerticesArr3& vertices, const NeighborsArr3& neighbors)
+        : vertices(vertices)
+        , neighbors(neighbors)
+    {}
 
     /// Next triangle adjacent to a vertex (clockwise)
     /// @returns pair of next triangle and the other vertex of a common edge
@@ -343,6 +367,7 @@ struct CDT_EXPORT Triangle
         return std::make_pair(neighbors[1], vertices[1]);
     }
 
+    /// Check if triangle contains a vertex
     bool containsVertex(const VertInd i) const
     {
         return std::find(vertices.begin(), vertices.end(), i) != vertices.end();
@@ -487,6 +512,7 @@ namespace std
 namespace boost
 #endif
 {
+
 #ifdef CDT_USE_STRONG_TYPING
 
 /// Vertex index hasher
@@ -536,16 +562,13 @@ private:
 
     static std::size_t hashEdge(const CDT::Edge& e)
     {
-        const std::pair<CDT::VertInd, CDT::VertInd>& vv = e.verts();
-        std::size_t seed1(0);
-        hashCombine(seed1, vv.first);
-        hashCombine(seed1, vv.second);
-        std::size_t seed2(0);
-        hashCombine(seed2, vv.second);
-        hashCombine(seed2, vv.first);
-        return std::min(seed1, seed2);
+        std::size_t seed(0);
+        hashCombine(seed, e.v1());
+        hashCombine(seed, e.v2());
+        return seed;
     }
 };
+
 } // namespace std/boost
 
 #endif // header guard

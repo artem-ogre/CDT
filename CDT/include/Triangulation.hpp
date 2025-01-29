@@ -286,7 +286,7 @@ TriInd Triangulation<T, TNearPointLocator>::addTriangle(const Triangle& t)
 template <typename T, typename TNearPointLocator>
 TriInd Triangulation<T, TNearPointLocator>::addTriangle()
 {
-    return addTriangle(Triangle::uninitialized());
+    return addTriangle(Triangle());
 }
 
 template <typename T, typename TNearPointLocator>
@@ -441,7 +441,7 @@ V2d<T> intersectionPosition(
     const T d_ab = orient2d(a.x, a.y, b.x, b.y, d.x, d.y);
     const T t_cd = c_ab / (c_ab - d_ab);
 
-    return V2d<T>::make(
+    return V2d<T>(
         std::fabs(a.x - b.x) < std::fabs(c.x - d.x) ? lerp(a.x, b.x, t_ab)
                                                     : lerp(c.x, d.x, t_cd),
         std::fabs(a.y - b.y) < std::fabs(c.y - d.y) ? lerp(a.y, b.y, t_ab)
@@ -781,8 +781,7 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
     const V2d<T>& start = vertices[iA];
     const V2d<T>& end = vertices[iB];
     addNewVertex(
-        V2d<T>::make((start.x + end.x) / T(2), (start.y + end.y) / T(2)),
-        noNeighbor);
+        V2d<T>((start.x + end.x) / T(2), (start.y + end.y) / T(2)), noNeighbor);
     const std::vector<Edge> flippedFixedEdges =
         insertVertex_FlipFixedEdges(iMid);
 
@@ -955,9 +954,7 @@ void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
     addNewVertex(posV2, TriInd(0));
     addNewVertex(posV3, TriInd(0));
     addTriangle(
-        Triangle::make(
-            {VertInd(0), VertInd(1), VertInd(2)},
-            {noNeighbor, noNeighbor, noNeighbor}));
+        Triangle(arr3(VertInd(0), VertInd(1), VertInd(2)), arr3(noNeighbor)));
     if(m_vertexInsertionOrder != VertexInsertionOrder::Auto)
     {
         m_nearPtLocator.initialize(vertices);
@@ -1245,9 +1242,8 @@ void Triangulation<T, TNearPointLocator>::flipEdge(
     const TriInd n4)
 {
     // change vertices and neighbors
-    using detail::arr3;
-    triangles[iT] = Triangle::make(arr3(v4, v1, v3), arr3(n3, iTopo, n4));
-    triangles[iTopo] = Triangle::make(arr3(v2, v3, v1), arr3(n2, iT, n1));
+    triangles[iT] = Triangle(arr3(v4, v1, v3), arr3(n3, iTopo, n4));
+    triangles[iTopo] = Triangle(arr3(v2, v3, v1), arr3(n2, iT, n1));
     // adjust neighboring triangles and vertices
     changeNeighbor(n1, iT, iTopo);
     changeNeighbor(n4, iTopo, iT);
@@ -1293,10 +1289,9 @@ Triangulation<T, TNearPointLocator>::insertVertexInsideTriangle(
     const TriInd n1 = nn[0], n2 = nn[1], n3 = nn[2];
     // make two new triangles and convert current triangle to 3rd new
     // triangle
-    using detail::arr3;
-    triangles[iNewT1] = Triangle::make(arr3(v2, v3, v), arr3(n2, iNewT2, iT));
-    triangles[iNewT2] = Triangle::make(arr3(v3, v1, v), arr3(n3, iT, iNewT1));
-    t = Triangle::make(arr3(v1, v2, v), arr3(n1, iNewT1, iNewT2));
+    triangles[iNewT1] = Triangle(arr3(v2, v3, v), arr3(n2, iNewT2, iT));
+    triangles[iNewT2] = Triangle(arr3(v3, v1, v), arr3(n3, iT, iNewT1));
+    t = Triangle(arr3(v1, v2, v), arr3(n1, iNewT1, iNewT2));
     // adjust adjacent triangles
     setAdjacentTriangle(v, iT);
     setAdjacentTriangle(v3, iNewT1);
@@ -1346,11 +1341,10 @@ std::stack<TriInd> Triangulation<T, TNearPointLocator>::insertVertexOnEdge(
     const TriInd n3 = t2.neighbors[i];
     const TriInd n2 = t2.neighbors[cw(i)];
     // add new triangles and change existing ones
-    using detail::arr3;
-    t1 = Triangle::make(arr3(v, v1, v2), arr3(iTnew1, n1, iT2));
-    t2 = Triangle::make(arr3(v, v2, v3), arr3(iT1, n2, iTnew2));
-    triangles[iTnew1] = Triangle::make(arr3(v, v4, v1), arr3(iTnew2, n4, iT1));
-    triangles[iTnew2] = Triangle::make(arr3(v, v3, v4), arr3(iT2, n3, iTnew1));
+    t1 = Triangle(arr3(v, v1, v2), arr3(iTnew1, n1, iT2));
+    t2 = Triangle(arr3(v, v2, v3), arr3(iT1, n2, iTnew2));
+    triangles[iTnew1] = Triangle(arr3(v, v4, v1), arr3(iTnew2, n4, iT1));
+    triangles[iTnew2] = Triangle(arr3(v, v3, v4), arr3(iT2, n3, iTnew1));
     // adjust adjacent triangles
     setAdjacentTriangle(v, iT1);
     setAdjacentTriangle(v4, iTnew1);
@@ -1493,9 +1487,8 @@ void Triangulation<T, TNearPointLocator>::flipEdge(
     const TriInd n4 = triOpoNs[i];
     const TriInd n2 = triOpoNs[cw(i)];
     // change vertices and neighbors
-    using detail::arr3;
-    t = Triangle::make(arr3(v4, v1, v3), arr3(n3, iTopo, n4));
-    tOpo = Triangle::make(arr3(v2, v3, v1), arr3(n2, iT, n1));
+    t = Triangle(arr3(v4, v1, v3), arr3(n3, iTopo, n4));
+    tOpo = Triangle(arr3(v2, v3, v1), arr3(n2, iT, n1));
     // adjust neighboring triangles and vertices
     changeNeighbor(n1, iT, iTopo);
     changeNeighbor(n4, iTopo, iT);
@@ -1637,7 +1630,7 @@ void Triangulation<T, TNearPointLocator>::triangulatePseudoPolygonIteration(
     // parent to maintain triangulation topology consistency
     triangles[iParent].neighbors[iInParent] = iT;
     t.neighbors[0] = iParent;
-    t.vertices = detail::arr3(a, b, c);
+    t.vertices = arr3(a, b, c);
     setAdjacentTriangle(c, iT);
 }
 
@@ -1894,8 +1887,7 @@ public:
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::insertVertices_KDTreeBFS(
     VertInd superGeomVertCount,
-    V2d<T> boxMin,
-    V2d<T> boxMax)
+    Box2d<T> box)
 {
     // calculate original indices
     const VertInd vertexCount =
@@ -1908,7 +1900,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices_KDTreeBFS(
     typedef std::vector<VertInd>::iterator It;
     detail::FixedCapacityQueue<tuple<It, It, V2d<T>, V2d<T>, VertInd> > queue(
         detail::maxQueueLengthBFSKDTree(vertexCount));
-    queue.push(make_tuple(ii.begin(), ii.end(), boxMin, boxMax, VertInd(0)));
+    queue.push(make_tuple(ii.begin(), ii.end(), box.min, box.max, VertInd(0)));
 
     It first, last;
     V2d<T> newBoxMin, newBoxMax;
@@ -1919,7 +1911,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices_KDTreeBFS(
 
     while(!queue.empty())
     {
-        tie(first, last, boxMin, boxMax, parent) = queue.front();
+        tie(first, last, box.min, box.max, parent) = queue.front();
         queue.pop();
         assert(first != last);
 
@@ -1930,34 +1922,34 @@ void Triangulation<T, TNearPointLocator>::insertVertices_KDTreeBFS(
             continue;
         }
         const It midIt = first + len / 2;
-        if(boxMax.x - boxMin.x >= boxMax.y - boxMin.y)
+        if(box.max.x - box.min.x >= box.max.y - box.min.y)
         {
             detail::portable_nth_element(first, midIt, last, cmpX);
             mid = *midIt;
             const T split = vertices[mid].x;
             newBoxMin.x = split;
-            newBoxMin.y = boxMin.y;
+            newBoxMin.y = box.min.y;
             newBoxMax.x = split;
-            newBoxMax.y = boxMax.y;
+            newBoxMax.y = box.max.y;
         }
         else
         {
             detail::portable_nth_element(first, midIt, last, cmpY);
             mid = *midIt;
             const T split = vertices[mid].y;
-            newBoxMin.x = boxMin.x;
+            newBoxMin.x = box.min.x;
             newBoxMin.y = split;
-            newBoxMax.x = boxMax.x;
+            newBoxMax.x = box.max.x;
             newBoxMax.y = split;
         }
         insertVertex(mid, parent);
         if(first != midIt)
         {
-            queue.push(make_tuple(first, midIt, boxMin, newBoxMax, mid));
+            queue.push(make_tuple(first, midIt, box.min, newBoxMax, mid));
         }
         if(midIt + 1 != last)
         {
-            queue.push(make_tuple(midIt + 1, last, newBoxMin, boxMax, mid));
+            queue.push(make_tuple(midIt + 1, last, newBoxMin, box.max, mid));
         }
     }
 }

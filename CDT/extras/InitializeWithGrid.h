@@ -62,7 +62,7 @@ void generateGridVertices(
         TXCoordIter xiter = xfirst;
         for(std::size_t ix = 0; xiter != xlast; ++xiter, ++ix)
         {
-            *outVertsFirst++ = V2d<T>::make(*xiter, *yiter);
+            *outVertsFirst++ = V2d<T>(*xiter, *yiter);
             const std::size_t i = iy * xres + ix;
             TriIndVec vTris;
             vTris.reserve(6);

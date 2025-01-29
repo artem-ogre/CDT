@@ -16,62 +16,6 @@
 namespace CDT
 {
 
-//*****************************************************************************
-// V2d
-//*****************************************************************************
-template <typename T>
-V2d<T> V2d<T>::make(const T x, const T y)
-{
-    V2d<T> out = {x, y};
-    return out;
-}
-
-//*****************************************************************************
-// Box2d
-//*****************************************************************************
-template <typename T>
-Box2d<T> envelopBox(const std::vector<V2d<T> >& vertices)
-{
-    return envelopBox<T>(
-        vertices.begin(), vertices.end(), getX_V2d<T>, getY_V2d<T>);
-}
-
-//*****************************************************************************
-// Edge
-//*****************************************************************************
-CDT_INLINE_IF_HEADER_ONLY Edge::Edge(VertInd iV1, VertInd iV2)
-    : m_vertices(
-          iV1 < iV2 ? std::make_pair(iV1, iV2) : std::make_pair(iV2, iV1))
-{}
-
-CDT_INLINE_IF_HEADER_ONLY bool Edge::operator==(const Edge& other) const
-{
-    return m_vertices == other.m_vertices;
-}
-
-CDT_INLINE_IF_HEADER_ONLY bool Edge::operator!=(const Edge& other) const
-{
-    return !(this->operator==(other));
-}
-
-CDT_INLINE_IF_HEADER_ONLY VertInd Edge::v1() const
-{
-    return m_vertices.first;
-}
-
-CDT_INLINE_IF_HEADER_ONLY VertInd Edge::v2() const
-{
-    return m_vertices.second;
-}
-
-CDT_INLINE_IF_HEADER_ONLY const std::pair<VertInd, VertInd>& Edge::verts() const
-{
-    return m_vertices;
-}
-
-//*****************************************************************************
-// Utility functions
-//*****************************************************************************
 CDT_INLINE_IF_HEADER_ONLY Index ccw(Index i)
 {
     return Index((i + 1) % 3);

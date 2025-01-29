@@ -746,10 +746,7 @@ private:
 
     void insertVertices_AsProvided(VertInd superGeomVertCount);
     void insertVertices_Randomized(VertInd superGeomVertCount);
-    void insertVertices_KDTreeBFS(
-        VertInd superGeomVertCount,
-        V2d<T> boxMin,
-        V2d<T> boxMax);
+    void insertVertices_KDTreeBFS(VertInd superGeomVertCount, Box2d<T> box);
     std::pair<TriInd, TriInd> edgeTriangles(VertInd a, VertInd b) const;
     bool hasEdge(VertInd a, VertInd b) const;
     void setAdjacentTriangle(const VertInd v, const TriInd t);
@@ -872,18 +869,17 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
     vertices.reserve(capacityVertices);
     m_vertTris.reserve(capacityVertices);
 
-    const T max = std::numeric_limits<T>::max();
-    Box2d<T> box = {{max, max}, {-max, -max}};
+    Box2d<T> box;
     if(isFirstTime)
     {
-        box = envelopBox<T>(first, last, getX, getY);
+        box.envelopPoints(first, last, getX, getY);
         addSuperTriangle(box);
     }
     tryInitNearestPointLocator();
     const VertInd nExistingVerts = static_cast<VertInd>(vertices.size());
 
     for(TVertexIter it = first; it != last; ++it)
-        addNewVertex(V2d<T>::make(getX(*it), getY(*it)), noNeighbor);
+        addNewVertex(V2d<T>(getX(*it), getY(*it)), noNeighbor);
 
     switch(m_vertexInsertionOrder)
     {
@@ -891,7 +887,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
         insertVertices_AsProvided(nExistingVerts);
         break;
     case VertexInsertionOrder::Auto:
-        isFirstTime ? insertVertices_KDTreeBFS(nExistingVerts, box.min, box.max)
+        isFirstTime ? insertVertices_KDTreeBFS(nExistingVerts, box)
                     : insertVertices_Randomized(nExistingVerts);
         break;
     }
