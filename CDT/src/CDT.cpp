@@ -31,11 +31,6 @@ template struct CDT_EXPORT Box2d<double>;
 template class CDT_EXPORT Triangulation<float>;
 template class CDT_EXPORT Triangulation<double>;
 
-template CDT_EXPORT Box2d<float>
-envelopBox<float>(const std::vector<V2d<float> >&);
-template CDT_EXPORT Box2d<double>
-envelopBox<double>(const std::vector<V2d<double> >&);
-
 template CDT_EXPORT DuplicatesInfo
 RemoveDuplicates<float>(std::vector<V2d<float> >&);
 template CDT_EXPORT DuplicatesInfo

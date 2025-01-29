@@ -81,10 +81,10 @@ public:
     /// Default constructor
     KDTree()
         : m_rootDir(NodeSplitDirection::X)
-        , m_min(point_type::make(
+        , m_min(point_type(
               -std::numeric_limits<coord_type>::max(),
               -std::numeric_limits<coord_type>::max()))
-        , m_max(point_type::make(
+        , m_max(point_type(
               std::numeric_limits<coord_type>::max(),
               std::numeric_limits<coord_type>::max()))
         , m_size(0)
@@ -349,10 +349,8 @@ private:
         for(pd_cit it = data.begin(); it != data.end(); ++it)
         {
             const point_type& p = points[*it];
-            m_min = point_type::make(
-                std::min(m_min.x, p.x), std::min(m_min.y, p.y));
-            m_max = point_type::make(
-                std::max(m_max.x, p.x), std::max(m_max.y, p.y));
+            m_min = point_type(std::min(m_min.x, p.x), std::min(m_min.y, p.y));
+            m_max = point_type(std::max(m_max.x, p.x), std::max(m_max.y, p.y));
         }
         // Make sure bounding box does not have a zero size by adding padding:
         // zero-size bounding box cannot be extended properly

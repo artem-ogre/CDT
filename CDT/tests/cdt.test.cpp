@@ -109,7 +109,7 @@ readInputFromFile(const std::string& fileName)
     {
         T x, y;
         f >> x >> y;
-        vv.push_back(V2d<T>::make(x, y));
+        vv.emplace_back(x, y);
     }
     // Read edges
     std::vector<Edge> ee;

@@ -306,7 +306,7 @@ DuplicatesInfo FindDuplicates(
         typename PosToIndex::const_iterator it;
         bool isUnique;
         tie(it, isUnique) = uniqueVerts.insert(
-            std::make_pair(V2d<T>::make(getX(*first), getY(*first)), iOut));
+            std::make_pair(V2d<T>(getX(*first), getY(*first)), iOut));
         if(isUnique)
         {
             di.mapping[iIn] = iOut++;
