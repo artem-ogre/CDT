@@ -3,25 +3,23 @@ name: CI Builds
 on: [push]
 
 jobs:
-  ci_workflow_test:
+  builds:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
       matrix:
         config:
-        - {
-            name: "Windows", 
-            os: windows-latest
-          }
-        - {
-            name: "Ubuntu", 
-            os: ubuntu-latest
-          }
-        - {
-            name: "macOS",
-            os: macos-latest
-          }
+        - name: "Windows 2025 (x64)"
+          os: windows-2025
+        - name: "Ubuntu 24.04 (x64)"
+          os: ubuntu-24.04
+        - name: "Ubuntu 24.04 (arm64)"
+          os: ubuntu-24.04-arm
+        - name: "macOS 13 (x64)"
+          os: macos-13
+        - name: "macOS 15 (arm64)"
+          os: macos-15
 
     steps:
     - uses: actions/checkout@v4
@@ -29,7 +27,7 @@ jobs:
         submodules: true
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.x'
 
