@@ -6,7 +6,7 @@
 
 CDT is a C++ library for generating constraint or conforming Delaunay triangulations.
 - **open-source:** permissively-licensed under Mozilla Public License (MPL) 2.0
-- **cross-platform:** tested on Windows, Linux (Ubuntu), and macOS
+- **cross-platform:** tested on Windows, Linux (Ubuntu), and macOS; tested architectures: `x64` and `arm64`
 - **portable:** backwards-compatible with C++98
 - **bloat-free:** no external dependencies by default
 - **flexible:** can be consumed as a header-only or as a compiled library
