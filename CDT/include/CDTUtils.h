@@ -208,18 +208,19 @@ struct CDT_EXPORT Box2d
     {}
 
     /// Envelop box around a point
-    void envelopPoint(const V2d<T>& p)
+    Box2d<T>& envelopPoint(const V2d<T>& p)
     {
-        envelopPoint(p.x, p.y);
+        return envelopPoint(p.x, p.y);
     }
 
     /// Envelop box around a point with given coordinates
-    void envelopPoint(const T x, const T y)
+    Box2d<T>& envelopPoint(const T x, const T y)
     {
         min.x = std::min(x, min.x);
         max.x = std::max(x, max.x);
         min.y = std::min(y, min.y);
         max.y = std::max(y, max.y);
+        return *this;
     }
 
     /// Envelop box around a collection of custom points
@@ -227,7 +228,7 @@ struct CDT_EXPORT Box2d
         typename TVertexIter,
         typename TGetVertexCoordX,
         typename TGetVertexCoordY>
-    void envelopPoints(
+    Box2d<T>& envelopPoints(
         TVertexIter first,
         TVertexIter last,
         TGetVertexCoordX getX,
@@ -237,12 +238,13 @@ struct CDT_EXPORT Box2d
         {
             envelopPoint(getX(*first), getY(*first));
         }
+        return *this;
     }
 
     /// Envelop box around a collection of points
-    void envelopPoints(const std::vector<V2d<T> >& vertices)
+    Box2d<T>& envelopPoints(const std::vector<V2d<T> >& vertices)
     {
-        envelopPoints(
+        return envelopPoints(
             vertices.begin(), vertices.end(), getX_V2d<T>, getY_V2d<T>);
     }
 };

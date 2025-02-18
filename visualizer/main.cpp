@@ -211,7 +211,7 @@ public slots:
         fout << m_cdt.vertices.size() << ' ' << m_cdt.triangles.size()
              << " 0\n";
         // Write vertices
-        const Box2d box = envelopBox(m_points);
+        const Box2d box = Box2d().envelopPoints(m_points);
         const CoordType stZ =
             -std::fmax(box.max.x - box.min.x, box.max.y - box.min.y);
         std::size_t counter = 0;
@@ -253,7 +253,7 @@ private:
         {
             CoordType x1, y1;
             inStream >> x1 >> y1;
-            m_points.push_back(V2d::make(x1, y1));
+            m_points.push_back(V2d(x1, y1));
         }
         m_edges.clear();
         for(std::size_t i = 0; i < nEdges; ++i)
@@ -381,9 +381,9 @@ private:
     }
     double calculateScale(const int w, const int h) const
     {
-        const V2d sceneSize = V2d::make(
-            m_sceneBox.max.x - m_sceneBox.min.x,
-            m_sceneBox.max.y - m_sceneBox.min.y);
+        const V2d sceneSize =
+            V2d(m_sceneBox.max.x - m_sceneBox.min.x,
+                m_sceneBox.max.y - m_sceneBox.min.y);
         const double sceneRatio = sceneSize.x / sceneSize.y;
         const double screenRatio = static_cast<double>(w) / h;
         double scale =
@@ -392,7 +392,7 @@ private:
     }
     void initTransform()
     {
-        m_sceneBox = envelopBox(m_points);
+        m_sceneBox = Box2d().envelopPoints(m_points);
         QPointF sceneCenter(
             (m_sceneBox.min.x + m_sceneBox.max.x) / CoordType(2),
             (m_sceneBox.min.y + m_sceneBox.max.y) / CoordType(2));
