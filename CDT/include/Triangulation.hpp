@@ -1023,6 +1023,12 @@ void Triangulation<T, TNearPointLocator>::insertVertex(
             ? insertVertexInsideTriangle(iVert, trisAt[0])
             : insertVertexOnEdge(iVert, trisAt[0], trisAt[1]);
     ensureDelaunayByEdgeFlips(iVert, triStack);
+    #ifndef CDT_CALLBACK_DISABLED
+    if(callback_vertex)
+    {
+        callback_vertex(iVert, CallbackType::Added);
+    }
+    #endif
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1032,6 +1038,12 @@ void Triangulation<T, TNearPointLocator>::insertVertex(const VertInd iVert)
     const VertInd walkStart = m_nearPtLocator.nearPoint(v, vertices);
     insertVertex(iVert, walkStart);
     tryAddVertexToLocator(iVert);
+    #ifndef CDT_CALLBACK_DISABLED
+    if(callback_vertex)
+    {
+        callback_vertex(iVert, CallbackType::Added);
+    }
+    #endif
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1255,6 +1267,13 @@ void Triangulation<T, TNearPointLocator>::flipEdge(
         setAdjacentTriangle(v4, iT);
         setAdjacentTriangle(v2, iTopo);
     }
+    #ifndef CDT_CALLBACK_DISABLED
+    if(callback_tri)
+    {
+        callback_tri(iT, CallbackType::Changed);   // reused so changed
+        callback_tri(iTopo, CallbackType::Changed); // reused so changed        
+    }
+    #endif
 }
 
 /* Insert point into triangle: split into 3 triangles:
@@ -1303,6 +1322,14 @@ Triangulation<T, TNearPointLocator>::insertVertexInsideTriangle(
     newTriangles.push(iT);
     newTriangles.push(iNewT1);
     newTriangles.push(iNewT2);
+    #ifndef CDT_CALLBACK_DISABLED
+    if(callback_tri)
+    {
+        callback_tri(iT, CallbackType::Changed); // reused so changed
+        callback_tri(iNewT1, CallbackType::Added); // new one
+        callback_tri(iNewT2, CallbackType::Added); // new one
+    }
+    #endif
     return newTriangles;
 }
 
@@ -1357,6 +1384,15 @@ std::stack<TriInd> Triangulation<T, TNearPointLocator>::insertVertexOnEdge(
     newTriangles.push(iTnew2);
     newTriangles.push(iT2);
     newTriangles.push(iTnew1);
+    #ifndef CDT_CALLBACK_DISABLED
+    if(callback_tri)
+    {
+        callback_tri(iT1, CallbackType::Changed);   // reused so changed
+        callback_tri(iT2, CallbackType::Changed);  // reused so changed
+        callback_tri(iTnew1, CallbackType::Added);  // new one
+        callback_tri(iTnew2, CallbackType::Added); // new one
+    }
+    #endif
     return newTriangles;
 }
 
@@ -1671,6 +1707,22 @@ bool Triangulation<T, TNearPointLocator>::isFinalized() const
 {
     return m_vertTris.empty() && !vertices.empty();
 }
+
+#ifndef CDT_CALLBACK_DISABLED
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::registerTriangleCallback(
+    std::function<void(TriInd, CallbackType)> fnc)
+{
+    callback_tri = fnc;
+}
+
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::registerVertexCallback(
+    std::function<void(VertInd, CallbackType)> fnc)
+{
+    callback_vertex = fnc;
+}
+#endif
 
 template <typename T, typename TNearPointLocator>
 unordered_map<TriInd, LayerDepth>
