@@ -126,10 +126,11 @@ CDT uses modern CMake and should *just work* out of the box without any surprise
 
 **CMake options**
 
-| Option                      | Default value | Description                                                                                           |
-| --------------------------- | :-----------: | :---------------------------------------------------------------------------------------------------- |
-| CDT_USE_64_BIT_INDEX_TYPE   |      OFF      | Use 64bits to store vertex/triangle index types. Otherwise 32bits are used (up to 4.2bn items)        |
-| CDT_USE_AS_COMPILED_LIBRARY |      OFF      | Instantiate templates for float and double and compiled into a library                                |
+| Option                        | Default value | Description                                                                                    |
+|-------------------------------| :-----------: |:-----------------------------------------------------------------------------------------------|
+| `CDT_USE_64_BIT_INDEX_TYPE`   |      `OFF`      | Use 64bits to store vertex/triangle index types. Otherwise 32bits are used (up to 4.2bn items) |
+| `CDT_USE_AS_COMPILED_LIBRARY` |      `OFF`      | Instantiate templates for float and double and compiled into a library                         |
+| `CDT_DISABLE_EXCEPTIONS`      |      `OFF`      | Disables exceptions: instead of throwing the library will call `std::terminate`                |
 
 **Adding to CMake project directly**
 
