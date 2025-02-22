@@ -60,6 +60,10 @@ typedef char couldnt_parse_cxx_standard[-1]; ///< Error: couldn't parse standard
 #include <unordered_map>
 #include <unordered_set>
 
+#ifdef CDT_DISABLE_EXCEPTIONS
+#include <exception>
+#endif
+
 namespace CDT
 {
 using std::array;
@@ -99,6 +103,16 @@ std::string to_string(const T& value)
 
 namespace CDT
 {
+
+template <typename T>
+void handleException(const T& error)
+{
+#ifdef CDT_DISABLE_EXCEPTIONS
+    std::terminate();
+#else
+    throw error;
+#endif
+}
 
 /// Needed for c++03 compatibility (no uniform initialization available)
 template <typename T>
@@ -180,15 +194,17 @@ typedef IndexSizeType TriInd;
 #endif
 
 /// Constant representing no valid value for index
+const static Index invalidIndex(std::numeric_limits<Index>::max());
+/// Constant representing no valid value for index size
 const static IndexSizeType
-    invalidIndex(std::numeric_limits<IndexSizeType>::max());
+    invalidIndexSizeType(std::numeric_limits<IndexSizeType>::max());
 /// Number of super triangle vertices
 /// @note placed in a constant so that it's easier to find usages in code
 const static IndexSizeType nSuperTriangleVertices(3);
 /// Constant representing no valid neighbor for a triangle
-const static TriInd noNeighbor(invalidIndex);
+const static TriInd noNeighbor(invalidIndexSizeType);
 /// Constant representing no valid vertex for a triangle
-const static VertInd noVertex(invalidIndex);
+const static VertInd noVertex(invalidIndexSizeType);
 
 typedef std::vector<TriInd> TriIndVec;  ///< Vector of triangle indices
 typedef array<VertInd, 3> VerticesArr3; ///< array of three vertex indices
