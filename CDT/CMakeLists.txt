@@ -36,7 +36,7 @@ option(CDT_DEVELOPER_BUILD
     OFF)
 
 option(CDT_DISABLE_EXCEPTIONS
-    "Disables exceptions in the library: instead of throwing the library will call std::terminate"
+    "Disables exceptions: instead of throwing the library will call `std::terminate`"
     OFF)
 
 if(CDT_DEVELOPER_BUILD)
