@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.3...4.0)
 
 project(CDT_visualizer VERSION 1.0.0 LANGUAGES CXX)
 
