@@ -39,6 +39,13 @@ option(CDT_DISABLE_EXCEPTIONS
     "Disables exceptions: instead of throwing the library will call `std::terminate`"
     OFF)
 
+# Use Conan toolchain if it exists
+set(cdt_conan_toolchain "${CMAKE_CURRENT_BINARY_DIR}/conan_toolchain.cmake")
+if(NOT CDT_CONAN_TOOLCHAIN_INCLUDED AND EXISTS ${cdt_conan_toolchain})
+    include(${cdt_conan_toolchain})
+    set(CDT_CONAN_TOOLCHAIN_INCLUDED ON)
+endif()
+
 if(CDT_DEVELOPER_BUILD)
     if (MSVC)
         # warning level 4 and all warnings as errors
@@ -191,7 +198,7 @@ install(EXPORT ${PROJECT_NAME}Config NAMESPACE CDT:: DESTINATION cmake)
 # work-around to detect custom-doxygen
 #set(DOXYGEN_EXECUTABLE /usr/local/bin/doxygen)
 
-find_package(Doxygen 1.9)
+find_package(Doxygen)
 if(DOXYGEN_FOUND)
     message(STATUS "Doxygen found: adding documentation target.")
     set(DOXYGEN_EXCLUDE_PATTERNS

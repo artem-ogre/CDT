@@ -3,57 +3,77 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 from conan import ConanFile
-from conan.tools.cmake import CMake, CMakeToolchain
-from conan.tools.files import collect_libs
+from conan.tools.cmake import CMakeDeps, CMakeToolchain
+
 
 class CDTConan(ConanFile):
     name = "cdt"
-    version = "1.3.0"
+    version = "1.4.1"
     license = "MPL-2.0 License"
     url = "https://github.com/artem-ogre/CDT"
     description = "Numerically robust C++ implementation of constrained Delaunay triangulation (CDT)"
     settings = "os", "compiler", "build_type", "arch"
-    generators = "CMakeDeps"
     options = {
-        "shared": [True, False],
-        "use_boost": [True, False],
-        "as_compiled_library": [True, False],
-        "enable_testing": [True, False],
+        "without_boost": [True, False],
+        "without_catch2": [True, False],
+        "without_doxygen": [True, False],
+        "without_qt": [True, False],
+        "minify_qt": [True, False],
     }
     default_options = {
-        "shared": False,
-        "use_boost": False,
-        "as_compiled_library": False,
+        "without_boost": True,
+        "without_catch2": False,
+        "without_doxygen": True,
+        "without_qt": True,
+        "minify_qt": True,
     }
     exports_sources = "*", "!.idea", "!conanfile.py"
 
     def requirements(self):
-        if self.options.use_boost:
+        if not self.options.without_boost:
             self.requires("boost/1.83.0")
-        self.requires("catch2/3.4.0")
+        if not self.options.without_qt:
+            self.requires("qt/6.7.3")
+
+    def build_requirements(self):
+        if not self.options.without_catch2:
+            self.requires("catch2/3.8.0")
+        if not self.options.without_doxygen:
+            self.requires("doxygen/1.13.2")
 
     def configure(self):
-        if self.options.use_boost:
-            self.options["boost"].header_only = True
+        if not self.options.without_qt:
+            self.options["qt"].shared = True
+            if self.options.minify_qt:
+                self.options["qt"].openssl = False
+                self.options["qt"].with_icu = False
+                self.options["qt"].with_harfbuzz = False
+                self.options["qt"].with_libjpeg = False
+                self.options["qt"].with_libpng = False
+                self.options["qt"].with_sqlite3 = False
+                self.options["qt"].with_pq = False
+                self.options["qt"].with_odbc = False
+                self.options["qt"].with_brotli = False
+                self.options["qt"].with_openal = False
+                self.options["qt"].with_md4c = False
 
     def generate(self):
         tc = CMakeToolchain(self)
-        tc.variables["CDT_USE_BOOST"] = self.options.use_boost
-        tc.cache_variables["CDT_USE_AS_COMPILED_LIBRARY"] = self.options.as_compiled_library
-        tc.cache_variables["CMAKE_PROJECT_CDT_INCLUDE"] = "conan_basic_setup.cmake"
-        tc.cache_variables["CDT_ENABLE_TESTING"] = self.options.enable_testing
+        tc.user_presets_path = False  # disable generating CMakeUserPresets.json
         tc.generate()
 
+        deps = CMakeDeps(self)
+        deps.generate()
+
     def build(self):
-        cmake = CMake(self)
-        cmake.configure()
-        cmake.build()
-        if self.options.enable_testing:
-            cmake.test(cli_args=["--verbose"])
+        print(
+            "Building with conan not supported by this recipe. Please call cmake directly."
+        )
 
     def package(self):
-        cmake = CMake(self)
-        cmake.install()
+        print(
+            "Installing with conan not supported by this recipe. Please call cmake directly."
+        )
 
     def package_info(self):
-        self.cpp_info.libs = collect_libs(self)
+        print("Packaging with conan not supported by this recipe.")
