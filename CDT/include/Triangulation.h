@@ -243,17 +243,6 @@ private:
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
 
 /**
- * Error thrown when user requests aborting calculation
- */
-class AbortCalculationError : public Error
-{
-public:
-    AbortCalculationError(const SourceLocation& srcLoc)
-        : Error("Aborting calculation because requested", srcLoc)
-    {}
-};
-
-/**
  * What type of vertex is added to the triangulation
  */
 struct CDT_EXPORT AddedVertexType
