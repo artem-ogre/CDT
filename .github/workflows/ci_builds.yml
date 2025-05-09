@@ -48,5 +48,5 @@ jobs:
       run: conan create CDT/ -o as_compiled_library=True -o use_boost=False -o enable_testing=True
     - name: "Build: header-only, boost"
       run: conan create CDT/ -o use_boost=True -o enable_testing=True --build missing
-    - name: "Build: header-only, without boost"
-      run: conan create CDT/ -o use_boost=False -o enable_testing=True
+    - name: "Build: header-only, without boost, with callbacks"
+      run: conan create CDT/ -o use_boost=False -o enable_testing=True -o enable_callback_handler=True

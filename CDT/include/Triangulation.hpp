@@ -46,6 +46,9 @@ Triangulation<T, TNearPointLocator>::Triangulation()
     , m_vertexInsertionOrder(detail::defaults::vertexInsertionOrder)
     , m_intersectingEdgesStrategy(detail::defaults::intersectingEdgesStrategy)
     , m_minDistToConstraintEdge(detail::defaults::minDistToConstraintEdge)
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+    , m_callbackHandler(NULL)
+#endif
 {}
 
 template <typename T, typename TNearPointLocator>
@@ -56,6 +59,9 @@ Triangulation<T, TNearPointLocator>::Triangulation(
     , m_vertexInsertionOrder(vertexInsertionOrder)
     , m_intersectingEdgesStrategy(detail::defaults::intersectingEdgesStrategy)
     , m_minDistToConstraintEdge(detail::defaults::minDistToConstraintEdge)
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+    , m_callbackHandler(NULL)
+#endif
 {}
 
 template <typename T, typename TNearPointLocator>
@@ -68,6 +74,9 @@ Triangulation<T, TNearPointLocator>::Triangulation(
     , m_vertexInsertionOrder(vertexInsertionOrder)
     , m_intersectingEdgesStrategy(intersectingEdgesStrategy)
     , m_minDistToConstraintEdge(minDistToConstraintEdge)
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+    , m_callbackHandler(NULL)
+#endif
 {}
 
 template <typename T, typename TNearPointLocator>
@@ -82,6 +91,9 @@ Triangulation<T, TNearPointLocator>::Triangulation(
     , m_vertexInsertionOrder(vertexInsertionOrder)
     , m_intersectingEdgesStrategy(intersectingEdgesStrategy)
     , m_minDistToConstraintEdge(minDistToConstraintEdge)
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+    , m_callbackHandler(NULL)
+#endif
 {}
 
 template <typename T, typename TNearPointLocator>
@@ -280,7 +292,16 @@ template <typename T, typename TNearPointLocator>
 TriInd Triangulation<T, TNearPointLocator>::addTriangle(const Triangle& t)
 {
     triangles.push_back(t);
-    return TriInd(triangles.size() - 1);
+    const TriInd iT(triangles.size() - 1);
+
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+    if(m_callbackHandler)
+    {
+        m_callbackHandler->onTriangleChange(iT, TriangleChangeType::AddedNew);
+    }
+#endif
+
+    return iT;
 }
 
 template <typename T, typename TNearPointLocator>
@@ -384,6 +405,15 @@ VertInd Triangulation<T, TNearPointLocator>::addSplitEdgeVertex(
     // add a new point on the edge that splits an edge in two
     const VertInd iSplitVert = static_cast<VertInd>(vertices.size());
     addNewVertex(splitVert, noNeighbor);
+
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+    if(m_callbackHandler)
+    {
+        m_callbackHandler->onVertexAdd(
+            iSplitVert, AddedVertexType::EdgesIntersection);
+    }
+#endif
+
     std::stack<TriInd> triStack = insertVertexOnEdge(iSplitVert, iT, iTopo);
     tryAddVertexToLocator(iSplitVert);
     ensureDelaunayByEdgeFlips(iSplitVert, triStack);
@@ -601,6 +631,17 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
         const TriInd iTR = intersected.back();
         intersected.pop_back();
 
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+        if(m_callbackHandler)
+        {
+            for(size_t i = 0; i < intersected.size(); ++i)
+            {
+                m_callbackHandler->onTriangleChange(
+                    intersected[i], TriangleChangeType::ModifiedExisting);
+            }
+        }
+#endif
+
         triangulatePseudoPolygon(
             polyL, outerTris, iTL, iTR, intersected, tppIterations);
         triangulatePseudoPolygon(
@@ -629,6 +670,13 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
     EdgeVec& remaining,
     std::vector<TriangulatePseudoPolygonTask>& tppIterations)
 {
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+    if(m_callbackHandler)
+    {
+        m_callbackHandler->onEdgeAdd(edge);
+    }
+#endif
+
     // use iteration over recursion to avoid stack overflows
     remaining.clear();
     remaining.push_back(edge);
@@ -783,6 +831,14 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
     const V2d<T>& end = vertices[iB];
     addNewVertex(
         V2d<T>((start.x + end.x) / T(2), (start.y + end.y) / T(2)), noNeighbor);
+
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+    if(m_callbackHandler)
+    {
+        m_callbackHandler->onVertexAdd(iMid, AddedVertexType::SplitEdge);
+    }
+#endif
+
     const std::vector<Edge> flippedFixedEdges =
         insertVertex_FlipFixedEdges(iMid);
 
@@ -835,6 +891,13 @@ void Triangulation<T, TNearPointLocator>::conformToEdge(
     BoundaryOverlapCount overlaps,
     std::vector<ConformToEdgeTask>& remaining)
 {
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+    if(m_callbackHandler)
+    {
+        m_callbackHandler->onEdgeAdd(edge);
+    }
+#endif
+
     // use iteration over recursion to avoid stack overflows
     remaining.clear();
 #ifdef CDT_CXX11_IS_SUPPORTED
@@ -955,8 +1018,19 @@ void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
     addNewVertex(posV1, TriInd(0));
     addNewVertex(posV2, TriInd(0));
     addNewVertex(posV3, TriInd(0));
+
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+    if(m_callbackHandler)
+    {
+        m_callbackHandler->onVertexAdd(0, AddedVertexType::SuperTriangleVertex);
+        m_callbackHandler->onVertexAdd(1, AddedVertexType::SuperTriangleVertex);
+        m_callbackHandler->onVertexAdd(2, AddedVertexType::SuperTriangleVertex);
+    }
+#endif
+
     addTriangle(
         Triangle(arr3(VertInd(0), VertInd(1), VertInd(2)), arr3(noNeighbor)));
+
     if(m_vertexInsertionOrder != VertexInsertionOrder::Auto)
     {
         m_nearPtLocator.initialize(vertices);
@@ -1019,6 +1093,13 @@ void Triangulation<T, TNearPointLocator>::insertVertex(
     const VertInd iVert,
     const VertInd walkStart)
 {
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+    if(m_callbackHandler)
+    {
+        m_callbackHandler->onVertexAdd(iVert, AddedVertexType::OriginalInput);
+    }
+#endif
+
     const array<TriInd, 2> trisAt = walkingSearchTrianglesAt(iVert, walkStart);
     std::stack<TriInd> triStack =
         trisAt[1] == noNeighbor
@@ -1281,6 +1362,14 @@ Triangulation<T, TNearPointLocator>::insertVertexInsideTriangle(
     VertInd v,
     TriInd iT)
 {
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+    if(m_callbackHandler)
+    {
+        m_callbackHandler->onTriangleChange(
+            iT, TriangleChangeType::ModifiedExisting);
+    }
+#endif
+
     const TriInd iNewT1 = addTriangle();
     const TriInd iNewT2 = addTriangle();
 
@@ -1327,6 +1416,16 @@ std::stack<TriInd> Triangulation<T, TNearPointLocator>::insertVertexOnEdge(
     TriInd iT1,
     TriInd iT2)
 {
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+    if(m_callbackHandler)
+    {
+        m_callbackHandler->onTriangleChange(
+            iT1, TriangleChangeType::ModifiedExisting);
+        m_callbackHandler->onTriangleChange(
+            iT2, TriangleChangeType::ModifiedExisting);
+    }
+#endif
+
     const TriInd iTnew1 = addTriangle();
     const TriInd iTnew2 = addTriangle();
 
@@ -1748,12 +1847,27 @@ Triangulation<T, TNearPointLocator>::calculateTriangleDepths() const
     return triDepths;
 }
 
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::setCallbackHandler(
+    ICallbackHandler* callbackHandler)
+{
+    m_callbackHandler = callbackHandler;
+}
+#endif
+
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::insertVertices_AsProvided(
     VertInd superGeomVertCount)
 {
     for(VertInd iV = superGeomVertCount; iV < vertices.size(); ++iV)
     {
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+        if(m_callbackHandler && m_callbackHandler->isAbortCalculation())
+        {
+            return;
+        }
+#endif
         insertVertex(iV);
     }
 }
@@ -1768,6 +1882,12 @@ void Triangulation<T, TNearPointLocator>::insertVertices_Randomized(
     detail::random_shuffle(ii.begin(), ii.end());
     for(std::vector<VertInd>::iterator it = ii.begin(); it != ii.end(); ++it)
     {
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+        if(m_callbackHandler && m_callbackHandler->isAbortCalculation())
+        {
+            return;
+        }
+#endif
         insertVertex(*it);
     }
 }
@@ -1918,6 +2038,12 @@ void Triangulation<T, TNearPointLocator>::insertVertices_KDTreeBFS(
 
     while(!queue.empty())
     {
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+        if(m_callbackHandler && m_callbackHandler->isAbortCalculation())
+        {
+            return;
+        }
+#endif
         tie(first, last, box.min, box.max, parent) = queue.front();
         queue.pop();
         assert(first != last);

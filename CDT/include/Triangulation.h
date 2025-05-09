@@ -240,6 +240,101 @@ private:
     Edge m_e1, m_e2;
 };
 
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+
+/**
+ * Error thrown when user requests aborting calculation
+ */
+class AbortCalculationError : public Error
+{
+public:
+    AbortCalculationError(const SourceLocation& srcLoc)
+        : Error("Aborting calculation because requested", srcLoc)
+    {}
+};
+
+/**
+ * What type of vertex is added to the triangulation
+ */
+struct CDT_EXPORT AddedVertexType
+{
+    /**
+     * The Enum itself
+     * @note needed to pre c++11 compilers that don't support 'class enum'
+     */
+    enum Enum
+    {
+        /// original vertex from user input
+        OriginalInput,
+        /// during conforming triangulation edge mid-point is added
+        SplitEdge,
+        /// resolving constraint edges' intersection
+        EdgesIntersection,
+        /// initializing super triangle
+        SuperTriangleVertex,
+    };
+};
+
+/**
+ * What type of triangle change happened
+ */
+struct CDT_EXPORT TriangleChangeType
+{
+    /**
+     * The Enum itself
+     * @note needed to pre c++11 compilers that don't support 'class enum'
+     */
+    enum Enum
+    {
+        AddedNew,         ///< new triangle added to the triangulation
+        ModifiedExisting, ///< existing triangle was modified
+    };
+};
+
+/**
+ * Interface for the callback handler that user can derive from and inject into
+ * the triangulation to monitor certain events or order aborting the calculation
+ */
+class CDT_EXPORT ICallbackHandler
+{
+public:
+    /**
+     * Called when triangle change happened in the triangulation
+     * @param iT index of the triangle
+     * @param changeType what change happened to the triangle
+     */
+    virtual void
+    onTriangleChange(const TriInd iT, const TriangleChangeType::Enum changeType)
+    {}
+
+    /**
+     * Called at the start of adding new vertex to the triangulation
+     * @param iV index of the vertex
+     * @param vertexType what type of vertex is being added
+     */
+    virtual void
+    onVertexAdd(const VertInd iV, const AddedVertexType::Enum vertexType)
+    {}
+
+    /**
+     * Called at the start of adding a constraint edge to the triangulation
+     * @param edge constraint that is added/enforced
+     */
+    virtual void onEdgeAdd(const Edge& edge)
+    {}
+
+    /**
+     * Tells whether the user wants to abort the triangulation at the earliest
+     * opportunity
+     */
+    virtual bool isAbortCalculation() const
+    {
+        return false;
+    };
+};
+
+#endif
+
 /**
  * @defgroup Triangulation Triangulation Class
  * Class performing triangulations.
@@ -503,6 +598,16 @@ public:
      */
     std::vector<LayerDepth> calculateTriangleDepths() const;
 
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+    /**
+     * Set user-provided callback handler
+     * @warning callback handler must outlive the triangulation class
+     * @warning triangulatio does not own the callback and does not try to free
+     * it
+     * @param callbackHandler pointer to the callback handler
+     */
+    void setCallbackHandler(ICallbackHandler* callbackHandler);
+#endif
     /**
      * @defgroup Advanced Advanced Triangulation Methods
      * Advanced methods for manually modifying the triangulation from
@@ -764,6 +869,9 @@ private:
     IntersectingConstraintEdges::Enum m_intersectingEdgesStrategy;
     T m_minDistToConstraintEdge;
     TriIndVec m_vertTris; /// one triangle adjacent to each vertex
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+    ICallbackHandler* m_callbackHandler; /// user-provided callback handler
+#endif
 };
 
 /// @}
@@ -892,9 +1000,18 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
         break;
     }
 
-    // make sure pre-allocation was correct
+// make sure pre-allocation was correct
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+    assert(
+        !m_callbackHandler || m_callbackHandler->isAbortCalculation() ||
+        (vertices.size() == exactCapacityVertices));
+    assert(
+        !m_callbackHandler || m_callbackHandler->isAbortCalculation() ||
+        (triangles.size() == exactCapacityTriangles));
+#else
     assert(vertices.size() == exactCapacityVertices);
     assert(triangles.size() == exactCapacityTriangles);
+#endif
 }
 
 template <typename T, typename TNearPointLocator>
@@ -915,6 +1032,12 @@ void Triangulation<T, TNearPointLocator>::insertEdges(
     EdgeVec remaining;
     for(; first != last; ++first)
     {
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+        if(m_callbackHandler && m_callbackHandler->isAbortCalculation())
+        {
+            return;
+        }
+#endif
         // +3 to account for super-triangle vertices
         const Edge edge(
             VertInd(getStart(*first) + m_nTargetVerts),
@@ -942,6 +1065,12 @@ void Triangulation<T, TNearPointLocator>::conformToEdges(
     std::vector<ConformToEdgeTask> remaining;
     for(; first != last; ++first)
     {
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+        if(m_callbackHandler && m_callbackHandler->isAbortCalculation())
+        {
+            return;
+        }
+#endif
         // +3 to account for super-triangle vertices
         const Edge e(
             VertInd(getStart(*first) + m_nTargetVerts),

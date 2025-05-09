@@ -6,6 +6,7 @@ from conan import ConanFile
 from conan.tools.cmake import CMake, CMakeToolchain
 from conan.tools.files import collect_libs
 
+
 class CDTConan(ConanFile):
     name = "cdt"
     version = "1.3.0"
@@ -19,11 +20,14 @@ class CDTConan(ConanFile):
         "use_boost": [True, False],
         "as_compiled_library": [True, False],
         "enable_testing": [True, False],
+        "enable_callback_handler": [True, False],
     }
     default_options = {
         "shared": False,
         "use_boost": False,
         "as_compiled_library": False,
+        "enable_testing": False,
+        "enable_callback_handler": False,
     }
     exports_sources = "*", "!.idea", "!conanfile.py"
 
@@ -39,9 +43,12 @@ class CDTConan(ConanFile):
     def generate(self):
         tc = CMakeToolchain(self)
         tc.variables["CDT_USE_BOOST"] = self.options.use_boost
-        tc.cache_variables["CDT_USE_AS_COMPILED_LIBRARY"] = self.options.as_compiled_library
+        tc.cache_variables["CDT_USE_AS_COMPILED_LIBRARY"] = (
+            self.options.as_compiled_library
+        )
         tc.cache_variables["CMAKE_PROJECT_CDT_INCLUDE"] = "conan_basic_setup.cmake"
         tc.cache_variables["CDT_ENABLE_TESTING"] = self.options.enable_testing
+        tc.cache_variables["CDT_ENABLE_CALLBACK_HANDLER"] = self.options.enable_callback_handler
         tc.generate()
 
     def build(self):

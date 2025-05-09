@@ -23,6 +23,10 @@ option(CDT_USE_64_BIT_INDEX_TYPE
     "If enabled 64bits are used to store vertex/triangle index types. Otherwise 32bits are used (up to 4.2bn items)"
     OFF)
 
+option(CDT_ENABLE_CALLBACK_HANDLER
+    "If enabled it is possible to provide a callback handler to the triangulation"
+    OFF)
+
 option(CDT_ENABLE_TESTING
     "If enabled tests target will ge generated)"
     OFF)
@@ -67,6 +71,7 @@ endif()
 
 message(STATUS "CDT_USE_AS_COMPILED_LIBRARY is ${CDT_USE_AS_COMPILED_LIBRARY}")
 message(STATUS "CDT_USE_64_BIT_INDEX_TYPE is ${CDT_USE_64_BIT_INDEX_TYPE}")
+message(STATUS "CDT_ENABLE_CALLBACK_HANDLER is ${CDT_ENABLE_CALLBACK_HANDLER}")
 message(STATUS "CDT_ENABLE_TESTING is ${CDT_ENABLE_TESTING}")
 message(STATUS "CDT_USE_STRONG_TYPING is ${CDT_USE_STRONG_TYPING}")
 message(STATUS "CDT_DEVELOPER_BUILD is ${CDT_DEVELOPER_BUILD}")
@@ -149,6 +154,7 @@ target_compile_definitions(
         $<$<BOOL:${CDT_USE_BOOST}>:CDT_USE_BOOST>
         $<$<BOOL:${CDT_USE_AS_COMPILED_LIBRARY}>:CDT_USE_AS_COMPILED_LIBRARY>
         $<$<BOOL:${CDT_USE_64_BIT_INDEX_TYPE}>:CDT_USE_64_BIT_INDEX_TYPE>
+         $<$<BOOL:${CDT_ENABLE_CALLBACK_HANDLER}>:CDT_ENABLE_CALLBACK_HANDLER>
         $<$<BOOL:${CDT_USE_STRONG_TYPING}>:CDT_USE_STRONG_TYPING>
         $<$<BOOL:${CDT_DISABLE_EXCEPTIONS}>:CDT_DISABLE_EXCEPTIONS>
 )
