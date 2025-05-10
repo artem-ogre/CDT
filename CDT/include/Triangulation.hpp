@@ -291,8 +291,8 @@ TriIndUSet Triangulation<T, TNearPointLocator>::growToBoundary(
 template <typename T, typename TNearPointLocator>
 TriInd Triangulation<T, TNearPointLocator>::addTriangle(const Triangle& t)
 {
+    const TriInd iT(triangles.size());
     triangles.push_back(t);
-    const TriInd iT(triangles.size() - 1);
 
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
     if(m_callbackHandler)
@@ -619,18 +619,7 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
     if(m_vertTris[iB] == intersected.back())
         pivotVertexTriangleCW(iB);
 
-    { // Triangulate pseudo-polygons on both sides
-        std::reverse(polyR.begin(), polyR.end());
-
-        // note: intersected triangles are re-used for new triangles
-        // every triangulation of an n-gon has n − 2 triangles
-        // even if outer polygon has hanging edges it holds
-        assert(intersected.size() >= 2);
-        const TriInd iTL = intersected.back();
-        intersected.pop_back();
-        const TriInd iTR = intersected.back();
-        intersected.pop_back();
-
+    {
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
         if(m_callbackHandler)
         {
@@ -641,6 +630,18 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
             }
         }
 #endif
+
+        // Triangulate pseudo-polygons on both sides
+        std::reverse(polyR.begin(), polyR.end());
+
+        // note: intersected triangles are re-used for new triangles
+        // every triangulation of an n-gon has n − 2 triangles
+        // even if outer polygon has hanging edges it holds
+        assert(intersected.size() >= 2);
+        const TriInd iTL = intersected.back();
+        intersected.pop_back();
+        const TriInd iTR = intersected.back();
+        intersected.pop_back();
 
         triangulatePseudoPolygon(
             polyL, outerTris, iTL, iTR, intersected, tppIterations);
@@ -1324,6 +1325,16 @@ void Triangulation<T, TNearPointLocator>::flipEdge(
     const TriInd n3,
     const TriInd n4)
 {
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+    if(m_callbackHandler)
+    {
+        m_callbackHandler->onTriangleChange(
+            iT, TriangleChangeType::ModifiedExisting);
+        m_callbackHandler->onTriangleChange(
+            iTopo, TriangleChangeType::ModifiedExisting);
+    }
+#endif
+
     // change vertices and neighbors
     triangles[iT] = Triangle(arr3(v4, v1, v3), arr3(n3, iTopo, n4));
     triangles[iTopo] = Triangle(arr3(v2, v3, v1), arr3(n2, iT, n1));
@@ -1552,60 +1563,6 @@ array<TriInd, 2> Triangulation<T, TNearPointLocator>::walkingSearchTrianglesAt(
     if(isOnEdge(loc))
         out[1] = t.neighbors[edgeNeighbor(loc)];
     return out;
-}
-
-/* Flip edge between T and Topo:
- *
- *                v4         | - old edge
- *               /|\         ~ - new edge
- *              / | \
- *          n3 /  T' \ n4
- *            /   |   \
- *           /    |    \
- *     T -> v1~~~~~~~~~v3 <- Topo
- *           \    |    /
- *            \   |   /
- *          n1 \Topo'/ n2
- *              \ | /
- *               \|/
- *                v2
- */
-template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::flipEdge(
-    const TriInd iT,
-    const TriInd iTopo)
-{
-    Triangle& t = triangles[iT];
-    Triangle& tOpo = triangles[iTopo];
-    const array<TriInd, 3>& triNs = t.neighbors;
-    const array<TriInd, 3>& triOpoNs = tOpo.neighbors;
-    const array<VertInd, 3>& triVs = t.vertices;
-    const array<VertInd, 3>& triOpoVs = tOpo.vertices;
-    // find vertices and neighbors
-    Index i = opposedVertexInd(t.neighbors, iTopo);
-    const VertInd v1 = triVs[i];
-    const VertInd v2 = triVs[ccw(i)];
-    const TriInd n1 = triNs[i];
-    const TriInd n3 = triNs[cw(i)];
-    i = opposedVertexInd(tOpo.neighbors, iT);
-    const VertInd v3 = triOpoVs[i];
-    const VertInd v4 = triOpoVs[ccw(i)];
-    const TriInd n4 = triOpoNs[i];
-    const TriInd n2 = triOpoNs[cw(i)];
-    // change vertices and neighbors
-    t = Triangle(arr3(v4, v1, v3), arr3(n3, iTopo, n4));
-    tOpo = Triangle(arr3(v2, v3, v1), arr3(n2, iT, n1));
-    // adjust neighboring triangles and vertices
-    changeNeighbor(n1, iT, iTopo);
-    changeNeighbor(n4, iTopo, iT);
-    // only adjust adjacent triangles if triangulation is not finalized:
-    // can happen when called from outside on an already finalized
-    // triangulation
-    if(!isFinalized())
-    {
-        setAdjacentTriangle(v4, iT);
-        setAdjacentTriangle(v2, iTopo);
-    }
 }
 
 template <typename T, typename TNearPointLocator>

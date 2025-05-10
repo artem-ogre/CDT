@@ -1010,7 +1010,7 @@ TEST_CASE("Callbacks test: count number of callback calls")
     REQUIRE(callbackHandler.nVertexAdd == 32);
     REQUIRE(
         callbackHandler.nVertexAdd == vv.size() + CDT::nSuperTriangleVertices);
-    REQUIRE(callbackHandler.nTriangleModified == 30);
+    REQUIRE(callbackHandler.nTriangleModified == 168);
     REQUIRE(callbackHandler.nTriangleAdded == 59);
     REQUIRE(callbackHandler.nTriangleAdded == vv.size() * 2 + 1);
     REQUIRE(callbackHandler.nEdgeAdd == ee.size());
