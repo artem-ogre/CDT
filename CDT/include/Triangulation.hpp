@@ -1291,6 +1291,67 @@ bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
  *          n3 /  T' \ n4
  *            /   |   \
  *           /    |    \
+ *     T -> v1~~~~~~~~~v3 <- Topo
+ *           \    |    /
+ *            \   |   /
+ *          n1 \Topo'/ n2
+ *              \ | /
+ *               \|/
+ *                v2
+ */
+template <typename T, typename TNearPointLocator>
+void Triangulation<T, TNearPointLocator>::flipEdge(
+    const TriInd iT,
+    const TriInd iTopo)
+{
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+    if(m_callbackHandler)
+    {
+        m_callbackHandler->onFlipEdge(iT, iTopo);
+    }
+#endif
+
+    Triangle& t = triangles[iT];
+    Triangle& tOpo = triangles[iTopo];
+    const array<TriInd, 3>& triNs = t.neighbors;
+    const array<TriInd, 3>& triOpoNs = tOpo.neighbors;
+    const array<VertInd, 3>& triVs = t.vertices;
+    const array<VertInd, 3>& triOpoVs = tOpo.vertices;
+    // find vertices and neighbors
+    Index i = opposedVertexInd(t.neighbors, iTopo);
+    const VertInd v1 = triVs[i];
+    const VertInd v2 = triVs[ccw(i)];
+    const TriInd n1 = triNs[i];
+    const TriInd n3 = triNs[cw(i)];
+    i = opposedVertexInd(tOpo.neighbors, iT);
+    const VertInd v3 = triOpoVs[i];
+    const VertInd v4 = triOpoVs[ccw(i)];
+    const TriInd n4 = triOpoNs[i];
+    const TriInd n2 = triOpoNs[cw(i)];
+    // change vertices and neighbors
+    t = Triangle(arr3(v4, v1, v3), arr3(n3, iTopo, n4));
+    tOpo = Triangle(arr3(v2, v3, v1), arr3(n2, iT, n1));
+    // adjust neighboring triangles and vertices
+    changeNeighbor(n1, iT, iTopo);
+    changeNeighbor(n4, iTopo, iT);
+    // only adjust adjacent triangles if triangulation is not finalized:
+    // can happen when called from outside on an already finalized
+    // triangulation
+    if(!isFinalized())
+    {
+        setAdjacentTriangle(v4, iT);
+        setAdjacentTriangle(v2, iTopo);
+    }
+}
+
+/* Flip edge between T and Topo:
+ *
+ *                v4         | - old edge
+ *               /|\         ~ - new edge
+ *              / | \
+ *          n3 /  T' \ n4
+ *            /   |   \
+ *           /    |    \
  *     T -> v1 ~~~~~~~~ v3 <- Topo
  *           \    |    /
  *            \   |   /
