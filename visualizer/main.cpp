@@ -46,6 +46,102 @@ enum class FinalizeTriangulation
     EraseOuterTrianglesAndHoles,
 };
 
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+class TrackModifiedTris final : public CDT::ICallbackHandler
+{
+    CDT::VertInd m_nVertices;
+    CDT::IndexSizeType m_nEdges;
+    CDT::unordered_set<CDT::TriInd> m_modifiedTris;
+    int m_vertexCounter;
+    int m_edgeCounter;
+    bool m_isTrackingTriangles;
+
+public:
+    void init(const CDT::VertInd nVertices, const CDT::IndexSizeType nEdges)
+    {
+        m_nVertices = nVertices;
+        m_nEdges = nEdges;
+        m_vertexCounter = 0;
+        m_edgeCounter = 0;
+        m_isTrackingTriangles = false;
+        m_modifiedTris.clear();
+    }
+
+    void onAddSuperTriangle() override
+    {
+        if(m_isTrackingTriangles)
+            m_modifiedTris.insert(0);
+    }
+
+    void onInsertVertexInsideTriangle(
+        const CDT::TriInd iRepurposedTri,
+        const CDT::TriInd iNewTri1,
+        const CDT::TriInd iNewTri2) override
+    {
+        if(m_isTrackingTriangles)
+        {
+            m_modifiedTris.insert(iRepurposedTri);
+            m_modifiedTris.insert(iNewTri1);
+            m_modifiedTris.insert(iNewTri2);
+        }
+    }
+
+    void onInsertVertexOnEdge(
+        const CDT::TriInd iRepurposedTri1,
+        const CDT::TriInd iRepurposedTri2,
+        const CDT::TriInd iNewTri1,
+        const CDT::TriInd iNewTri2) override
+    {
+        if(m_isTrackingTriangles)
+        {
+            m_modifiedTris.insert(iRepurposedTri1);
+            m_modifiedTris.insert(iRepurposedTri2);
+            m_modifiedTris.insert(iNewTri1);
+            m_modifiedTris.insert(iNewTri2);
+        }
+    }
+
+    void onFlipEdge(const CDT::TriInd iT, const CDT::TriInd iTopo) override
+    {
+        if(m_isTrackingTriangles)
+        {
+            m_modifiedTris.insert(iT);
+            m_modifiedTris.insert(iTopo);
+        }
+    }
+
+    void onReTriangulatePolygon(const std::vector<CDT::TriInd>& tris) override
+    {
+        if(m_isTrackingTriangles)
+        {
+            m_modifiedTris.insert(tris.begin(), tris.end());
+        }
+    }
+
+    const CDT::unordered_set<CDT::TriInd>& modifiedTris() const
+    {
+        return m_modifiedTris;
+    }
+
+    void onAddVertexStart(
+        const CDT::VertInd iV,
+        const CDT::AddVertexType::Enum vertexType) override
+    {
+        if(vertexType == CDT::AddVertexType::UserInput)
+        {
+            ++m_vertexCounter;
+            m_isTrackingTriangles = (m_vertexCounter == m_nVertices);
+        }
+    }
+
+    void onAddEdgeStart(const Edge& edge) override
+    {
+        ++m_edgeCounter;
+        m_isTrackingTriangles = (m_edgeCounter == m_nEdges);
+    }
+};
+#endif
+
 class CDTWidget : public QWidget
 {
     Q_OBJECT
@@ -55,9 +151,9 @@ public:
         : QWidget(parent)
         , m_ptLimit(9999999)
         , m_edgeLimit(9999999)
-        , m_vertexInsertionOrder(CDT::VertexInsertionOrder::Enum::Auto)
+        , m_vertexInsertionOrder(CDT::VertexInsertionOrder::Auto)
         , m_intersectingEdgesStrategy(
-              CDT::IntersectingConstraintEdges::Enum::TryResolve)
+              CDT::IntersectingConstraintEdges::TryResolve)
         , m_minDistToConstraintEdge(1e-6)
         , m_triangulationType(TriangulationType::ConstraintDelaunay)
         , m_finalizeType(FinalizeTriangulation::DontFinalize)
@@ -110,11 +206,10 @@ public slots:
         switch(index)
         {
         case 0:
-            m_vertexInsertionOrder = CDT::VertexInsertionOrder::Enum::Auto;
+            m_vertexInsertionOrder = CDT::VertexInsertionOrder::Auto;
             break;
         case 1:
-            m_vertexInsertionOrder =
-                CDT::VertexInsertionOrder::Enum::AsProvided;
+            m_vertexInsertionOrder = CDT::VertexInsertionOrder::AsProvided;
             break;
         }
         updateCDT();
@@ -126,15 +221,15 @@ public slots:
         {
         case 0:
             m_intersectingEdgesStrategy =
-                CDT::IntersectingConstraintEdges::Enum::NotAllowed;
+                CDT::IntersectingConstraintEdges::NotAllowed;
             break;
         case 1:
             m_intersectingEdgesStrategy =
-                CDT::IntersectingConstraintEdges::Enum::TryResolve;
+                CDT::IntersectingConstraintEdges::TryResolve;
             break;
         case 2:
             m_intersectingEdgesStrategy =
-                CDT::IntersectingConstraintEdges::Enum::DontCheck;
+                CDT::IntersectingConstraintEdges::DontCheck;
             break;
         }
         updateCDT();
@@ -271,6 +366,10 @@ private:
             m_vertexInsertionOrder,
             m_intersectingEdgesStrategy,
             m_minDistToConstraintEdge);
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+        m_triTracker.init(m_ptLimit, m_edgeLimit);
+        m_cdt.setCallbackHandler(&m_triTracker);
+#endif
         if(!m_points.empty())
         {
             std::vector<V2d> pts =
@@ -406,6 +505,7 @@ private:
         const QColor highlightColor(100, 100, 0);
         const QColor outerTrisColor(220, 220, 220);
         const QColor trianglesColor(150, 150, 150);
+        const QColor modifiedTrianglesBrushColor(200, 200, 200);
         const QColor fixedEdgeColor(50, 50, 50);
         const QColor pointColor(3, 102, 214);
         const QColor pointLabelColor(150, 0, 150);
@@ -451,7 +551,7 @@ private:
         pen.setColor(trianglesColor);
         p.setPen(pen);
         typedef CDT::TriangleVec::const_iterator TCit;
-        int iT = 0;
+        CDT::TriInd iT = 0;
         for(TCit t = m_cdt.triangles.begin(); t != m_cdt.triangles.end();
             ++t, ++iT)
         {
@@ -471,7 +571,23 @@ private:
             const QPointF c(
                 (pts[0].x() + pts[1].x() + pts[2].x()) / 3.f,
                 (pts[0].y() + pts[1].y() + pts[2].y()) / 3.f);
+
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+            const bool isColorModified =
+                m_finalizeType == FinalizeTriangulation::DontFinalize &&
+                m_vertexInsertionOrder ==
+                    CDT::VertexInsertionOrder::AsProvided &&
+                m_triTracker.modifiedTris().count(iT);
+            if(isColorModified)
+                p.setBrush(modifiedTrianglesBrushColor);
+#endif
+
             p.drawPolygon(pts.data(), pts.size());
+
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+            if(isColorModified)
+                p.setBrush(QBrush(Qt::white));
+#endif
         }
         if(m_isDisplayIndices)
         {
@@ -588,6 +704,9 @@ private:
     }
 
 private:
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+    TrackModifiedTris m_triTracker;
+#endif
     Triangulation m_cdt;
     std::vector<V2d> m_points;
     std::vector<Edge> m_edges;

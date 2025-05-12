@@ -139,7 +139,7 @@ template <
     typename TGetEdgeVertexStart,
     typename TGetEdgeVertexEnd,
     typename TMakeEdgeFromStartAndEnd>
-CDT_EXPORT void RemapEdges(
+void RemapEdges(
     TEdgeIter first,
     TEdgeIter last,
     const std::vector<std::size_t>& mapping,
@@ -244,7 +244,7 @@ EdgeToPiecesMapping(const unordered_map<Edge, EdgeVec>& pieceToOriginals);
  * Split points are sorted from edge's start (v1) to end (v2)
  */
 template <typename T>
-CDT_EXPORT unordered_map<Edge, std::vector<VertInd> > EdgeToSplitVertices(
+unordered_map<Edge, std::vector<VertInd> > EdgeToSplitVertices(
     const unordered_map<Edge, EdgeVec>& edgeToPieces,
     const std::vector<V2d<T> >& vertices);
 

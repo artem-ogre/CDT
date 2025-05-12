@@ -959,3 +959,149 @@ TEST_CASE("Regression test #174: super-triangle of tiny bounding box", "")
     cdt.eraseSuperTriangle();
     REQUIRE(cdt.triangles.size() == std::size_t(1));
 }
+
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+TEST_CASE("Callbacks test: count number of callback calls")
+{
+    auto [vv, ee] = readInputFromFile<double>("inputs/Capital A.txt");
+    auto cdt = Triangulation<double>();
+    // REQUIRE(sizeof(cdt) == 368);
+
+    struct CallbackHandler final : public CDT::ICallbackHandler
+    {
+        void onAddSuperTriangle() override
+        {
+            ++nAddedTriangles;
+            nAddedVertices += 3;
+        }
+
+        void onInsertVertexInsideTriangle(
+            const TriInd iRepurposedTri,
+            const TriInd iNewTri1,
+            const TriInd iNewTri2) override
+        {
+            ++nModifiedTriangles;
+            nAddedTriangles += 2;
+        }
+
+        void onInsertVertexOnEdge(
+            const TriInd iRepurposedTri1,
+            const TriInd iRepurposedTri2,
+            const TriInd iNewTri1,
+            const TriInd iNewTri2) override
+        {
+            nModifiedTriangles += 2;
+            nAddedTriangles += 2;
+        }
+
+        virtual void onFlipEdge(const TriInd, const TriInd)
+        {
+            nModifiedTriangles += 2;
+        }
+
+        void onAddVertexStart(
+            const VertInd iV,
+            const AddVertexType::Enum vertexType) override
+        {
+            ++nAddedVertices;
+        }
+
+        void onAddEdgeStart(const Edge& edge) override
+        {
+            ++nAddedEdges;
+        }
+
+        void onReTriangulatePolygon(const std::vector<TriInd>& tris) override
+        {
+            nModifiedTriangles += tris.size();
+        }
+
+        int nAddedVertices = 0;
+        int nModifiedTriangles = 0;
+        int nAddedTriangles = 0;
+        int nAddedEdges = 0;
+    };
+    CallbackHandler callbackHandler;
+    cdt.setCallbackHandler(&callbackHandler);
+
+    try
+    {
+        cdt.insertVertices(vv);
+        cdt.insertEdges(ee);
+    }
+    catch(...)
+    {
+        REQUIRE(false);
+    }
+    REQUIRE(CDT::verifyTopology(cdt));
+    REQUIRE(callbackHandler.nAddedVertices == 32);
+    REQUIRE(
+        callbackHandler.nAddedVertices ==
+        vv.size() + CDT::nSuperTriangleVertices);
+    REQUIRE(callbackHandler.nModifiedTriangles == 168);
+    REQUIRE(callbackHandler.nAddedTriangles == 59);
+    REQUIRE(callbackHandler.nAddedTriangles == vv.size() * 2 + 1);
+    REQUIRE(callbackHandler.nAddedEdges == ee.size());
+}
+
+TEST_CASE("Callbacks test: test aborting the calculation")
+{
+    auto [vv, ee] = readInputFromFile<double>("inputs/Capital A.txt");
+    SECTION("Aborting vertex insertion")
+    {
+        auto cdt = Triangulation<double>();
+        struct CallbackHandler final : public CDT::ICallbackHandler
+        {
+            void
+            onAddVertexStart(const VertInd, const AddVertexType::Enum) override
+            {
+                ++n;
+            }
+            bool isAbortCalculation() const override
+            {
+                return n >= 17;
+            }
+            int n = 0;
+        };
+        CallbackHandler callbackHandler;
+        cdt.setCallbackHandler(&callbackHandler);
+
+        cdt.insertVertices(vv);
+        REQUIRE(callbackHandler.n == 17);
+    }
+    SECTION("Aborting constraint edge insertion")
+    {
+        struct CallbackHandler final : public CDT::ICallbackHandler
+        {
+            void onAddEdgeStart(const Edge& edge) override
+            {
+                ++n;
+            }
+            bool isAbortCalculation() const override
+            {
+                return n >= 17;
+            }
+            int n = 0;
+        };
+
+        SECTION("Constraint triangulation")
+        {
+            auto cdt = Triangulation<double>();
+            CallbackHandler callbackHandler;
+            cdt.setCallbackHandler(&callbackHandler);
+            cdt.insertVertices(vv);
+            cdt.insertEdges(ee);
+            REQUIRE(callbackHandler.n == 17);
+        }
+        SECTION("Conforming triangulation")
+        {
+            auto cdt = Triangulation<double>();
+            CallbackHandler callbackHandler;
+            cdt.setCallbackHandler(&callbackHandler);
+            cdt.insertVertices(vv);
+            cdt.conformToEdges(ee);
+            REQUIRE(callbackHandler.n == 17);
+        }
+    }
+}
+#endif
