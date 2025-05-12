@@ -245,7 +245,7 @@ private:
 /**
  * What type of vertex is added to the triangulation
  */
-struct CDT_EXPORT AddedVertexType
+struct CDT_EXPORT AddVertexType
 {
     /**
      * The Enum itself
@@ -253,14 +253,12 @@ struct CDT_EXPORT AddedVertexType
      */
     enum Enum
     {
-        /// original vertex from user input
-        OriginalInput,
-        /// during conforming triangulation edge mid-point is added
-        SplitEdge,
-        /// resolving constraint edges' intersection
-        EdgesIntersection,
-        /// initializing super triangle
-        SuperTriangleVertex,
+        /// Original vertex from user input
+        UserInput,
+        /// During conforming triangulation edge mid-point is added
+        FixedEdgeMidpoint,
+        /// Resolving fixed/constraint edges' intersection
+        FixedEdgesIntersection,
     };
 };
 
@@ -288,12 +286,52 @@ class CDT_EXPORT ICallbackHandler
 {
 public:
     /**
-     * Called when triangle change happened in the triangulation
-     * @param iT index of the triangle
-     * @param changeType what change happened to the triangle
+     *  Called when super-triangle is added.
+     * 1.Added three new vertices with indices 0, 1, 2
+     * 2. Added one a new triangle with an index 0
      */
-    virtual void
-    onTriangleChange(const TriInd iT, const TriangleChangeType::Enum changeType)
+    virtual void onAddSuperTriangle()
+    {}
+
+    /**
+     * Called when inserted vertex is inside a triangle.
+     * The triangle is split in three: original trianlge is re-purposed and two
+     * new triangles are added
+     * @param iRepurposedTri index of original triangle containing the point
+     * that will be modified (re-purposed)
+     * @param iNewTri1 index of first added new triangle
+     * @param iNewTri2 index of second added new triangle
+     */
+    virtual void onInsertVertexInsideTriangle(
+        const TriInd iRepurposedTri,
+        const TriInd iNewTri1,
+        const TriInd iNewTri2)
+    {}
+
+    /**
+     * Called when inserted vertex is on an edge.
+     * Two triangles sharing an edge are split in four:original triangles are
+     * re-purposed and two new triangles are added.
+     * @param iRepurposedTri1 index of first original triangle sharing an edge
+     * that will be modified (re-purposed)
+     * @param iRepurposedTri2 index of second original triangle sharing
+     * an edge that will be modified (re-purposed)
+     * @param iNewTri1 index of first added new triangle
+     * @param iNewTri2 index of second added new triangle
+     */
+    virtual void onInsertVertexOnEdge(
+        const TriInd iRepurposedTri1,
+        const TriInd iRepurposedTri2,
+        const TriInd iNewTri1,
+        const TriInd iNewTri2)
+    {}
+
+    /**
+     * Called just before an edge between tro triangles is flipped
+     * @param iT index of the first triangle sharing an edge
+     * @param iTopo index of the second triangle sharing an edge
+     */
+    virtual void onFlipEdge(const TriInd iT, const TriInd iTopo)
     {}
 
     /**
@@ -302,14 +340,23 @@ public:
      * @param vertexType what type of vertex is being added
      */
     virtual void
-    onVertexAdd(const VertInd iV, const AddedVertexType::Enum vertexType)
+    onAddVertexStart(const VertInd iV, const AddVertexType::Enum vertexType)
     {}
 
     /**
      * Called at the start of adding a constraint edge to the triangulation
      * @param edge constraint that is added/enforced
      */
-    virtual void onEdgeAdd(const Edge& edge)
+    virtual void onAddEdgeStart(const Edge& edge)
+    {}
+
+    /**
+     * Called when inserting a constraint edge causes polygon containing
+     * triangles to be re-triangulated
+     * @tris triangles in the polygon that will be re-triangulated and triangles
+     * re-purposed
+     */
+    virtual void onReTriangulatePolygon(const std::vector<TriInd>& tris)
     {}
 
     /**

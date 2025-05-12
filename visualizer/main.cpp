@@ -67,31 +67,74 @@ public:
         m_modifiedTris.clear();
     }
 
+    void onAddSuperTriangle() override
+    {
+        if(m_isTrackingTriangles)
+            m_modifiedTris.insert(0);
+    }
+
+    void onInsertVertexInsideTriangle(
+        const CDT::TriInd iRepurposedTri,
+        const CDT::TriInd iNewTri1,
+        const CDT::TriInd iNewTri2) override
+    {
+        if(m_isTrackingTriangles)
+        {
+            m_modifiedTris.insert(iRepurposedTri);
+            m_modifiedTris.insert(iNewTri1);
+            m_modifiedTris.insert(iNewTri2);
+        }
+    }
+
+    void onInsertVertexOnEdge(
+        const CDT::TriInd iRepurposedTri1,
+        const CDT::TriInd iRepurposedTri2,
+        const CDT::TriInd iNewTri1,
+        const CDT::TriInd iNewTri2) override
+    {
+        if(m_isTrackingTriangles)
+        {
+            m_modifiedTris.insert(iRepurposedTri1);
+            m_modifiedTris.insert(iRepurposedTri2);
+            m_modifiedTris.insert(iNewTri1);
+            m_modifiedTris.insert(iNewTri2);
+        }
+    }
+
+    void onFlipEdge(const CDT::TriInd iT, const CDT::TriInd iTopo) override
+    {
+        if(m_isTrackingTriangles)
+        {
+            m_modifiedTris.insert(iT);
+            m_modifiedTris.insert(iTopo);
+        }
+    }
+
+    void onReTriangulatePolygon(const std::vector<CDT::TriInd>& tris) override
+    {
+        if(m_isTrackingTriangles)
+        {
+            m_modifiedTris.insert(tris.begin(), tris.end());
+        }
+    }
+
     const CDT::unordered_set<CDT::TriInd>& modifiedTris() const
     {
         return m_modifiedTris;
     }
 
-    void onTriangleChange(
-        const CDT::TriInd iT,
-        const CDT::TriangleChangeType::Enum) override
-    {
-        if(m_isTrackingTriangles)
-            m_modifiedTris.insert(iT);
-    }
-
-    void onVertexAdd(
+    void onAddVertexStart(
         const CDT::VertInd iV,
-        const CDT::AddedVertexType::Enum vertexType) override
+        const CDT::AddVertexType::Enum vertexType) override
     {
-        if(vertexType == CDT::AddedVertexType::OriginalInput)
+        if(vertexType == CDT::AddVertexType::UserInput)
         {
             ++m_vertexCounter;
             m_isTrackingTriangles = (m_vertexCounter == m_nVertices);
         }
     }
 
-    void onEdgeAdd(const Edge& edge) override
+    void onAddEdgeStart(const Edge& edge) override
     {
         ++m_edgeCounter;
         m_isTrackingTriangles = (m_edgeCounter == m_nEdges);

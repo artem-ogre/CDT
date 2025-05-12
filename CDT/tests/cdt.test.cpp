@@ -969,30 +969,57 @@ TEST_CASE("Callbacks test: count number of callback calls")
 
     struct CallbackHandler final : public CDT::ICallbackHandler
     {
-        void onTriangleChange(
-            const TriInd iT,
-            const TriangleChangeType::Enum changeType) override
+        void onAddSuperTriangle() override
         {
-            if(changeType == TriangleChangeType::AddedNew)
-                ++nTriangleAdded;
-            if(changeType == TriangleChangeType::ModifiedExisting)
-                ++nTriangleModified;
-        }
-        void onVertexAdd(
-            const VertInd iV,
-            const AddedVertexType::Enum vertexType) override
-        {
-            ++nVertexAdd;
-        }
-        void onEdgeAdd(const Edge& edge) override
-        {
-            ++nEdgeAdd;
+            ++nAddedTriangles;
+            nAddedVertices += 3;
         }
 
-        int nVertexAdd = 0;
-        int nTriangleModified = 0;
-        int nTriangleAdded = 0;
-        int nEdgeAdd = 0;
+        void onInsertVertexInsideTriangle(
+            const TriInd iRepurposedTri,
+            const TriInd iNewTri1,
+            const TriInd iNewTri2) override
+        {
+            ++nModifiedTriangles;
+            nAddedTriangles += 2;
+        }
+
+        void onInsertVertexOnEdge(
+            const TriInd iRepurposedTri1,
+            const TriInd iRepurposedTri2,
+            const TriInd iNewTri1,
+            const TriInd iNewTri2) override
+        {
+            nModifiedTriangles += 2;
+            nAddedTriangles += 2;
+        }
+
+        virtual void onFlipEdge(const TriInd, const TriInd)
+        {
+            nModifiedTriangles += 2;
+        }
+
+        void onAddVertexStart(
+            const VertInd iV,
+            const AddVertexType::Enum vertexType) override
+        {
+            ++nAddedVertices;
+        }
+
+        void onAddEdgeStart(const Edge& edge) override
+        {
+            ++nAddedEdges;
+        }
+
+        void onReTriangulatePolygon(const std::vector<TriInd>& tris) override
+        {
+            nModifiedTriangles += tris.size();
+        }
+
+        int nAddedVertices = 0;
+        int nModifiedTriangles = 0;
+        int nAddedTriangles = 0;
+        int nAddedEdges = 0;
     };
     CallbackHandler callbackHandler;
     cdt.setCallbackHandler(&callbackHandler);
@@ -1007,13 +1034,14 @@ TEST_CASE("Callbacks test: count number of callback calls")
         REQUIRE(false);
     }
     REQUIRE(CDT::verifyTopology(cdt));
-    REQUIRE(callbackHandler.nVertexAdd == 32);
+    REQUIRE(callbackHandler.nAddedVertices == 32);
     REQUIRE(
-        callbackHandler.nVertexAdd == vv.size() + CDT::nSuperTriangleVertices);
-    REQUIRE(callbackHandler.nTriangleModified == 168);
-    REQUIRE(callbackHandler.nTriangleAdded == 59);
-    REQUIRE(callbackHandler.nTriangleAdded == vv.size() * 2 + 1);
-    REQUIRE(callbackHandler.nEdgeAdd == ee.size());
+        callbackHandler.nAddedVertices ==
+        vv.size() + CDT::nSuperTriangleVertices);
+    REQUIRE(callbackHandler.nModifiedTriangles == 168);
+    REQUIRE(callbackHandler.nAddedTriangles == 59);
+    REQUIRE(callbackHandler.nAddedTriangles == vv.size() * 2 + 1);
+    REQUIRE(callbackHandler.nAddedEdges == ee.size());
 }
 
 TEST_CASE("Callbacks test: test aborting the calculation")
@@ -1025,7 +1053,7 @@ TEST_CASE("Callbacks test: test aborting the calculation")
         struct CallbackHandler final : public CDT::ICallbackHandler
         {
             void
-            onVertexAdd(const VertInd, const AddedVertexType::Enum) override
+            onAddVertexStart(const VertInd, const AddVertexType::Enum) override
             {
                 ++n;
             }
@@ -1045,7 +1073,7 @@ TEST_CASE("Callbacks test: test aborting the calculation")
     {
         struct CallbackHandler final : public CDT::ICallbackHandler
         {
-            void onEdgeAdd(const Edge& edge) override
+            void onAddEdgeStart(const Edge& edge) override
             {
                 ++n;
             }

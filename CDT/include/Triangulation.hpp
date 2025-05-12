@@ -293,14 +293,6 @@ TriInd Triangulation<T, TNearPointLocator>::addTriangle(const Triangle& t)
 {
     const TriInd iT(triangles.size());
     triangles.push_back(t);
-
-#ifdef CDT_ENABLE_CALLBACK_HANDLER
-    if(m_callbackHandler)
-    {
-        m_callbackHandler->onTriangleChange(iT, TriangleChangeType::AddedNew);
-    }
-#endif
-
     return iT;
 }
 
@@ -409,8 +401,8 @@ VertInd Triangulation<T, TNearPointLocator>::addSplitEdgeVertex(
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
     if(m_callbackHandler)
     {
-        m_callbackHandler->onVertexAdd(
-            iSplitVert, AddedVertexType::EdgesIntersection);
+        m_callbackHandler->onAddVertexStart(
+            iSplitVert, AddVertexType::FixedEdgesIntersection);
     }
 #endif
 
@@ -623,11 +615,7 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
         if(m_callbackHandler)
         {
-            for(size_t i = 0; i < intersected.size(); ++i)
-            {
-                m_callbackHandler->onTriangleChange(
-                    intersected[i], TriangleChangeType::ModifiedExisting);
-            }
+            m_callbackHandler->onReTriangulatePolygon(intersected);
         }
 #endif
 
@@ -674,7 +662,7 @@ void Triangulation<T, TNearPointLocator>::insertEdge(
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
     if(m_callbackHandler)
     {
-        m_callbackHandler->onEdgeAdd(edge);
+        m_callbackHandler->onAddEdgeStart(edge);
     }
 #endif
 
@@ -836,7 +824,8 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
     if(m_callbackHandler)
     {
-        m_callbackHandler->onVertexAdd(iMid, AddedVertexType::SplitEdge);
+        m_callbackHandler->onAddVertexStart(
+            iMid, AddVertexType::FixedEdgeMidpoint);
     }
 #endif
 
@@ -895,7 +884,7 @@ void Triangulation<T, TNearPointLocator>::conformToEdge(
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
     if(m_callbackHandler)
     {
-        m_callbackHandler->onEdgeAdd(edge);
+        m_callbackHandler->onAddEdgeStart(edge);
     }
 #endif
 
@@ -1023,9 +1012,7 @@ void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
     if(m_callbackHandler)
     {
-        m_callbackHandler->onVertexAdd(0, AddedVertexType::SuperTriangleVertex);
-        m_callbackHandler->onVertexAdd(1, AddedVertexType::SuperTriangleVertex);
-        m_callbackHandler->onVertexAdd(2, AddedVertexType::SuperTriangleVertex);
+        m_callbackHandler->onAddSuperTriangle();
     }
 #endif
 
@@ -1097,7 +1084,7 @@ void Triangulation<T, TNearPointLocator>::insertVertex(
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
     if(m_callbackHandler)
     {
-        m_callbackHandler->onVertexAdd(iVert, AddedVertexType::OriginalInput);
+        m_callbackHandler->onAddVertexStart(iVert, AddVertexType::UserInput);
     }
 #endif
 
@@ -1328,10 +1315,7 @@ void Triangulation<T, TNearPointLocator>::flipEdge(
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
     if(m_callbackHandler)
     {
-        m_callbackHandler->onTriangleChange(
-            iT, TriangleChangeType::ModifiedExisting);
-        m_callbackHandler->onTriangleChange(
-            iTopo, TriangleChangeType::ModifiedExisting);
+        m_callbackHandler->onFlipEdge(iT, iTopo);
     }
 #endif
 
@@ -1373,16 +1357,15 @@ Triangulation<T, TNearPointLocator>::insertVertexInsideTriangle(
     VertInd v,
     TriInd iT)
 {
+    const TriInd iNewT1 = addTriangle();
+    const TriInd iNewT2 = addTriangle();
+
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
     if(m_callbackHandler)
     {
-        m_callbackHandler->onTriangleChange(
-            iT, TriangleChangeType::ModifiedExisting);
+        m_callbackHandler->onInsertVertexInsideTriangle(iT, iNewT1, iNewT2);
     }
 #endif
-
-    const TriInd iNewT1 = addTriangle();
-    const TriInd iNewT2 = addTriangle();
 
     Triangle& t = triangles[iT];
     const array<VertInd, 3> vv = t.vertices;
@@ -1427,18 +1410,15 @@ std::stack<TriInd> Triangulation<T, TNearPointLocator>::insertVertexOnEdge(
     TriInd iT1,
     TriInd iT2)
 {
+    const TriInd iTnew1 = addTriangle();
+    const TriInd iTnew2 = addTriangle();
+
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
     if(m_callbackHandler)
     {
-        m_callbackHandler->onTriangleChange(
-            iT1, TriangleChangeType::ModifiedExisting);
-        m_callbackHandler->onTriangleChange(
-            iT2, TriangleChangeType::ModifiedExisting);
+        m_callbackHandler->onInsertVertexOnEdge(iT1, iT2, iTnew1, iTnew2);
     }
 #endif
-
-    const TriInd iTnew1 = addTriangle();
-    const TriInd iTnew2 = addTriangle();
 
     Triangle& t1 = triangles[iT1];
     Triangle& t2 = triangles[iT2];
