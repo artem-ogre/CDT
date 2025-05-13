@@ -899,7 +899,7 @@ private:
     void tryInitNearestPointLocator();
 
     TNearPointLocator m_nearPtLocator;
-    IndexSizeType m_nTargetVerts;
+    VertInd m_nTargetVerts;
     SuperGeometryType::Enum m_superGeomType;
     VertexInsertionOrder::Enum m_vertexInsertionOrder;
     IntersectingConstraintEdges::Enum m_intersectingEdgesStrategy;
@@ -1003,7 +1003,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
     const bool isOverPreAllocated =
         m_intersectingEdgesStrategy ==
             IntersectingConstraintEdges::TryResolve &&
-        nNewVertices >= overAllocationVerticesThreshold;
+        VertInd(nNewVertices) >= overAllocationVerticesThreshold;
     if(isOverPreAllocated)
     {
         capacityTriangles *= overAllocationFactor;

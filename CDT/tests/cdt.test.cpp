@@ -895,7 +895,7 @@ TEST_CASE("Regression test issue #154 (2)", "")
     });
     REQUIRE(CDT::verifyTopology(cdt));
     cdt.insertEdges({
-        {0, 1},
+        {VertInd(0), VertInd(1)},
     });
     REQUIRE(CDT::verifyTopology(cdt));
     const auto outFile = "expected/154_2.txt";
@@ -925,7 +925,7 @@ TEST_CASE("Regression test issue #154 (3)", "")
         {-7.97180128, -39.7499695},
     });
     cdt.insertEdges({
-        {0, 8},
+        {VertInd(0), VertInd(8)},
     });
     REQUIRE(CDT::verifyTopology(cdt));
     const auto outFile = "expected/154_3.txt";

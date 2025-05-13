@@ -541,8 +541,12 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
                          ? pieceToOriginals.at(e2).front()
                          : e2;
                 // don't count super-triangle vertices
-                e1 = Edge(e1.v1() - m_nTargetVerts, e1.v2() - m_nTargetVerts);
-                e2 = Edge(e2.v1() - m_nTargetVerts, e2.v2() - m_nTargetVerts);
+                e1 = Edge(
+                    VertInd(e1.v1() - m_nTargetVerts),
+                    VertInd(e1.v2() - m_nTargetVerts));
+                e2 = Edge(
+                    VertInd(e2.v1() - m_nTargetVerts),
+                    VertInd(e2.v2() - m_nTargetVerts));
                 handleException(IntersectingConstraintsError(
                     e1,
                     pieceToOriginals.count(e2) ? pieceToOriginals.at(e2).front()
@@ -751,8 +755,12 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
                          ? pieceToOriginals.at(e2).front()
                          : e2;
                 // don't count super-triangle vertices
-                e1 = Edge(e1.v1() - m_nTargetVerts, e1.v2() - m_nTargetVerts);
-                e2 = Edge(e2.v1() - m_nTargetVerts, e2.v2() - m_nTargetVerts);
+                e1 = Edge(
+                    VertInd(e1.v1() - m_nTargetVerts),
+                    VertInd(e1.v2() - m_nTargetVerts));
+                e2 = Edge(
+                    VertInd(e2.v1() - m_nTargetVerts),
+                    VertInd(e2.v2() - m_nTargetVerts));
                 handleException(
                     IntersectingConstraintsError(e1, e2, CDT_SOURCE_LOCATION));
             }
@@ -1597,7 +1605,9 @@ array<TriInd, 2> Triangulation<T, TNearPointLocator>::walkingSearchTrianglesAt(
                               : v2 == v ? t.vertices[1]
                                         : t.vertices[2];
         handleException(DuplicateVertexError(
-            iV - m_nTargetVerts, iDupe - m_nTargetVerts, CDT_SOURCE_LOCATION));
+            VertInd(iV - m_nTargetVerts),
+            VertInd(iDupe - m_nTargetVerts),
+            CDT_SOURCE_LOCATION));
     }
 
     out[0] = iT;
@@ -2015,9 +2025,8 @@ void Triangulation<T, TNearPointLocator>::insertVertices_KDTreeBFS(
     Box2d<T> box)
 {
     // calculate original indices
-    const VertInd vertexCount =
-        static_cast<IndexSizeType>(vertices.size()) - superGeomVertCount;
-    if(vertexCount <= 0)
+    const VertInd vertexCount(vertices.size() - superGeomVertCount);
+    if(vertexCount <= VertInd(0))
         return;
     std::vector<VertInd> ii(vertexCount);
     detail::iota(ii.begin(), ii.end(), superGeomVertCount);
@@ -2105,7 +2114,7 @@ std::pair<TriInd, TriInd> Triangulation<T, TNearPointLocator>::edgeTriangles(
         }
         iT = iTNext;
     } while(iT != triStart);
-    return std::make_pair(invalidIndexSizeType, invalidIndexSizeType);
+    return std::make_pair(noNeighbor, noNeighbor);
 }
 
 template <typename T, typename TNearPointLocator>
