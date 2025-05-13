@@ -285,6 +285,10 @@ struct CDT_EXPORT TriangleChangeType
 class CDT_EXPORT ICallbackHandler
 {
 public:
+    /// Virtual destructor
+    virtual ~ICallbackHandler()
+    {}
+
     /**
      *  Called when super-triangle is added.
      * 1.Added three new vertices with indices 0, 1, 2
