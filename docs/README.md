@@ -1,8 +1,8 @@
-# Overview
-
 <img src="./images/CDT_logo.png" alt="CDT Logo" style='height: 100%; width: 100%; max-height: 250px; object-fit: contain'/>
 
 [![CI Builds](https://github.com/artem-ogre/CDT/workflows/CI%20Builds/badge.svg)](https://github.com/artem-ogre/CDT/actions/)
+
+## What is CDT
 
 CDT is a C++ library for generating constraint or conforming Delaunay triangulations.
 - **open-source:** permissively-licensed under Mozilla Public License (MPL) 2.0
@@ -19,23 +19,29 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 
 ## Table of Contents
 
-- [Overview](#overview)
-  - [Table of Contents](#table-of-contents)
-  - [What can CDT do?](#what-can-cdt-do)
-  - [Properly Handling the Corner-Cases](#properly-handling-the-corner-cases)
-  - [Online Documentation](#online-documentation)
-  - [Algorithm](#algorithm)
-  - [Implementation Details](#implementation-details)
-  - [Adding CDT to your C++ project Using a Package Manager](#adding-withpackage-manager)
-  - [Installation/Building](#installationbuilding)
-  - [Using](#using)
-    - [Code Examples](#code-examples)
-  - [Python bindings?](#python-bindings)
-  - [Contributors](#contributors)
-  - [Contributing](#contributing)
-  - [License](#license)
-  - [Example Gallery](#example-gallery)
-  - [Bibliography](#bibliography)
+- [What is CDT](#what-is-cdt)
+- [Table of Contents](#table-of-contents)
+- [What can CDT do?](#what-can-cdt-do)
+- [Properly Handling the Corner-Cases](#properly-handling-the-corner-cases)
+- [Online Documentation](#online-documentation)
+- [Algorithm](#algorithm)
+- [Implementation Details](#implementation-details)
+- [Adding CDT to your C++ project Using a Package Manager](#adding-withpackage-manager)
+- [Installation/Building](#installationbuilding)
+- [Where to find CDT API](#api)
+- [Code Examples](#code-examples)
+    - Delaunay triangulation without constraints (triangulated convex-hull)
+    - Constrained Delaunay triangulation (auto-detected boundaries and holes)
+    - Conforming Delaunay triangulation
+    - Resolve edge intersections by adding new points and splitting edges
+    - Custom point/edge type
+    - Callbacks
+- [Python bindings?](#python-bindings)
+- [Contributors](#contributors)
+- [Contributing](#contributing)
+- [License](#license)
+- [Example Gallery](#example-gallery)
+- [Bibliography](#bibliography)
 
 <a name="what-can-cdt-do"></a>
 
@@ -131,6 +137,7 @@ CDT uses modern CMake and should *just work* out of the box without any surprise
 | `CDT_USE_64_BIT_INDEX_TYPE`   |      `OFF`      | Use 64bits to store vertex/triangle index types. Otherwise 32bits are used (up to 4.2bn items) |
 | `CDT_USE_AS_COMPILED_LIBRARY` |      `OFF`      | Instantiate templates for float and double and compiled into a library                         |
 | `CDT_DISABLE_EXCEPTIONS`      |      `OFF`      | Disables exceptions: instead of throwing the library will call `std::terminate`                |
+| `CDT_ENABLE_CALLBACK_HANDLER` |      `OFF`      | If enabled it is possible to provide a callback handler to the triangulation                   |
 
 **Adding to CMake project directly**
 
@@ -163,18 +170,22 @@ cmake --build . && cmake --install .
 find_package(CDT REQUIRED CONFIG)
 ```
 
-<a name="using"></a>
+<a name="api"></a>
 
-## Using
+## Where to find CDT API
 
 Public API is provided in two places:
 - `CDT::Triangulation` class is used for performing constrained Delaunay triangulations.
-- Free functions in `CDT.h` provide some additional functionality for removing duplicates, re-mapping edges and triangle depth-peeling
+- Free functions in [`CDT.h`](../CDT/include/CDT.h) provide some additional functionality for removing duplicates, re-mapping edges and triangle depth-peeling
 
 
 <a name="code-examples"></a>
 
-### Code Examples
+## Code Examples
+
+ℹ️ For more up-to-date code examples please see CDT tests in [`cdt.test.cpp`](../CDT/tests/cdt.test.cpp).
+
+<a name="example-delaunay-triangulation"></a>
 
 **Delaunay triangulation without constraints (triangulated convex-hull)**
 
@@ -244,6 +255,16 @@ cdt.insertEdges(
     [](const CustomEdge& e){ return e.vertices.second; }
 );
 ```
+
+**Callbacks**
+
+For advanced usage and deep integration with custom algorithms CDT allows to register user callbacks for important events.
+For example it is possible to do progress reporting or abort triangulation.
+
+⚠️ Callbacks need to be enabled with `CDT_ENABLE_CALLBACK_HANDLER`.
+
+User needs to implement callback handler by deriving from `CDT::ICallbackHandler` and register it with `CDT::Triangulation::setCallbackHandler`.
+See [`cdt.test.cpp`](../CDT/tests/cdt.test.cpp) for usage examples.
 
 <a name="python-bindings"></a>
 
