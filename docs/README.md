@@ -176,7 +176,7 @@ find_package(CDT REQUIRED CONFIG)
 
 Public API is provided in two places:
 - `CDT::Triangulation` class is used for performing constrained Delaunay triangulations.
-- Free functions in [`CDT.h`](../CDT/include/CDT.h) provide some additional functionality for removing duplicates, re-mapping edges and triangle depth-peeling
+- Free functions in `CDT.h` provide some additional functionality for removing duplicates, re-mapping edges and triangle depth-peeling
 
 
 <a name="code-examples"></a>

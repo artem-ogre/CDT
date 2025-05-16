@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.4...4.0)
 
 project(
     "CDT"
-    VERSION 1.4.1
+    VERSION 1.4.2
     DESCRIPTION
     "C++ library for constrained Delaunay triangulation"
     HOMEPAGE_URL "https://github.com/artem-ogre/CDT"
@@ -209,6 +209,7 @@ if(DOXYGEN_FOUND)
     # doxygen settings can be set here, prefixed with "DOXYGEN_"
     set(DOXYGEN_SOURCE_BROWSER YES)
     set(DOXYGEN_JAVADOC_AUTOBRIEF YES)
+    set(DOXYGEN_ENABLE_PREPROCESSING NO)
     set(DOXYGEN_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/docs")
     set(CDT_DOCS_DIRECTORY ${PROJECT_SOURCE_DIR}/../docs)
     set(DOXYGEN_USE_MDFILE_AS_MAINPAGE ${CDT_DOCS_DIRECTORY}/README.md)
