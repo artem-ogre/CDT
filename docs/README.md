@@ -269,7 +269,8 @@ See [`cdt.test.cpp`](../CDT/tests/cdt.test.cpp) for usage examples.
 <a name="python-bindings"></a>
 
 ## Python bindings?
-For work-in-progress on Python bindings check-out [PythonCDT](https://github.com/artem-ogre/PythonCDT)
+
+For Python bindings check-out [PythonCDT](https://github.com/artem-ogre/PythonCDT)
 
 <a name="contributors"></a>
 
@@ -284,6 +285,7 @@ For work-in-progress on Python bindings check-out [PythonCDT](https://github.com
 - [ldcMasa](https://github.com/ldcMasa): finding compilation issue ([#144](https://github.com/artem-ogre/CDT/issues/144))
 - [egladil86](https://github.com/egladil86): finding, reproducing, and reporting a bug ([#148](https://github.com/artem-ogre/CDT/issues/148))
 - [Som1Lse](https://github.com/Som1Lse): fuzzing CDT: finding, reproducing, and reporting bugs ([#154](https://github.com/artem-ogre/CDT/issues/148))
+- [Madrich](https://github.com/Madrich): help with implementing user callbacks ([#178](https://github.com/artem-ogre/CDT/issues/178))
 
 <a name="contributing"></a>
 
