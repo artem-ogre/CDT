@@ -193,7 +193,7 @@ public:
         int iTask = -1;
         coord_type minDistSq = std::numeric_limits<coord_type>::max();
         m_tasksStack[++iTask] =
-            NearestTask(m_root, m_min, m_max, m_rootDir, minDistSq);
+            NearestTask(m_root, m_min, m_max, m_rootDir, 0);
         while(iTask != -1)
         {
             const NearestTask t = m_tasksStack[iTask--];
@@ -224,7 +224,7 @@ public:
                 const coord_type distToMid = t.dir == NodeSplitDirection::X
                                                  ? (point.x - mid)
                                                  : (point.y - mid);
-                const coord_type toMidSq = distToMid * distToMid;
+                const coord_type newDistSq = std::max(distToMid * distToMid, t.distSq);
 
                 const std::size_t iChild = whichChild(point, mid, t.dir);
                 if(iTask + 2 >= static_cast<int>(m_tasksStack.size()))
@@ -233,20 +233,21 @@ public:
                         m_tasksStack.size() + StackDepthIncrement);
                 }
                 // node containing point should end up on top of the stack
+                if(newDistSq < minDistSq)
+                {
+                    if(iChild == 0)
+                        m_tasksStack[++iTask] = NearestTask(
+                            n.children[1], newMin, t.max, newDir, newDistSq);
+                    else
+                        m_tasksStack[++iTask] = NearestTask(
+                            n.children[0], t.min, newMax, newDir, newDistSq);
+                }
                 if(iChild == 0)
-                {
                     m_tasksStack[++iTask] = NearestTask(
-                        n.children[1], newMin, t.max, newDir, toMidSq);
-                    m_tasksStack[++iTask] = NearestTask(
-                        n.children[0], t.min, newMax, newDir, toMidSq);
-                }
+                        n.children[0], t.min, newMax, newDir, t.distSq);
                 else
-                {
                     m_tasksStack[++iTask] = NearestTask(
-                        n.children[0], t.min, newMax, newDir, toMidSq);
-                    m_tasksStack[++iTask] = NearestTask(
-                        n.children[1], newMin, t.max, newDir, toMidSq);
-                }
+                        n.children[1], newMin, t.max, newDir, t.distSq);
             }
         }
         return out;
