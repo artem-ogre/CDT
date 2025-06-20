@@ -967,6 +967,10 @@ TEST_CASE("Callbacks test: count number of callback calls")
     auto cdt = Triangulation<double>();
     // REQUIRE(sizeof(cdt) == 368);
 
+// parameter names are used for documentation purposes, even if they are un-used
+// in the interface's default implementation
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
     struct CallbackHandler final : public CDT::ICallbackHandler
     {
         void onAddSuperTriangle() override
@@ -1016,11 +1020,16 @@ TEST_CASE("Callbacks test: count number of callback calls")
             nModifiedTriangles += tris.size();
         }
 
-        int nAddedVertices = 0;
-        int nModifiedTriangles = 0;
-        int nAddedTriangles = 0;
-        int nAddedEdges = 0;
+        std::size_t nAddedVertices = 0;
+        std::size_t nModifiedTriangles = 0;
+        std::size_t nAddedTriangles = 0;
+        std::size_t nAddedEdges = 0;
     };
+
+// parameter names are used for documentation purposes, even if they are
+// un-used in the interface's default implementation
+#pragma GCC diagnostic pop
+
     CallbackHandler callbackHandler;
     cdt.setCallbackHandler(&callbackHandler);
 
@@ -1073,7 +1082,7 @@ TEST_CASE("Callbacks test: test aborting the calculation")
     {
         struct CallbackHandler final : public CDT::ICallbackHandler
         {
-            void onAddEdgeStart(const Edge& edge) override
+            void onAddEdgeStart(const Edge& /*edge*/) override
             {
                 ++n;
             }

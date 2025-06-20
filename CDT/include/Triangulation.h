@@ -289,6 +289,11 @@ struct CDT_EXPORT TriangleChangeType
     };
 };
 
+// parameter names are used for documentation purposes, even if they are un-used
+// in the interface's default implementation
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+
 /**
  * Interface for the callback handler that user can derive from and inject into
  * the triangulation to monitor certain events or order aborting the calculation
@@ -383,6 +388,10 @@ public:
         return false;
     };
 };
+
+// parameter names are used for documentation purposes, even if they are
+// un-used in the interface's default implementation
+#pragma GCC diagnostic pop
 
 #endif
 
