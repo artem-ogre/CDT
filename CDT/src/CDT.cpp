@@ -65,6 +65,16 @@ template CDT_EXPORT void initializeWithRegularGrid<double>(
     std::size_t,
     Triangulation<double>&);
 
+template
+CDT_EXPORT float distance(const V2d<float>& a, const V2d<float>& b);
+template
+CDT_EXPORT double distance(const V2d<double>& a, const V2d<double>& b);
+
+template
+CDT_EXPORT float distanceSquared(const V2d<float>& a, const V2d<float>& b);
+template
+CDT_EXPORT double distanceSquared(const V2d<double>& a, const V2d<double>& b);
+
 } // namespace CDT
 
 #endif

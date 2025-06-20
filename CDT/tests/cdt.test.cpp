@@ -1113,4 +1113,29 @@ TEST_CASE("Callbacks test: test aborting the calculation")
         }
     }
 }
+
 #endif
+
+TEST_CASE("KDtree regression (#200)")
+{
+    const auto target = V2d<double>(153.63, -30.09);
+    const auto points = std::vector<V2d<double> >{
+        V2d<double>(168.67, -122.39), // approx distance to target: 93.52
+        V2d<double>(-25.12, 109.06),  // approx distance to target: 226.53
+        V2d<double>(178.36, 40.75),   // approx distance to target: 75.03
+        V2d<double>(161.07, 86.2),    // approx distance to target: 116.53
+    };
+
+    auto tree = KDTree::KDTree<double, 1, 32, 32>(
+        V2d<double>(-180, -180), V2d<double>(180, 180));
+    double min_distance = std::numeric_limits<double>::max();
+    for(VertInd i(0); i < points.size(); ++i)
+    {
+        tree.insert(i, points);
+        min_distance = std::min(min_distance, distance(target, points[i]));
+    }
+
+    const auto [matchVec, matchIdx] = tree.nearest(target, points);
+    REQUIRE(min_distance == distance(target, points[matchIdx]));
+}
+

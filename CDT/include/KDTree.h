@@ -192,11 +192,10 @@ public:
         value_type out;
         int iTask = -1;
         coord_type minDistSq = std::numeric_limits<coord_type>::max();
-        m_tasksStack[++iTask] =
-            NearestTask(m_root, m_min, m_max, m_rootDir, minDistSq);
+        m_tasksStack[++iTask] = NearestTask(m_root, m_min, m_max, m_rootDir);
         while(iTask != -1)
         {
-            const NearestTask t = m_tasksStack[iTask--];
+            const NearestTask& t = m_tasksStack[iTask--];
             if(t.distSq > minDistSq)
                 continue;
             const Node& n = m_nodes[t.node];
@@ -221,31 +220,31 @@ public:
                 point_type newMin, newMax;
                 calcSplitInfo(t.min, t.max, t.dir, mid, newDir, newMin, newMax);
 
-                const coord_type distToMid = t.dir == NodeSplitDirection::X
-                                                 ? (point.x - mid)
-                                                 : (point.y - mid);
-                const coord_type toMidSq = distToMid * distToMid;
-
-                const std::size_t iChild = whichChild(point, mid, t.dir);
                 if(iTask + 2 >= static_cast<int>(m_tasksStack.size()))
                 {
                     m_tasksStack.resize(
                         m_tasksStack.size() + StackDepthIncrement);
                 }
-                // node containing point should end up on top of the stack
-                if(iChild == 0)
+
+                NearestTask closerTask(n.children[0], t.min, newMax, newDir);
+                NearestTask fartherTask(n.children[1], newMin, t.max, newDir);
+                if(isAfterSplit(point, mid, t.dir))
+                    std::swap(closerTask, fartherTask);
+
+                closerTask.calculateDistanceSquared(point);
+                if(closerTask.distSq <= minDistSq)
                 {
-                    m_tasksStack[++iTask] = NearestTask(
-                        n.children[1], newMin, t.max, newDir, toMidSq);
-                    m_tasksStack[++iTask] = NearestTask(
-                        n.children[0], t.min, newMax, newDir, toMidSq);
-                }
-                else
-                {
-                    m_tasksStack[++iTask] = NearestTask(
-                        n.children[0], t.min, newMax, newDir, toMidSq);
-                    m_tasksStack[++iTask] = NearestTask(
-                        n.children[1], newMin, t.max, newDir, toMidSq);
+                    fartherTask.calculateDistanceSquared(point);
+                    if(fartherTask.distSq <= minDistSq)
+                    {
+                        // put closest node on top of the stack
+                        m_tasksStack[++iTask] = fartherTask;
+                        m_tasksStack[++iTask] = closerTask;
+                    }
+                    else
+                    {
+                        m_tasksStack[++iTask] = closerTask;
+                    }
                 }
             }
         }
@@ -261,15 +260,22 @@ private:
         return newNodeIndex;
     }
 
-    /// Test which child point belongs to after the split
-    /// @returns 0 if first child, 1 if second child
-    std::size_t whichChild(
+    static bool isAfterSplit(
         const point_type& point,
         const coord_type& split,
-        const NodeSplitDirection::Enum dir) const
+        const NodeSplitDirection::Enum dir)
     {
-        return static_cast<size_t>(
-            dir == NodeSplitDirection::X ? point.x > split : point.y > split);
+        return dir == NodeSplitDirection::X ? point.x > split : point.y > split;
+    }
+
+    /// Test which child point belongs to after the split
+    /// @returns 0 if first child, 1 if second child
+    static std::size_t whichChild(
+        const point_type& point,
+        const coord_type& split,
+        const NodeSplitDirection::Enum dir)
+    {
+        return isAfterSplit(point, split, dir);
     }
 
     /// Calculate split location, direction, and children boxes
@@ -389,17 +395,24 @@ private:
             : dir(NodeSplitDirection::X)
         {}
         NearestTask(
-            const node_index node_,
-            const point_type& min_,
-            const point_type& max_,
-            const NodeSplitDirection::Enum dir_,
-            const coord_type distSq_)
-            : node(node_)
-            , min(min_)
-            , max(max_)
-            , dir(dir_)
-            , distSq(distSq_)
+            const node_index node,
+            const point_type& min,
+            const point_type& max,
+            const NodeSplitDirection::Enum dir)
+            : node(node)
+            , min(min)
+            , max(max)
+            , dir(dir)
+            , distSq(std::numeric_limits<coord_type>::max())
         {}
+        void calculateDistanceSquared(const point_type& p)
+        {
+            const coord_type dx =
+                std::max(std::max(min.x - p.x, coord_type(0)), p.x - max.x);
+            const coord_type dy =
+                std::max(std::max(min.y - p.y, coord_type(0)), p.y - max.y);
+            distSq = dx * dx + dy * dy;
+        }
     };
     // allocated in class (not in the 'nearest' method) for better performance
     mutable std::vector<NearestTask> m_tasksStack;
