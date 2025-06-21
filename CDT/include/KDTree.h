@@ -193,6 +193,7 @@ public:
         int iTask = -1;
         coord_type minDistSq = std::numeric_limits<coord_type>::max();
         m_tasksStack[++iTask] = NearestTask(m_root, m_min, m_max, m_rootDir);
+        m_tasksStack[iTask].distSq = distanceSquaredToBox(point, m_min, m_max);
         while(iTask != -1)
         {
             const NearestTask& t = m_tasksStack[iTask--];
@@ -216,9 +217,38 @@ public:
             else
             {
                 coord_type mid(0);
-                NodeSplitDirection::Enum newDir;
-                point_type newMin, newMax;
-                calcSplitInfo(t.min, t.max, t.dir, mid, newDir, newMin, newMax);
+                NodeSplitDirection::Enum newDir(NodeSplitDirection::X);
+                point_type newMin = t.min, newMax = t.max;
+                coord_type dSqFarther = std::numeric_limits<coord_type>::max();
+                switch(t.dir)
+                {
+                case NodeSplitDirection::X:
+                {
+                    mid = (t.min.x + t.max.x) / coord_type(2);
+                    newDir = NodeSplitDirection::Y;
+                    newMin.x = mid;
+                    newMax.x = mid;
+                    const coord_type dx = point.x - mid;
+                    const coord_type dy = std::max(
+                        std::max(t.min.y - point.y, coord_type(0)),
+                        point.y - t.max.y);
+                    dSqFarther = dx * dx + dy * dy;
+                    break;
+                }
+                case NodeSplitDirection::Y:
+                {
+                    mid = (t.min.y + t.max.y) / coord_type(2);
+                    newDir = NodeSplitDirection::X;
+                    newMin.y = mid;
+                    newMax.y = mid;
+                    const coord_type dx = std::max(
+                        std::max(t.min.x - point.x, coord_type(0)),
+                        point.x - t.max.x);
+                    const coord_type dy = point.y - mid;
+                    dSqFarther = dx * dx + dy * dy;
+                    break;
+                }
+                }
 
                 if(iTask + 2 >= static_cast<int>(m_tasksStack.size()))
                 {
@@ -231,21 +261,12 @@ public:
                 if(isAfterSplit(point, mid, t.dir))
                     std::swap(closerTask, fartherTask);
 
-                closerTask.calculateDistanceSquared(point);
-                if(closerTask.distSq <= minDistSq)
-                {
-                    fartherTask.calculateDistanceSquared(point);
-                    if(fartherTask.distSq <= minDistSq)
-                    {
-                        // put closest node on top of the stack
-                        m_tasksStack[++iTask] = fartherTask;
-                        m_tasksStack[++iTask] = closerTask;
-                    }
-                    else
-                    {
-                        m_tasksStack[++iTask] = closerTask;
-                    }
-                }
+                closerTask.distSq = t.distSq;
+                fartherTask.distSq = dSqFarther;
+                // put the closest node on top of the stack
+                if(fartherTask.distSq <= minDistSq)
+                    m_tasksStack[++iTask] = fartherTask;
+                m_tasksStack[++iTask] = closerTask;
             }
         }
         return out;
@@ -374,6 +395,18 @@ private:
         m_isRootBoxInitialized = true;
     }
 
+    static coord_type distanceSquaredToBox(
+        const point_type& p,
+        const point_type& min,
+        const point_type& max)
+    {
+        const coord_type dx =
+            std::max(std::max(min.x - p.x, coord_type(0)), p.x - max.x);
+        const coord_type dy =
+            std::max(std::max(min.y - p.y, coord_type(0)), p.y - max.y);
+        return dx * dx + dy * dy;
+    }
+
 private:
     node_index m_root;
     std::vector<Node> m_nodes;
@@ -398,21 +431,14 @@ private:
             const node_index node,
             const point_type& min,
             const point_type& max,
-            const NodeSplitDirection::Enum dir)
+            const NodeSplitDirection::Enum dir,
+            const coord_type distSq = std::numeric_limits<coord_type>::max())
             : node(node)
             , min(min)
             , max(max)
             , dir(dir)
-            , distSq(std::numeric_limits<coord_type>::max())
+            , distSq(distSq)
         {}
-        void calculateDistanceSquared(const point_type& p)
-        {
-            const coord_type dx =
-                std::max(std::max(min.x - p.x, coord_type(0)), p.x - max.x);
-            const coord_type dy =
-                std::max(std::max(min.y - p.y, coord_type(0)), p.y - max.y);
-            distSq = dx * dx + dy * dy;
-        }
     };
     // allocated in class (not in the 'nearest' method) for better performance
     mutable std::vector<NearestTask> m_tasksStack;

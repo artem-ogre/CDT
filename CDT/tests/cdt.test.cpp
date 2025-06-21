@@ -961,6 +961,7 @@ TEST_CASE("Regression test #174: super-triangle of tiny bounding box", "")
 }
 
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
+
 TEST_CASE("Callbacks test: count number of callback calls")
 {
     auto [vv, ee] = readInputFromFile<double>("inputs/Capital A.txt");
@@ -1139,3 +1140,34 @@ TEST_CASE("KDtree regression (#200)")
     REQUIRE(min_distance == distance(target, points[matchIdx]));
 }
 
+TEST_CASE("KDtree nearest point query", "[KDTree]")
+{
+    using Coord = double;
+    using Point = V2d<Coord>;
+
+    std::vector<Point> points = {
+        {0.0, 0.0}, {1.0, 1.0}, {2.0, 2.0}, {3.0, 3.0}};
+
+    KDTree::KDTree<Coord, 1, 32, 32> tree;
+    for(VertInd i(0); i < points.size(); ++i)
+        tree.insert(i, points);
+
+    SECTION("Exact match")
+    {
+        auto result = tree.nearest(Point{1.0, 1.0}, points);
+        REQUIRE(result.second == 1);
+        REQUIRE(result.first == Point{1.0, 1.0});
+    }
+
+    SECTION("Nearest to midpoint")
+    {
+        auto result = tree.nearest(Point{1.4, 1.4}, points);
+        REQUIRE(result.second == 1); // Closest to point {1.0, 1.0}
+    }
+
+    SECTION("Nearest at the edge")
+    {
+        auto result = tree.nearest(Point{3.1, 3.1}, points);
+        REQUIRE(result.second == 3); // Closest to point {3.0, 3.0}
+    }
+}
