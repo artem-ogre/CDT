@@ -13,6 +13,7 @@
 #include <iostream>
 #include <map>
 #include <numeric>
+#include <random>
 #include <sstream>
 
 using namespace CDT;
@@ -1169,5 +1170,44 @@ TEST_CASE("KDtree nearest point query", "[KDTree]")
     {
         auto result = tree.nearest(Point{3.1, 3.1}, points);
         REQUIRE(result.second == 3); // Closest to point {3.0, 3.0}
+    }
+}
+
+TEST_CASE("KDTree nearest stress test", "[KDTree]")
+{
+    constexpr size_t NumPoints = 100;
+    constexpr size_t NumQueries = 1000;
+
+    std::vector<V2d<double> > points;
+    points.reserve(NumPoints);
+
+    std::mt19937 rng(42); // deterministic
+    std::uniform_real_distribution<double> dist(-1000.0, 1000.0);
+
+    for(size_t i = 0; i < NumPoints; ++i)
+        points.emplace_back(dist(rng), dist(rng));
+
+    KDTree::KDTree<double, 8, 64, 64> tree;
+    for(VertInd i(0); i < points.size(); ++i)
+        tree.insert(i, points);
+
+    for(size_t q = 0; q < NumQueries; ++q)
+    {
+        const V2d<double> target(dist(rng), dist(rng));
+        const auto nearestIdx = tree.nearest(target, points).second;
+
+        auto minDistSq = std::numeric_limits<double>::max();
+        VertInd expectedIdx = 0;
+
+        for(VertInd i(0); i < points.size(); ++i)
+        {
+            const auto distSq = distanceSquared(points[i], target);
+            if(distSq < minDistSq)
+            {
+                minDistSq = distSq;
+                expectedIdx = i;
+            }
+        }
+        REQUIRE(nearestIdx == expectedIdx);
     }
 }

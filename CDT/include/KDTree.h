@@ -9,7 +9,6 @@
 
 #include "CDTUtils.h"
 
-#include <cassert>
 #include <limits>
 
 namespace CDT
@@ -192,11 +191,15 @@ public:
         value_type out;
         int iTask = -1;
         coord_type minDistSq = std::numeric_limits<coord_type>::max();
-        m_tasksStack[++iTask] = NearestTask(m_root, m_min, m_max, m_rootDir);
-        m_tasksStack[iTask].distSq = distanceSquaredToBox(point, m_min, m_max);
+        m_tasksStack[++iTask] = NearestTask(
+            m_root,
+            m_min,
+            m_max,
+            m_rootDir,
+            distanceSquaredToBox(point, m_min, m_max));
         while(iTask != -1)
         {
-            const NearestTask& t = m_tasksStack[iTask--];
+            const NearestTask t = m_tasksStack[iTask--];
             if(t.distSq > minDistSq)
                 continue;
             const Node& n = m_nodes[t.node];
@@ -256,17 +259,27 @@ public:
                         m_tasksStack.size() + StackDepthIncrement);
                 }
 
-                NearestTask closerTask(n.children[0], t.min, newMax, newDir);
-                NearestTask fartherTask(n.children[1], newMin, t.max, newDir);
-                if(isAfterSplit(point, mid, t.dir))
-                    std::swap(closerTask, fartherTask);
-
-                closerTask.distSq = t.distSq;
-                fartherTask.distSq = dSqFarther;
                 // put the closest node on top of the stack
-                if(fartherTask.distSq <= minDistSq)
-                    m_tasksStack[++iTask] = fartherTask;
-                m_tasksStack[++iTask] = closerTask;
+                if(isAfterSplit(point, mid, t.dir))
+                {
+                    if(dSqFarther <= minDistSq)
+                    {
+                        m_tasksStack[++iTask] = NearestTask(
+                            n.children[0], t.min, newMax, newDir, dSqFarther);
+                    }
+                    m_tasksStack[++iTask] = NearestTask(
+                        n.children[1], newMin, t.max, newDir, t.distSq);
+                }
+                else
+                {
+                    if(dSqFarther <= minDistSq)
+                    {
+                        m_tasksStack[++iTask] = NearestTask(
+                            n.children[1], newMin, t.max, newDir, dSqFarther);
+                    }
+                    m_tasksStack[++iTask] = NearestTask(
+                        n.children[0], t.min, newMax, newDir, t.distSq);
+                }
             }
         }
         return out;
@@ -347,21 +360,29 @@ private:
         {
         case NodeSplitDirection::X:
             m_rootDir = NodeSplitDirection::Y;
-            point.y < m_min.y ? m_nodes[newRoot].setChildren(newLeaf, m_root)
-                              : m_nodes[newRoot].setChildren(m_root, newLeaf);
             if(point.y < m_min.y)
+            {
                 m_min.y -= m_max.y - m_min.y;
-            else if(point.y > m_max.y)
+                m_nodes[newRoot].setChildren(newLeaf, m_root);
+            }
+            else
+            {
                 m_max.y += m_max.y - m_min.y;
+                m_nodes[newRoot].setChildren(m_root, newLeaf);
+            }
             break;
         case NodeSplitDirection::Y:
             m_rootDir = NodeSplitDirection::X;
-            point.x < m_min.x ? m_nodes[newRoot].setChildren(newLeaf, m_root)
-                              : m_nodes[newRoot].setChildren(m_root, newLeaf);
             if(point.x < m_min.x)
+            {
                 m_min.x -= m_max.x - m_min.x;
-            else if(point.x > m_max.x)
+                m_nodes[newRoot].setChildren(newLeaf, m_root);
+            }
+            else
+            {
                 m_max.x += m_max.x - m_min.x;
+                m_nodes[newRoot].setChildren(m_root, newLeaf);
+            }
             break;
         }
         m_root = newRoot;
