@@ -13,6 +13,7 @@
 #include <iostream>
 #include <map>
 #include <numeric>
+#include <random>
 #include <sstream>
 
 using namespace CDT;
@@ -961,12 +962,17 @@ TEST_CASE("Regression test #174: super-triangle of tiny bounding box", "")
 }
 
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
+
 TEST_CASE("Callbacks test: count number of callback calls")
 {
     auto [vv, ee] = readInputFromFile<double>("inputs/Capital A.txt");
     auto cdt = Triangulation<double>();
     // REQUIRE(sizeof(cdt) == 368);
 
+// parameter names are used for documentation purposes, even if they are un-used
+// in the interface's default implementation
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
     struct CallbackHandler final : public CDT::ICallbackHandler
     {
         void onAddSuperTriangle() override
@@ -1016,11 +1022,16 @@ TEST_CASE("Callbacks test: count number of callback calls")
             nModifiedTriangles += tris.size();
         }
 
-        int nAddedVertices = 0;
-        int nModifiedTriangles = 0;
-        int nAddedTriangles = 0;
-        int nAddedEdges = 0;
+        std::size_t nAddedVertices = 0;
+        std::size_t nModifiedTriangles = 0;
+        std::size_t nAddedTriangles = 0;
+        std::size_t nAddedEdges = 0;
     };
+
+// parameter names are used for documentation purposes, even if they are
+// un-used in the interface's default implementation
+#pragma GCC diagnostic pop
+
     CallbackHandler callbackHandler;
     cdt.setCallbackHandler(&callbackHandler);
 
@@ -1073,7 +1084,7 @@ TEST_CASE("Callbacks test: test aborting the calculation")
     {
         struct CallbackHandler final : public CDT::ICallbackHandler
         {
-            void onAddEdgeStart(const Edge& edge) override
+            void onAddEdgeStart(const Edge& /*edge*/) override
             {
                 ++n;
             }
@@ -1104,4 +1115,99 @@ TEST_CASE("Callbacks test: test aborting the calculation")
         }
     }
 }
+
 #endif
+
+TEST_CASE("KDtree regression (#200)")
+{
+    const auto target = V2d<double>(153.63, -30.09);
+    const auto points = std::vector<V2d<double> >{
+        V2d<double>(168.67, -122.39), // approx distance to target: 93.52
+        V2d<double>(-25.12, 109.06),  // approx distance to target: 226.53
+        V2d<double>(178.36, 40.75),   // approx distance to target: 75.03
+        V2d<double>(161.07, 86.2),    // approx distance to target: 116.53
+    };
+
+    auto tree = KDTree::KDTree<double, 1, 32, 32>(
+        V2d<double>(-180, -180), V2d<double>(180, 180));
+    double min_distance = std::numeric_limits<double>::max();
+    for(VertInd i(0); i < points.size(); ++i)
+    {
+        tree.insert(i, points);
+        min_distance = std::min(min_distance, distance(target, points[i]));
+    }
+
+    const auto [matchVec, matchIdx] = tree.nearest(target, points);
+    REQUIRE(min_distance == distance(target, points[matchIdx]));
+}
+
+TEST_CASE("KDtree nearest point query", "[KDTree]")
+{
+    using Coord = double;
+    using Point = V2d<Coord>;
+
+    std::vector<Point> points = {
+        {0.0, 0.0}, {1.0, 1.0}, {2.0, 2.0}, {3.0, 3.0}};
+
+    KDTree::KDTree<Coord, 1, 32, 32> tree;
+    for(VertInd i(0); i < points.size(); ++i)
+        tree.insert(i, points);
+
+    SECTION("Exact match")
+    {
+        auto result = tree.nearest(Point{1.0, 1.0}, points);
+        REQUIRE(result.second == 1);
+        REQUIRE(result.first == Point{1.0, 1.0});
+    }
+
+    SECTION("Nearest to midpoint")
+    {
+        auto result = tree.nearest(Point{1.4, 1.4}, points);
+        REQUIRE(result.second == 1); // Closest to point {1.0, 1.0}
+    }
+
+    SECTION("Nearest at the edge")
+    {
+        auto result = tree.nearest(Point{3.1, 3.1}, points);
+        REQUIRE(result.second == 3); // Closest to point {3.0, 3.0}
+    }
+}
+
+TEST_CASE("KDTree nearest stress test", "[KDTree]")
+{
+    constexpr size_t NumPoints = 100;
+    constexpr size_t NumQueries = 1000;
+
+    std::vector<V2d<double> > points;
+    points.reserve(NumPoints);
+
+    std::mt19937 rng(42); // deterministic
+    std::uniform_real_distribution<double> dist(-1000.0, 1000.0);
+
+    for(size_t i = 0; i < NumPoints; ++i)
+        points.emplace_back(dist(rng), dist(rng));
+
+    KDTree::KDTree<double, 8, 64, 64> tree;
+    for(VertInd i(0); i < points.size(); ++i)
+        tree.insert(i, points);
+
+    for(size_t q = 0; q < NumQueries; ++q)
+    {
+        const V2d<double> target(dist(rng), dist(rng));
+        const auto nearestIdx = tree.nearest(target, points).second;
+
+        auto minDistSq = std::numeric_limits<double>::max();
+        VertInd expectedIdx = 0;
+
+        for(VertInd i(0); i < points.size(); ++i)
+        {
+            const auto distSq = distanceSquared(points[i], target);
+            if(distSq < minDistSq)
+            {
+                minDistSq = distSq;
+                expectedIdx = i;
+            }
+        }
+        REQUIRE(nearestIdx == expectedIdx);
+    }
+}

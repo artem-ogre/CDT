@@ -33,7 +33,8 @@ UseTab: Never
 # Clang 5 new features:
 # =====================
 BreakBeforeBraces: Custom
-BraceWrapping: 
+BraceWrapping:
+    AfterCaseLabel: true
     AfterClass: true
     AfterControlStatement: true
     AfterEnum : true
