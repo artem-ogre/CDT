@@ -287,6 +287,7 @@ For Python bindings check-out [PythonCDT](https://github.com/artem-ogre/PythonCD
 - [Som1Lse](https://github.com/Som1Lse): fuzzing CDT: finding, reproducing, and reporting bugs ([#154](https://github.com/artem-ogre/CDT/issues/148))
 - [Madrich](https://github.com/Madrich): help with implementing user callbacks ([#178](https://github.com/artem-ogre/CDT/issues/178))
 - [davidkellerman](https://github.com/davidkellerman): finding and reproducing bug in KDTree's `nearest` method ([#200](https://github.com/artem-ogre/CDT/issues/200))
+- [Boris Clémençon](https://github.com/borisclemencon): finding and reproducing, and reporting a bug ([#204](https://github.com/artem-ogre/CDT/issues/204))
 
 <a name="contributing"></a>
 
