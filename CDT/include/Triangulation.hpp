@@ -554,7 +554,8 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
                     CDT_SOURCE_LOCATION));
             }
             break;
-        case IntersectingConstraintEdges::TryResolve: {
+        case IntersectingConstraintEdges::TryResolve:
+        {
             if(!fixedEdges.count(Edge(iVL, iVR)))
                 break;
             // split edge at the intersection of two constraint edges
@@ -765,7 +766,8 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
                     IntersectingConstraintsError(e1, e2, CDT_SOURCE_LOCATION));
             }
             break;
-        case IntersectingConstraintEdges::TryResolve: {
+        case IntersectingConstraintEdges::TryResolve:
+        {
             if(!fixedEdges.count(Edge(iVleft, iVright)))
                 break;
             // split edge at the intersection of two constraint edges
