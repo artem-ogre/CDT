@@ -809,7 +809,11 @@ private:
     /// Returns indices of three resulting triangles
     std::stack<TriInd> insertVertexInsideTriangle(VertInd v, TriInd iT);
     /// Returns indices of four resulting triangles
-    std::stack<TriInd> insertVertexOnEdge(VertInd v, TriInd iT1, TriInd iT2);
+    std::stack<TriInd> insertVertexOnEdge(
+        VertInd v,
+        TriInd iT1,
+        TriInd iT2,
+        const bool doHandleFixedSplitEdge = false);
     array<TriInd, 2> trianglesAt(const V2d<T>& pos) const;
     array<TriInd, 2>
     walkingSearchTrianglesAt(VertInd iV, VertInd startVertex) const;
