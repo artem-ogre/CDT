@@ -1211,3 +1211,42 @@ TEST_CASE("KDTree nearest stress test", "[KDTree]")
         REQUIRE(nearestIdx == expectedIdx);
     }
 }
+
+TEST_CASE("Regression test #204: inserting vertex on fixed edge", "")
+{
+    auto cdt = Triangulation<double>{};
+
+    REQUIRE_NOTHROW(cdt.insertVertices(
+        Vertices<double>{
+            {
+                {0., 0.},
+                {2., 0.},
+            },
+        }));
+    cdt.insertEdges(std::vector<Edge>{{0, 1}});
+
+    REQUIRE_NOTHROW(cdt.insertVertices(
+        Vertices<double>{
+            {
+                {1., 0.},
+                {1., 2.},
+            },
+        }));
+    cdt.insertEdges(
+        std::vector<Edge>{
+            {2, 3},
+        });
+
+    REQUIRE(CDT::verifyTopology(cdt));
+    cdt.eraseSuperTriangle();
+    REQUIRE(cdt.triangles.size() == std::size_t(2));
+    REQUIRE(cdt.fixedEdges.size() == std::size_t(3));
+    REQUIRE(cdt.fixedEdges.count(Edge(0, 2)));
+    REQUIRE(cdt.fixedEdges.count(Edge(1, 2)));
+    REQUIRE(cdt.fixedEdges.count(Edge(2, 3)));
+
+    REQUIRE(cdt.pieceToOriginals.at(Edge(0, 2)).size() == 1);
+    REQUIRE(cdt.pieceToOriginals.at(Edge(1, 2)).size() == 1);
+    REQUIRE(cdt.pieceToOriginals.at(Edge(0, 2))[0] == Edge(0, 1));
+    REQUIRE(cdt.pieceToOriginals.at(Edge(1, 2))[0] == Edge(0, 1));
+}

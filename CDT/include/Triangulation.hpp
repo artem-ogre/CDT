@@ -1100,7 +1100,7 @@ void Triangulation<T, TNearPointLocator>::insertVertex(
     std::stack<TriInd> triStack =
         trisAt[1] == noNeighbor
             ? insertVertexInsideTriangle(iVert, trisAt[0])
-            : insertVertexOnEdge(iVert, trisAt[0], trisAt[1]);
+            : insertVertexOnEdge(iVert, trisAt[0], trisAt[1], true);
     ensureDelaunayByEdgeFlips(iVert, triStack);
 }
 
@@ -1477,7 +1477,8 @@ template <typename T, typename TNearPointLocator>
 std::stack<TriInd> Triangulation<T, TNearPointLocator>::insertVertexOnEdge(
     VertInd v,
     TriInd iT1,
-    TriInd iT2)
+    TriInd iT2,
+    const bool doHandleFixedSplitEdge)
 {
     const TriInd iTnew1 = addTriangle();
     const TriInd iTnew2 = addTriangle();
@@ -1512,6 +1513,13 @@ std::stack<TriInd> Triangulation<T, TNearPointLocator>::insertVertexOnEdge(
     // adjust neighboring triangles and vertices
     changeNeighbor(n4, iT1, iTnew1);
     changeNeighbor(n3, iT2, iTnew2);
+    // properly handle the case when the split edge is a fixed edge
+    if(doHandleFixedSplitEdge)
+    {
+        const Edge sharedEdge(v2, v4);
+        if(fixedEdges.count(sharedEdge))
+            splitFixedEdge(sharedEdge, v);
+    }
     // return newly added triangles
     std::stack<TriInd> newTriangles;
     newTriangles.push(iT1);
