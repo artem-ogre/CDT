@@ -52,7 +52,7 @@ class CDTConan(ConanFile):
 
     def requirements(self):
         if self._needs_boost:
-            self.requires("boost/[^1.83.0]")        
+            self.requires("boost/[^1.78.0]")        
 
     def build_requirements(self):
         self.requires("catch2/3.4.0")
