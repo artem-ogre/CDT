@@ -3,53 +3,81 @@
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 from conan import ConanFile
-from conan.tools.cmake import CMake, CMakeToolchain
-from conan.tools.files import collect_libs
+from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout, CMakeDeps
+from conan.tools.build import valid_min_cppstd
 
+required_conan_version = ">=2.0"
 
 class CDTConan(ConanFile):
     name = "cdt"
+    package_type = "library"
     version = "1.4.5"
     license = "MPL-2.0 License"
     url = "https://github.com/artem-ogre/CDT"
     description = "Numerically robust C++ implementation of constrained Delaunay triangulation (CDT)"
     settings = "os", "compiler", "build_type", "arch"
-    generators = "CMakeDeps"
     options = {
         "shared": [True, False],
-        "use_boost": [True, False],
-        "as_compiled_library": [True, False],
-        "enable_testing": [True, False],
+        "fPIC": [True, False],
+        "header_only": [True, False],
         "enable_callback_handler": [True, False],
+        "enable_testing": [True, False],
+        "no_exceptions": [True, False],
+        "use_64_bit_index_type": [True, False],
     }
     default_options = {
         "shared": False,
-        "use_boost": False,
-        "as_compiled_library": False,
-        "enable_testing": False,
+        "fPIC": True,
+        "header_only": True,
         "enable_callback_handler": False,
+        "enable_testing": False,
+        "no_exceptions": False,
+        "use_64_bit_index_type": False,
     }
     exports_sources = "*", "!.idea", "!conanfile.py"
 
+    @property
+    def _needs_boost(self):
+        #Versions below C++11 require boost
+        return not valid_min_cppstd(self, "11")
+    
+    def config_options(self):
+        if self.settings.os == "Windows":
+            del self.options.fPIC
+    
+    def configure(self):
+        if self._needs_boost:
+            self.options["boost"].header_only = True
+
+        if self.options.get_safe("shared") or self.options.header_only:
+            self.options.rm_safe("fPIC")
+        if self.options.header_only:
+            self.options.rm_safe("shared")
+
     def requirements(self):
-        if self.options.use_boost:
-            self.requires("boost/1.83.0")
+        if self._needs_boost:
+            self.requires("boost/[^1.78.0]")        
+
+    def build_requirements(self):
         self.requires("catch2/3.4.0")
 
-    def configure(self):
-        if self.options.use_boost:
-            self.options["boost"].header_only = True
+    def layout(self):
+        cmake_layout(self)
 
     def generate(self):
         tc = CMakeToolchain(self)
-        tc.variables["CDT_USE_BOOST"] = self.options.use_boost
-        tc.cache_variables["CDT_USE_AS_COMPILED_LIBRARY"] = (
-            self.options.as_compiled_library
+        tc.variables["CDT_USE_BOOST"] = self._needs_boost
+        tc.variables["CDT_USE_AS_COMPILED_LIBRARY"] = (
+            not self.options.header_only
         )
-        tc.cache_variables["CMAKE_PROJECT_CDT_INCLUDE"] = "conan_basic_setup.cmake"
-        tc.cache_variables["CDT_ENABLE_TESTING"] = self.options.enable_testing
-        tc.cache_variables["CDT_ENABLE_CALLBACK_HANDLER"] = self.options.enable_callback_handler
+        tc.variables["CDT_ENABLE_CALLBACK_HANDLER"] = self.options.enable_callback_handler
+        tc.variables["CDT_ENABLE_TESTING"] = self.options.enable_testing
+        tc.variables["CDT_DISABLE_EXCEPTIONS"] = self.options.no_exceptions
+        tc.variables["CDT_USE_64_BIT_INDEX_TYPE"] = self.options.use_64_bit_index_type
         tc.generate()
+
+        deps = CMakeDeps(self)
+        deps.generate()
 
     def build(self):
         cmake = CMake(self)
@@ -63,4 +91,18 @@ class CDTConan(ConanFile):
         cmake.install()
 
     def package_info(self):
-        self.cpp_info.libs = collect_libs(self)
+        self.cpp_info.set_property("cmake_file_name", "CDT")
+        self.cpp_info.set_property("cmake_target_name", f"CDT::CDT")
+        self.cpp_info.set_property("pkg_config_name",  "CDT")
+
+        if self._needs_boost:
+            self.cpp_info.requires = ["boost::boost"]
+            self.cpp_info.defines.append("CDT_USE_BOOST")
+        if not self.options.header_only:
+            self.cpp_info.defines.append("CDT_USE_AS_COMPILED_LIBRARY")
+        if self.options.enable_callback_handler:
+            self.cpp_info.defines.append("CDT_ENABLE_CALLBACK_HANDLER")
+        if self.options.no_exceptions:
+            self.cpp_info.defines.append("CDT_DISABLE_EXCEPTIONS")
+        if self.options.use_64_bit_index_type:
+            self.cpp_info.defines.append("CDT_USE_64_BIT_INDEX_TYPE")
