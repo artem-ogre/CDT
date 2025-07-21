@@ -22,6 +22,8 @@ class CDTConan(ConanFile):
         "header_only": [True, False],
         "enable_callback_handler": [True, False],
         "enable_testing": [True, False],
+        "no_exceptions": [True, False],
+        "use_64_bit_index_type": [True, False],
     }
     default_options = {
         "shared": False,
@@ -29,6 +31,8 @@ class CDTConan(ConanFile):
         "header_only": False,
         "enable_callback_handler": False,
         "enable_testing": False,
+        "no_exceptions": False,
+        "use_64_bit_index_type": False,
     }
     exports_sources = "*", "!.idea", "!conanfile.py"
 
@@ -63,11 +67,13 @@ class CDTConan(ConanFile):
     def generate(self):
         tc = CMakeToolchain(self)
         tc.variables["CDT_USE_BOOST"] = self._needs_boost
-        tc.cache_variables["CDT_USE_AS_COMPILED_LIBRARY"] = (
+        tc.variables["CDT_USE_AS_COMPILED_LIBRARY"] = (
             not self.options.header_only
         )
-        tc.cache_variables["CDT_ENABLE_TESTING"] = self.options.enable_testing
-        tc.cache_variables["CDT_ENABLE_CALLBACK_HANDLER"] = self.options.enable_callback_handler
+        tc.variables["CDT_ENABLE_CALLBACK_HANDLER"] = self.options.enable_callback_handler
+        tc.variables["CDT_ENABLE_TESTING"] = self.options.enable_testing
+        tc.variables["CDT_DISABLE_EXCEPTIONS"] = self.options.no_exceptions
+        tc.variables["CDT_USE_64_BIT_INDEX_TYPE"] = self.options.use_64_bit_index_type
         tc.generate()
 
         deps = CMakeDeps(self)
@@ -90,3 +96,9 @@ class CDTConan(ConanFile):
             self.cpp_info.defines.append("CDT_USE_BOOST")
         if not self.options.header_only:
             self.cpp_info.defines.append("CDT_USE_AS_COMPILED_LIBRARY")
+        if self.options.enable_callback_handler:
+            self.cpp_info.defines.append("CDT_ENABLE_CALLBACK_HANDLER")
+        if self.options.no_exceptions:
+            self.cpp_info.defines.append("CDT_DISABLE_EXCEPTIONS")
+        if self.options.use_64_bit_index_type:
+            self.cpp_info.defines.append("CDT_USE_64_BIT_INDEX_TYPE")
