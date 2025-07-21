@@ -91,6 +91,10 @@ class CDTConan(ConanFile):
         cmake.install()
 
     def package_info(self):
+        self.cpp_info.set_property("cmake_file_name", "CDT")
+        self.cpp_info.set_property("cmake_target_name", f"CDT::CDT")
+        self.cpp_info.set_property("pkg_config_name",  "CDT")
+
         if self._needs_boost:
             self.cpp_info.requires = ["boost::boost"]
             self.cpp_info.defines.append("CDT_USE_BOOST")
