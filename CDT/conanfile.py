@@ -66,7 +66,6 @@ class CDTConan(ConanFile):
         tc.cache_variables["CDT_USE_AS_COMPILED_LIBRARY"] = (
             not self.options.header_only
         )
-        tc.cache_variables["CMAKE_PROJECT_CDT_INCLUDE"] = "conan_basic_setup.cmake"
         tc.cache_variables["CDT_ENABLE_TESTING"] = self.options.enable_testing
         tc.cache_variables["CDT_ENABLE_CALLBACK_HANDLER"] = self.options.enable_callback_handler
         tc.generate()
