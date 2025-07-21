@@ -10,6 +10,7 @@ required_conan_version = ">=2.0"
 
 class CDTConan(ConanFile):
     name = "cdt"
+    package_type = "library"
     version = "1.4.5"
     license = "MPL-2.0 License"
     url = "https://github.com/artem-ogre/CDT"
