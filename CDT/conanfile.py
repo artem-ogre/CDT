@@ -28,7 +28,7 @@ class CDTConan(ConanFile):
     default_options = {
         "shared": False,
         "fPIC": True,
-        "header_only": False,
+        "header_only": True,
         "enable_callback_handler": False,
         "enable_testing": False,
         "no_exceptions": False,
