@@ -6,6 +6,7 @@ from conan import ConanFile
 from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout, CMakeDeps
 from conan.tools.build import valid_min_cppstd
 
+required_conan_version = ">=2.0"
 
 class CDTConan(ConanFile):
     name = "cdt"
