@@ -5,6 +5,7 @@
 from conan import ConanFile
 from conan.tools.cmake import CMake, CMakeToolchain
 from conan.tools.files import collect_libs
+from conan.tools.env import Environment
 
 
 class CDTConan(ConanFile):
@@ -56,7 +57,11 @@ class CDTConan(ConanFile):
         cmake.configure()
         cmake.build()
         if self.options.enable_testing:
-            cmake.test(cli_args=["--verbose"])
+            environment = Environment()
+            environment.define("CTEST_OUTPUT_ON_FAILURE", "1")
+            envvars = environment.vars(self)
+            with envvars.apply():
+                cmake.test(cli_args=["--verbose"])
 
     def package(self):
         cmake = CMake(self)
