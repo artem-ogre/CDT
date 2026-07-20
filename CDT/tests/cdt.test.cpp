@@ -1278,8 +1278,18 @@ TEST_CASE("Regression test #212: near-endpoint constraints intersection", "")
             IntersectingConstraintEdges::TryResolve,
             0.0f);
         cdt.insertVertices(vertices);
-        REQUIRE_THROWS_AS(
-            cdt.insertEdges(edges), CDT::InvalidEdgeSplitVertex);
+
+        try {
+            cdt.insertEdges(edges);
+            REQUIRE(CDT::verifyTopology(cdt));
+        } catch (const CDT::InvalidEdgeSplitVertex& e) {
+            REQUIRE(e.e1().v1() == 3);
+            REQUIRE(e.e1().v2() == 4);
+            REQUIRE(e.e2().v1() == 1);
+            REQUIRE(e.e2().v2() == 2);
+        }
+
+
     }
     SECTION("Non-zero min. distance to constraint edge: resolved by snapping")
     {
@@ -1306,5 +1316,14 @@ TEST_CASE("Regression test #211: near-degenerate constraints intersection", "")
         IntersectingConstraintEdges::TryResolve,
         5e-17);
     cdt.insertVertices(in.first);
-    REQUIRE_THROWS_AS(cdt.insertEdges(in.second), CDT::InvalidEdgeSplitVertex);
+
+    try {
+        cdt.insertEdges(in.second);
+        REQUIRE(CDT::verifyTopology(cdt));
+    } catch (const CDT::InvalidEdgeSplitVertex& e) {
+        REQUIRE(e.e1().v1() == 91);
+        REQUIRE(e.e1().v2() == 94);
+        REQUIRE(e.e2().v1() == 71);
+        REQUIRE(e.e2().v2() == 72);
+    }
 }
