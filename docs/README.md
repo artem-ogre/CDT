@@ -225,6 +225,8 @@ Use `CDT::Triangulation::conformToEdges` instead of `CDT::Triangulation::insertE
 
 Pass `CDT::IntersectingConstraintEdges::TryResolve` to `CDT::Triangulation` constructor.
 
+Resolving is not always possible for nearly-degenerate intersections (e.g. an intersection right next to an edge's endpoint): in such cases `CDT::InvalidEdgeSplitVertex` is thrown.
+
 **Custom point/edge type**
 
 ```cpp

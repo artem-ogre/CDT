@@ -425,6 +425,62 @@ VertInd Triangulation<T, TNearPointLocator>::splitFixedEdgeAt(
 }
 
 template <typename T, typename TNearPointLocator>
+bool Triangulation<T, TNearPointLocator>::isEdgeSplitVertexValid(
+    const V2d<T>& splitVert,
+    const TriInd iT,
+    const TriInd iTopo,
+    const VertInd iVL,
+    const VertInd iVR) const
+{
+    // Orient the split edge as it appears (counter-clockwise) in iT. Locating
+    // the (floating-point-rounded) split vertex against it both tells whether
+    // the split is safe and which of the two triangles sharing the edge must
+    // contain the vertex: 'Left' is iT's interior side, 'Right' is iTopo's.
+    const Triangle& tL = triangles[iT];
+    const Index sL = edgeNeighborInd(tL.vertices, iVL, iVR);
+    const PtLineLocation::Enum side = locatePointLine(
+        splitVert, vertices[tL.vertices[sL]], vertices[tL.vertices[ccw(sL)]]);
+    if(side == PtLineLocation::OnLine)
+        return true; // vertex lies on the split edge itself: always safe
+    const Triangle& t = side == PtLineLocation::Left ? tL : triangles[iTopo];
+
+    // The split vertex must not fall outside that triangle. Its relation to the
+    // split edge is already established by 'side', so only the two edges meeting
+    // at the apex (opposite the split edge) are tested. A point to the right of
+    // a counter-clockwise triangle's edge lies outside it.
+    const Index s = edgeNeighborInd(t.vertices, iVL, iVR);
+    const V2d<T>& from = vertices[t.vertices[s]];      // split edge tail (CCW)
+    const V2d<T>& to = vertices[t.vertices[ccw(s)]];   // split edge head (CCW)
+    const V2d<T>& apex = vertices[t.vertices[cw(s)]];  // opposite the split edge
+    return locatePointLine(splitVert, to, apex) != PtLineLocation::Right &&
+           locatePointLine(splitVert, apex, from) != PtLineLocation::Right;
+}
+
+template <typename T, typename TNearPointLocator>
+Edge Triangulation<T, TNearPointLocator>::originalInputEdge(const Edge& e) const
+{
+    const Edge orig =
+        pieceToOriginals.count(e) ? pieceToOriginals.at(e).front() : e;
+    return Edge(
+        VertInd(orig.v1() - m_nTargetVerts),
+        VertInd(orig.v2() - m_nTargetVerts));
+}
+
+template <typename T, typename TNearPointLocator>
+const Triangle&
+Triangulation<T, TNearPointLocator>::triangleAt(const TriInd iT) const
+{
+    if(iT >= triangles.size())
+        handleException(Error(
+            iT == noNeighbor
+                ? "Attempted reading no-neighbor sentinel value triangle"
+                : "Triangle index " + CDT::to_string(iT) + " out of range " +
+                      CDT::to_string(triangles.size()),
+            CDT_SOURCE_LOCATION));
+    return triangles[iT];
+}
+
+template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::fixEdge(
     const Edge& edge,
     const Edge& originalEdge)
@@ -526,33 +582,17 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
     while(!t.containsVertex(iB))
     {
         const TriInd iTopo = opposedTriangle(t, iV);
-        const Triangle& tOpo = triangles[iTopo];
+        const Triangle& tOpo = triangleAt(iTopo);
         const VertInd iVopo = opposedVertex(tOpo, iT);
 
         switch(m_intersectingEdgesStrategy)
         {
         case IntersectingConstraintEdges::NotAllowed:
             if(fixedEdges.count(Edge(iVL, iVR)))
-            {
-                // make sure to report original input edges in the exception
-                Edge e1 = originalEdge;
-                Edge e2 = Edge(iVL, iVR);
-                e2 = pieceToOriginals.count(e2)
-                         ? pieceToOriginals.at(e2).front()
-                         : e2;
-                // don't count super-triangle vertices
-                e1 = Edge(
-                    VertInd(e1.v1() - m_nTargetVerts),
-                    VertInd(e1.v2() - m_nTargetVerts));
-                e2 = Edge(
-                    VertInd(e2.v1() - m_nTargetVerts),
-                    VertInd(e2.v2() - m_nTargetVerts));
                 handleException(IntersectingConstraintsError(
-                    e1,
-                    pieceToOriginals.count(e2) ? pieceToOriginals.at(e2).front()
-                                               : e2,
+                    originalInputEdge(originalEdge),
+                    originalInputEdge(Edge(iVL, iVR)),
                     CDT_SOURCE_LOCATION));
-            }
             break;
         case IntersectingConstraintEdges::TryResolve:
         {
@@ -561,6 +601,11 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
             // split edge at the intersection of two constraint edges
             const V2d<T> newV = detail::intersectionPosition(
                 vertices[iA], vertices[iB], vertices[iVL], vertices[iVR]);
+            if(!isEdgeSplitVertexValid(newV, iT, iTopo, iVL, iVR))
+                handleException(InvalidEdgeSplitVertex(
+                    originalInputEdge(originalEdge),
+                    originalInputEdge(Edge(iVL, iVR)),
+                    CDT_SOURCE_LOCATION));
             const VertInd iNewVert =
                 splitFixedEdgeAt(Edge(iVL, iVR), newV, iT, iTopo);
             // TODO: is it's possible to re-use pseudo-polygons
@@ -738,7 +783,7 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
           t.vertices.end())
     {
         const TriInd iTopo = opposedTriangle(t, iV);
-        const Triangle& tOpo = triangles[iTopo];
+        const Triangle& tOpo = triangleAt(iTopo);
         const VertInd iVopo = opposedVertex(tOpo, iT);
         const V2d<T> vOpo = vertices[iVopo];
 
@@ -746,25 +791,10 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
         {
         case IntersectingConstraintEdges::NotAllowed:
             if(fixedEdges.count(Edge(iVleft, iVright)))
-            {
-                // make sure to report original input edges in the exception
-                Edge e1 = pieceToOriginals.count(edge)
-                              ? pieceToOriginals.at(edge).front()
-                              : edge;
-                Edge e2(iVleft, iVright);
-                e2 = pieceToOriginals.count(e2)
-                         ? pieceToOriginals.at(e2).front()
-                         : e2;
-                // don't count super-triangle vertices
-                e1 = Edge(
-                    VertInd(e1.v1() - m_nTargetVerts),
-                    VertInd(e1.v2() - m_nTargetVerts));
-                e2 = Edge(
-                    VertInd(e2.v1() - m_nTargetVerts),
-                    VertInd(e2.v2() - m_nTargetVerts));
-                handleException(
-                    IntersectingConstraintsError(e1, e2, CDT_SOURCE_LOCATION));
-            }
+                handleException(IntersectingConstraintsError(
+                    originalInputEdge(edge),
+                    originalInputEdge(Edge(iVleft, iVright)),
+                    CDT_SOURCE_LOCATION));
             break;
         case IntersectingConstraintEdges::TryResolve:
         {
@@ -776,6 +806,11 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
                 vertices[iB],
                 vertices[iVleft],
                 vertices[iVright]);
+            if(!isEdgeSplitVertexValid(newV, iT, iTopo, iVleft, iVright))
+                handleException(InvalidEdgeSplitVertex(
+                    originalInputEdge(edge),
+                    originalInputEdge(Edge(iVleft, iVright)),
+                    CDT_SOURCE_LOCATION));
             const VertInd iNewVert =
                 splitFixedEdgeAt(Edge(iVleft, iVright), newV, iT, iTopo);
 #ifdef CDT_CXX11_IS_SUPPORTED

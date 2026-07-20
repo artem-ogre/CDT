@@ -1250,3 +1250,61 @@ TEST_CASE("Regression test #204: inserting vertex on fixed edge", "")
     REQUIRE(cdt.pieceToOriginals.at(Edge(0, 2))[0] == Edge(0, 1));
     REQUIRE(cdt.pieceToOriginals.at(Edge(1, 2))[0] == Edge(0, 1));
 }
+
+TEST_CASE("Regression test #212: near-endpoint constraints intersection", "")
+{
+    // Near-degenerate constraint edges whose intersection point rounds onto an
+    // existing vertex (see https://github.com/artem-ogre/CDT/issues/212)
+    const std::vector<V2d<float> > vertices = {
+        {-0.586449921f, -0.606724977f},
+        {-0.591448665f, -0.546940088f},
+        {-0.597282887f, -0.475633264f},
+        {-0.591453075f, -0.546887279f},
+        {-0.586451471f, -0.606724977f},
+    };
+    const std::vector<Edge> edges = {
+        {VertInd(0), VertInd(1)},
+        {VertInd(1), VertInd(2)},
+        {VertInd(2), VertInd(3)},
+        {VertInd(3), VertInd(4)},
+        {VertInd(4), VertInd(0)},
+    };
+    SECTION("Zero min. distance to constraint edge: can not be resolved")
+    {
+        // previously corrupted the triangulation (out-of-bounds access),
+        // now reported as an exception
+        auto cdt = Triangulation<float>(
+            VertexInsertionOrder::Auto,
+            IntersectingConstraintEdges::TryResolve,
+            0.0f);
+        cdt.insertVertices(vertices);
+        REQUIRE_THROWS_AS(
+            cdt.insertEdges(edges), CDT::InvalidEdgeSplitVertex);
+    }
+    SECTION("Non-zero min. distance to constraint edge: resolved by snapping")
+    {
+        auto cdt = Triangulation<float>(
+            VertexInsertionOrder::Auto,
+            IntersectingConstraintEdges::TryResolve,
+            1e-4f);
+        cdt.insertVertices(vertices);
+        REQUIRE_NOTHROW(cdt.insertEdges(edges));
+        REQUIRE(CDT::verifyTopology(cdt));
+    }
+}
+
+TEST_CASE("Regression test #211: near-degenerate constraints intersection", "")
+{
+    // Polygon whose constraint edges intersect at near-degenerate points; same
+    // root cause as #212 (https://github.com/artem-ogre/CDT/issues/211).
+    // Reproduces the reported case: with minDistToConstraintEdge = 5e-17 the
+    // intersection can not be resolved and is now reported as an exception
+    // instead of crashing.
+    const auto in = readInputFromFile<double>("inputs/issue-211.txt");
+    auto cdt = Triangulation<double>(
+        VertexInsertionOrder::Auto,
+        IntersectingConstraintEdges::TryResolve,
+        5e-17);
+    cdt.insertVertices(in.first);
+    REQUIRE_THROWS_AS(cdt.insertEdges(in.second), CDT::InvalidEdgeSplitVertex);
+}
