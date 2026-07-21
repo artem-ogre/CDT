@@ -1555,7 +1555,7 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
             split = T(1) - split;
     }
 
-    const V2d<T> mid = V2d<T>::make(
+    const V2d<T> mid = V2d<T>(
         detail::lerp(start.x, end.x, split),
         detail::lerp(start.y, end.y, split));
     TriInd iT, iTopo;
