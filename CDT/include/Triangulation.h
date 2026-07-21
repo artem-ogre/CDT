@@ -924,7 +924,6 @@ private:
         TriInd& n3,
         TriInd& n4);
     bool isFlipNeeded(VertInd iV1, VertInd iV2, VertInd iV3, VertInd iV4) const;
-    TriInd edgeTriangle(Edge edge) const;
     bool isRefinementNeeded(
         const Triangle& tri,
         RefinementCriterion::Enum refinementCriterion,
