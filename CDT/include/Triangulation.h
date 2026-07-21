@@ -150,6 +150,9 @@ public:
         , m_description(description)
         , m_srcLoc(srcLoc)
     {}
+    /// Destructor
+    virtual ~Error() CDT_NOEXCEPT
+    {}
     /// Get error description
     const std::string& description() const
     {

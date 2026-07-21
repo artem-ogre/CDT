@@ -31,6 +31,10 @@ option(CDT_ENABLE_TESTING
     "If enabled tests target will ge generated)"
     OFF)
 
+option(CDT_ENABLE_STANDARDS_CHECK
+    "If enabled a small program instantiating the public API is generated: used to check that CDT builds with every supported C++ standard"
+    OFF)
+
 option(CDT_USE_STRONG_TYPING
     "If enabled uses strong typing for types: useful for development and debugging"
     OFF)
@@ -73,6 +77,7 @@ message(STATUS "CDT_USE_AS_COMPILED_LIBRARY is ${CDT_USE_AS_COMPILED_LIBRARY}")
 message(STATUS "CDT_USE_64_BIT_INDEX_TYPE is ${CDT_USE_64_BIT_INDEX_TYPE}")
 message(STATUS "CDT_ENABLE_CALLBACK_HANDLER is ${CDT_ENABLE_CALLBACK_HANDLER}")
 message(STATUS "CDT_ENABLE_TESTING is ${CDT_ENABLE_TESTING}")
+message(STATUS "CDT_ENABLE_STANDARDS_CHECK is ${CDT_ENABLE_STANDARDS_CHECK}")
 message(STATUS "CDT_USE_STRONG_TYPING is ${CDT_USE_STRONG_TYPING}")
 message(STATUS "CDT_DEVELOPER_BUILD is ${CDT_DEVELOPER_BUILD}")
 message(STATUS "CDT_DISABLE_EXCEPTIONS is ${CDT_DISABLE_EXCEPTIONS}")
@@ -283,4 +288,17 @@ if(CDT_ENABLE_TESTING)
     )
     include(Catch)
     catch_discover_tests(${TEST_TARGET_NAME} WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/tests")
+endif()
+
+# -----------------
+# standards check
+# -----------------
+
+# Unlike the tests (which are built as c++17 because of Catch2) this target
+# follows CMAKE_CXX_STANDARD, so it can be built with every standard CDT
+# supports, down to c++98.
+if(CDT_ENABLE_STANDARDS_CHECK)
+    set(STANDARDS_CHECK_TARGET_NAME ${PROJECT_NAME}-standards-check)
+    add_executable(${STANDARDS_CHECK_TARGET_NAME} tests/standards_check.cpp)
+    target_link_libraries(${STANDARDS_CHECK_TARGET_NAME} PRIVATE CDT::CDT)
 endif()

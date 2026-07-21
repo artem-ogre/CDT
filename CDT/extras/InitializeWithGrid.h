@@ -14,9 +14,7 @@
 #include <CDT.h>
 #include <CDTUtils.h>
 
-#ifdef CDT_CXX11_IS_SUPPORTED
 #include <algorithm>
-#endif
 #include <cstddef>
 #include <iterator>
 #include <vector>
@@ -88,11 +86,8 @@ void generateGridVertices(
                 vTris.push_back(static_cast<TriInd>(2 * (i - xres)));
                 vTris.push_back(static_cast<TriInd>(2 * (i - xres) + 1));
             }
-#ifdef CDT_CXX11_IS_SUPPORTED
-            *outTrisFirst++ = std::move(vTris.front());
-#else
-            *outTrisFirst++ = vTris;
-#endif
+            // note: only one adjacent triangle per vertex is stored
+            *outTrisFirst++ = vTris.front();
         }
     }
 }
@@ -128,19 +123,21 @@ void generateGridTriangles(
                 VertInd(iv + xres + 1),
                 VertInd(iv + xres + 2)};
             {
-                const Triangle t = {
-                    {vv[0], vv[1], vv[2]},
-                    {TriInd(iy ? 2 * i - xres * 2 + 1 : noNeighbor),
-                     TriInd(2 * i + 1),
-                     TriInd(ix ? 2 * i - 1 : noNeighbor)}};
+                const Triangle t(
+                    arr3(vv[0], vv[1], vv[2]),
+                    arr3(
+                        TriInd(iy ? 2 * i - xres * 2 + 1 : noNeighbor),
+                        TriInd(2 * i + 1),
+                        TriInd(ix ? 2 * i - 1 : noNeighbor)));
                 *outFirst++ = t;
             }
             {
-                const Triangle t = {
-                    {vv[1], vv[3], vv[2]},
-                    {TriInd(ix < xres - 1 ? 2 * i + 2 : noNeighbor),
-                     TriInd(iy < yres - 1 ? 2 * i + xres * 2 : noNeighbor),
-                     TriInd(2 * i)}};
+                const Triangle t(
+                    arr3(vv[1], vv[3], vv[2]),
+                    arr3(
+                        TriInd(ix < xres - 1 ? 2 * i + 2 : noNeighbor),
+                        TriInd(iy < yres - 1 ? 2 * i + xres * 2 : noNeighbor),
+                        TriInd(2 * i)));
                 *outFirst++ = t;
             }
         }

@@ -24,6 +24,15 @@ typedef char CDT_DONT_USE_BOOST_RTREE__was__replaced__with__CDT_USE_BOOST[-1];
 typedef char couldnt_parse_cxx_standard[-1]; ///< Error: couldn't parse standard
 #endif
 
+// 'noexcept' is only available since c++11 and its c++98 spelling 'throw()'
+// is in turn removed in c++20
+#ifdef CDT_CXX11_IS_SUPPORTED
+/// Portable 'noexcept': falls back to 'throw()' when only c++98 is available
+#define CDT_NOEXCEPT noexcept
+#else
+#define CDT_NOEXCEPT throw()
+#endif
+
 // Functions defined outside the class need to be 'inline'
 // if CDT is configured to be used as header-only library:
 // single-definition rule is violated otherwise

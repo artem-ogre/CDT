@@ -1027,8 +1027,8 @@ void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
     m_nTargetVerts = nSuperTriangleVertices;
     m_superGeomType = SuperGeometryType::SuperTriangle;
 
-    const V2d<T> center = {
-        (box.min.x + box.max.x) / T(2), (box.min.y + box.max.y) / T(2)};
+    const V2d<T> center(
+        (box.min.x + box.max.x) / T(2), (box.min.y + box.max.y) / T(2));
     const T w = box.max.x - box.min.x;
     const T h = box.max.y - box.min.y;
     T r = std::max(w, h); // incircle radius upper bound
@@ -1049,9 +1049,9 @@ void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
     const T R = T(2) * r;                       // excircle radius
     const T cos_30_deg = T(0.8660254037844386); // note: (std::sqrt(3.0) / 2.0)
     const T shiftX = R * cos_30_deg;
-    const V2d<T> posV1 = {center.x - shiftX, center.y - r};
-    const V2d<T> posV2 = {center.x + shiftX, center.y - r};
-    const V2d<T> posV3 = {center.x, center.y + R};
+    const V2d<T> posV1(center.x - shiftX, center.y - r);
+    const V2d<T> posV2(center.x + shiftX, center.y - r);
+    const V2d<T> posV3(center.x, center.y + R);
     addNewVertex(posV1, TriInd(0));
     addNewVertex(posV2, TriInd(0));
     addNewVertex(posV3, TriInd(0));
