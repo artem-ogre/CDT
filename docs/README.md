@@ -36,6 +36,7 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
     - Resolve edge intersections by adding new points and splitting edges
     - Custom point/edge type
     - Callbacks
+- [Error handling](#error-handling)
 - [Python bindings?](#python-bindings)
 - [Contributors](#contributors)
 - [Contributing](#contributing)
@@ -267,6 +268,22 @@ For example it is possible to do progress reporting or abort triangulation.
 
 User needs to implement callback handler by deriving from `CDT::ICallbackHandler` and register it with `CDT::Triangulation::setCallbackHandler`.
 See [`cdt.test.cpp`](../CDT/tests/cdt.test.cpp) for usage examples.
+
+<a name="error-handling"></a>
+
+## Error handling
+
+CDT reports errors by throwing exceptions. All of them derive from `CDT::Error` (itself a `std::runtime_error`) and carry a message and the source location they were thrown from.
+
+| Exception | Thrown by | When                                                                                                                                                                                                  |
+|-----------|-----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `CDT::FinalizedError` | `insertVertices`, `insertEdges`, `conformToEdges` | triangulation was already finalized with one of the `erase` methods                                                                                                                                   |
+| `CDT::DuplicateVertexError` | `insertVertices` | inserted vertex coincides with an already inserted one                                                                                                                                                |
+| `CDT::IntersectingConstraintsError` | `insertEdges`, `conformToEdges` | constraint edges intersect while `CDT::IntersectingConstraintEdges::NotAllowed` is used                                                                                                               |
+| `CDT::InvalidEdgeSplitVertex` | `insertEdges`, `conformToEdges` | intersection of constraint edges can not be resolved while `CDT::IntersectingConstraintEdges::TryResolve` is used: split vertex position is breaking triangulation topology due to floating-point rounding errors |
+| `CDT::Error` | `insertVertices`, `insertEdges`, `conformToEdges` | triangulation ended up in an unexpected state                                                                                                                                                         |
+
+⚠️ With `CDT_DISABLE_EXCEPTIONS` the library calls `std::terminate` instead of throwing.
 
 <a name="python-bindings"></a>
 

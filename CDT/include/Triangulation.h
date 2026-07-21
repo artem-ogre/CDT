@@ -519,6 +519,8 @@ public:
      * @param last end of the range of vertices to add
      * @param getX getter of X-coordinate
      * @param getY getter of Y-coordinate
+     * @throw FinalizedError if triangulation was already finalized
+     * @throw DuplicateVertexError if an inserted vertex is a duplicate
      */
     template <
         typename TVertexIter,
@@ -532,6 +534,8 @@ public:
     /**
      * Insert vertices into triangulation
      * @param vertices vector of vertices to insert
+     * @throw FinalizedError if triangulation was already finalized
+     * @throw DuplicateVertexError if an inserted vertex is a duplicate
      */
     void insertVertices(const std::vector<V2d<T> >& vertices);
     /**
@@ -562,6 +566,11 @@ public:
      * @param last end of the range of edges to add
      * @param getStart getter of edge start vertex index
      * @param getEnd getter of edge end vertex index
+     * @throw FinalizedError if triangulation was already finalized
+     * @throw IntersectingConstraintsError if edges intersect and intersecting
+     * constraint edges are not allowed
+     * @throw InvalidEdgeSplitVertex if an edges intersection position breaks
+     * triangulation topology due to floating-point rounding
      */
     template <
         typename TEdgeIter,
@@ -591,6 +600,11 @@ public:
      * algorithm of Triangulation::eraseOuterTrianglesAndHoles works.
      * <b>Make sure there are no erroneous duplicates.</b>
      * @tparam edges constraint edges
+     * @throw FinalizedError if triangulation was already finalized
+     * @throw IntersectingConstraintsError if edges intersect and intersecting
+     * constraint edges are not allowed
+     * @throw InvalidEdgeSplitVertex if an edges intersection position breaks
+     * triangulation topology due to floating-point rounding
      */
     void insertEdges(const std::vector<Edge>& edges);
     /**
@@ -621,6 +635,11 @@ public:
      * @param last end of the range of edges to add
      * @param getStart getter of edge start vertex index
      * @param getEnd getter of edge end vertex index
+     * @throw FinalizedError if triangulation was already finalized
+     * @throw IntersectingConstraintsError if edges intersect and intersecting
+     * constraint edges are not allowed
+     * @throw InvalidEdgeSplitVertex if an edges intersection position breaks
+     * triangulation topology due to floating-point rounding
      */
     template <
         typename TEdgeIter,
@@ -650,6 +669,11 @@ public:
      * detection algorithm of Triangulation::eraseOuterTrianglesAndHoles works.
      * <b>Make sure there are no erroneous duplicates.</b>
      * @tparam edges edges to conform to
+     * @throw FinalizedError if triangulation was already finalized
+     * @throw IntersectingConstraintsError if edges intersect and intersecting
+     * constraint edges are not allowed
+     * @throw InvalidEdgeSplitVertex if an edges intersection position breaks
+     * triangulation topology due to floating-point rounding
      */
     void conformToEdges(const std::vector<Edge>& edges);
     /**
@@ -959,9 +983,9 @@ private:
         VertInd iVL,
         VertInd iVR) const;
     /**
-     * Convert an internal edge to the original input edge it represents: resolve
-     * edge pieces to their original and drop the super-triangle vertex offset.
-     * Used to report meaningful edges in constraint-related exceptions.
+     * Convert an internal edge to the original input edge it represents:
+     * resolve edge pieces to their original and drop the super-triangle vertex
+     * offset. Used to report meaningful edges in constraint-related exceptions.
      * @param e internal edge
      * @return corresponding original input edge
      */
