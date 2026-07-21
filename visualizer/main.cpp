@@ -151,12 +151,14 @@ public:
         : QWidget(parent)
         , m_ptLimit(9999999)
         , m_edgeLimit(9999999)
+        , m_refinementLimit(9999999)
         , m_vertexInsertionOrder(CDT::VertexInsertionOrder::Auto)
         , m_intersectingEdgesStrategy(
               CDT::IntersectingConstraintEdges::TryResolve)
         , m_minDistToConstraintEdge(1e-6)
         , m_triangulationType(TriangulationType::ConstraintDelaunay)
         , m_finalizeType(FinalizeTriangulation::DontFinalize)
+        , m_isDoRuppert(false)
         , m_fixDuplicates(true)
         , m_isHidePoints(false)
         , m_isDisplayIndices(false)
@@ -247,6 +249,12 @@ public slots:
         updateCDT();
     }
 
+    void setRefinementLimit(int limit)
+    {
+        m_refinementLimit = static_cast<std::size_t>(limit);
+        updateCDT();
+    }
+
     void hidePoints(int isHidePoints)
     {
         m_isHidePoints = (isHidePoints != 0);
@@ -270,6 +278,12 @@ public slots:
             m_finalizeType = FinalizeTriangulation::EraseOuterTrianglesAndHoles;
             break;
         }
+        updateCDT();
+    }
+
+    void doRuppertRefinement(int isDoRuppert)
+    {
+        m_isDoRuppert = (isDoRuppert != 0);
         updateCDT();
     }
 
@@ -430,28 +444,30 @@ private:
                     return;
                 }
             }
+
+            if(m_isDoRuppert)
+            {
+                m_cdt.refineTriangles(
+                    m_refinementLimit,
+                    CDT::RefinementCriterion::SmallestAngle,
+                    20 / 180.0 * M_PI);
+            }
+
             switch(m_finalizeType)
             {
             case FinalizeTriangulation::DontFinalize:
                 break;
             case FinalizeTriangulation::EraseSuperTriangle:
-                m_cdt.refineTriangles(
-                    1000,
-                    CDT::RefinementCriterion::SmallestAngle,
-                    20 / 180.0 * M_PI);
                 m_cdt.eraseSuperTriangle();
                 break;
             case FinalizeTriangulation::EraseOuterTriangles:
                 m_cdt.eraseOuterTriangles();
                 break;
             case FinalizeTriangulation::EraseOuterTrianglesAndHoles:
-                m_cdt.refineTriangles(
-                    1000,
-                    CDT::RefinementCriterion::SmallestAngle,
-                    20 / 180.0 * M_PI);
                 m_cdt.eraseOuterTrianglesAndHoles();
                 break;
             }
+
             const CDT::unordered_map<Edge, CDT::EdgeVec> tmp =
                 CDT::EdgeToPiecesMapping(m_cdt.pieceToOriginals);
             const CDT::unordered_map<Edge, std::vector<CDT::VertInd> >
@@ -720,11 +736,13 @@ private:
     std::vector<Edge> m_edges;
     std::size_t m_ptLimit;
     std::size_t m_edgeLimit;
+    std::size_t m_refinementLimit;
     CDT::VertexInsertionOrder::Enum m_vertexInsertionOrder;
     CDT::IntersectingConstraintEdges::Enum m_intersectingEdgesStrategy;
     CoordType m_minDistToConstraintEdge;
     TriangulationType m_triangulationType;
     FinalizeTriangulation m_finalizeType;
+    bool m_isDoRuppert;
     bool m_fixDuplicates;
     bool m_isHidePoints;
     bool m_isDisplayIndices;
@@ -846,9 +864,20 @@ public:
             SLOT(setEdgeLimit(int)));
         edgesSpinbox->setValue(9999999);
 
+        QSpinBox* refinementSpinbox = new QSpinBox;
+        refinementSpinbox->setRange(0, 9999999);
+        connect(
+            refinementSpinbox,
+            SIGNAL(valueChanged(int)),
+            m_cdtWidget,
+            SLOT(setRefinementLimit(int)));
+        refinementSpinbox->setValue(9999999);
+
         QFormLayout* limitsLayout = new QFormLayout;
         limitsLayout->addRow(new QLabel(tr("Points")), ptsSpinbox);
         limitsLayout->addRow(new QLabel(tr("Edges")), edgesSpinbox);
+        limitsLayout->addRow(
+            new QLabel(tr("Refinement points")), refinementSpinbox);
         QGroupBox* limitsGroup = new QGroupBox("Limits");
         limitsGroup->setLayout(limitsLayout);
 
@@ -877,6 +906,16 @@ public:
         QGroupBox* visOptionsGroup = new QGroupBox("Visualization");
         visOptionsGroup->setLayout(visOptions);
 
+        QCheckBox* doRuppert =
+            new QCheckBox(QStringLiteral("Ruppert refinement"));
+        connect(
+            doRuppert,
+            SIGNAL(stateChanged(int)),
+            m_cdtWidget,
+            SLOT(doRuppertRefinement(int)));
+        m_cdtWidget->doRuppertRefinement(0);
+        doRuppert->setChecked(false);
+
         QPushButton* screenshotBtn = new QPushButton(tr("Make Screenshot"));
         connect(screenshotBtn, SIGNAL(clicked()), m_cdtWidget, SLOT(prtScn()));
 
@@ -890,6 +929,7 @@ public:
         rightLayout->addWidget(triOptGroup, cntr++, 0);
         rightLayout->addWidget(limitsGroup, cntr++, 0);
         rightLayout->addWidget(visOptionsGroup, cntr++, 0);
+        rightLayout->addWidget(doRuppert, cntr++, 0);
         rightLayout->addWidget(screenshotBtn, cntr++, 0);
         rightLayout->addWidget(saveBtn, cntr++, 0);
 
