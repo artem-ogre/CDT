@@ -437,7 +437,7 @@ private:
                 break;
             case FinalizeTriangulation::EraseSuperTriangle:
                 m_cdt.refineTriangles(
-                    CDT::RefineTriangles::ByAngle, 20 / 180.0 * M_PI);
+                    CDT::RefinementCriterion::SmallestAngle, 20 / 180.0 * M_PI);
                 m_cdt.eraseSuperTriangle();
                 break;
             case FinalizeTriangulation::EraseOuterTriangles:
@@ -445,7 +445,7 @@ private:
                 break;
             case FinalizeTriangulation::EraseOuterTrianglesAndHoles:
                 m_cdt.refineTriangles(
-                    CDT::RefineTriangles::ByAngle, 20 / 180.0 * M_PI);
+                    CDT::RefinementCriterion::SmallestAngle, 20 / 180.0 * M_PI);
                 m_cdt.eraseOuterTrianglesAndHoles();
                 break;
             }
