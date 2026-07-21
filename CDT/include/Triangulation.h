@@ -139,7 +139,7 @@ private:
  * Base class for errors. Contains error description and source location: file,
  * function, line
  */
-class Error : public std::runtime_error
+class CDT_EXPORT Error : public std::runtime_error
 {
 public:
     /// Constructor
@@ -170,7 +170,7 @@ private:
  * Error thrown when triangulation modification is attempted after it was
  * finalized
  */
-class FinalizedError : public Error
+class CDT_EXPORT FinalizedError : public Error
 {
 public:
     /// Constructor
@@ -185,7 +185,7 @@ public:
 /**
  * Error thrown when duplicate vertex is detected during vertex insertion
  */
-class DuplicateVertexError : public Error
+class CDT_EXPORT DuplicateVertexError : public Error
 {
 public:
     /// Constructor
@@ -219,7 +219,7 @@ private:
  * Error thrown when intersecting constraint edges are detected, but
  * triangulation is not configured to attempt to resolve them
  */
-class IntersectingConstraintsError : public Error
+class CDT_EXPORT IntersectingConstraintsError : public Error
 {
 public:
     /// Constructor
@@ -256,7 +256,7 @@ private:
  * rounding places the computed split vertex outside the edge's adjacent
  * triangles, so it can not be inserted
  */
-class InvalidEdgeSplitVertex : public Error
+class CDT_EXPORT InvalidEdgeSplitVertex : public Error
 {
 public:
     /// Constructor
