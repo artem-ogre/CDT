@@ -1417,7 +1417,7 @@ TriInd Triangulation<T, TNearPointLocator>::edgeTriangle(const Edge edge) const
 template <typename T, typename TNearPointLocator>
 bool Triangulation<T, TNearPointLocator>::isRefinementNeeded(
     const Triangle& tri,
-    RefinementCriterion::Enum refinementCriterion,
+    const RefinementCriterion::Enum refinementCriterion,
     const T refinementThreshold) const
 {
     const V2d<T>& a = vertices[tri.vertices[0]];
@@ -1485,19 +1485,17 @@ Triangulation<T, TNearPointLocator>::detectEncroachedEdges(const V2d<T>& v)
 }
 
 template <typename T, typename TNearPointLocator>
-std::pair<TriIndVec, IndexSizeType>
-Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
+TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
     EdgeQue encroachedEdges,
-    const V2d<T>& v,
-    const bool validV,
-    const bool fillBadTriangles,
-    const RefinementCriterion::Enum refinementConstrain,
+    VertInd& newVertBudget,
+    const V2d<T>* const circumcenterOrNull,
+    const RefinementCriterion::Enum refinementCriterion,
     const T badTriangleThreshold)
 {
     IndexSizeType numOfSplits = 0;
     std::vector<TriInd> badTriangles;
 
-    while(!encroachedEdges.empty() && numOfSteinerPoints < maxSteinerPoints)
+    while(!encroachedEdges.empty() && newVertBudget > 0)
     {
         Edge edge = encroachedEdges.front();
         encroachedEdges.pop();
@@ -1509,15 +1507,15 @@ Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
         const Triangle& t = triangles[iT];
         VertInd i = splitEncroachedEdge(
             edge, iT, edgeNeighbor(triangles[iT], edge.v1(), edge.v2()));
-        ++numOfSplits;
+        --newVertBudget;
 
         TriInd start = m_vertTris[i];
         TriInd currTri = start;
         do
         {
             const Triangle& t = triangles[currTri];
-            if(fillBadTriangles &&
-               isRefinementNeeded(t, refinementConstrain, badTriangleThreshold))
+            if(circumcenterOrNull &&
+               isRefinementNeeded(t, refinementCriterion, badTriangleThreshold))
             {
                 badTriangles.push_back(currTri);
             }
@@ -1536,7 +1534,9 @@ Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
                 const V2d<T>& edgeEnd = vertices[edge.v2()];
                 if(isEncroachingOnEdge(vertices[v1], edgeStart, edgeEnd) ||
                    isEncroachingOnEdge(vertices[v2], edgeStart, edgeEnd) ||
-                   (validV && isEncroachingOnEdge(v, edgeStart, edgeEnd)))
+                   (circumcenterOrNull &&
+                    isEncroachingOnEdge(
+                        *circumcenterOrNull, edgeStart, edgeEnd)))
                 {
                     encroachedEdges.push(edge);
                 }
@@ -1544,7 +1544,7 @@ Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
             currTri = t.next(i).first;
         } while(currTri != start);
     }
-    return std::make_pair(badTriangles, numOfSplits);
+    return badTriangles;
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1610,7 +1610,6 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
     std::stack<TriInd> triStack = insertVertexOnEdge(iMid, iT, iTopo);
     tryAddVertexToLocator(iMid);
     ensureDelaunayByEdgeFlips(mid, iMid, triStack);
-    ++numOfSteinerPoints;
     return iMid;
 }
 
@@ -2437,8 +2436,9 @@ void Triangulation<T, TNearPointLocator>::tryInitNearestPointLocator()
 
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::refineTriangles(
-    RefinementCriterion::Enum refinementConstrain,
-    T threshold)
+    const VertInd maxVerticesToInsert,
+    const RefinementCriterion::Enum refinementCriterion,
+    const T refinementThreshold)
 {
     if(isFinalized())
     {
@@ -2446,7 +2446,9 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
                                  "method. Refinement is not possible");
     }
     tryInitNearestPointLocator();
-    resolveEncroachedEdges(detectEncroachedEdges());
+
+    VertInd newVertBudget = maxVerticesToInsert;
+    resolveEncroachedEdges(detectEncroachedEdges(), newVertBudget);
 
     std::queue<TriInd> badTriangles;
     for(TriInd iT(0), n = triangles.size(); iT < n; ++iT)
@@ -2455,7 +2457,7 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
         if(t.vertices[0] < 3 || t.vertices[1] < 3 || t.vertices[2] < 3)
             continue;
 
-        if(isRefinementNeeded(t, refinementConstrain, threshold))
+        if(isRefinementNeeded(t, refinementCriterion, refinementThreshold))
         {
             const V2d<T> vert = circumcenter(
                 vertices[t.vertices[0]],
@@ -2475,8 +2477,8 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
         TriInd iT = badTriangles.front();
         const Triangle& t = triangles[iT];
         badTriangles.pop();
-        if(!isRefinementNeeded(t, refinementConstrain, threshold) ||
-           numOfSteinerPoints >= maxSteinerPoints)
+        if(!isRefinementNeeded(t, refinementCriterion, refinementThreshold) ||
+           newVertBudget == 0)
         {
             continue;
         }
@@ -2490,20 +2492,18 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
             continue;
         }
         TriIndVec badTris = resolveEncroachedEdges(
-                                detectEncroachedEdges(vert),
-                                vert,
-                                true,
-                                true,
-                                refinementConstrain,
-                                threshold)
-                                .first;
+            detectEncroachedEdges(vert),
+            newVertBudget,
+            &vert,
+            refinementCriterion,
+            refinementThreshold);
 
         for(IndexSizeType i(0); i < TriInd(badTris.size()); ++i)
         {
             badTriangles.push(badTris[i]);
         }
 
-        if(badTris.empty() && numOfSteinerPoints < maxSteinerPoints)
+        if(badTris.empty() && newVertBudget > 0)
         {
             const VertInd iVert = static_cast<VertInd>(vertices.size());
             addNewVertex(vert, noNeighbor, true);
@@ -2513,7 +2513,8 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
             do
             {
                 const Triangle& t = triangles[currTri];
-                if(isRefinementNeeded(t, refinementConstrain, threshold))
+                if(isRefinementNeeded(
+                       t, refinementCriterion, refinementThreshold))
                 {
                     badTriangles.push(currTri);
                 }

@@ -366,7 +366,6 @@ private:
             m_vertexInsertionOrder,
             m_intersectingEdgesStrategy,
             m_minDistToConstraintEdge);
-        m_cdt.maxSteinerPoints = 1000U;
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
         m_triTracker.init(m_ptLimit, m_edgeLimit);
         m_cdt.setCallbackHandler(&m_triTracker);
@@ -437,7 +436,9 @@ private:
                 break;
             case FinalizeTriangulation::EraseSuperTriangle:
                 m_cdt.refineTriangles(
-                    CDT::RefinementCriterion::SmallestAngle, 20 / 180.0 * M_PI);
+                    1000,
+                    CDT::RefinementCriterion::SmallestAngle,
+                    20 / 180.0 * M_PI);
                 m_cdt.eraseSuperTriangle();
                 break;
             case FinalizeTriangulation::EraseOuterTriangles:
@@ -445,7 +446,9 @@ private:
                 break;
             case FinalizeTriangulation::EraseOuterTrianglesAndHoles:
                 m_cdt.refineTriangles(
-                    CDT::RefinementCriterion::SmallestAngle, 20 / 180.0 * M_PI);
+                    1000,
+                    CDT::RefinementCriterion::SmallestAngle,
+                    20 / 180.0 * M_PI);
                 m_cdt.eraseOuterTrianglesAndHoles();
                 break;
             }
