@@ -1,6 +1,12 @@
 name: CI Builds
 
-on: [push, pull_request]
+# Only master on push: branches are covered by the pull_request event, which
+# additionally tests the result of merging into master. Running on every push
+# would build a branch with an open pull request twice.
+on:
+  push:
+    branches: [master]
+  pull_request:
 
 jobs:
   builds:
