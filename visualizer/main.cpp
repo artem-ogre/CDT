@@ -447,27 +447,36 @@ private:
                 }
             }
 
-            if(m_isDoRuppert)
-            {
-                m_cdt.refineTriangles(
-                    m_refinementLimit,
-                    CDT::RefinementCriterion::SmallestAngle,
-                    20 / 180.0 * M_PI);
-            }
-
+            // collect which triangles the chosen finalize option would erase
+            // upfront so refinement (below) can skip refining them
+            CDT::TriIndUSet toErase;
             switch(m_finalizeType)
             {
             case FinalizeTriangulation::DontFinalize:
                 break;
             case FinalizeTriangulation::EraseSuperTriangle:
-                m_cdt.eraseSuperTriangle();
+                toErase = m_cdt.collectSuperTriangle();
                 break;
             case FinalizeTriangulation::EraseOuterTriangles:
-                m_cdt.eraseOuterTriangles();
+                toErase = m_cdt.collectOuterTriangles();
                 break;
             case FinalizeTriangulation::EraseOuterTrianglesAndHoles:
-                m_cdt.eraseOuterTrianglesAndHoles();
+                toErase = m_cdt.collectOuterTrianglesAndHoles();
                 break;
+            }
+
+            if(m_isDoRuppert)
+            {
+                m_cdt.refineTriangles(
+                    m_refinementLimit,
+                    CDT::RefinementCriterion::SmallestAngle,
+                    20 / 180.0 * M_PI,
+                    &toErase);
+            }
+
+            if(m_finalizeType != FinalizeTriangulation::DontFinalize)
+            {
+                m_cdt.finalizeTriangulation(toErase);
             }
 
             const CDT::unordered_map<Edge, CDT::EdgeVec> tmp =

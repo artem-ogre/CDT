@@ -701,12 +701,20 @@ public:
      * @param refinement_constrain refinement strategy that is used to identify
      * bad triangles
      * @param refinementThreshold threshold value for refinement
+     * @param toEraseOrNull if not null, triangles already present in this set
+     * are skipped as refinement candidates and any triangles that replace them
+     * as a result of splitting are added to the set. Lets a caller combine
+     * refinement with one of the `eraseXXX` methods without wasting the vertex
+     * budget refining triangles that will be discarded anyway: pass in the
+     * result of the matching `collectXXX` method and later hand the (now
+     * updated) set to `finalizeTriangulation`.
      */
     void refineTriangles(
         VertInd maxVerticesToInsert,
         RefinementCriterion::Enum refinementCriterion =
             RefinementCriterion::SmallestAngle,
-        T refinementThreshold = 20 / 180.0 * M_PI);
+        T refinementThreshold = 20 / 180.0 * M_PI,
+        TriIndUSet* toEraseOrNull = NULL);
     /**
      * Erase triangles adjacent to super triangle
      *
@@ -722,6 +730,20 @@ public:
      * @note supports overlapping or touching boundaries
      */
     void eraseOuterTrianglesAndHoles();
+    /**
+     * Collect triangles adjacent to super-triangle: same triangles that
+     * `eraseSuperTriangle` would remove.
+     * @note returns an empty set if custom geometry is used
+     */
+    TriIndUSet collectSuperTriangle() const;
+    /// Collect triangles outside of constrained boundary: same triangles that
+    /// `eraseOuterTriangles` would remove.
+    TriIndUSet collectOuterTriangles() const;
+    /**
+     * Collect triangles outside of constrained boundary and auto-detected
+     * holes: same triangles that `eraseOuterTrianglesAndHoles` would remove.
+     */
+    TriIndUSet collectOuterTrianglesAndHoles() const;
     /**
      * Call this method after directly setting custom super-geometry via
      * vertices and triangles members
@@ -804,6 +826,15 @@ public:
     /// Access internal vertex adjacent triangles
     const TriIndVec& VertTrisInternal() const;
     /// @}
+
+    /**
+     * Remove super-triangle (if used) and triangles with specified indices.
+     * Adjust internal triangulation state accordingly.
+     * @param removedTriangles indices of triangles to remove
+     * @note pair with one of the `collectXXX` methods to combine erasing with
+     * `refineTriangles`
+     */
+    void finalizeTriangulation(const TriIndUSet& removedTriangles);
 
 private:
     /*____ Detail __*/
@@ -943,8 +974,12 @@ private:
         const V2d<T>* circumcenterOrNull = NULL,
         RefinementCriterion::Enum refinementCriterion =
             RefinementCriterion::SmallestAngle,
-        T badTriangleThreshold = T(0));
-    VertInd splitEncroachedEdge(Edge edge, VertInd steinerVerticesOffset);
+        T badTriangleThreshold = T(0),
+        TriIndUSet* toEraseOrNull = NULL);
+    VertInd splitEncroachedEdge(
+        Edge edge,
+        VertInd steinerVerticesOffset,
+        TriIndUSet* toEraseOrNull = NULL);
     void changeNeighbor(TriInd iT, TriInd oldNeighbor, TriInd newNeighbor);
     void changeNeighbor(
         TriInd iT,
@@ -969,12 +1004,6 @@ private:
         IndexSizeType iB) const;
     TriInd addTriangle(const Triangle& t);
     TriInd addTriangle();
-    /**
-     * Remove super-triangle (if used) and triangles with specified indices.
-     * Adjust internal triangulation state accordingly.
-     * @removedTriangles indices of triangles to remove
-     */
-    void finalizeTriangulation(const TriIndUSet& removedTriangles);
     TriIndUSet growToBoundary(std::stack<TriInd> seeds) const;
     void fixEdge(const Edge& edge);
     void fixEdge(const Edge& edge, const Edge& originalEdge);

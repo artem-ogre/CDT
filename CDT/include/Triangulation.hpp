@@ -103,27 +103,47 @@ void Triangulation<T, TNearPointLocator>::eraseSuperTriangle()
 {
     if(m_superGeomType != SuperGeometryType::SuperTriangle)
         return;
-    // find triangles adjacent to super-triangle's vertices
-    TriIndUSet toErase;
-    for(TriInd iT(0); iT < TriInd(triangles.size()); ++iT)
-    {
-        if(touchesSuperTriangle(triangles[iT]))
-            toErase.insert(iT);
-    }
-    finalizeTriangulation(toErase);
+    finalizeTriangulation(collectSuperTriangle());
 }
 
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::eraseOuterTriangles()
 {
-    assert(m_vertTris[0] != noNeighbor);
-    const std::stack<TriInd> seed(std::deque<TriInd>(1, m_vertTris[0]));
-    const TriIndUSet toErase = growToBoundary(seed);
-    finalizeTriangulation(toErase);
+    finalizeTriangulation(collectOuterTriangles());
 }
 
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::eraseOuterTrianglesAndHoles()
+{
+    finalizeTriangulation(collectOuterTrianglesAndHoles());
+}
+
+template <typename T, typename TNearPointLocator>
+TriIndUSet Triangulation<T, TNearPointLocator>::collectSuperTriangle() const
+{
+    // find triangles adjacent to super-triangle's vertices
+    TriIndUSet toErase;
+    if(m_superGeomType != SuperGeometryType::SuperTriangle)
+        return toErase;
+    for(TriInd iT(0); iT < TriInd(triangles.size()); ++iT)
+    {
+        if(touchesSuperTriangle(triangles[iT]))
+            toErase.insert(iT);
+    }
+    return toErase;
+}
+
+template <typename T, typename TNearPointLocator>
+TriIndUSet Triangulation<T, TNearPointLocator>::collectOuterTriangles() const
+{
+    assert(m_vertTris[0] != noNeighbor);
+    const std::stack<TriInd> seed(std::deque<TriInd>(1, m_vertTris[0]));
+    return growToBoundary(seed);
+}
+
+template <typename T, typename TNearPointLocator>
+TriIndUSet
+Triangulation<T, TNearPointLocator>::collectOuterTrianglesAndHoles() const
 {
     const std::vector<LayerDepth> triDepths = calculateTriangleDepths();
     TriIndUSet toErase;
@@ -133,7 +153,7 @@ void Triangulation<T, TNearPointLocator>::eraseOuterTrianglesAndHoles()
         if(triDepths[iT] % 2 == 0)
             toErase.insert(static_cast<TriInd>(iT));
     }
-    finalizeTriangulation(toErase);
+    return toErase;
 }
 
 /// Remap removing super-triangle: subtract 3 from vertices
@@ -1405,9 +1425,9 @@ bool Triangulation<T, TNearPointLocator>::isRefinementNeeded(
     switch(refinementCriterion)
     {
     case RefinementCriterion::SmallestAngle:
-        return smallestAngle(a, b, c) <= refinementThreshold;
+        return smallestAngle(a, b, c) < refinementThreshold;
     case RefinementCriterion::LargestArea:
-        return area(a, b, c) >= refinementThreshold;
+        return area(a, b, c) > refinementThreshold;
     }
     assert(false); // unreachable code
     return false;
@@ -1479,7 +1499,8 @@ TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
     const VertInd steinerVerticesOffset,
     const V2d<T>* const circumcenterOrNull,
     const RefinementCriterion::Enum refinementCriterion,
-    const T badTriangleThreshold)
+    const T badTriangleThreshold,
+    TriIndUSet* const toEraseOrNull)
 {
     std::vector<TriInd> badTriangles;
 
@@ -1492,8 +1513,8 @@ TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
             continue;
         }
         // split encroached edge
-        const VertInd iSplitVert =
-            splitEncroachedEdge(edge, steinerVerticesOffset);
+        const VertInd iSplitVert = splitEncroachedEdge(
+            edge, steinerVerticesOffset, toEraseOrNull);
         --remainingVertexBudget;
 
         const TriInd start = m_vertTris[iSplitVert];
@@ -1501,7 +1522,9 @@ TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
         do
         {
             const Triangle& t = triangles[iT];
-            if(circumcenterOrNull &&
+            const bool isMarkedForErasure =
+                toEraseOrNull && toEraseOrNull->count(iT);
+            if(circumcenterOrNull && !isMarkedForErasure &&
                isRefinementNeeded(t, refinementCriterion, badTriangleThreshold))
             {
                 badTriangles.push_back(iT);
@@ -1527,13 +1550,32 @@ TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
 template <typename T, typename TNearPointLocator>
 VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
     const Edge edge,
-    const VertInd steinerVerticesOffset)
+    const VertInd steinerVerticesOffset,
+    TriIndUSet* const toEraseOrNull)
 {
     const V2d<T>& start = vertices[edge.v1()];
     const V2d<T>& end = vertices[edge.v2()];
+
+    TriInd iT, iTopo;
+    std::tie(iT, iTopo) = edgeTriangles(edge.v1(), edge.v2());
+    assert(iT != invalidIndex && iTopo != invalidIndex);
+
     T split = T(0.5);
-    // check if any of the split edge vertices are Steiner vertices
-    if(edge.v1() >= steinerVerticesOffset || edge.v2() >= steinerVerticesOffset)
+    // Use the concentric-shell splitting rule only when the edge is a
+    // subsegment terminating at a Steiner vertex that is itself an endpoint
+    // of another fixed (sub)segment meeting it at a small angle: splitting
+    // exactly in half in that case can lead to non-termination as the two
+    // segments keep encroaching on each other's ever-shrinking halves.
+    const VertInd v3 = opposedVertex(triangles[iT], iTopo);
+    const VertInd v4 = opposedVertex(triangles[iTopo], iT);
+    if((edge.v1() < steinerVerticesOffset &&
+        edge.v2() >= steinerVerticesOffset &&
+        (fixedEdges.find(Edge(v3, edge.v1())) != fixedEdges.end() ||
+         fixedEdges.find(Edge(v4, edge.v1())) != fixedEdges.end())) ||
+       (edge.v2() < steinerVerticesOffset &&
+        edge.v1() >= steinerVerticesOffset &&
+        (fixedEdges.find(Edge(v3, edge.v2())) != fixedEdges.end() ||
+         fixedEdges.find(Edge(v4, edge.v2())) != fixedEdges.end())))
     {
         // In Ruppert's paper, he used D(0.01) factor to divide edge length, but
         // that introduces FP rounding errors, so it's avoided.
@@ -1549,7 +1591,6 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
         {
             nearestPowerOfTwo *= T(0.5);
         }
-        assert(abs(nearestPowerOfTwo - pow(2, round(log(d) / log(2.0)))) < 1e6);
         split = nearestPowerOfTwo / len;
         if(edge.v1() >= steinerVerticesOffset)
             split = T(1) - split;
@@ -1558,14 +1599,20 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
     const V2d<T> mid = V2d<T>(
         detail::lerp(start.x, end.x, split),
         detail::lerp(start.y, end.y, split));
-    TriInd iT, iTopo;
-    std::tie(iT, iTopo) = edgeTriangles(edge.v1(), edge.v2());
-    assert(iT != invalidIndex && iTopo != invalidIndex);
 
     const VertInd iMid = addSplitEdgeVertex(mid, iT, iTopo);
     if(fixedEdges.find(edge) != fixedEdges.end())
     {
         splitFixedEdge(edge, iMid);
+    }
+    // splitting reuses iT/iTopo for two of the four resulting triangles and
+    // appends the other two: propagate erasure marks to the new triangles
+    if(toEraseOrNull)
+    {
+        if(toEraseOrNull->count(iT))
+            toEraseOrNull->insert(TriInd(triangles.size() - 2));
+        if(toEraseOrNull->count(iTopo))
+            toEraseOrNull->insert(TriInd(triangles.size() - 1));
     }
     return iMid;
 }
@@ -2395,7 +2442,8 @@ template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::refineTriangles(
     const VertInd maxVerticesToInsert,
     const RefinementCriterion::Enum refinementCriterion,
-    const T refinementThreshold)
+    const T refinementThreshold,
+    TriIndUSet* const toEraseOrNull)
 {
     if(isFinalized())
     {
@@ -2414,8 +2462,8 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
     {
         const Edge edge = encroachedEdges.front();
         encroachedEdges.pop();
-        const VertInd iSplitVert =
-            splitEncroachedEdge(edge, steinerVerticesOffset);
+        const VertInd iSplitVert = splitEncroachedEdge(
+            edge, steinerVerticesOffset, toEraseOrNull);
         // if resulting halves are encroached, add them to the queue
         const Edge half1(edge.v1(), iSplitVert);
         if(isEdgeEncroached(half1))
@@ -2438,6 +2486,7 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
     {
         const Triangle& t = triangles[iT];
         if(!touchesSuperTriangle(t) &&
+           !(toEraseOrNull && toEraseOrNull->count(iT)) &&
            isRefinementNeeded(t, refinementCriterion, refinementThreshold))
         {
             badTriangles.push(iT);
@@ -2448,6 +2497,8 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
     {
         const TriInd iT = badTriangles.front();
         badTriangles.pop();
+        if(toEraseOrNull && toEraseOrNull->count(iT))
+            continue;
         const Triangle& badT = triangles[iT];
         if(!isRefinementNeeded(badT, refinementCriterion, refinementThreshold))
         {
@@ -2470,7 +2521,8 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
             steinerVerticesOffset,
             &triCircumenter,
             refinementCriterion,
-            refinementThreshold);
+            refinementThreshold,
+            toEraseOrNull);
         if(!remainingVertexBudget)
             break;
         if(!badTris.empty())
@@ -2484,17 +2536,45 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
             continue;
         }
 
-        --remainingVertexBudget;
+        // locate the triangle(s) the circumcenter falls into before spending
+        // the vertex budget: if it lands in a triangle that will be erased
+        // anyway (e.g. a hole or outer triangle) skip it instead of adding a
+        // pointless Steiner point there
         const VertInd iVert = static_cast<VertInd>(vertices.size());
         addNewVertex(triCircumenter, noNeighbor);
-        insertVertex(iVert);
+        const VertInd walkStart =
+            m_nearPtLocator.nearPoint(triCircumenter, vertices);
+        const array<TriInd, 2> trisAt =
+            walkingSearchTrianglesAt(iVert, walkStart);
+        if(toEraseOrNull &&
+           (toEraseOrNull->count(trisAt[0]) || toEraseOrNull->count(trisAt[1])))
+        {
+            vertices.pop_back();
+            m_vertTris.pop_back();
+            continue;
+        }
+
+        --remainingVertexBudget;
+        // re-does the same walk as above internally, but reuses proven
+        // insertion logic (fixed-edge split handling, callbacks) rather than
+        // duplicating it here
+        insertVertex(iVert, walkStart);
+        tryAddVertexToLocator(iVert);
+        if(toEraseOrNull)
+        {
+            if(toEraseOrNull->count(trisAt[0]))
+                toEraseOrNull->insert(TriInd(triangles.size() - 2));
+            if(toEraseOrNull->count(trisAt[1]))
+                toEraseOrNull->insert(TriInd(triangles.size() - 1));
+        }
 
         TriInd start = m_vertTris[iVert];
         TriInd currTri = start;
         do
         {
             const Triangle& t = triangles[currTri];
-            if(isRefinementNeeded(t, refinementCriterion, refinementThreshold))
+            if(!(toEraseOrNull && toEraseOrNull->count(currTri)) &&
+               isRefinementNeeded(t, refinementCriterion, refinementThreshold))
             {
                 badTriangles.push(currTri);
             }
