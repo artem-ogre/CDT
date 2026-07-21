@@ -6,6 +6,8 @@
  * @file
  * Public API - implementation
  */
+#ifndef CDT_WbKVsqQQaFWUcDDZzmmC
+#define CDT_WbKVsqQQaFWUcDDZzmmC
 
 #include "CDT.h"
 
@@ -105,3 +107,5 @@ EdgeToPiecesMapping(const unordered_map<Edge, EdgeVec>& pieceToOriginals)
 }
 
 } // namespace CDT
+
+#endif // header-guard

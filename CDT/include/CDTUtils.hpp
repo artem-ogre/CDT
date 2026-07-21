@@ -6,6 +6,8 @@
  * @file
  * Utilities and helpers - implementation
  */
+#ifndef CDT_zWlHcbQZQyBBqPgxvFDT
+#define CDT_zWlHcbQZQyBBqPgxvFDT
 
 #include "CDTUtils.h"
 
@@ -262,3 +264,5 @@ bool touchesSuperTriangle(const Triangle& t)
 }
 
 } // namespace CDT
+
+#endif // header-guard

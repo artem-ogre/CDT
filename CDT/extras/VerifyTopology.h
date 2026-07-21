@@ -28,7 +28,7 @@ namespace CDT
  * @tparam T type of vertex coordinates (e.g., float, double)
  * @tparam TNearPointLocator class providing locating near point for efficiently
  */
-template <typename T, typename TNearPointLocator>
+template <typename T, typename TNearPointLocator = LocatorKDTree<T> >
 inline bool verifyTopology(const CDT::Triangulation<T, TNearPointLocator>& cdt)
 {
     // Check if vertices' adjacent triangles contain vertex
@@ -75,7 +75,7 @@ inline bool verifyTopology(const CDT::Triangulation<T, TNearPointLocator>& cdt)
 }
 
 /// Check that each vertex has a neighbor triangle
-template <typename T, typename TNearPointLocator>
+template <typename T, typename TNearPointLocator = LocatorKDTree<T> >
 inline bool eachVertexHasNeighborTriangle(
     const CDT::Triangulation<T, TNearPointLocator>& cdt)
 {
