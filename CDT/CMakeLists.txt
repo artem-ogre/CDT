@@ -239,7 +239,6 @@ if(DOXYGEN_FOUND)
         ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome-darkmode-toggle.js
         ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome-fragment-copy-button.js
         ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome-paragraph-link.js
-        ${CDT_DOXYGEN_AWESOME_DIRECTORY}/toggle-alternative-theme.js
     )
     set(DOXYGEN_LAYOUT_FILE ${CDT_DOCS_DIRECTORY}/doxygen-custom/DoxygenLayout.xml)
     # this target will only be built if specifically asked to.
