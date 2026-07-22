@@ -443,17 +443,19 @@ bool Triangulation<T, TNearPointLocator>::isEdgeSplitVertexValid(
     const PtLineLocation::Enum side = locatePointLine(
         splitVert, vertices[tL.vertices[sL]], vertices[tL.vertices[ccw(sL)]]);
     if(side == PtLineLocation::OnLine)
-        return true; // vertex lies on the split edge itself: always safe
+    {
+        return splitVert != vertices[iVL] && splitVert != vertices[iVR];
+    }
     const Triangle& t = side == PtLineLocation::Left ? tL : triangles[iTopo];
 
     // The split vertex must not fall outside that triangle. Its relation to the
-    // split edge is already established by 'side', so only the two edges meeting
-    // at the apex (opposite the split edge) are tested. A point to the right of
-    // a counter-clockwise triangle's edge lies outside it.
+    // split edge is already established by 'side', so only the two edges
+    // meeting at the apex (opposite the split edge) are tested. A point to the
+    // right of a counter-clockwise triangle's edge lies outside it.
     const Index s = edgeNeighborInd(t.vertices, iVL, iVR);
-    const V2d<T>& from = vertices[t.vertices[s]];      // split edge tail (CCW)
-    const V2d<T>& to = vertices[t.vertices[ccw(s)]];   // split edge head (CCW)
-    const V2d<T>& apex = vertices[t.vertices[cw(s)]];  // opposite the split edge
+    const V2d<T>& from = vertices[t.vertices[s]];     // split edge tail (CCW)
+    const V2d<T>& to = vertices[t.vertices[ccw(s)]];  // split edge head (CCW)
+    const V2d<T>& apex = vertices[t.vertices[cw(s)]]; // opposite the split edge
     return locatePointLine(splitVert, to, apex) != PtLineLocation::Right &&
            locatePointLine(splitVert, apex, from) != PtLineLocation::Right;
 }

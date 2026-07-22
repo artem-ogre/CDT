@@ -180,6 +180,13 @@ bool operator==(const CDT::V2d<T>& lhs, const CDT::V2d<T>& rhs)
     return lhs.x == rhs.x && lhs.y == rhs.y;
 }
 
+/// If two 2D vectors are not exactly equal
+template <typename T>
+bool operator!=(const CDT::V2d<T>& lhs, const CDT::V2d<T>& rhs)
+{
+    return !(lhs == rhs);
+}
+
 #ifdef CDT_USE_64_BIT_INDEX_TYPE
 typedef unsigned long long IndexSizeType;
 #else

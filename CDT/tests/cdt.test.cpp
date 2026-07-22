@@ -1278,8 +1278,7 @@ TEST_CASE("Regression test #212: near-endpoint constraints intersection", "")
             IntersectingConstraintEdges::TryResolve,
             0.0f);
         cdt.insertVertices(vertices);
-        REQUIRE_THROWS_AS(
-            cdt.insertEdges(edges), CDT::InvalidEdgeSplitVertex);
+        REQUIRE_THROWS_AS(cdt.insertEdges(edges), CDT::InvalidEdgeSplitVertex);
     }
     SECTION("Non-zero min. distance to constraint edge: resolved by snapping")
     {
@@ -1307,4 +1306,35 @@ TEST_CASE("Regression test #211: near-degenerate constraints intersection", "")
         5e-17);
     cdt.insertVertices(in.first);
     REQUIRE_THROWS_AS(cdt.insertEdges(in.second), CDT::InvalidEdgeSplitVertex);
+}
+
+TEST_CASE("Duplicated constraint edge with intersecting constraints", "")
+{
+    // Duplicated constraint edge (0, 3) combined with constraints that
+    // genuinely intersect. Found by the fuzzing harness and minimized; every
+    // vertex and edge is required to reproduce. Previously looped forever
+    // while resolving the intersection, now reported as an exception.
+    const std::vector<V2d<double> > vertices = {
+        {6., -6.},
+        {7., -4.},
+        {8., -8.},
+        {7., 5.},
+        {0., 7.},
+        {-1., 3.},
+        {7., 1.},
+        {-6., -6.},
+    };
+    const std::vector<Edge> edges = {
+        {VertInd(2), VertInd(5)},
+        {VertInd(1), VertInd(7)},
+        {VertInd(4), VertInd(6)},
+        {VertInd(0), VertInd(3)},
+        {VertInd(0), VertInd(3)}, // duplicate
+    };
+    auto cdt = Triangulation<double>(
+        VertexInsertionOrder::Auto,
+        IntersectingConstraintEdges::TryResolve,
+        0.0);
+    cdt.insertVertices(vertices);
+    REQUIRE_THROWS_AS(cdt.insertEdges(edges), CDT::InvalidEdgeSplitVertex);
 }
