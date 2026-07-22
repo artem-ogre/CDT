@@ -1,0 +1,64 @@
+name: Documentation
+
+# Same rationale as in ci_builds.yml: master on push, branches via pull_request.
+# Pull requests only check that the docs still build, master also publishes them.
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deployments to GitHub Pages run at the same time.
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+env:
+  # Keep in sync with the Doxygen version the docs were last generated with
+  DOXYGEN_VERSION: "1.13.2"
+
+jobs:
+  build:
+    name: Generate Doxygen documentation
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Graphviz
+      run: sudo apt-get update && sudo apt-get install --yes graphviz
+
+    - name: Install Doxygen
+      run: |
+        tag="Release_${DOXYGEN_VERSION//./_}"
+        url="https://github.com/doxygen/doxygen/releases/download/$tag/doxygen-$DOXYGEN_VERSION.linux.bin.tar.gz"
+        curl --fail --silent --show-error --location "$url" | sudo tar xz -C /opt
+        echo "/opt/doxygen-$DOXYGEN_VERSION/bin" >> "$GITHUB_PATH"
+
+    - name: Configure
+      run: cmake -S CDT -B build
+
+    - name: Generate documentation
+      run: cmake --build build --target CDT-docs
+
+    - name: Upload GitHub Pages artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: build/docs/html
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - name: Deploy
+      id: deployment
+      uses: actions/deploy-pages@v4
