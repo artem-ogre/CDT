@@ -224,6 +224,8 @@ if(DOXYGEN_FOUND)
     # Keep the index enabled so the search box stays in the navigation area
     # instead of overlapping the title (CMake defaults DISABLE_INDEX to YES).
     set(DOXYGEN_DISABLE_INDEX NO)
+    # Disable Doxygen's own dark mode: it overrides doxygen-awesome's themes.
+    set(DOXYGEN_HTML_COLORSTYLE LIGHT)
     set(CDT_DOXYGEN_AWESOME_DIRECTORY ${CDT_DOCS_DIRECTORY}/doxygen-custom/doxygen-awesome)
     set(DOXYGEN_HTML_EXTRA_STYLESHEET
         ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome.css
