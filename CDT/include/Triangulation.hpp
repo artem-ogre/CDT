@@ -2504,10 +2504,15 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
         {
             continue;
         }
-        const V2d<T> triCircumenter = circumcenter(
-            vertices[badT.vertices[0]],
-            vertices[badT.vertices[1]],
-            vertices[badT.vertices[2]]);
+        const V2d<T>& v0 = vertices[badT.vertices[0]];
+        const V2d<T>& v1 = vertices[badT.vertices[1]];
+        const V2d<T>& v2 = vertices[badT.vertices[2]];
+        if(doubledArea(v0, v1, v2) == T(0))
+        {
+            // degenerate (collinear) triangle: no well-defined circumcenter
+            continue;
+        }
+        const V2d<T> triCircumenter = circumcenter(v0, v1, v2);
         if(locatePointTriangle(
                triCircumenter, vertices[0], vertices[1], vertices[2]) ==
            PtTriLocation::Outside)
