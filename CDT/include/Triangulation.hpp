@@ -1513,8 +1513,8 @@ TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
             continue;
         }
         // split encroached edge
-        const VertInd iSplitVert = splitEncroachedEdge(
-            edge, steinerVerticesOffset, toEraseOrNull);
+        const VertInd iSplitVert =
+            splitEncroachedEdge(edge, steinerVerticesOffset, toEraseOrNull);
         --remainingVertexBudget;
 
         const TriInd start = m_vertTris[iSplitVert];
@@ -2447,8 +2447,9 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
 {
     if(isFinalized())
     {
-        throw std::runtime_error("Triangulation was finalized with 'erase...' "
-                                 "method. Refinement is not possible");
+        throw std::runtime_error(
+            "Triangulation was finalized with 'erase...' "
+            "method. Refinement is not possible");
     }
     tryInitNearestPointLocator();
 
@@ -2462,8 +2463,8 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
     {
         const Edge edge = encroachedEdges.front();
         encroachedEdges.pop();
-        const VertInd iSplitVert = splitEncroachedEdge(
-            edge, steinerVerticesOffset, toEraseOrNull);
+        const VertInd iSplitVert =
+            splitEncroachedEdge(edge, steinerVerticesOffset, toEraseOrNull);
         // if resulting halves are encroached, add them to the queue
         const Edge half1(edge.v1(), iSplitVert);
         if(isEdgeEncroached(half1))
