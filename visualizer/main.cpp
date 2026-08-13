@@ -154,6 +154,9 @@ public:
         , m_ptLimit(9999999)
         , m_edgeLimit(9999999)
         , m_refinementLimit(9999999)
+        , m_minRefinementEdgeLength(1e-6)
+        , m_refinementCriterion(CDT::RefinementCriterion::SmallestAngle)
+        , m_refinementThreshold(20.0)
         , m_vertexInsertionOrder(CDT::VertexInsertionOrder::Auto)
         , m_intersectingEdgesStrategy(
               CDT::IntersectingConstraintEdges::TryResolve)
@@ -254,6 +257,26 @@ public slots:
     void setRefinementLimit(int limit)
     {
         m_refinementLimit = static_cast<std::size_t>(limit);
+        updateCDT();
+    }
+
+    void setMinRefinementEdgeLength(double len)
+    {
+        m_minRefinementEdgeLength = static_cast<CoordType>(len);
+        updateCDT();
+    }
+
+    void setRefinementCriterion(int index)
+    {
+        m_refinementCriterion = index == 0
+                                    ? CDT::RefinementCriterion::SmallestAngle
+                                    : CDT::RefinementCriterion::LargestArea;
+        updateCDT();
+    }
+
+    void setRefinementThreshold(double threshold)
+    {
+        m_refinementThreshold = static_cast<CoordType>(threshold);
         updateCDT();
     }
 
@@ -467,11 +490,17 @@ private:
 
             if(m_isDoRuppert)
             {
+                const CoordType threshold =
+                    m_refinementCriterion ==
+                            CDT::RefinementCriterion::SmallestAngle
+                        ? m_refinementThreshold / 180.0 * M_PI
+                        : m_refinementThreshold;
                 m_cdt.refineTriangles(
                     m_refinementLimit,
-                    CDT::RefinementCriterion::SmallestAngle,
-                    20 / 180.0 * M_PI,
-                    &toErase);
+                    m_refinementCriterion,
+                    threshold,
+                    &toErase,
+                    m_minRefinementEdgeLength);
             }
 
             if(m_finalizeType != FinalizeTriangulation::DontFinalize)
@@ -757,6 +786,9 @@ private:
     std::size_t m_ptLimit;
     std::size_t m_edgeLimit;
     std::size_t m_refinementLimit;
+    CoordType m_minRefinementEdgeLength;
+    CDT::RefinementCriterion::Enum m_refinementCriterion;
+    CoordType m_refinementThreshold; // degrees if SmallestAngle, else raw area
     CDT::VertexInsertionOrder::Enum m_vertexInsertionOrder;
     CDT::IntersectingConstraintEdges::Enum m_intersectingEdgesStrategy;
     CoordType m_minDistToConstraintEdge;
@@ -893,11 +925,58 @@ public:
             SLOT(setRefinementLimit(int)));
         refinementSpinbox->setValue(defaultRefinementLimit);
 
+        QComboBox* refinementCriterion = new QComboBox;
+        refinementCriterion->addItem("smallest angle");
+        refinementCriterion->addItem("largest area");
+        connect(
+            refinementCriterion,
+            SIGNAL(currentIndexChanged(int)),
+            m_cdtWidget,
+            SLOT(setRefinementCriterion(int)));
+
+        QDoubleSpinBox* refinementThreshold = new QDoubleSpinBox;
+        refinementThreshold->setDecimals(6);
+        refinementThreshold->setRange(0.0, 1000000.0);
+        refinementThreshold->setValue(20.0);
+        refinementThreshold->setToolTip(
+            tr("Bad-triangle threshold: minimum angle in degrees for 'smallest "
+               "angle', maximum area (in the input's own units) for 'largest "
+               "area'."));
+        connect(
+            refinementThreshold,
+            SIGNAL(valueChanged(double)),
+            m_cdtWidget,
+            SLOT(setRefinementThreshold(double)));
+
+        QDoubleSpinBox* minRefinementEdgeLength = new QDoubleSpinBox;
+        minRefinementEdgeLength->setDecimals(6);
+        minRefinementEdgeLength->setRange(0.0, 1.0);
+        minRefinementEdgeLength->setSingleStep(1e-6);
+        minRefinementEdgeLength->setValue(1e-6);
+        minRefinementEdgeLength->setToolTip(
+            tr("Give up splitting a fixed edge or triangle further once it's "
+               "already this short, instead of trying forever: refinement near "
+               "acute corners or narrow features isn't always guaranteed to "
+               "terminate otherwise. 0 disables the cutoff (may hang or throw "
+               "on such inputs)."));
+        connect(
+            minRefinementEdgeLength,
+            SIGNAL(valueChanged(double)),
+            m_cdtWidget,
+            SLOT(setMinRefinementEdgeLength(double)));
+
         QFormLayout* limitsLayout = new QFormLayout;
         limitsLayout->addRow(new QLabel(tr("Points")), ptsSpinbox);
         limitsLayout->addRow(new QLabel(tr("Edges")), edgesSpinbox);
         limitsLayout->addRow(
             new QLabel(tr("Refinement points")), refinementSpinbox);
+        limitsLayout->addRow(
+            new QLabel(tr("Refinement criterion")), refinementCriterion);
+        limitsLayout->addRow(
+            new QLabel(tr("Refinement threshold")), refinementThreshold);
+        limitsLayout->addRow(
+            new QLabel(tr("Refinement min edge length")),
+            minRefinementEdgeLength);
         QGroupBox* limitsGroup = new QGroupBox("Limits");
         limitsGroup->setLayout(limitsLayout);
 
