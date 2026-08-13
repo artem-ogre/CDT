@@ -1566,16 +1566,15 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
     // of another fixed (sub)segment meeting it at a small angle: splitting
     // exactly in half in that case can lead to non-termination as the two
     // segments keep encroaching on each other's ever-shrinking halves.
-    const VertInd v3 = opposedVertex(triangles[iT], iTopo);
-    const VertInd v4 = opposedVertex(triangles[iTopo], iT);
+    // hasAnotherFixedEdge (not just the two triangles flanking `edge`) is
+    // needed: after the corner's first split, those triangles' opposite
+    // vertices are no longer the other segment's endpoint.
     if((edge.v1() < steinerVerticesOffset &&
         edge.v2() >= steinerVerticesOffset &&
-        (fixedEdges.find(Edge(v3, edge.v1())) != fixedEdges.end() ||
-         fixedEdges.find(Edge(v4, edge.v1())) != fixedEdges.end())) ||
+        hasAnotherFixedEdge(edge.v1(), edge)) ||
        (edge.v2() < steinerVerticesOffset &&
         edge.v1() >= steinerVerticesOffset &&
-        (fixedEdges.find(Edge(v3, edge.v2())) != fixedEdges.end() ||
-         fixedEdges.find(Edge(v4, edge.v2())) != fixedEdges.end())))
+        hasAnotherFixedEdge(edge.v2(), edge)))
     {
         // In Ruppert's paper, he used D(0.01) factor to divide edge length, but
         // that introduces FP rounding errors, so it's avoided.
@@ -2396,6 +2395,33 @@ bool Triangulation<T, TNearPointLocator>::hasEdge(
     const VertInd b) const
 {
     return edgeTriangles(a, b).first != invalidIndexSizeType;
+}
+
+/// Checks whether vertex v has a fixed edge, other than excludeEdge,
+/// incident to it: recognizes a subsegment endpoint as a shared corner even
+/// after v's segments have already been split.
+template <typename T, typename TNearPointLocator>
+bool Triangulation<T, TNearPointLocator>::hasAnotherFixedEdge(
+    const VertInd v,
+    const Edge& excludeEdge) const
+{
+    const TriInd triStart = m_vertTris[v];
+    assert(triStart != noNeighbor);
+    TriInd iT = triStart;
+    do
+    {
+        const Triangle& t = triangles[iT];
+        TriInd iTNext;
+        VertInd iV;
+        tie(iTNext, iV) = t.next(v);
+        const Edge candidate(v, iV);
+        if(candidate != excludeEdge && fixedEdges.count(candidate))
+        {
+            return true;
+        }
+        iT = iTNext;
+    } while(iT != triStart);
+    return false;
 }
 
 template <typename T, typename TNearPointLocator>
