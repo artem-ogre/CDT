@@ -524,14 +524,6 @@ CDT_EXPORT bool isInCircumcircle(
 CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY bool
 verticesShareEdge(const TriIndVec& aTris, const TriIndVec& bTris);
 
-/// Vector's length
-template <typename T>
-CDT_EXPORT T length(const V2d<T>& v);
-
-/// Vector's squared length
-template <typename T>
-CDT_EXPORT T lengthSquared(const V2d<T>& v);
-
 /// Distance between two 2D points
 template <typename T>
 CDT_EXPORT T distance(const V2d<T>& a, const V2d<T>& b);
@@ -570,8 +562,6 @@ sineOfSmallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
 /// Smallest angle of triangle ABC in radians
 template <typename T>
 CDT_EXPORT T smallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
-
-CDT_EXPORT bool touchesSuperTriangle(const Triangle& t);
 
 } // namespace CDT
 

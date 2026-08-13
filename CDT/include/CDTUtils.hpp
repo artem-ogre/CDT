@@ -233,33 +233,29 @@ bool verticesShareEdge(const TriIndVec& aTris, const TriIndVec& bTris)
 }
 
 template <typename T>
-T lengthSquared(const T x, const T y)
+T distanceSquared(const T ax, const T ay, const T bx, const T by)
 {
-    return x * x + y * y;
+    const T dx = bx - ax;
+    const T dy = by - ay;
+    return dx * dx + dy * dy;
 }
 
 template <typename T>
-T lengthSquared(const V2d<T>& v)
+T distance(const T ax, const T ay, const T bx, const T by)
 {
-    return lengthSquared(v.x, v.y);
-}
-
-template <typename T>
-T length(const V2d<T>& v)
-{
-    return std::sqrt(lengthSquared(v));
-}
-
-template <typename T>
-T distanceSquared(const V2d<T>& a, const V2d<T>& b)
-{
-    return lengthSquared(b.x - a.x, b.y - a.y);
+    return std::sqrt(distanceSquared(ax, ay, bx, by));
 }
 
 template <typename T>
 T distance(const V2d<T>& a, const V2d<T>& b)
 {
-    return std::sqrt(distanceSquared(a, b));
+    return distance(a.x, a.y, b.x, b.y);
+}
+
+template <typename T>
+T distanceSquared(const V2d<T>& a, const V2d<T>& b)
+{
+    return distanceSquared(a.x, a.y, b.x, b.y);
 }
 
 bool touchesSuperTriangle(const Triangle& t)
@@ -287,9 +283,9 @@ V2d<T> circumcenter(V2d<T> a, V2d<T> b, V2d<T> c)
 {
     const T denom = T(2) * orient2D(a, b, c);
     assert(denom != T(0));
+    const T aLenSq = distanceSquared(a, c), bLenSq = distanceSquared(b, c);
     a.x -= c.x, a.y -= c.y;
     b.x -= c.x, b.y -= c.y;
-    const T aLenSq = lengthSquared(a), bLenSq = lengthSquared(b);
     c.x += (b.y * aLenSq - a.y * bLenSq) / denom;
     c.y += (a.x * bLenSq - b.x * aLenSq) / denom;
     return c;

@@ -1332,6 +1332,7 @@ void Triangulation<T, TNearPointLocator>::conformToEdges(
         conformToEdge(e, EdgeVec(1, e), 0, remaining);
     }
 }
+
 } // namespace CDT
 
 #ifndef CDT_USE_AS_COMPILED_LIBRARY
