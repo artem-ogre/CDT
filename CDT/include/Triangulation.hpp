@@ -1439,7 +1439,7 @@ bool Triangulation<T, TNearPointLocator>::isEdgeEncroached(
 {
     TriInd iT, iTopo;
     std::tie(iT, iTopo) = edgeTriangles(edge.v1(), edge.v2());
-    assert(iT != invalidIndex && iTopo != invalidIndex);
+    assert(iT != noNeighbor && iTopo != noNeighbor);
     const VertInd v1 = opposedVertex(triangles[iT], iTopo);
     const VertInd v2 = opposedVertex(triangles[iTopo], iT);
     const V2d<T>& edgeStart = vertices[edge.v1()];
@@ -1558,7 +1558,7 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
 
     TriInd iT, iTopo;
     std::tie(iT, iTopo) = edgeTriangles(edge.v1(), edge.v2());
-    assert(iT != invalidIndex && iTopo != invalidIndex);
+    assert(iT != noNeighbor && iTopo != noNeighbor);
 
     T split = T(0.5);
     // Use the concentric-shell splitting rule only when the edge is a
