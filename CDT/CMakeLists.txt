@@ -291,7 +291,7 @@ if(CDT_ENABLE_TESTING)
             CDT::CDT
     )
     include(Catch)
-    catch_discover_tests(${TEST_TARGET_NAME} WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/tests")
+    catch_discover_tests(${TEST_TARGET_NAME} WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests")
 endif()
 
 # -----------------
