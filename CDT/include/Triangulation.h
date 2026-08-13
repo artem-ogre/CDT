@@ -708,13 +708,19 @@ public:
      * budget refining triangles that will be discarded anyway: pass in the
      * result of the matching `collectXXX` method and later hand the (now
      * updated) set to `finalizeTriangulation`.
+     * @param minEdgeLength once an edge/triangle being refined is already
+     * this short, leave its angle as is instead of splitting further: acute
+     * corners and close-but-unrelated fixed edges can otherwise force
+     * ever-shrinking splits with no guaranteed end. 0 (default) never gives
+     * up.
      */
     void refineTriangles(
         VertInd maxVerticesToInsert,
         RefinementCriterion::Enum refinementCriterion =
             RefinementCriterion::SmallestAngle,
         T refinementThreshold = 20 / 180.0 * M_PI,
-        TriIndUSet* toEraseOrNull = NULL);
+        TriIndUSet* toEraseOrNull = NULL,
+        T minEdgeLength = T(0));
     /**
      * Erase triangles adjacent to super triangle
      *
@@ -975,7 +981,8 @@ private:
         RefinementCriterion::Enum refinementCriterion =
             RefinementCriterion::SmallestAngle,
         T badTriangleThreshold = T(0),
-        TriIndUSet* toEraseOrNull = NULL);
+        TriIndUSet* toEraseOrNull = NULL,
+        T minEdgeLength = T(0));
     VertInd splitEncroachedEdge(
         Edge edge,
         VertInd steinerVerticesOffset,

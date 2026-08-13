@@ -1500,7 +1500,8 @@ TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
     const V2d<T>* const circumcenterOrNull,
     const RefinementCriterion::Enum refinementCriterion,
     const T badTriangleThreshold,
-    TriIndUSet* const toEraseOrNull)
+    TriIndUSet* const toEraseOrNull,
+    const T minEdgeLength)
 {
     std::vector<TriInd> badTriangles;
 
@@ -1509,6 +1510,11 @@ TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
         const Edge edge = encroachedEdges.front();
         encroachedEdges.pop();
         if(fixedEdges.find(edge) == fixedEdges.end())
+        {
+            continue;
+        }
+        // give up on already-too-short edges rather than split forever
+        if(distance(vertices[edge.v1()], vertices[edge.v2()]) <= minEdgeLength)
         {
             continue;
         }
@@ -2469,7 +2475,8 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
     const VertInd maxVerticesToInsert,
     const RefinementCriterion::Enum refinementCriterion,
     const T refinementThreshold,
-    TriIndUSet* const toEraseOrNull)
+    TriIndUSet* const toEraseOrNull,
+    const T minEdgeLength)
 {
     if(isFinalized())
     {
@@ -2484,13 +2491,18 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
 
     // split all the encroached constrained (fixed) edges
     EdgeQueue encroachedEdges = findEncroachedFixedEdges();
-    for(; !encroachedEdges.empty() && remainingVertexBudget > 0;
-        --remainingVertexBudget)
+    while(!encroachedEdges.empty() && remainingVertexBudget > 0)
     {
         const Edge edge = encroachedEdges.front();
         encroachedEdges.pop();
+        // give up on already-too-short edges rather than split forever
+        if(distance(vertices[edge.v1()], vertices[edge.v2()]) <= minEdgeLength)
+        {
+            continue;
+        }
         const VertInd iSplitVert =
             splitEncroachedEdge(edge, steinerVerticesOffset, toEraseOrNull);
+        --remainingVertexBudget;
         // if resulting halves are encroached, add them to the queue
         const Edge half1(edge.v1(), iSplitVert);
         if(isEdgeEncroached(half1))
@@ -2539,6 +2551,13 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
             // degenerate (collinear) triangle: no well-defined circumcenter
             continue;
         }
+        const T shortestEdge = std::min(
+            distance(v0, v1), std::min(distance(v1, v2), distance(v2, v0)));
+        if(shortestEdge <= minEdgeLength)
+        {
+            // same minEdgeLength give-up, for triangles with no fixed edge
+            continue;
+        }
         const V2d<T> triCircumenter = circumcenter(v0, v1, v2);
         if(locatePointTriangle(
                triCircumenter, vertices[0], vertices[1], vertices[2]) ==
@@ -2554,7 +2573,8 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
             &triCircumenter,
             refinementCriterion,
             refinementThreshold,
-            toEraseOrNull);
+            toEraseOrNull,
+            minEdgeLength);
         if(!remainingVertexBudget)
             break;
         if(!badTris.empty())
