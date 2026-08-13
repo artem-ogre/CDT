@@ -119,7 +119,7 @@ CDT is not in the conan-center but there's a `conanfile.py` recipe provided (in 
 Note that it might need small adjustments like changing boost version to fit your needs.
 
 ### spack
-A [recipe](https://github.com/spack/spack/blob/develop/var/spack/repos/builtin/packages/cdt/package.py) for CDT is [available](https://spack.readthedocs.io/en/latest/package_list.html#cdt) in [spack](https://spack.io).
+A [recipe](https://packages.spack.io/package.html?name=cdt) for CDT is available in [spack](https://spack.io).
 
 <a name="installationbuilding"></a>
 
