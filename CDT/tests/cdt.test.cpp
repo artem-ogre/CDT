@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -1337,4 +1338,312 @@ TEST_CASE("Duplicated constraint edge with intersecting constraints", "")
         0.0);
     cdt.insertVertices(vertices);
     REQUIRE_THROWS_AS(cdt.insertEdges(edges), CDT::InvalidEdgeSplitVertex);
+}
+
+TEST_CASE("Ruppert refinement achieves the requested minimum angle", "")
+{
+    const std::vector<V2d<double> > vertices = {
+        {0., 0.},
+        {100., 0.},
+        {100., 1.},
+        {0., 1.},
+    };
+    const std::vector<Edge> edges = {
+        {VertInd(0), VertInd(1)},
+        {VertInd(1), VertInd(2)},
+        {VertInd(2), VertInd(3)},
+        {VertInd(3), VertInd(0)},
+    };
+    auto cdt = Triangulation<double>();
+    cdt.insertVertices(vertices);
+    cdt.insertEdges(edges);
+    auto toErase = cdt.collectOuterTrianglesAndHoles();
+
+    const double minAngle = degToRad(20.);
+    cdt.refineTriangles(
+        10000, RefinementCriterion::SmallestAngle, minAngle, &toErase);
+    cdt.finalizeTriangulation(toErase);
+
+    REQUIRE(CDT::verifyTopology(cdt));
+    REQUIRE(cdt.triangles.size() > std::size_t(2));
+    for(const auto& t : cdt.triangles)
+    {
+        const double angle = smallestAngle(
+            cdt.vertices[t.vertices[0]],
+            cdt.vertices[t.vertices[1]],
+            cdt.vertices[t.vertices[2]]);
+        REQUIRE(angle >= minAngle - 1e-9);
+    }
+}
+
+TEST_CASE("Ruppert refinement with LargestArea criterion", "")
+{
+    const std::vector<V2d<double> > vertices = {
+        {0., 0.},
+        {10., 0.},
+        {10., 10.},
+        {0., 10.},
+    };
+    const std::vector<Edge> edges = {
+        {VertInd(0), VertInd(1)},
+        {VertInd(1), VertInd(2)},
+        {VertInd(2), VertInd(3)},
+        {VertInd(3), VertInd(0)},
+    };
+    auto cdt = Triangulation<double>();
+    cdt.insertVertices(vertices);
+    cdt.insertEdges(edges);
+    auto toErase = cdt.collectOuterTrianglesAndHoles();
+
+    const double maxArea = 1.0;
+    cdt.refineTriangles(
+        10000, RefinementCriterion::LargestArea, maxArea, &toErase);
+    cdt.finalizeTriangulation(toErase);
+
+    REQUIRE(CDT::verifyTopology(cdt));
+    REQUIRE(cdt.triangles.size() > std::size_t(2));
+    for(const auto& t : cdt.triangles)
+    {
+        const double triArea = area(
+            cdt.vertices[t.vertices[0]],
+            cdt.vertices[t.vertices[1]],
+            cdt.vertices[t.vertices[2]]);
+        REQUIRE(triArea <= maxArea + 1e-9);
+    }
+}
+
+TEST_CASE("Ruppert refinement with zero threshold is a no-op", "")
+{
+    // ported from test_zero_angle_limit in
+    // https://github.com/Stoeoef/spade/blob/c8befc96bbbc1898a89cb19f9f3104a848936374/src/delaunay_core/refinement.rs
+    const std::vector<V2d<double> > vertices = {
+        {0., 0.},
+        {10., 0.},
+        {10., 10.},
+        {0., 10.},
+    };
+    const std::vector<Edge> edges = {
+        {VertInd(0), VertInd(1)},
+        {VertInd(1), VertInd(2)},
+        {VertInd(2), VertInd(3)},
+        {VertInd(3), VertInd(0)},
+    };
+    auto cdt = Triangulation<double>();
+    cdt.insertVertices(vertices);
+    cdt.insertEdges(edges);
+    const std::size_t vertsBefore = cdt.vertices.size();
+
+    cdt.refineTriangles(10000, RefinementCriterion::SmallestAngle, 0.);
+
+    REQUIRE(cdt.vertices.size() == vertsBefore);
+}
+
+TEST_CASE("Ruppert refinement respects the vertex budget", "")
+{
+    // ported from test_sharp_angle_refinement's use of
+    // with_max_additional_vertices, same source as above
+    const std::vector<V2d<double> > vertices = {
+        {0., 0.},
+        {100., 0.},
+        {100., 1.},
+        {0., 1.},
+    };
+    const std::vector<Edge> edges = {
+        {VertInd(0), VertInd(1)},
+        {VertInd(1), VertInd(2)},
+        {VertInd(2), VertInd(3)},
+        {VertInd(3), VertInd(0)},
+    };
+    auto cdt = Triangulation<double>();
+    cdt.insertVertices(vertices);
+    cdt.insertEdges(edges);
+    const std::size_t vertsBefore = cdt.vertices.size();
+
+    const VertInd budget = 10;
+    cdt.refineTriangles(
+        budget, RefinementCriterion::SmallestAngle, degToRad(20.));
+
+    REQUIRE(CDT::verifyTopology(cdt));
+    REQUIRE(cdt.vertices.size() <= vertsBefore + std::size_t(budget));
+}
+
+TEST_CASE(
+    "Ruppert refinement aligns subsegments on matching concentric shells "
+    "near an acute corner",
+    "")
+{
+    // geometry style ported from the small-angle-complex tests in
+    // https://github.com/JuliaGeometry/DelaunayTriangulation.jl/blob/55e4b8e7503fadffa0cdcfa15fa6e5219835d99b/test/refinement/refine.jl
+    // and test_sharp_angle_refinement in
+    // https://github.com/Stoeoef/spade/blob/c8befc96bbbc1898a89cb19f9f3104a848936374/src/delaunay_core/refinement.rs
+    const double angle = degToRad(10.);
+    const std::vector<V2d<double> > vertices = {
+        {0., 0.},
+        {8., 0.},
+        {4., 5.},
+        {std::cos(angle), std::sin(angle)},
+    };
+    const std::vector<Edge> edges = {
+        {VertInd(0), VertInd(1)},
+        {VertInd(1), VertInd(2)},
+        {VertInd(2), VertInd(3)},
+        {VertInd(3), VertInd(0)},
+    };
+    auto cdt = Triangulation<double>();
+    cdt.insertVertices(vertices);
+    cdt.insertEdges(edges);
+    const std::size_t vertsBefore = cdt.vertices.size();
+
+    const VertInd budget = 100;
+    cdt.refineTriangles(
+        budget,
+        RefinementCriterion::SmallestAngle,
+        degToRad(20.),
+        nullptr,
+        0.05);
+    REQUIRE(CDT::verifyTopology(cdt));
+    REQUIRE(cdt.vertices.size() < vertsBefore + std::size_t(budget));
+
+    const VertInd corner = 3;
+    std::vector<double> subsegmentLengths;
+    for(const Edge& e : cdt.fixedEdges)
+    {
+        if(e.v1() != corner && e.v2() != corner)
+            continue;
+        const VertInd other = e.v1() == corner ? e.v2() : e.v1();
+        subsegmentLengths.push_back(
+            distance(cdt.vertices[corner], cdt.vertices[other]));
+    }
+    REQUIRE(subsegmentLengths.size() == std::size_t(2));
+    REQUIRE_THAT(
+        subsegmentLengths[0],
+        Catch::Matchers::WithinRel(subsegmentLengths[1], 1e-9));
+}
+
+TEST_CASE(
+    "Ruppert refinement near close non-adjacent fixed edges terminates "
+    "given minEdgeLength",
+    "")
+{
+    const std::vector<V2d<double> > vertices = {
+        {0., 0.},
+        {10., 0.},
+        {0., 0.05},
+        {10., 0.05},
+    };
+    const std::vector<Edge> edges = {
+        {VertInd(0), VertInd(1)},
+        {VertInd(2), VertInd(3)},
+    };
+
+    SECTION("without minEdgeLength: doesn't settle within a small budget")
+    {
+        auto cdt = Triangulation<double>();
+        cdt.insertVertices(vertices);
+        cdt.insertEdges(edges);
+        const std::size_t vertsBefore = cdt.vertices.size();
+        const VertInd budget = 500;
+        cdt.refineTriangles(
+            budget, RefinementCriterion::SmallestAngle, degToRad(20.));
+        REQUIRE(cdt.vertices.size() == vertsBefore + std::size_t(budget));
+    }
+    SECTION("with minEdgeLength: converges well under budget")
+    {
+        auto cdt = Triangulation<double>();
+        cdt.insertVertices(vertices);
+        cdt.insertEdges(edges);
+        cdt.refineTriangles(
+            5000,
+            RefinementCriterion::SmallestAngle,
+            degToRad(20.),
+            nullptr,
+            0.005);
+        REQUIRE(CDT::verifyTopology(cdt));
+        REQUIRE(cdt.vertices.size() < std::size_t(2000));
+    }
+}
+
+TEST_CASE(
+    "Ruppert refinement combined with erasing outer triangles and holes",
+    "")
+{
+    const std::vector<V2d<double> > vertices = {
+        {0., 0.},
+        {10., 0.},
+        {10., 10.},
+        {0., 10.},
+        {4., 4.},
+        {6., 4.},
+        {6., 6.},
+        {4., 6.},
+    };
+    const std::vector<Edge> edges = {
+        {VertInd(0), VertInd(1)},
+        {VertInd(1), VertInd(2)},
+        {VertInd(2), VertInd(3)},
+        {VertInd(3), VertInd(0)},
+        {VertInd(4), VertInd(5)},
+        {VertInd(5), VertInd(6)},
+        {VertInd(6), VertInd(7)},
+        {VertInd(7), VertInd(4)},
+    };
+    auto cdt = Triangulation<double>();
+    cdt.insertVertices(vertices);
+    cdt.insertEdges(edges);
+    auto toErase = cdt.collectOuterTrianglesAndHoles();
+    REQUIRE(toErase.size() > std::size_t(0));
+
+    const double minAngle = degToRad(20.);
+    cdt.refineTriangles(
+        5000, RefinementCriterion::SmallestAngle, minAngle, &toErase);
+
+    // erasure marks must be propagated onto new triangles created above
+    for(TriInd iT(0); iT < TriInd(cdt.triangles.size()); ++iT)
+    {
+        if(touchesSuperTriangle(cdt.triangles[iT]))
+        {
+            REQUIRE(toErase.count(iT));
+        }
+    }
+
+    cdt.finalizeTriangulation(toErase);
+
+    REQUIRE(CDT::verifyTopology(cdt));
+    for(const auto& t : cdt.triangles)
+    {
+        const double angle = smallestAngle(
+            cdt.vertices[t.vertices[0]],
+            cdt.vertices[t.vertices[1]],
+            cdt.vertices[t.vertices[2]]);
+        REQUIRE(angle >= minAngle - 1e-9);
+    }
+}
+
+TEST_CASE(
+    "Ruppert refinement on a real-world coastline dataset: ground truth",
+    "")
+{
+    const auto [vv, ee] =
+        readInputFromFile<double>("inputs/Constrained Sweden.txt");
+    auto cdt = Triangulation<double>(
+        VertexInsertionOrder::Auto,
+        IntersectingConstraintEdges::TryResolve,
+        1e-6);
+    cdt.insertVertices(vv);
+    cdt.insertEdges(ee);
+    auto toErase = cdt.collectOuterTrianglesAndHoles();
+    cdt.refineTriangles(
+        2000,
+        RefinementCriterion::SmallestAngle,
+        degToRad(20.),
+        &toErase,
+        1e-4);
+    cdt.finalizeTriangulation(toErase);
+    REQUIRE(CDT::verifyTopology(cdt));
+
+    const auto outFile = "expected/Constrained Sweden__refined.txt";
+    if(updateFiles)
+        topologyToFile(outFile, cdt);
+    else
+        REQUIRE(topologyString(cdt) == topologyString(outFile));
 }
