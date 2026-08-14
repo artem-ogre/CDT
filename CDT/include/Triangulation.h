@@ -696,23 +696,20 @@ public:
      */
     void conformToEdges(const std::vector<Edge>& edges);
     /**
-     * Traingles refinement by removing bad triangles
+     * Triangles refinement by splitting bad triangles
      * @note bad triangles don't fulfill constraints defined by the user
-     * @param refinement_constrain refinement strategy that is used to identify
+     * @param maxVerticesToInsert budget of Steiner vertices to insert
+     * @param refinementCriterion refinement strategy that is used to identify
      * bad triangles
      * @param refinementThreshold threshold value for refinement
-     * @param toEraseOrNull if not null, triangles already present in this set
-     * are skipped as refinement candidates and any triangles that replace them
-     * as a result of splitting are added to the set. Lets a caller combine
-     * refinement with one of the `eraseXXX` methods without wasting the vertex
-     * budget refining triangles that will be discarded anyway: pass in the
-     * result of the matching `collectXXX` method and later hand the (now
-     * updated) set to `finalizeTriangulation`.
-     * @param minEdgeLength once an edge/triangle being refined is already
-     * this short, leave its angle as is instead of splitting further: acute
-     * corners and close-but-unrelated fixed edges can otherwise force
-     * ever-shrinking splits with no guaranteed end. 0 (default) never gives
-     * up.
+     * @param toEraseOrNull if not null, triangles in this set are skipped as
+     * refinement candidates and triangles replacing them are added to it.
+     * Must come from a `collectXXX` method; caller then passes it to
+     * `finalizeTriangulation`.
+     * @param minEdgeLength don't split edges/triangles already this short:
+     * acute corners and close fixed edges can otherwise force ever-shrinking
+     * splits. 0 (default) never gives up.
+     * @throw FinalizedError if triangulation was already finalized
      */
     void refineTriangles(
         VertInd maxVerticesToInsert,
@@ -725,31 +722,51 @@ public:
      * Erase triangles adjacent to super triangle
      *
      * @note does nothing if custom geometry is used
+     * @throw FinalizedError if triangulation was already finalized
      */
     void eraseSuperTriangle();
-    /// Erase triangles outside of constrained boundary using growing
+    /**
+     * Erase triangles outside of constrained boundary using growing
+     * @throw FinalizedError if triangulation was already finalized
+     */
     void eraseOuterTriangles();
     /**
      * Erase triangles outside of constrained boundary and auto-detected holes
      *
      * @note detecting holes relies on layer peeling based on layer depth
      * @note supports overlapping or touching boundaries
+     * @throw FinalizedError if triangulation was already finalized
      */
     void eraseOuterTrianglesAndHoles();
     /**
      * Collect triangles adjacent to super-triangle: same triangles that
      * `eraseSuperTriangle` would remove.
      * @note returns an empty set if custom geometry is used
+     * @throw FinalizedError if triangulation was already finalized
      */
     TriIndUSet collectSuperTriangle() const;
-    /// Collect triangles outside of constrained boundary: same triangles that
-    /// `eraseOuterTriangles` would remove.
+    /**
+     * Collect triangles outside of constrained boundary: same triangles that
+     * `eraseOuterTriangles` would remove.
+     * @throw FinalizedError if triangulation was already finalized
+     */
     TriIndUSet collectOuterTriangles() const;
     /**
      * Collect triangles outside of constrained boundary and auto-detected
      * holes: same triangles that `eraseOuterTrianglesAndHoles` would remove.
+     * @throw FinalizedError if triangulation was already finalized
      */
     TriIndUSet collectOuterTrianglesAndHoles() const;
+    /**
+     * Remove super-triangle (if used) and triangles with specified indices.
+     * Adjust internal triangulation state accordingly.
+     * @param removedTriangles indices of triangles to remove
+     * @note pair with one of the `collectXXX` methods to combine erasing with
+     * `refineTriangles`
+     * @note invalidates caller-held vertex indices and edges
+     * @throw FinalizedError if triangulation was already finalized
+     */
+    void finalizeTriangulation(const TriIndUSet& removedTriangles);
     /**
      * Call this method after directly setting custom super-geometry via
      * vertices and triangles members
@@ -832,15 +849,6 @@ public:
     /// Access internal vertex adjacent triangles
     const TriIndVec& VertTrisInternal() const;
     /// @}
-
-    /**
-     * Remove super-triangle (if used) and triangles with specified indices.
-     * Adjust internal triangulation state accordingly.
-     * @param removedTriangles indices of triangles to remove
-     * @note pair with one of the `collectXXX` methods to combine erasing with
-     * `refineTriangles`
-     */
-    void finalizeTriangulation(const TriIndUSet& removedTriangles);
 
 private:
     /*____ Detail __*/

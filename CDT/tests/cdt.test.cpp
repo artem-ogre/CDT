@@ -1605,6 +1605,7 @@ TEST_CASE(
             REQUIRE(toErase.count(iT));
         }
     }
+    REQUIRE(toErase == cdt.collectOuterTrianglesAndHoles());
 
     cdt.finalizeTriangulation(toErase);
 
@@ -1619,9 +1620,39 @@ TEST_CASE(
     }
 }
 
-TEST_CASE(
-    "Ruppert refinement on a real-world coastline dataset: ground truth",
-    "")
+TEST_CASE("Finalized triangulation rejects erasing, collecting, refining", "")
+{
+    const std::vector<V2d<double> > vertices = {
+        {0., 0.},
+        {10., 0.},
+        {10., 10.},
+        {0., 10.},
+    };
+    const std::vector<Edge> edges = {
+        {VertInd(0), VertInd(1)},
+        {VertInd(1), VertInd(2)},
+        {VertInd(2), VertInd(3)},
+        {VertInd(3), VertInd(0)},
+    };
+    auto cdt = Triangulation<double>();
+    cdt.insertVertices(vertices);
+    cdt.insertEdges(edges);
+    cdt.eraseOuterTrianglesAndHoles();
+    REQUIRE(cdt.isFinalized());
+
+    // re-finalizing would erase real vertices and shift indices again
+    REQUIRE_THROWS_AS(cdt.finalizeTriangulation(TriIndUSet()), FinalizedError);
+    REQUIRE_THROWS_AS(cdt.eraseOuterTriangles(), FinalizedError);
+    REQUIRE_THROWS_AS(cdt.eraseOuterTrianglesAndHoles(), FinalizedError);
+    REQUIRE_THROWS_AS(cdt.collectSuperTriangle(), FinalizedError);
+    REQUIRE_THROWS_AS(cdt.collectOuterTriangles(), FinalizedError);
+    REQUIRE_THROWS_AS(cdt.collectOuterTrianglesAndHoles(), FinalizedError);
+    REQUIRE_THROWS_AS(cdt.refineTriangles(100), FinalizedError);
+
+    REQUIRE(cdt.vertices.size() == std::size_t(4));
+    REQUIRE(CDT::verifyTopology(cdt));
+}
+
 {
     const auto [vv, ee] =
         readInputFromFile<double>("inputs/Constrained Sweden.txt");

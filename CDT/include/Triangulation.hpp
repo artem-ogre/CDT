@@ -121,6 +121,9 @@ void Triangulation<T, TNearPointLocator>::eraseOuterTrianglesAndHoles()
 template <typename T, typename TNearPointLocator>
 TriIndUSet Triangulation<T, TNearPointLocator>::collectSuperTriangle() const
 {
+    if(isFinalized())
+        handleException(FinalizedError(CDT_SOURCE_LOCATION));
+
     // find triangles adjacent to super-triangle's vertices
     TriIndUSet toErase;
     if(m_superGeomType != SuperGeometryType::SuperTriangle)
@@ -136,6 +139,9 @@ TriIndUSet Triangulation<T, TNearPointLocator>::collectSuperTriangle() const
 template <typename T, typename TNearPointLocator>
 TriIndUSet Triangulation<T, TNearPointLocator>::collectOuterTriangles() const
 {
+    if(isFinalized())
+        handleException(FinalizedError(CDT_SOURCE_LOCATION));
+
     assert(m_vertTris[0] != noNeighbor);
     const std::stack<TriInd> seed(std::deque<TriInd>(1, m_vertTris[0]));
     return growToBoundary(seed);
@@ -145,6 +151,9 @@ template <typename T, typename TNearPointLocator>
 TriIndUSet
 Triangulation<T, TNearPointLocator>::collectOuterTrianglesAndHoles() const
 {
+    if(isFinalized())
+        handleException(FinalizedError(CDT_SOURCE_LOCATION));
+
     const std::vector<LayerDepth> triDepths = calculateTriangleDepths();
     TriIndUSet toErase;
     toErase.reserve(triangles.size());
@@ -215,6 +224,9 @@ template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::finalizeTriangulation(
     const TriIndUSet& removedTriangles)
 {
+    if(isFinalized())
+        handleException(FinalizedError(CDT_SOURCE_LOCATION));
+
     m_vertTris = TriIndVec();
     // remove super-triangle
     if(m_superGeomType == SuperGeometryType::SuperTriangle)
@@ -1567,8 +1579,6 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
     assert(iT != noNeighbor && iTopo != noNeighbor);
 
     T split = T(0.5);
-    // concentric-shell rule near a corner; hasAnotherFixedEdge (not just the
-    // flanking triangles, which go stale after the corner's first split)
     if((edge.v1() < steinerVerticesOffset &&
         edge.v2() >= steinerVerticesOffset &&
         hasAnotherFixedEdge(edge.v1(), edge)) ||
@@ -2473,11 +2483,8 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
     const T minEdgeLength)
 {
     if(isFinalized())
-    {
-        throw std::runtime_error(
-            "Triangulation was finalized with 'erase...' "
-            "method. Refinement is not possible");
-    }
+        handleException(FinalizedError(CDT_SOURCE_LOCATION));
+
     tryInitNearestPointLocator();
 
     VertInd remainingVertexBudget = maxVerticesToInsert;
@@ -2582,10 +2589,8 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
             continue;
         }
 
-        // locate the triangle(s) the circumcenter falls into before spending
-        // the vertex budget: if it lands in a triangle that will be erased
-        // anyway (e.g. a hole or outer triangle) skip it instead of adding a
-        // pointless Steiner point there
+        // Find the triangle containing the circumcenter first.
+        // Skip adding a Steiner point if that triangle will be removed anyway.
         const VertInd iVert = static_cast<VertInd>(vertices.size());
         addNewVertex(triCircumenter, noNeighbor);
         const VertInd walkStart =
@@ -2601,9 +2606,6 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
         }
 
         --remainingVertexBudget;
-        // re-does the same walk as above internally, but reuses proven
-        // insertion logic (fixed-edge split handling, callbacks) rather than
-        // duplicating it here
         insertVertex(iVert, walkStart);
         tryAddVertexToLocator(iVert);
         if(toEraseOrNull)
