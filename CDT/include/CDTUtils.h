@@ -56,6 +56,12 @@ typedef char couldnt_parse_cxx_standard[-1]; ///< Error: couldn't parse standard
 #include <queue>
 #include <vector>
 
+#ifdef M_PI
+#define CDT_M_PI M_PI
+#else
+#define CDT_M_PI 3.14159265358979323846
+#endif
+
 #ifdef CDT_USE_STRONG_TYPING
 #include <boost/serialization/strong_typedef.hpp>
 #endif
@@ -562,6 +568,10 @@ sineOfSmallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
 /// Smallest angle of triangle ABC in radians
 template <typename T>
 CDT_EXPORT T smallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
+
+/// Convert an angle from degrees to radians
+template <typename T>
+CDT_EXPORT T degToRad(T degrees);
 
 } // namespace CDT
 

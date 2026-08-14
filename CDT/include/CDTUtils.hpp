@@ -322,6 +322,12 @@ T smallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c)
     return std::asin(angleSine);
 }
 
+template <typename T>
+T degToRad(const T degrees)
+{
+    return degrees / T(180) * T(CDT_M_PI);
+}
+
 } // namespace CDT
 
 #endif // header-guard

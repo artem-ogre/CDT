@@ -493,7 +493,7 @@ private:
                 const CoordType threshold =
                     m_refinementCriterion ==
                             CDT::RefinementCriterion::SmallestAngle
-                        ? m_refinementThreshold / 180.0 * M_PI
+                        ? CDT::degToRad(CoordType(m_refinementThreshold))
                         : m_refinementThreshold;
                 m_cdt.refineTriangles(
                     m_refinementLimit,

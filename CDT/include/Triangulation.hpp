@@ -1438,7 +1438,7 @@ bool Triangulation<T, TNearPointLocator>::isEdgeEncroached(
     const Edge& edge) const
 {
     TriInd iT, iTopo;
-    std::tie(iT, iTopo) = edgeTriangles(edge.v1(), edge.v2());
+    tie(iT, iTopo) = edgeTriangles(edge.v1(), edge.v2());
     assert(iT != noNeighbor && iTopo != noNeighbor);
     const VertInd v1 = opposedVertex(triangles[iT], iTopo);
     const VertInd v2 = opposedVertex(triangles[iTopo], iT);
@@ -1563,7 +1563,7 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
     const V2d<T>& end = vertices[edge.v2()];
 
     TriInd iT, iTopo;
-    std::tie(iT, iTopo) = edgeTriangles(edge.v1(), edge.v2());
+    tie(iT, iTopo) = edgeTriangles(edge.v1(), edge.v2());
     assert(iT != noNeighbor && iTopo != noNeighbor);
 
     T split = T(0.5);
@@ -2487,7 +2487,7 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
     tryInitNearestPointLocator();
 
     VertInd remainingVertexBudget = maxVerticesToInsert;
-    const VertInd steinerVerticesOffset = vertices.size();
+    const VertInd steinerVerticesOffset = VertInd(vertices.size());
 
     // split all the encroached constrained (fixed) edges
     EdgeQueue encroachedEdges = findEncroachedFixedEdges();
@@ -2521,7 +2521,7 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
 
     // refine triangulation by inserting bad-quality triangles' circumcenters
     TriIndQueue badTriangles;
-    for(TriInd iT(0), n = triangles.size(); iT < n; ++iT)
+    for(TriInd iT(0), n(triangles.size()); iT < n; ++iT)
     {
         const Triangle& t = triangles[iT];
         if(!touchesSuperTriangle(t) &&

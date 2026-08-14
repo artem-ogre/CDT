@@ -718,7 +718,7 @@ public:
         VertInd maxVerticesToInsert,
         RefinementCriterion::Enum refinementCriterion =
             RefinementCriterion::SmallestAngle,
-        T refinementThreshold = 20 / 180.0 * M_PI,
+        T refinementThreshold = degToRad(T(20)),
         TriIndUSet* toEraseOrNull = NULL,
         T minEdgeLength = T(0));
     /**
