@@ -32,7 +32,7 @@ typedef CDT::Triangle Triangle;
 typedef CDT::Box2d<CoordType> Box2d;
 typedef CDT::Edge Edge;
 
-const int defaultRefinementLimit = 999999;
+const int defaultRefinementLimit = 99999;
 
 enum class TriangulationType
 {
