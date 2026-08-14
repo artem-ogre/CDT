@@ -976,10 +976,12 @@ private:
     /// Check if edge is encroached by its opposed vertices
     bool isEdgeEncroached(const Edge& edge) const;
     bool isEdgeEncroachedBy(const Edge& edge, const V2d<T>& v) const;
-    /// Find all fixed edges encroached by its opposed vertices
-    EdgeQueue findEncroachedFixedEdges() const;
-    /// Find all fixed edges encroached by a given vertex
-    EdgeQueue edgesEncroachedBy(const V2d<T>& v) const;
+    /// Find all fixed edges encroached by its opposed vertices, sorted for
+    /// deterministic processing order
+    EdgeVec findEncroachedFixedEdges() const;
+    /// Find all fixed edges encroached by a given vertex, sorted for
+    /// deterministic processing order
+    EdgeVec edgesEncroachedBy(const V2d<T>& v) const;
     /// Recursively split encroached edges
     TriIndVec resolveEncroachedEdges(
         EdgeQueue encroachedEdges,

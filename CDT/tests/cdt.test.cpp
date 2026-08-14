@@ -33,11 +33,6 @@ using Vertices = std::vector<V2d<CoordType> >;
 namespace CDT
 {
 
-bool operator<(const Edge& lhs, const Edge& rhs)
-{
-    return lhs.v1() != rhs.v1() ? lhs.v1() < rhs.v1() : lhs.v2() < rhs.v2();
-}
-
 bool operator<(const Triangle& lhs, const Triangle& rhs)
 {
     for(Index i(0); i < Index(3); ++i)
@@ -1653,6 +1648,9 @@ TEST_CASE("Finalized triangulation rejects erasing, collecting, refining", "")
     REQUIRE(CDT::verifyTopology(cdt));
 }
 
+TEST_CASE(
+    "Ruppert refinement on a real-world coastline dataset: ground truth",
+    "")
 {
     const auto [vv, ee] =
         readInputFromFile<double>("inputs/Constrained Sweden.txt");

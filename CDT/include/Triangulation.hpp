@@ -26,6 +26,12 @@ typedef std::deque<TriInd> TriDeque;
 namespace detail
 {
 
+/// Turn a vector into a queue, preserving order
+inline EdgeQueue toQueue(const EdgeVec& edges)
+{
+    return EdgeQueue(EdgeQueue::container_type(edges.begin(), edges.end()));
+}
+
 namespace defaults
 {
 
@@ -1469,38 +1475,42 @@ bool Triangulation<T, TNearPointLocator>::isEdgeEncroachedBy(
 }
 
 template <typename T, typename TNearPointLocator>
-EdgeQueue Triangulation<T, TNearPointLocator>::findEncroachedFixedEdges() const
+EdgeVec Triangulation<T, TNearPointLocator>::findEncroachedFixedEdges() const
 {
     // Search in all fixed edges to find encroached edges
-    // Returns queue of encroached edges
-    EdgeQueue encroachedEdges;
+    EdgeVec encroachedEdges;
     typedef EdgeUSet::const_iterator Iter;
     for(Iter it = fixedEdges.begin(); it != fixedEdges.end(); ++it)
     {
         const Edge edge = *it;
         if(isEdgeEncroached(edge))
         {
-            encroachedEdges.push(edge);
+            encroachedEdges.push_back(edge);
         }
     }
+    // fixedEdges is a hash set: its iteration order is platform-dependent,
+    // so sort to keep refinement output deterministic
+    std::sort(encroachedEdges.begin(), encroachedEdges.end());
     return encroachedEdges;
 }
 
 template <typename T, typename TNearPointLocator>
-EdgeQueue
+EdgeVec
 Triangulation<T, TNearPointLocator>::edgesEncroachedBy(const V2d<T>& v) const
 {
-    // Search in all fixed edges to find edges encroached by v, each fixed edge
-    // is checked vertex v Returns queue of encroached edges
-    EdgeQueue encroachedEdges;
+    // Search in all fixed edges to find edges encroached by v
+    EdgeVec encroachedEdges;
     typedef EdgeUSet::const_iterator Iter;
     for(Iter it = fixedEdges.begin(); it != fixedEdges.end(); ++it)
     {
         if(isEdgeEncroachedBy(*it, v))
         {
-            encroachedEdges.push(*it);
+            encroachedEdges.push_back(*it);
         }
     }
+    // fixedEdges is a hash set: its iteration order is platform-dependent,
+    // so sort to keep refinement output deterministic
+    std::sort(encroachedEdges.begin(), encroachedEdges.end());
     return encroachedEdges;
 }
 
@@ -2491,7 +2501,7 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
     const VertInd steinerVerticesOffset = VertInd(vertices.size());
 
     // split all the encroached constrained (fixed) edges
-    EdgeQueue encroachedEdges = findEncroachedFixedEdges();
+    EdgeQueue encroachedEdges = detail::toQueue(findEncroachedFixedEdges());
     while(!encroachedEdges.empty() && remainingVertexBudget > 0)
     {
         const Edge edge = encroachedEdges.front();
@@ -2568,7 +2578,7 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
         }
 
         const TriIndVec badTris = resolveEncroachedEdges(
-            edgesEncroachedBy(triCircumenter),
+            detail::toQueue(edgesEncroachedBy(triCircumenter)),
             remainingVertexBudget,
             steinerVerticesOffset,
             &triCircumenter,

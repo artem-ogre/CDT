@@ -310,6 +310,13 @@ struct CDT_EXPORT Edge
         return !(this->operator==(other));
     }
 
+    /// Less-than operator: orders by (v1, v2); used to get a deterministic
+    /// order out of hash-set iteration (which is platform-dependent)
+    bool operator<(const Edge& other) const
+    {
+        return m_vertices < other.m_vertices;
+    }
+
     /// V1 getter
     VertInd v1() const
     {
