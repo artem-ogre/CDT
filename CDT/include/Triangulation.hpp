@@ -1567,14 +1567,8 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
     assert(iT != noNeighbor && iTopo != noNeighbor);
 
     T split = T(0.5);
-    // Use the concentric-shell splitting rule only when the edge is a
-    // subsegment terminating at a Steiner vertex that is itself an endpoint
-    // of another fixed (sub)segment meeting it at a small angle: splitting
-    // exactly in half in that case can lead to non-termination as the two
-    // segments keep encroaching on each other's ever-shrinking halves.
-    // hasAnotherFixedEdge (not just the two triangles flanking `edge`) is
-    // needed: after the corner's first split, those triangles' opposite
-    // vertices are no longer the other segment's endpoint.
+    // concentric-shell rule near a corner; hasAnotherFixedEdge (not just the
+    // flanking triangles, which go stale after the corner's first split)
     if((edge.v1() < steinerVerticesOffset &&
         edge.v2() >= steinerVerticesOffset &&
         hasAnotherFixedEdge(edge.v1(), edge)) ||
