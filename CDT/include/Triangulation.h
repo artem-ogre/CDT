@@ -307,6 +307,38 @@ private:
     Edge m_e1, m_e2;
 };
 
+class CDT_EXPORT AccessingInvalidIndex : public Error
+{
+public:
+    AccessingInvalidIndex(const SourceLocation& srcLoc)
+        : Error("Accessing invalid index", srcLoc)
+    {}
+};
+
+template <typename TIndex>
+class CDT_EXPORT OptionalIndex
+{
+public:
+    OptionalIndex(const TIndex index)
+        : m_index(index)
+    {}
+    bool hasValue() const
+    {
+        return m_index != TIndex(invalidIndexSizeType);
+    }
+    TIndex value() const
+    {
+        if(!hasValue())
+            handleException(AccessingInvalidIndex(CDT_SOURCE_LOCATION));
+        return m_index;
+    }
+
+private:
+    TIndex m_index;
+};
+
+typedef OptionalIndex<VertInd> OptionalVertInd; ///< Optional vertex index
+
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
 
 /**
@@ -1049,9 +1081,10 @@ private:
      * @param iT index of a first triangle adjacent to the split edge
      * @param iTopo index of a second triangle adjacent to the split edge
      * (opposed to the first triangle)
-     * @return index of a newly added split vertex
+     * @return index of a newly added split vertex, or no value when the split
+     * vertex is invalid (see #isEdgeSplitVertexValid) and nothing was split
      */
-    VertInd splitFixedEdgeAt(
+    OptionalVertInd splitFixedEdgeAt(
         const Edge& edge,
         const V2d<T>& splitVert,
         const TriInd iT,

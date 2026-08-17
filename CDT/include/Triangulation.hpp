@@ -453,15 +453,17 @@ VertInd Triangulation<T, TNearPointLocator>::addSplitEdgeVertex(
 }
 
 template <typename T, typename TNearPointLocator>
-VertInd Triangulation<T, TNearPointLocator>::splitFixedEdgeAt(
+OptionalVertInd Triangulation<T, TNearPointLocator>::splitFixedEdgeAt(
     const Edge& edge,
     const V2d<T>& splitVert,
     const TriInd iT,
     const TriInd iTopo)
 {
+    if(!isEdgeSplitVertexValid(splitVert, iT, iTopo, edge.v1(), edge.v2()))
+        return OptionalVertInd(noVertex);
     const VertInd iSplitVert = addSplitEdgeVertex(splitVert, iT, iTopo);
     splitFixedEdge(edge, iSplitVert);
-    return iSplitVert;
+    return OptionalVertInd(iSplitVert);
 }
 
 template <typename T, typename TNearPointLocator>
@@ -643,13 +645,14 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
             // split edge at the intersection of two constraint edges
             const V2d<T> newV = detail::intersectionPosition(
                 vertices[iA], vertices[iB], vertices[iVL], vertices[iVR]);
-            if(!isEdgeSplitVertexValid(newV, iT, iTopo, iVL, iVR))
+            const OptionalVertInd splitVert =
+                splitFixedEdgeAt(Edge(iVL, iVR), newV, iT, iTopo);
+            if(!splitVert.hasValue())
                 handleException(InvalidEdgeSplitVertex(
                     originalInputEdge(originalEdge),
                     originalInputEdge(Edge(iVL, iVR)),
                     CDT_SOURCE_LOCATION));
-            const VertInd iNewVert =
-                splitFixedEdgeAt(Edge(iVL, iVR), newV, iT, iTopo);
+            const VertInd iNewVert = splitVert.value();
             // TODO: is it's possible to re-use pseudo-polygons
             //  for inserting [iA, iNewVert] edge half?
             remaining.push_back(Edge(iA, iNewVert));
@@ -848,13 +851,14 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
                 vertices[iB],
                 vertices[iVleft],
                 vertices[iVright]);
-            if(!isEdgeSplitVertexValid(newV, iT, iTopo, iVleft, iVright))
+            const OptionalVertInd splitVert =
+                splitFixedEdgeAt(Edge(iVleft, iVright), newV, iT, iTopo);
+            if(!splitVert.hasValue())
                 handleException(InvalidEdgeSplitVertex(
                     originalInputEdge(edge),
                     originalInputEdge(Edge(iVleft, iVright)),
                     CDT_SOURCE_LOCATION));
-            const VertInd iNewVert =
-                splitFixedEdgeAt(Edge(iVleft, iVright), newV, iT, iTopo);
+            const VertInd iNewVert = splitVert.value();
 #ifdef CDT_CXX11_IS_SUPPORTED
             remaining.emplace_back(Edge(iNewVert, iB), originals, overlaps);
             remaining.emplace_back(Edge(iA, iNewVert), originals, overlaps);
@@ -1619,11 +1623,13 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
         detail::lerp(start.x, end.x, split),
         detail::lerp(start.y, end.y, split));
 
-    const VertInd iMid = addSplitEdgeVertex(mid, iT, iTopo);
-    if(fixedEdges.find(edge) != fixedEdges.end())
-    {
-        splitFixedEdge(edge, iMid);
-    }
+    const OptionalVertInd iMid = splitFixedEdgeAt(edge, mid, iT, iTopo);
+    if(!iMid.hasValue())
+        handleException(Error(
+            "Could not split encroached edge (" + CDT::to_string(edge.v1()) +
+                ", " + CDT::to_string(edge.v2()) +
+                "): computed split vertex is invalid",
+            CDT_SOURCE_LOCATION));
     // splitting reuses iT/iTopo for two of the four resulting triangles and
     // appends the other two: propagate erasure marks to the new triangles
     if(toEraseOrNull)
@@ -1633,7 +1639,7 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
         if(toEraseOrNull->count(iTopo))
             toEraseOrNull->insert(TriInd(triangles.size() - 1));
     }
-    return iMid;
+    return iMid.value();
 }
 
 /* Flip edge between T and Topo:

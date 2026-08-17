@@ -1559,6 +1559,39 @@ TEST_CASE(
 }
 
 TEST_CASE(
+    "Ruppert refinement rejects an invalid encroached-edge split vertex",
+    "")
+{
+    // Splitting an encroached edge used to skip the isEdgeSplitVertexValid
+    // check: the rounded split point landed outside both triangles sharing the
+    // edge, silently corrupting neighbor links (assert in debug, hang in
+    // release). Topology stayed symmetric, so verifyTopology could not see it.
+    const std::vector<V2d<double> > vertices = {
+        {7.6, 2.2}, {2., 1.2}, {3.4, 0.4}, {1.4, 1.4}, {6.6, 6.2}, {3.8, 0.2},
+        {0.6, 5.8}, {2.8, 4.}, {3.6, 7.4}, {4.6, 4.8}, {1., 2.8},
+    };
+    const std::vector<Edge> edges = {
+        {VertInd(4), VertInd(7)}, {VertInd(0), VertInd(5)},
+        {VertInd(3), VertInd(6)}, {VertInd(1), VertInd(8)},
+        {VertInd(1), VertInd(5)}, {VertInd(3), VertInd(5)},
+        {VertInd(2), VertInd(4)}, {VertInd(8), VertInd(10)},
+        {VertInd(0), VertInd(2)}, {VertInd(2), VertInd(5)},
+    };
+    auto cdt = Triangulation<double>(
+        VertexInsertionOrder::Auto,
+        IntersectingConstraintEdges::TryResolve,
+        1e-8);
+    cdt.insertVertices(vertices);
+    cdt.insertEdges(edges);
+    REQUIRE(CDT::verifyTopology(cdt));
+    REQUIRE_THROWS_AS(
+        cdt.refineTriangles(
+            300, RefinementCriterion::SmallestAngle, degToRad(25.), nullptr,
+            1e-6),
+        CDT::Error);
+}
+
+TEST_CASE(
     "Ruppert refinement combined with erasing outer triangles and holes",
     "")
 {
