@@ -514,7 +514,7 @@ template <typename T, typename TNearPointLocator>
 const Triangle&
 Triangulation<T, TNearPointLocator>::triangleAt(const TriInd iT) const
 {
-    if(iT >= triangles.size())
+    if(iT >= TriInd(triangles.size()))
         handleException(Error(
             iT == noNeighbor
                 ? "Attempted reading no-neighbor sentinel value triangle"

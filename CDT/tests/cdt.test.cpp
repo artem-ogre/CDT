@@ -1193,7 +1193,7 @@ TEST_CASE("KDTree nearest stress test", "[KDTree]")
         const auto nearestIdx = tree.nearest(target, points).second;
 
         auto minDistSq = std::numeric_limits<double>::max();
-        VertInd expectedIdx = 0;
+        VertInd expectedIdx(0);
 
         for(VertInd i(0); i < points.size(); ++i)
         {
@@ -1219,7 +1219,7 @@ TEST_CASE("Regression test #204: inserting vertex on fixed edge", "")
                 {2., 0.},
             },
         }));
-    cdt.insertEdges(std::vector<Edge>{{0, 1}});
+    cdt.insertEdges(std::vector<Edge>{{VertInd(0), VertInd(1)}});
 
     REQUIRE_NOTHROW(cdt.insertVertices(
         Vertices<double>{
@@ -1230,21 +1230,24 @@ TEST_CASE("Regression test #204: inserting vertex on fixed edge", "")
         }));
     cdt.insertEdges(
         std::vector<Edge>{
-            {2, 3},
+            {VertInd(2), VertInd(3)},
         });
 
     REQUIRE(CDT::verifyTopology(cdt));
     cdt.eraseSuperTriangle();
     REQUIRE(cdt.triangles.size() == std::size_t(2));
     REQUIRE(cdt.fixedEdges.size() == std::size_t(3));
-    REQUIRE(cdt.fixedEdges.count(Edge(0, 2)));
-    REQUIRE(cdt.fixedEdges.count(Edge(1, 2)));
-    REQUIRE(cdt.fixedEdges.count(Edge(2, 3)));
+    const Edge e01(VertInd(0), VertInd(1));
+    const Edge e02(VertInd(0), VertInd(2));
+    const Edge e12(VertInd(1), VertInd(2));
+    REQUIRE(cdt.fixedEdges.count(e02));
+    REQUIRE(cdt.fixedEdges.count(e12));
+    REQUIRE(cdt.fixedEdges.count(Edge(VertInd(2), VertInd(3))));
 
-    REQUIRE(cdt.pieceToOriginals.at(Edge(0, 2)).size() == 1);
-    REQUIRE(cdt.pieceToOriginals.at(Edge(1, 2)).size() == 1);
-    REQUIRE(cdt.pieceToOriginals.at(Edge(0, 2))[0] == Edge(0, 1));
-    REQUIRE(cdt.pieceToOriginals.at(Edge(1, 2))[0] == Edge(0, 1));
+    REQUIRE(cdt.pieceToOriginals.at(e02).size() == 1);
+    REQUIRE(cdt.pieceToOriginals.at(e12).size() == 1);
+    REQUIRE(cdt.pieceToOriginals.at(e02)[0] == e01);
+    REQUIRE(cdt.pieceToOriginals.at(e12)[0] == e01);
 }
 
 TEST_CASE("Regression test #212: near-endpoint constraints intersection", "")
@@ -1356,7 +1359,7 @@ TEST_CASE("Ruppert refinement achieves the requested minimum angle", "")
 
     const double minAngle = degToRad(20.);
     cdt.refineTriangles(
-        10000, RefinementCriterion::SmallestAngle, minAngle, &toErase);
+        VertInd(10000), RefinementCriterion::SmallestAngle, minAngle, &toErase);
     cdt.finalizeTriangulation(toErase);
 
     REQUIRE(CDT::verifyTopology(cdt));
@@ -1392,7 +1395,7 @@ TEST_CASE("Ruppert refinement with LargestArea criterion", "")
 
     const double maxArea = 1.0;
     cdt.refineTriangles(
-        10000, RefinementCriterion::LargestArea, maxArea, &toErase);
+        VertInd(10000), RefinementCriterion::LargestArea, maxArea, &toErase);
     cdt.finalizeTriangulation(toErase);
 
     REQUIRE(CDT::verifyTopology(cdt));
@@ -1428,7 +1431,7 @@ TEST_CASE("Ruppert refinement with zero threshold is a no-op", "")
     cdt.insertEdges(edges);
     const std::size_t vertsBefore = cdt.vertices.size();
 
-    cdt.refineTriangles(10000, RefinementCriterion::SmallestAngle, 0.);
+    cdt.refineTriangles(VertInd(10000), RefinementCriterion::SmallestAngle, 0.);
 
     REQUIRE(cdt.vertices.size() == vertsBefore);
 }
@@ -1454,7 +1457,7 @@ TEST_CASE("Ruppert refinement respects the vertex budget", "")
     cdt.insertEdges(edges);
     const std::size_t vertsBefore = cdt.vertices.size();
 
-    const VertInd budget = 10;
+    const VertInd budget(10);
     cdt.refineTriangles(
         budget, RefinementCriterion::SmallestAngle, degToRad(20.));
 
@@ -1489,7 +1492,7 @@ TEST_CASE(
     cdt.insertEdges(edges);
     const std::size_t vertsBefore = cdt.vertices.size();
 
-    const VertInd budget = 100;
+    const VertInd budget(100);
     cdt.refineTriangles(
         budget,
         RefinementCriterion::SmallestAngle,
@@ -1499,7 +1502,7 @@ TEST_CASE(
     REQUIRE(CDT::verifyTopology(cdt));
     REQUIRE(cdt.vertices.size() < vertsBefore + std::size_t(budget));
 
-    const VertInd corner = 3;
+    const VertInd corner(3);
     std::vector<double> subsegmentLengths;
     for(const Edge& e : cdt.fixedEdges)
     {
@@ -1537,7 +1540,7 @@ TEST_CASE(
         cdt.insertVertices(vertices);
         cdt.insertEdges(edges);
         const std::size_t vertsBefore = cdt.vertices.size();
-        const VertInd budget = 500;
+        const VertInd budget(500);
         cdt.refineTriangles(
             budget, RefinementCriterion::SmallestAngle, degToRad(20.));
         REQUIRE(cdt.vertices.size() == vertsBefore + std::size_t(budget));
@@ -1548,7 +1551,7 @@ TEST_CASE(
         cdt.insertVertices(vertices);
         cdt.insertEdges(edges);
         cdt.refineTriangles(
-            5000,
+            VertInd(5000),
             RefinementCriterion::SmallestAngle,
             degToRad(20.),
             nullptr,
@@ -1567,15 +1570,29 @@ TEST_CASE(
     // edge, silently corrupting neighbor links (assert in debug, hang in
     // release). Topology stayed symmetric, so verifyTopology could not see it.
     const std::vector<V2d<double> > vertices = {
-        {7.6, 2.2}, {2., 1.2}, {3.4, 0.4}, {1.4, 1.4}, {6.6, 6.2}, {3.8, 0.2},
-        {0.6, 5.8}, {2.8, 4.}, {3.6, 7.4}, {4.6, 4.8}, {1., 2.8},
+        {7.6, 2.2},
+        {2., 1.2},
+        {3.4, 0.4},
+        {1.4, 1.4},
+        {6.6, 6.2},
+        {3.8, 0.2},
+        {0.6, 5.8},
+        {2.8, 4.},
+        {3.6, 7.4},
+        {4.6, 4.8},
+        {1., 2.8},
     };
     const std::vector<Edge> edges = {
-        {VertInd(4), VertInd(7)}, {VertInd(0), VertInd(5)},
-        {VertInd(3), VertInd(6)}, {VertInd(1), VertInd(8)},
-        {VertInd(1), VertInd(5)}, {VertInd(3), VertInd(5)},
-        {VertInd(2), VertInd(4)}, {VertInd(8), VertInd(10)},
-        {VertInd(0), VertInd(2)}, {VertInd(2), VertInd(5)},
+        {VertInd(4), VertInd(7)},
+        {VertInd(0), VertInd(5)},
+        {VertInd(3), VertInd(6)},
+        {VertInd(1), VertInd(8)},
+        {VertInd(1), VertInd(5)},
+        {VertInd(3), VertInd(5)},
+        {VertInd(2), VertInd(4)},
+        {VertInd(8), VertInd(10)},
+        {VertInd(0), VertInd(2)},
+        {VertInd(2), VertInd(5)},
     };
     auto cdt = Triangulation<double>(
         VertexInsertionOrder::Auto,
@@ -1586,7 +1603,10 @@ TEST_CASE(
     REQUIRE(CDT::verifyTopology(cdt));
     REQUIRE_THROWS_AS(
         cdt.refineTriangles(
-            300, RefinementCriterion::SmallestAngle, degToRad(25.), nullptr,
+            VertInd(300),
+            RefinementCriterion::SmallestAngle,
+            degToRad(25.),
+            nullptr,
             1e-6),
         CDT::Error);
 }
@@ -1623,7 +1643,7 @@ TEST_CASE(
 
     const double minAngle = degToRad(20.);
     cdt.refineTriangles(
-        5000, RefinementCriterion::SmallestAngle, minAngle, &toErase);
+        VertInd(5000), RefinementCriterion::SmallestAngle, minAngle, &toErase);
 
     // erasure marks must be propagated onto new triangles created above
     for(TriInd iT(0); iT < TriInd(cdt.triangles.size()); ++iT)
@@ -1675,7 +1695,7 @@ TEST_CASE("Finalized triangulation rejects erasing, collecting, refining", "")
     REQUIRE_THROWS_AS(cdt.collectSuperTriangle(), FinalizedError);
     REQUIRE_THROWS_AS(cdt.collectOuterTriangles(), FinalizedError);
     REQUIRE_THROWS_AS(cdt.collectOuterTrianglesAndHoles(), FinalizedError);
-    REQUIRE_THROWS_AS(cdt.refineTriangles(100), FinalizedError);
+    REQUIRE_THROWS_AS(cdt.refineTriangles(VertInd(100)), FinalizedError);
 
     REQUIRE(cdt.vertices.size() == std::size_t(4));
     REQUIRE(CDT::verifyTopology(cdt));
@@ -1695,7 +1715,7 @@ TEST_CASE(
     cdt.insertEdges(ee);
     auto toErase = cdt.collectOuterTrianglesAndHoles();
     cdt.refineTriangles(
-        2000,
+        VertInd(2000),
         RefinementCriterion::SmallestAngle,
         degToRad(20.),
         &toErase,
