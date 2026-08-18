@@ -1557,6 +1557,7 @@ TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
             const bool isMarkedForErasure =
                 toEraseOrNull && toEraseOrNull->count(iT);
             if(circumcenterOrNull && !isMarkedForErasure &&
+               !touchesSuperTriangle(t) &&
                isRefinementNeeded(t, refinementCriterion, badTriangleThreshold))
             {
                 badTriangles.push_back(iT);
@@ -2638,6 +2639,7 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
         {
             const Triangle& t = triangles[currTri];
             if(!(toEraseOrNull && toEraseOrNull->count(currTri)) &&
+               !touchesSuperTriangle(t) &&
                isRefinementNeeded(t, refinementCriterion, refinementThreshold))
             {
                 badTriangles.push(currTri);
