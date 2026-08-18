@@ -338,8 +338,7 @@ private:
 };
 
 typedef OptionalIndex<VertInd> OptionalVertInd; ///< Optional vertex index
-
-#ifdef CDT_ENABLE_CALLBACK_HANDLER
+typedef OptionalIndex<TriInd> OptionalTriInd;   ///< Optional triangle index
 
 /**
  * What type of vertex is added to the triangulation
@@ -358,8 +357,14 @@ struct CDT_EXPORT AddVertexType
         FixedEdgeMidpoint,
         /// Resolving fixed/constraint edges' intersection
         FixedEdgesIntersection,
+        /// Refinement: circumcenter of a poor-quality triangle
+        RefinementCircumcenter,
+        /// Refinement: split of an encroached fixed edge
+        RefinementEdgeSplit,
     };
 };
+
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
 
 /**
  * What type of triangle change happened
@@ -986,7 +991,10 @@ private:
     array<TriInd, 2> trianglesAt(const V2d<T>& pos) const;
     array<TriInd, 2>
     walkingSearchTrianglesAt(VertInd iV, VertInd startVertex) const;
-    TriInd walkTriangles(VertInd startVertex, const V2d<T>& pos) const;
+    /// Walk to the triangle at a given position
+    /// @return triangle containing the position or no value when the position
+    /// is outside of the triangulated area
+    OptionalTriInd walkTriangles(VertInd startVertex, const V2d<T>& pos) const;
     /// Given triangle and its vertex find opposite triangle and the other three
     /// vertices and surrounding neighbors
     void edgeFlipInfo(
@@ -1068,12 +1076,15 @@ private:
      * @param iT index of a first triangle adjacent to the split edge
      * @param iTopo index of a second triangle adjacent to the split edge
      * (opposed to the first triangle)
+     * @param vertexType what the split vertex is added for: only used to
+     * report the vertex to a callback handler
      * @return index of a newly added split vertex
      */
     VertInd addSplitEdgeVertex(
         const V2d<T>& splitVert,
         const TriInd iT,
-        const TriInd iTopo);
+        const TriInd iTopo,
+        const AddVertexType::Enum vertexType);
     /**
      * Split fixed edge and add a split vertex into the triangulation
      * @param edge fixed edge to split
@@ -1081,6 +1092,8 @@ private:
      * @param iT index of a first triangle adjacent to the split edge
      * @param iTopo index of a second triangle adjacent to the split edge
      * (opposed to the first triangle)
+     * @param vertexType what the split vertex is added for: only used to
+     * report the vertex to a callback handler
      * @return index of a newly added split vertex, or no value when the split
      * vertex is invalid (see #isEdgeSplitVertexValid) and nothing was split
      */
@@ -1088,7 +1101,8 @@ private:
         const Edge& edge,
         const V2d<T>& splitVert,
         const TriInd iT,
-        const TriInd iTopo);
+        const TriInd iTopo,
+        const AddVertexType::Enum vertexType);
     /**
      * Check that a fixed-edge split vertex computed from a constraint-edges
      * intersection can be safely inserted.

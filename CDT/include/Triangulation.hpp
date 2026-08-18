@@ -432,7 +432,8 @@ template <typename T, typename TNearPointLocator>
 VertInd Triangulation<T, TNearPointLocator>::addSplitEdgeVertex(
     const V2d<T>& splitVert,
     const TriInd iT,
-    const TriInd iTopo)
+    const TriInd iTopo,
+    const AddVertexType::Enum vertexType)
 {
     // add a new point on the edge that splits an edge in two
     const VertInd iSplitVert = static_cast<VertInd>(vertices.size());
@@ -441,9 +442,10 @@ VertInd Triangulation<T, TNearPointLocator>::addSplitEdgeVertex(
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
     if(m_callbackHandler)
     {
-        m_callbackHandler->onAddVertexStart(
-            iSplitVert, AddVertexType::FixedEdgesIntersection);
+        m_callbackHandler->onAddVertexStart(iSplitVert, vertexType);
     }
+#else
+    (void)vertexType;
 #endif
 
     std::stack<TriInd> triStack = insertVertexOnEdge(iSplitVert, iT, iTopo);
@@ -457,11 +459,13 @@ OptionalVertInd Triangulation<T, TNearPointLocator>::splitFixedEdgeAt(
     const Edge& edge,
     const V2d<T>& splitVert,
     const TriInd iT,
-    const TriInd iTopo)
+    const TriInd iTopo,
+    const AddVertexType::Enum vertexType)
 {
     if(!isEdgeSplitVertexValid(splitVert, iT, iTopo, edge.v1(), edge.v2()))
         return OptionalVertInd(noVertex);
-    const VertInd iSplitVert = addSplitEdgeVertex(splitVert, iT, iTopo);
+    const VertInd iSplitVert =
+        addSplitEdgeVertex(splitVert, iT, iTopo, vertexType);
     splitFixedEdge(edge, iSplitVert);
     return OptionalVertInd(iSplitVert);
 }
@@ -645,8 +649,12 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
             // split edge at the intersection of two constraint edges
             const V2d<T> newV = detail::intersectionPosition(
                 vertices[iA], vertices[iB], vertices[iVL], vertices[iVR]);
-            const OptionalVertInd splitVert =
-                splitFixedEdgeAt(Edge(iVL, iVR), newV, iT, iTopo);
+            const OptionalVertInd splitVert = splitFixedEdgeAt(
+                Edge(iVL, iVR),
+                newV,
+                iT,
+                iTopo,
+                AddVertexType::FixedEdgesIntersection);
             if(!splitVert.hasValue())
                 handleException(InvalidEdgeSplitVertex(
                     originalInputEdge(originalEdge),
@@ -851,8 +859,12 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
                 vertices[iB],
                 vertices[iVleft],
                 vertices[iVright]);
-            const OptionalVertInd splitVert =
-                splitFixedEdgeAt(Edge(iVleft, iVright), newV, iT, iTopo);
+            const OptionalVertInd splitVert = splitFixedEdgeAt(
+                Edge(iVleft, iVright),
+                newV,
+                iT,
+                iTopo,
+                AddVertexType::FixedEdgesIntersection);
             if(!splitVert.hasValue())
                 handleException(InvalidEdgeSplitVertex(
                     originalInputEdge(edge),
@@ -1624,7 +1636,8 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
         detail::lerp(start.x, end.x, split),
         detail::lerp(start.y, end.y, split));
 
-    const OptionalVertInd iMid = splitFixedEdgeAt(edge, mid, iT, iTopo);
+    const OptionalVertInd iMid = splitFixedEdgeAt(
+        edge, mid, iT, iTopo, AddVertexType::RefinementEdgeSplit);
     if(!iMid.hasValue())
         handleException(Error(
             "Could not split encroached edge (" + CDT::to_string(edge.v1()) +
@@ -1845,18 +1858,20 @@ Triangulation<T, TNearPointLocator>::trianglesAt(const V2d<T>& pos) const
 }
 
 template <typename T, typename TNearPointLocator>
-TriInd Triangulation<T, TNearPointLocator>::walkTriangles(
+OptionalTriInd Triangulation<T, TNearPointLocator>::walkTriangles(
     const VertInd startVertex,
     const V2d<T>& pos) const
 {
     // begin walk in search of triangle at pos
     TriInd currTri = m_vertTris[startVertex];
     bool found = false;
+    bool isOutside = false;
     detail::SplitMix64RandGen prng;
     while(!found)
     {
         const Triangle& t = triangles[currTri];
         found = true;
+        isOutside = false;
         // stochastic offset to randomize which edge we check first
         const Index offset(prng() % 3);
         for(Index i_(0); i_ < Index(3); ++i_)
@@ -1867,15 +1882,21 @@ TriInd Triangulation<T, TNearPointLocator>::walkTriangles(
             const PtLineLocation::Enum edgeCheck =
                 locatePointLine(pos, vStart, vEnd);
             const TriInd iN = t.neighbors[i];
-            if(edgeCheck == PtLineLocation::Right && iN != noNeighbor)
+            if(edgeCheck == PtLineLocation::Right)
             {
-                found = false;
-                currTri = iN;
-                break;
+                if(iN != noNeighbor)
+                {
+                    found = false;
+                    currTri = iN;
+                    break;
+                }
+                // crossing this edge would leave the triangulated area:
+                // other edges can still lead to a triangle containing pos
+                isOutside = true;
             }
         }
     }
-    return currTri;
+    return isOutside ? OptionalTriInd(noNeighbor) : OptionalTriInd(currTri);
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1885,7 +1906,13 @@ array<TriInd, 2> Triangulation<T, TNearPointLocator>::walkingSearchTrianglesAt(
 {
     const V2d<T> v = vertices[iV];
     array<TriInd, 2> out = {noNeighbor, noNeighbor};
-    const TriInd iT = walkTriangles(startVertex, v);
+    const OptionalTriInd walkResult = walkTriangles(startVertex, v);
+    if(!walkResult.hasValue())
+    {
+        handleException(
+            Error("No triangle was found at position", CDT_SOURCE_LOCATION));
+    }
+    const TriInd iT = walkResult.value();
     // Finished walk, locate point in current triangle
     const Triangle& t = triangles[iT];
     const V2d<T>& v1 = vertices[t.vertices[0]];
@@ -2566,36 +2593,36 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
         const V2d<T>& v2 = vertices[badT.vertices[2]];
         if(doubledArea(v0, v1, v2) == T(0))
         {
-            // degenerate (collinear) triangle: no well-defined circumcenter
-            continue;
+            continue; // degenerate triangle: no well-defined circumcenter
         }
         const T shortestEdge = std::min(
             distance(v0, v1), std::min(distance(v1, v2), distance(v2, v0)));
         if(shortestEdge <= minEdgeLength)
         {
-            // same minEdgeLength give-up, for triangles with no fixed edge
-            continue;
+            continue; // same minEdgeLength give-up
         }
-        const V2d<T> triCircumenter = circumcenter(v0, v1, v2);
-        if(locatePointTriangle(
-               triCircumenter, vertices[0], vertices[1], vertices[2]) ==
-           PtTriLocation::Outside)
+        const V2d<T> circumcenterPos = circumcenter(v0, v1, v2);
+        const OptionalTriInd triAtCircumcenter = walkTriangles(
+            m_nearPtLocator.nearPoint(circumcenterPos, vertices),
+            circumcenterPos);
+        if(!triAtCircumcenter.hasValue())
         {
-            continue;
+            continue; // circumcenter falls outside triangulated area
         }
 
         const VertInd budgetBeforeSplits = remainingVertexBudget;
         const TriIndVec badTris = resolveEncroachedEdges(
-            detail::toQueue(edgesEncroachedBy(triCircumenter)),
+            detail::toQueue(edgesEncroachedBy(circumcenterPos)),
             remainingVertexBudget,
             steinerVerticesOffset,
-            &triCircumenter,
+            &circumcenterPos,
             refinementCriterion,
             refinementThreshold,
             toEraseOrNull,
             minEdgeLength);
         if(!remainingVertexBudget)
             break;
+
         // a circumcenter encroaching on fixed edges:
         // split edges instead and re-visit the triangle later
         if(remainingVertexBudget != budgetBeforeSplits || !badTris.empty())
@@ -2609,32 +2636,44 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
             continue;
         }
 
-        // Find the triangle containing the circumcenter first.
-        // Skip adding a Steiner point if that triangle will be removed anyway.
-        const VertInd iVert = static_cast<VertInd>(vertices.size());
-        addNewVertex(triCircumenter, noNeighbor);
-        const VertInd walkStart =
-            m_nearPtLocator.nearPoint(triCircumenter, vertices);
-        const array<TriInd, 2> trisAt =
-            walkingSearchTrianglesAt(iVert, walkStart);
+        const TriInd iCircumcenterTri = triAtCircumcenter.value();
+        const Triangle& circumcenterTri = triangles[iCircumcenterTri];
+        const PtTriLocation::Enum loc = locatePointTriangle(
+            circumcenterPos,
+            vertices[circumcenterTri.vertices[0]],
+            vertices[circumcenterTri.vertices[1]],
+            vertices[circumcenterTri.vertices[2]]);
+        if(loc == PtTriLocation::OnVertex)
+        {
+            continue; // circumcenter coincides with an existing vertex
+        }
+        const array<TriInd, 2> trisAt = {
+            iCircumcenterTri,
+            isOnEdge(loc) ? circumcenterTri.neighbors[edgeNeighbor(loc)]
+                          : noNeighbor};
+        // Skip adding a Steiner point if the triangle will be removed anyway.
         if(toEraseOrNull &&
            (toEraseOrNull->count(trisAt[0]) || toEraseOrNull->count(trisAt[1])))
         {
-            vertices.pop_back();
-            m_vertTris.pop_back();
             continue;
         }
 
         --remainingVertexBudget;
-        insertVertex(iVert, walkStart);
-        tryAddVertexToLocator(iVert);
-        if(toEraseOrNull)
+        const VertInd iVert = static_cast<VertInd>(vertices.size());
+        addNewVertex(circumcenterPos, noNeighbor);
+#ifdef CDT_ENABLE_CALLBACK_HANDLER
+        if(m_callbackHandler)
         {
-            if(toEraseOrNull->count(trisAt[0]))
-                toEraseOrNull->insert(TriInd(triangles.size() - 2));
-            if(toEraseOrNull->count(trisAt[1]))
-                toEraseOrNull->insert(TriInd(triangles.size() - 1));
+            m_callbackHandler->onAddVertexStart(
+                iVert, AddVertexType::RefinementCircumcenter);
         }
+#endif
+        std::stack<TriInd> triStack =
+            trisAt[1] == noNeighbor
+                ? insertVertexInsideTriangle(iVert, trisAt[0])
+                : insertVertexOnEdge(iVert, trisAt[0], trisAt[1], true);
+        ensureDelaunayByEdgeFlips(iVert, triStack);
+        tryAddVertexToLocator(iVert);
 
         TriInd start = m_vertTris[iVert];
         TriInd currTri = start;

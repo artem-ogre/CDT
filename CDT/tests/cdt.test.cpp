@@ -1112,6 +1112,61 @@ TEST_CASE("Callbacks test: test aborting the calculation")
     }
 }
 
+TEST_CASE("Callbacks test: vertices added by refinement report their type")
+{
+    const std::vector<V2d<double> > vertices = {
+        {0., 0.},
+        {10., 0.},
+        {10., 10.},
+        {0., 10.},
+    };
+    const std::vector<Edge> edges = {
+        {VertInd(0), VertInd(1)},
+        {VertInd(1), VertInd(2)},
+        {VertInd(2), VertInd(3)},
+        {VertInd(3), VertInd(0)},
+    };
+
+// parameter names are used for documentation purposes, even if they are un-used
+// in the interface's default implementation
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+    struct CallbackHandler final : public CDT::ICallbackHandler
+    {
+        void onAddVertexStart(
+            const VertInd iV,
+            const AddVertexType::Enum vertexType) override
+        {
+            ++counts[vertexType];
+        }
+
+        std::map<AddVertexType::Enum, std::size_t> counts;
+    };
+#pragma GCC diagnostic pop
+
+    CallbackHandler callbackHandler;
+    auto cdt = Triangulation<double>();
+    cdt.setCallbackHandler(&callbackHandler);
+    cdt.insertVertices(vertices);
+    cdt.insertEdges(edges);
+    const std::size_t vertsBefore = cdt.vertices.size();
+    // area criterion: refinement has to insert circumcenters, and splits the
+    // boundary segments they encroach on
+    cdt.refineTriangles(
+        VertInd(10000), RefinementCriterion::LargestArea, 1.0);
+
+    REQUIRE(callbackHandler.counts[AddVertexType::UserInput] == vertices.size());
+    REQUIRE(callbackHandler.counts[AddVertexType::FixedEdgeMidpoint] == 0);
+    REQUIRE(callbackHandler.counts[AddVertexType::FixedEdgesIntersection] == 0);
+    REQUIRE(callbackHandler.counts[AddVertexType::RefinementEdgeSplit] > 0);
+    REQUIRE(callbackHandler.counts[AddVertexType::RefinementCircumcenter] > 0);
+    // refinement reports every vertex it adds exactly once
+    REQUIRE(
+        callbackHandler.counts[AddVertexType::RefinementEdgeSplit] +
+            callbackHandler.counts[AddVertexType::RefinementCircumcenter] ==
+        cdt.vertices.size() - vertsBefore);
+}
+
 #endif
 
 TEST_CASE("KDtree regression (#200)")
