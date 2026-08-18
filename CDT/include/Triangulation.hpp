@@ -2552,31 +2552,15 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
     const VertInd steinerVerticesOffset = VertInd(vertices.size());
 
     // split all the encroached constrained (fixed) edges
-    EdgeQueue encroachedEdges = detail::toQueue(findEncroachedFixedEdges());
-    while(!encroachedEdges.empty() && remainingVertexBudget > 0)
-    {
-        const Edge edge = encroachedEdges.front();
-        encroachedEdges.pop();
-        // give up on already-too-short edges rather than split forever
-        if(distance(vertices[edge.v1()], vertices[edge.v2()]) <= minEdgeLength)
-        {
-            continue;
-        }
-        const VertInd iSplitVert =
-            splitEncroachedEdge(edge, steinerVerticesOffset, toEraseOrNull);
-        --remainingVertexBudget;
-        // if resulting halves are encroached, add them to the queue
-        const Edge half1(edge.v1(), iSplitVert);
-        if(isEdgeEncroached(half1))
-        {
-            encroachedEdges.push(half1);
-        }
-        const Edge half2(iSplitVert, edge.v2());
-        if(isEdgeEncroached(half2))
-        {
-            encroachedEdges.push(half2);
-        }
-    }
+    resolveEncroachedEdges(
+        detail::toQueue(findEncroachedFixedEdges()),
+        remainingVertexBudget,
+        steinerVerticesOffset,
+        NULL, // no circumcenter yet: only edge-vs-edge encroachment matters
+        refinementCriterion,
+        refinementThreshold,
+        toEraseOrNull,
+        minEdgeLength);
 
     if(!remainingVertexBudget)
         return;
