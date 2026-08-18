@@ -263,6 +263,9 @@ bool touchesSuperTriangle(const Triangle& t)
     return t.vertices[0] < 3 || t.vertices[1] < 3 || t.vertices[2] < 3;
 }
 
+namespace detail
+{
+
 template <typename T>
 bool isEncroachingOnEdge(
     const V2d<T>& v,
@@ -298,12 +301,6 @@ T doubledArea(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c)
 }
 
 template <typename T>
-T area(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c)
-{
-    return doubledArea(a, b, c) / T(2);
-}
-
-template <typename T>
 T sineOfSmallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c)
 {
     // find sides of the smallest angle using law of sines:
@@ -314,10 +311,18 @@ T sineOfSmallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c)
     return (doubledArea(a, b, c) / sideA) / sideB;
 }
 
+} // namespace detail
+
+template <typename T>
+T area(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c)
+{
+    return detail::doubledArea(a, b, c) / T(2);
+}
+
 template <typename T>
 T smallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c)
 {
-    const T angleSine = sineOfSmallestAngle(a, b, c);
+    const T angleSine = detail::sineOfSmallestAngle(a, b, c);
     assert(angleSine >= -1 && angleSine <= 1);
     return std::asin(angleSine);
 }

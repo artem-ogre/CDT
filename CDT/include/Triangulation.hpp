@@ -1489,8 +1489,8 @@ bool Triangulation<T, TNearPointLocator>::isEdgeEncroached(
     const VertInd v2 = opposedVertex(triangles[iTopo], iT);
     const V2d<T>& edgeStart = vertices[edge.v1()];
     const V2d<T>& edgeEnd = vertices[edge.v2()];
-    return isEncroachingOnEdge(vertices[v1], edgeStart, edgeEnd) ||
-           isEncroachingOnEdge(vertices[v2], edgeStart, edgeEnd);
+    return detail::isEncroachingOnEdge(vertices[v1], edgeStart, edgeEnd) ||
+           detail::isEncroachingOnEdge(vertices[v2], edgeStart, edgeEnd);
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1498,7 +1498,8 @@ bool Triangulation<T, TNearPointLocator>::isEdgeEncroachedBy(
     const Edge& edge,
     const V2d<T>& v) const
 {
-    return isEncroachingOnEdge(v, vertices[edge.v1()], vertices[edge.v2()]);
+    return detail::isEncroachingOnEdge(
+        v, vertices[edge.v1()], vertices[edge.v2()]);
 }
 
 template <typename T, typename TNearPointLocator>
@@ -2607,7 +2608,7 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
         const V2d<T>& v0 = vertices[badT.vertices[0]];
         const V2d<T>& v1 = vertices[badT.vertices[1]];
         const V2d<T>& v2 = vertices[badT.vertices[2]];
-        if(doubledArea(v0, v1, v2) == T(0))
+        if(detail::doubledArea(v0, v1, v2) == T(0))
         {
             continue; // degenerate triangle: no well-defined circumcenter
         }
@@ -2617,7 +2618,7 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
         {
             continue; // same minEdgeLength give-up
         }
-        const V2d<T> circumcenterPos = circumcenter(v0, v1, v2);
+        const V2d<T> circumcenterPos = detail::circumcenter(v0, v1, v2);
         const OptionalTriInd triAtCircumcenter = walkTriangles(
             m_nearPtLocator.nearPoint(circumcenterPos, vertices),
             circumcenterPos);

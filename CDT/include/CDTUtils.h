@@ -549,29 +549,33 @@ CDT_EXPORT T distanceSquared(const V2d<T>& a, const V2d<T>& b);
 CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY bool
 touchesSuperTriangle(const Triangle& t);
 
+namespace detail
+{
+
 /// Check if vertex V is encroaching on diametral circle of an edge
 template <typename T>
-CDT_EXPORT bool isEncroachingOnEdge(
+bool isEncroachingOnEdge(
     const V2d<T>& v,
     const V2d<T>& edgeStart,
     const V2d<T>& edgeEnd);
 
 /// Position of ABC triangle circumcenter
 template <typename T>
-CDT_EXPORT V2d<T> circumcenter(V2d<T> a, V2d<T> b, V2d<T> c);
+V2d<T> circumcenter(V2d<T> a, V2d<T> b, V2d<T> c);
 
 /// Doubled surface area of a triangle ABC
 template <typename T>
-CDT_EXPORT T doubledArea(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
+T doubledArea(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
+
+/// Sine of smallest angle of triangle ABC
+template <typename T>
+T sineOfSmallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
+
+} // namespace detail
 
 /// Surface area of a triangle ABC
 template <typename T>
 CDT_EXPORT T area(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
-
-/// Sine of smallest angle of triangle ABC
-template <typename T>
-CDT_EXPORT T
-sineOfSmallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
 
 /// Smallest angle of triangle ABC in radians
 template <typename T>
