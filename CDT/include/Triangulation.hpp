@@ -1523,22 +1523,51 @@ EdgeVec Triangulation<T, TNearPointLocator>::findEncroachedFixedEdges() const
 }
 
 template <typename T, typename TNearPointLocator>
-EdgeVec
-Triangulation<T, TNearPointLocator>::edgesEncroachedBy(const V2d<T>& v) const
+EdgeVec Triangulation<T, TNearPointLocator>::edgesEncroachedBy(
+    const V2d<T>& v,
+    const TriInd iT) const
 {
-    // Search in all fixed edges to find edges encroached by v
+    /*
+     * A fixed edge not yet encroached by an existing vertex can only be
+     * encroached by v if v is inside the circumscribed circle of the edge's
+     * triangle on v's side: the circumscribed circles of an edge's two
+     * triangles cover the edge's diametral circle. Such triangles are visible
+     * from v, so growing from the triangle at v without crossing fixed edges
+     * reaches all of them.
+     */
     EdgeVec encroachedEdges;
-    typedef EdgeUSet::const_iterator Iter;
-    for(Iter it = fixedEdges.begin(); it != fixedEdges.end(); ++it)
+    TriIndUSet traversed;
+    std::stack<TriInd> toTraverse;
+    toTraverse.push(iT);
+    traversed.insert(iT);
+    while(!toTraverse.empty())
     {
-        if(isEdgeEncroachedBy(*it, v))
+        const Triangle& t = triangles[toTraverse.top()];
+        toTraverse.pop();
+        for(Index i(0); i < Index(3); ++i)
         {
-            encroachedEdges.push_back(*it);
+            const Edge opEdge(t.vertices[ccw(i)], t.vertices[cw(i)]);
+            if(fixedEdges.count(opEdge))
+            {
+                // both edge's triangles can be reached: avoid duplicate edges
+                if(isEdgeEncroachedBy(opEdge, v))
+                    detail::insert_unique(encroachedEdges, opEdge);
+                continue;
+            }
+            const TriInd iN = t.neighbors[opoNbr(i)];
+            if(iN == noNeighbor || traversed.count(iN))
+                continue;
+            const Triangle& n = triangles[iN];
+            if(!isInCircumcircle(
+                   v,
+                   vertices[n.vertices[0]],
+                   vertices[n.vertices[1]],
+                   vertices[n.vertices[2]]))
+                continue;
+            traversed.insert(iN);
+            toTraverse.push(iN);
         }
     }
-    // fixedEdges is a hash set: its iteration order is platform-dependent,
-    // so sort to keep refinement output deterministic
-    std::sort(encroachedEdges.begin(), encroachedEdges.end());
     return encroachedEdges;
 }
 
@@ -2613,7 +2642,8 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
 
         const VertInd budgetBeforeSplits = remainingVertexBudget;
         const TriIndVec badTris = resolveEncroachedEdges(
-            detail::toQueue(edgesEncroachedBy(circumcenterPos)),
+            detail::toQueue(
+                edgesEncroachedBy(circumcenterPos, triAtCircumcenter.value())),
             remainingVertexBudget,
             steinerVerticesOffset,
             &circumcenterPos,

@@ -1019,9 +1019,11 @@ private:
     /// Find all fixed edges encroached by its opposed vertices, sorted for
     /// deterministic processing order
     EdgeVec findEncroachedFixedEdges() const;
-    /// Find all fixed edges encroached by a given vertex, sorted for
-    /// deterministic processing order
-    EdgeVec edgesEncroachedBy(const V2d<T>& v) const;
+    /// Find all fixed edges encroached by a vertex that is about to be added
+    /// at a given position
+    /// @param v position of the vertex
+    /// @param iT triangle containing the position
+    EdgeVec edgesEncroachedBy(const V2d<T>& v, TriInd iT) const;
     /// Recursively split encroached edges
     TriIndVec resolveEncroachedEdges(
         EdgeQueue encroachedEdges,

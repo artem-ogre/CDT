@@ -1167,6 +1167,80 @@ TEST_CASE("Callbacks test: vertices added by refinement report their type")
         cdt.vertices.size() - vertsBefore);
 }
 
+TEST_CASE("Callbacks test: refinement inserts no encroaching circumcenter")
+{
+    // Square with a square hole: the fixed edges are short enough that none of
+    // them is ever both hidden behind another one and encroached, so every
+    // encroachment has to be found. Refinement looks for them only around the
+    // circumcenter instead of scanning all the fixed edges: a search that is
+    // too narrow shows up here as a circumcenter inserted inside the diametral
+    // circle of a fixed edge, which Ruppert's algorithm splits the edge for
+    const std::vector<V2d<double> > vertices = {
+        {0., 0.},
+        {10., 0.},
+        {10., 10.},
+        {0., 10.},
+        {4., 4.},
+        {6., 4.},
+        {6., 6.},
+        {4., 6.},
+    };
+    const std::vector<Edge> edges = {
+        {VertInd(0), VertInd(1)},
+        {VertInd(1), VertInd(2)},
+        {VertInd(2), VertInd(3)},
+        {VertInd(3), VertInd(0)},
+        {VertInd(4), VertInd(5)},
+        {VertInd(5), VertInd(6)},
+        {VertInd(6), VertInd(7)},
+        {VertInd(7), VertInd(4)},
+    };
+
+    struct CallbackHandler final : public CDT::ICallbackHandler
+    {
+        const Triangulation<double>* cdt = nullptr;
+        std::size_t circumcenters = 0;
+        std::size_t encroaching = 0;
+
+        void onAddVertexStart(
+            const VertInd iV,
+            const AddVertexType::Enum vertexType) override
+        {
+            if(vertexType != AddVertexType::RefinementCircumcenter)
+                return;
+            ++circumcenters;
+            const V2d<double>& v = cdt->vertices[iV];
+            for(const Edge& e : cdt->fixedEdges)
+            {
+                const V2d<double>& start = cdt->vertices[e.v1()];
+                const V2d<double>& end = cdt->vertices[e.v2()];
+                // inside the diametral circle: the angle at v is obtuse
+                if((start.x - v.x) * (end.x - v.x) +
+                       (start.y - v.y) * (end.y - v.y) <
+                   0.)
+                {
+                    ++encroaching;
+                }
+            }
+        }
+    };
+
+    CallbackHandler callbackHandler;
+    auto cdt = Triangulation<double>();
+    cdt.setCallbackHandler(&callbackHandler);
+    callbackHandler.cdt = &cdt;
+    cdt.insertVertices(vertices);
+    cdt.insertEdges(edges);
+    auto toErase = cdt.collectOuterTrianglesAndHoles();
+    // small enough to make refinement go a few triangles away from the
+    // circumcenter's own triangle when looking for encroached edges
+    cdt.refineTriangles(
+        VertInd(20000), RefinementCriterion::LargestArea, 0.05, &toErase);
+
+    REQUIRE(callbackHandler.circumcenters > std::size_t(0));
+    REQUIRE(callbackHandler.encroaching == std::size_t(0));
+}
+
 #endif
 
 TEST_CASE("KDtree regression (#200)")
