@@ -1470,12 +1470,39 @@ bool Triangulation<T, TNearPointLocator>::isRefinementNeeded(
     switch(refinementCriterion)
     {
     case RefinementCriterion::SmallestAngle:
-        return smallestAngle(a, b, c) < refinementThreshold;
+        if(smallestAngle(a, b, c) >= refinementThreshold)
+            return false;
+        if(isSmallestAngleFixed(tri))
+            return false; // fixed-edge sharp angle is impossible to refine
+        return true;
     case RefinementCriterion::LargestArea:
         return area(a, b, c) > refinementThreshold;
     }
     assert(false); // unreachable code
     return false;
+}
+
+template <typename T, typename TNearPointLocator>
+bool Triangulation<T, TNearPointLocator>::isSmallestAngleFixed(
+    const Triangle& tri) const
+{
+    Index iApex(0);
+    T shortestSqLen = distanceSquared(
+        vertices[tri.vertices[ccw(Index(0))]],
+        vertices[tri.vertices[cw(Index(0))]]);
+    for(Index i(1); i < Index(3); ++i)
+    {
+        const T sqLen = distanceSquared(
+            vertices[tri.vertices[ccw(i)]], vertices[tri.vertices[cw(i)]]);
+        if(sqLen < shortestSqLen)
+        {
+            shortestSqLen = sqLen;
+            iApex = i;
+        }
+    }
+    const VertInd apex = tri.vertices[iApex];
+    return fixedEdges.count(Edge(apex, tri.vertices[ccw(iApex)])) &&
+           fixedEdges.count(Edge(apex, tri.vertices[cw(iApex)]));
 }
 
 template <typename T, typename TNearPointLocator>

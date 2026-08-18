@@ -1013,6 +1013,9 @@ private:
         const Triangle& tri,
         RefinementCriterion::Enum refinementCriterion,
         T refinementThreshold) const;
+    /// Check if the triangle's smallest angle is enclosed by two fixed edges:
+    /// such an angle comes from the input and can not be made any larger
+    bool isSmallestAngleFixed(const Triangle& tri) const;
     /// Check if edge is encroached by its opposed vertices
     bool isEdgeEncroached(const Edge& edge) const;
     bool isEdgeEncroachedBy(const Edge& edge, const V2d<T>& v) const;
