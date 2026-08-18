@@ -495,12 +495,22 @@ private:
                             CDT::RefinementCriterion::SmallestAngle
                         ? CDT::degToRad(CoordType(m_refinementThreshold))
                         : m_refinementThreshold;
-                m_cdt.refineTriangles(
-                    m_refinementLimit,
-                    m_refinementCriterion,
-                    threshold,
-                    &toErase,
-                    m_minRefinementEdgeLength);
+                try
+                {
+                    m_cdt.refineTriangles(
+                        m_refinementLimit,
+                        m_refinementCriterion,
+                        threshold,
+                        &toErase,
+                        m_minRefinementEdgeLength);
+                }
+                catch(const CDT::Error& e)
+                {
+                    QMessageBox errBox;
+                    errBox.setText(e.what());
+                    errBox.exec();
+                    return;
+                }
             }
 
             if(m_finalizeType != FinalizeTriangulation::DontFinalize)
