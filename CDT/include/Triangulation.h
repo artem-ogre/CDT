@@ -754,7 +754,7 @@ public:
             RefinementCriterion::SmallestAngle,
         T refinementThreshold = degToRad(T(20)),
         TriIndUSet* toEraseOrNull = NULL,
-        T minEdgeLength = T(0));
+        T minEdgeLength = T(1e-6));
     /**
      * Erase triangles adjacent to super triangle
      *
@@ -1029,16 +1029,15 @@ private:
         EdgeQueue encroachedEdges,
         VertInd& newVertBudget,
         VertInd steinerVerticesOffset,
-        const V2d<T>* circumcenterOrNull = NULL,
-        RefinementCriterion::Enum refinementCriterion =
-            RefinementCriterion::SmallestAngle,
-        T badTriangleThreshold = T(0),
-        TriIndUSet* toEraseOrNull = NULL,
-        T minEdgeLength = T(0));
+        const V2d<T>* circumcenterOrNull,
+        RefinementCriterion::Enum refinementCriterion,
+        T badTriangleThreshold,
+        TriIndUSet* toEraseOrNull,
+        T minEdgeLength);
     VertInd splitEncroachedEdge(
         Edge edge,
         VertInd steinerVerticesOffset,
-        TriIndUSet* toEraseOrNull = NULL);
+        TriIndUSet* toEraseOrNull);
     void changeNeighbor(TriInd iT, TriInd oldNeighbor, TriInd newNeighbor);
     void changeNeighbor(
         TriInd iT,
