@@ -1518,10 +1518,7 @@ TEST_CASE(
         Catch::Matchers::WithinRel(subsegmentLengths[1], 1e-9));
 }
 
-TEST_CASE(
-    "Ruppert refinement near close non-adjacent fixed edges terminates "
-    "given minEdgeLength",
-    "")
+TEST_CASE("Ruppert refinement near close non-adjacent fixed edges terminates", "")
 {
     const std::vector<V2d<double> > vertices = {
         {0., 0.},
@@ -1534,16 +1531,28 @@ TEST_CASE(
         {VertInd(2), VertInd(3)},
     };
 
-    SECTION("without minEdgeLength: doesn't settle within a small budget")
+    SECTION("without minEdgeLength: converges within a small budget")
     {
         auto cdt = Triangulation<double>();
         cdt.insertVertices(vertices);
         cdt.insertEdges(edges);
         const std::size_t vertsBefore = cdt.vertices.size();
         const VertInd budget(500);
+        const double minAngle = degToRad(20.);
         cdt.refineTriangles(
-            budget, RefinementCriterion::SmallestAngle, degToRad(20.));
-        REQUIRE(cdt.vertices.size() == vertsBefore + std::size_t(budget));
+            budget, RefinementCriterion::SmallestAngle, minAngle);
+        REQUIRE(CDT::verifyTopology(cdt));
+        REQUIRE(cdt.vertices.size() < vertsBefore + std::size_t(budget));
+        for(const auto& t : cdt.triangles)
+        {
+            if(touchesSuperTriangle(t))
+                continue;
+            const double angle = smallestAngle(
+                cdt.vertices[t.vertices[0]],
+                cdt.vertices[t.vertices[1]],
+                cdt.vertices[t.vertices[2]]);
+            REQUIRE(angle >= minAngle - 1e-9);
+        }
     }
     SECTION("with minEdgeLength: converges well under budget")
     {
@@ -1558,6 +1567,49 @@ TEST_CASE(
             0.005);
         REQUIRE(CDT::verifyTopology(cdt));
         REQUIRE(cdt.vertices.size() < std::size_t(2000));
+    }
+}
+
+TEST_CASE(
+    "Ruppert refinement does not insert a circumcenter that encroaches "
+    "on fixed edges",
+    "")
+{
+    // A circumcenter encroaching on fixed edges used to be inserted anyway
+    // once splitting those edges produced no new bad triangles. Refining the
+    // same geometry then took about twice as many vertices.
+    const std::vector<V2d<double> > vertices = {
+        {0., 0.},
+        {100., 0.},
+        {100., 1.},
+        {0., 1.},
+    };
+    const std::vector<Edge> edges = {
+        {VertInd(0), VertInd(1)},
+        {VertInd(1), VertInd(2)},
+        {VertInd(2), VertInd(3)},
+        {VertInd(3), VertInd(0)},
+    };
+    auto cdt = Triangulation<double>();
+    cdt.insertVertices(vertices);
+    cdt.insertEdges(edges);
+    const std::size_t vertsBefore = cdt.vertices.size();
+
+    const double minAngle = degToRad(20.);
+    cdt.refineTriangles(
+        VertInd(10000), RefinementCriterion::SmallestAngle, minAngle);
+
+    REQUIRE(CDT::verifyTopology(cdt));
+    REQUIRE(cdt.vertices.size() < vertsBefore + std::size_t(150));
+    for(const auto& t : cdt.triangles)
+    {
+        if(touchesSuperTriangle(t))
+            continue;
+        const double angle = smallestAngle(
+            cdt.vertices[t.vertices[0]],
+            cdt.vertices[t.vertices[1]],
+            cdt.vertices[t.vertices[2]]);
+        REQUIRE(angle >= minAngle - 1e-9);
     }
 }
 

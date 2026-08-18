@@ -2584,6 +2584,7 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
             continue;
         }
 
+        const VertInd budgetBeforeSplits = remainingVertexBudget;
         const TriIndVec badTris = resolveEncroachedEdges(
             detail::toQueue(edgesEncroachedBy(triCircumenter)),
             remainingVertexBudget,
@@ -2595,7 +2596,9 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
             minEdgeLength);
         if(!remainingVertexBudget)
             break;
-        if(!badTris.empty())
+        // a circumcenter encroaching on fixed edges:
+        // split edges instead and re-visit the triangle later
+        if(remainingVertexBudget != budgetBeforeSplits || !badTris.empty())
         {
             typedef TriIndVec::const_iterator It;
             for(It it = badTris.begin(); it != badTris.end(); ++it)
