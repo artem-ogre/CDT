@@ -1609,6 +1609,32 @@ TEST_CASE(
             nullptr,
             1e-6),
         CDT::Error);
+    // an invalid split is rejected before anything is modified: refinement is
+    // aborted part-way, leaving a valid and usable triangulation behind
+    REQUIRE(CDT::verifyTopology(cdt));
+}
+
+TEST_CASE(
+    "Ruppert refinement aborted by an invalid split leaves a usable "
+    "triangulation",
+    "")
+{
+    const auto [vv, ee] =
+        readInputFromFile<double>("inputs/issue-142-double-hanging-edge.txt");
+    auto cdt = Triangulation<double>();
+    cdt.insertVertices(vv);
+    cdt.insertEdges(ee);
+    const std::size_t vertsBefore = cdt.vertices.size();
+
+    REQUIRE_THROWS_AS(
+        cdt.refineTriangles(
+            VertInd(10000), RefinementCriterion::SmallestAngle, degToRad(20.)),
+        CDT::Error);
+
+    REQUIRE(CDT::verifyTopology(cdt));
+    REQUIRE(cdt.vertices.size() > vertsBefore);
+    REQUIRE_NOTHROW(cdt.eraseOuterTrianglesAndHoles());
+    REQUIRE(CDT::verifyTopology(cdt));
 }
 
 TEST_CASE(
