@@ -547,6 +547,17 @@ T lerp(const T& a, const T& b, const T t)
     return (T(1) - t) * a + t * b;
 }
 
+/// Whether the angle at apex between apex->a and apex->b is smaller than 60°
+template <typename T>
+bool isAngleAtApexSmall(const V2d<T>& apex, const V2d<T>& a, const V2d<T>& b)
+{
+    const T ux = a.x - apex.x, uy = a.y - apex.y;
+    const T wx = b.x - apex.x, wy = b.y - apex.y;
+    const T dot = ux * wx + uy * wy;
+    // cos(60°) = 0.5
+    return dot > T(0) && T(2) * dot > distance(apex, a) * distance(apex, b);
+}
+
 // Precondition: ab and cd intersect normally
 template <typename T>
 V2d<T> intersectionPosition(
@@ -1608,10 +1619,10 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
     T split = T(0.5);
     if((edge.v1() < steinerVerticesOffset &&
         edge.v2() >= steinerVerticesOffset &&
-        hasAnotherFixedEdge(edge.v1(), edge)) ||
+        hasAnotherFixedEdgeAtSmallAngle(edge.v1(), edge)) ||
        (edge.v2() < steinerVerticesOffset &&
         edge.v1() >= steinerVerticesOffset &&
-        hasAnotherFixedEdge(edge.v2(), edge)))
+        hasAnotherFixedEdgeAtSmallAngle(edge.v2(), edge)))
     {
         // In Ruppert's paper, he used D(0.01) factor to divide edge length, but
         // that introduces FP rounding errors, so it's avoided.
@@ -2451,14 +2462,17 @@ bool Triangulation<T, TNearPointLocator>::hasEdge(
     return edgeTriangles(a, b).first != invalidIndexSizeType;
 }
 
-/// Checks whether vertex v has a fixed edge, other than excludeEdge,
-/// incident to it: recognizes a subsegment endpoint as a shared corner even
-/// after v's segments have already been split.
+/// Checks whether vertex v has a fixed edge, other than excludeEdge, incident
+/// to it at a small angle: recognizes a subsegment endpoint as a shared corner
+/// even after v's segments have already been split.
 template <typename T, typename TNearPointLocator>
-bool Triangulation<T, TNearPointLocator>::hasAnotherFixedEdge(
+bool Triangulation<T, TNearPointLocator>::hasAnotherFixedEdgeAtSmallAngle(
     const VertInd v,
     const Edge& excludeEdge) const
 {
+    // splits stay on the original segment: its direction from v is unchanged
+    const VertInd iVOther =
+        excludeEdge.v1() == v ? excludeEdge.v2() : excludeEdge.v1();
     const TriInd triStart = m_vertTris[v];
     assert(triStart != noNeighbor);
     TriInd iT = triStart;
@@ -2469,7 +2483,9 @@ bool Triangulation<T, TNearPointLocator>::hasAnotherFixedEdge(
         VertInd iV;
         tie(iTNext, iV) = t.next(v);
         const Edge candidate(v, iV);
-        if(candidate != excludeEdge && fixedEdges.count(candidate))
+        if(candidate != excludeEdge && fixedEdges.count(candidate) &&
+           detail::isAngleAtApexSmall(
+               vertices[v], vertices[iVOther], vertices[iV]))
         {
             return true;
         }

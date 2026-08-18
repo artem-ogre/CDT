@@ -1168,7 +1168,8 @@ private:
     void insertVertices_KDTreeBFS(VertInd superGeomVertCount, Box2d<T> box);
     std::pair<TriInd, TriInd> edgeTriangles(VertInd a, VertInd b) const;
     bool hasEdge(VertInd a, VertInd b) const;
-    bool hasAnotherFixedEdge(VertInd v, const Edge& excludeEdge) const;
+    bool hasAnotherFixedEdgeAtSmallAngle(VertInd v, const Edge& excludeEdge)
+        const;
     void setAdjacentTriangle(const VertInd v, const TriInd t);
     void pivotVertexTriangleCW(VertInd v);
     /// Add vertex to nearest-point locator if locator is initialized
