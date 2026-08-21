@@ -150,7 +150,7 @@ void RemapEdges(
 /**
  * Remap vertex indices in edges (in-place) using given vertex-index mapping.
  *
- * @note Mapping can be a result of RemoveDuplicates function
+ * @note Mapping can be a result of CDT::RemoveDuplicates function
  * @param[in,out] edges collection of edges to remap
  * @param mapping vertex-index mapping
  */

@@ -92,9 +92,9 @@ struct CDT_EXPORT RefinementCriterion
 };
 
 /**
- * Refinements that `refineTriangles` was not able to perform
+ * Refinements that Triangulation::refineTriangles was not able to perform
  * @note recorded triangles are not necessarily present in the resulting
- * triangulation: refining the triangles around them can replace them
+ * triangulation: refining the surrounding triangles can replace them
  * @note a triangle or an edge is recorded once per attempt to refine it and
  * is re-visited after nearby splits: by default the vectors may contain
  * duplicates, call #deduplicate to remove them
@@ -759,7 +759,7 @@ public:
      * @param toEraseOrNull if not null, triangles in this set are skipped as
      * refinement candidates and triangles replacing them are added to it.
      * Must come from a `collectXXX` method; caller then passes it to
-     * `finalizeTriangulation`.
+     * #finalizeTriangulation.
      * @param minEdgeLength don't split edges/triangles already this short:
      * acute corners and close fixed edges can otherwise force ever-shrinking
      * splits. 0 (default) never gives up.
@@ -793,19 +793,19 @@ public:
     void eraseOuterTrianglesAndHoles();
     /**
      * Collect triangles adjacent to super-triangle: same triangles that
-     * `eraseSuperTriangle` would remove.
+     * #eraseSuperTriangle would remove.
      * @throw FinalizedError if triangulation was already finalized
      */
     TriIndUSet collectSuperTriangle() const;
     /**
      * Collect triangles outside of constrained boundary: same triangles that
-     * `eraseOuterTriangles` would remove.
+     * #eraseOuterTriangles would remove.
      * @throw FinalizedError if triangulation was already finalized
      */
     TriIndUSet collectOuterTriangles() const;
     /**
      * Collect triangles outside of constrained boundary and auto-detected
-     * holes: same triangles that `eraseOuterTrianglesAndHoles` would remove.
+     * holes: same triangles that #eraseOuterTrianglesAndHoles would remove.
      * @throw FinalizedError if triangulation was already finalized
      */
     TriIndUSet collectOuterTrianglesAndHoles() const;
@@ -814,7 +814,7 @@ public:
      * Adjust internal triangulation state accordingly.
      * @param removedTriangles indices of triangles to remove
      * @note pair with one of the `collectXXX` methods to combine erasing with
-     * `refineTriangles`
+     * #refineTriangles
      * @note invalidates caller-held vertex indices and edges
      * @throw FinalizedError if triangulation was already finalized
      */
