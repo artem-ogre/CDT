@@ -167,6 +167,7 @@ public:
         , m_fixDuplicates(true)
         , m_isHidePoints(false)
         , m_isDisplayIndices(false)
+        , m_isHighlightUnrefined(false)
         , m_translation(0., 0.)
         , m_scale(1.0)
     {
@@ -324,6 +325,12 @@ public slots:
         update();
     }
 
+    void highlightUnrefined(int isHighlightUnrefined)
+    {
+        m_isHighlightUnrefined = (isHighlightUnrefined != 0);
+        update();
+    }
+
     void prtScn()
     {
         QFile file("cdt_screenshot.png");
@@ -399,8 +406,34 @@ private:
         inStream.skipWhiteSpace();
     }
 
+    void storeUnrefined(const CDT::TriVerticesVec& tris)
+    {
+        typedef CDT::TriVerticesVec::const_iterator Cit;
+        for(Cit t = tris.begin(); t != tris.end(); ++t)
+        {
+            const CDT::array<V2d, 3> tri = {
+                m_cdt.vertices[(*t)[0]],
+                m_cdt.vertices[(*t)[1]],
+                m_cdt.vertices[(*t)[2]]};
+            m_unrefinedTris.push_back(tri);
+        }
+    }
+
+    void storeUnrefined(const CDT::EdgeVec& edges)
+    {
+        typedef CDT::EdgeVec::const_iterator Cit;
+        for(Cit e = edges.begin(); e != edges.end(); ++e)
+        {
+            const CDT::array<V2d, 2> edge = {
+                m_cdt.vertices[e->v1()], m_cdt.vertices[e->v2()]};
+            m_unrefinedEdges.push_back(edge);
+        }
+    }
+
     void updateCDT()
     {
+        m_unrefinedTris.clear();
+        m_unrefinedEdges.clear();
         m_cdt = Triangulation(
             m_vertexInsertionOrder,
             m_intersectingEdgesStrategy,
@@ -497,12 +530,21 @@ private:
                         : m_refinementThreshold;
                 try
                 {
-                    m_cdt.refineTriangles(
+                    CDT::Unrefined unrefined = m_cdt.refineTriangles(
                         m_refinementLimit,
                         m_refinementCriterion,
                         threshold,
                         &toErase,
                         m_minRefinementEdgeLength);
+                    unrefined.deduplicate();
+                    // store positions: finalizing invalidates the indices
+                    storeUnrefined(unrefined.short_edge);
+                    storeUnrefined(unrefined.degenerate);
+                    storeUnrefined(unrefined.circumcenter_outside);
+                    storeUnrefined(unrefined.circumcenter_on_vertex);
+                    storeUnrefined(unrefined.sharp_fixed_corner);
+                    storeUnrefined(unrefined.short_edges);
+                    storeUnrefined(unrefined.mid_outside_neighbours);
                 }
                 catch(const CDT::Error& e)
                 {
@@ -584,6 +626,8 @@ private:
         const QColor pointColor(3, 102, 214);
         const QColor pointLabelColor(150, 0, 150);
         const QColor triangleLabelColor(0, 150, 150);
+        const QColor unrefinedColor(200, 30, 30);
+        const QColor unrefinedBrushColor(255, 80, 80, 90);
 
         QPainter p(pd);
         p.setRenderHints(QPainter::Antialiasing);
@@ -691,6 +735,33 @@ private:
             const V2d& v1 = m_cdt.vertices[e->v1()];
             const V2d& v2 = m_cdt.vertices[e->v2()];
             p.drawLine(sceneToScreen(v1), sceneToScreen(v2));
+        }
+        // triangles and fixed edges that refinement was not able to refine
+        if(m_isHighlightUnrefined)
+        {
+            pen.setColor(unrefinedColor);
+            pen.setWidthF(2.0);
+            p.setPen(pen);
+            p.setBrush(QBrush(unrefinedBrushColor));
+            typedef std::vector<CDT::array<V2d, 3> >::const_iterator TUit;
+            for(TUit t = m_unrefinedTris.begin(); t != m_unrefinedTris.end();
+                ++t)
+            {
+                const CDT::array<QPointF, 3> pts = {
+                    sceneToScreen((*t)[0]),
+                    sceneToScreen((*t)[1]),
+                    sceneToScreen((*t)[2])};
+                p.drawPolygon(pts.data(), pts.size());
+            }
+            p.setBrush(QBrush(Qt::white));
+            pen.setWidthF(4.0);
+            p.setPen(pen);
+            typedef std::vector<CDT::array<V2d, 2> >::const_iterator EUit;
+            for(EUit e = m_unrefinedEdges.begin(); e != m_unrefinedEdges.end();
+                ++e)
+            {
+                p.drawLine(sceneToScreen((*e)[0]), sceneToScreen((*e)[1]));
+            }
         }
         // last added edge
         if(m_edgeLimit && m_edgeLimit <= m_edges.size())
@@ -808,6 +879,9 @@ private:
     bool m_fixDuplicates;
     bool m_isHidePoints;
     bool m_isDisplayIndices;
+    bool m_isHighlightUnrefined;
+    std::vector<CDT::array<V2d, 3> > m_unrefinedTris;
+    std::vector<CDT::array<V2d, 2> > m_unrefinedEdges;
 
     QPointF m_prevMousePos;
     QPointF m_translation;
@@ -1009,9 +1083,20 @@ public:
         m_cdtWidget->hidePoints(0);
         hidePoints->setChecked(false);
 
+        QCheckBox* highlightUnrefined =
+            new QCheckBox(QStringLiteral("Highlight unrefined"));
+        connect(
+            highlightUnrefined,
+            SIGNAL(stateChanged(int)),
+            m_cdtWidget,
+            SLOT(highlightUnrefined(int)));
+        m_cdtWidget->highlightUnrefined(0);
+        highlightUnrefined->setChecked(false);
+
         QFormLayout* visOptions = new QFormLayout;
         visOptions->addRow(displayIndices);
         visOptions->addRow(hidePoints);
+        visOptions->addRow(highlightUnrefined);
         QGroupBox* visOptionsGroup = new QGroupBox("Visualization");
         visOptionsGroup->setLayout(visOptions);
 

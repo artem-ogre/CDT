@@ -92,6 +92,37 @@ struct CDT_EXPORT RefinementCriterion
 };
 
 /**
+ * Refinements that `refineTriangles` was not able to perform
+ * @note recorded triangles are not necessarily present in the resulting
+ * triangulation: refining the triangles around them can replace them
+ * @note a triangle or an edge is recorded once per attempt to refine it and
+ * is re-visited after nearby splits: by default the vectors may contain
+ * duplicates, call #deduplicate to remove them
+ */
+struct CDT_EXPORT Unrefined
+{
+    /// triangles whose shortest edge is shorter than the threshold
+    TriVerticesVec short_edge;
+    /// degenerate (collinear) triangles: they have no circumcenter
+    TriVerticesVec degenerate;
+    /// triangles whose circumcenter is outside the triangulated area
+    TriVerticesVec circumcenter_outside;
+    /// triangles whose circumcenter coincides with an existing vertex
+    TriVerticesVec circumcenter_on_vertex;
+    /// triangles whose smallest angle is enclosed by two fixed edges: such an
+    /// angle comes from the input and can not be made any larger
+    TriVerticesVec sharp_fixed_corner;
+    /// fixed edges that are shorter than the threshold
+    EdgeVec short_edges;
+    /// fixed edges whose mid-point falls outside of the edge's neighbours:
+    /// inserting such vertex breaks the triangulation's topology
+    EdgeVec mid_outside_neighbours;
+
+    /// Sort each of the vectors and remove the duplicates from it
+    void deduplicate();
+};
+
+/**
  * Type used for storing layer depths for triangles
  * @note LayerDepth should support 60K+ layers, which could be to much or
  * too little for some use cases. Feel free to re-define this typedef.
@@ -732,9 +763,10 @@ public:
      * @param minEdgeLength don't split edges/triangles already this short:
      * acute corners and close fixed edges can otherwise force ever-shrinking
      * splits. 0 (default) never gives up.
+     * @return refinements that could not be performed
      * @throw FinalizedError if triangulation was already finalized
      */
-    void refineTriangles(
+    Unrefined refineTriangles(
         VertInd maxVerticesToInsert,
         RefinementCriterion::Enum refinementCriterion =
             RefinementCriterion::SmallestAngle,
@@ -1014,11 +1046,13 @@ private:
         RefinementCriterion::Enum refinementCriterion,
         T badTriangleThreshold,
         TriIndUSet* toEraseOrNull,
-        T minEdgeLength);
-    VertInd splitEncroachedEdge(
+        T minEdgeLength,
+        Unrefined& unrefined);
+    OptionalVertInd splitEncroachedEdge(
         Edge edge,
         VertInd steinerVerticesOffset,
-        TriIndUSet* toEraseOrNull);
+        TriIndUSet* toEraseOrNull,
+        Unrefined& unrefined);
     void changeNeighbor(TriInd iT, TriInd oldNeighbor, TriInd newNeighbor);
     void changeNeighbor(
         TriInd iT,

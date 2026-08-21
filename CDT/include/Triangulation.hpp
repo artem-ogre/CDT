@@ -32,6 +32,14 @@ inline EdgeQueue toQueue(const EdgeVec& edges)
     return EdgeQueue(EdgeQueue::container_type(edges.begin(), edges.end()));
 }
 
+/// Sort a vector and remove its duplicate elements
+template <typename TVec>
+void sortUnique(TVec& v)
+{
+    std::sort(v.begin(), v.end());
+    v.erase(std::unique(v.begin(), v.end()), v.end());
+}
+
 namespace defaults
 {
 
@@ -44,6 +52,17 @@ const float minDistToConstraintEdge(0);
 } // namespace defaults
 
 } // namespace detail
+
+CDT_INLINE_IF_HEADER_ONLY void Unrefined::deduplicate()
+{
+    detail::sortUnique(short_edge);
+    detail::sortUnique(degenerate);
+    detail::sortUnique(circumcenter_outside);
+    detail::sortUnique(circumcenter_on_vertex);
+    detail::sortUnique(sharp_fixed_corner);
+    detail::sortUnique(short_edges);
+    detail::sortUnique(mid_outside_neighbours);
+}
 
 template <typename T, typename TNearPointLocator>
 Triangulation<T, TNearPointLocator>::Triangulation()
@@ -1565,7 +1584,8 @@ TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
     const RefinementCriterion::Enum refinementCriterion,
     const T badTriangleThreshold,
     TriIndUSet* const toEraseOrNull,
-    const T minEdgeLength)
+    const T minEdgeLength,
+    Unrefined& unrefined)
 {
     std::vector<TriInd> badTriangles;
 
@@ -1580,11 +1600,15 @@ TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
         // give up on already-too-short edges rather than split forever
         if(distance(vertices[edge.v1()], vertices[edge.v2()]) <= minEdgeLength)
         {
+            unrefined.short_edges.push_back(edge);
             continue;
         }
         // split encroached edge
-        const VertInd iSplitVert =
-            splitEncroachedEdge(edge, steinerVerticesOffset, toEraseOrNull);
+        const OptionalVertInd splitVert = splitEncroachedEdge(
+            edge, steinerVerticesOffset, toEraseOrNull, unrefined);
+        if(!splitVert.hasValue())
+            continue;
+        const VertInd iSplitVert = splitVert.value();
         --remainingVertexBudget;
 
         const TriInd start = m_vertTris[iSplitVert];
@@ -1619,10 +1643,11 @@ TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
 }
 
 template <typename T, typename TNearPointLocator>
-VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
+OptionalVertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
     const Edge edge,
     const VertInd steinerVerticesOffset,
-    TriIndUSet* const toEraseOrNull)
+    TriIndUSet* const toEraseOrNull,
+    Unrefined& unrefined)
 {
     const V2d<T>& start = vertices[edge.v1()];
     const V2d<T>& end = vertices[edge.v2()];
@@ -1665,21 +1690,19 @@ VertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
     const OptionalVertInd iMid = splitFixedEdgeAt(
         edge, mid, iT, iTopo, AddVertexType::RefinementEdgeSplit);
     if(!iMid.hasValue())
-        handleException(Error(
-            "Could not split encroached edge (" + CDT::to_string(edge.v1()) +
-                ", " + CDT::to_string(edge.v2()) +
-                "): computed split vertex is invalid",
-            CDT_SOURCE_LOCATION));
-    // splitting reuses iT/iTopo for two of the four resulting triangles and
-    // appends the other two: propagate erasure marks to the new triangles
-    if(toEraseOrNull)
     {
+        unrefined.mid_outside_neighbours.push_back(edge);
+    }
+    else if(toEraseOrNull)
+    {
+        // splitting reuses iT/iTopo for two of the four resulting triangles and
+        // appends the other two: propagate erasure marks to the new triangles
         if(toEraseOrNull->count(iT))
             toEraseOrNull->insert(TriInd(triangles.size() - 2));
         if(toEraseOrNull->count(iTopo))
             toEraseOrNull->insert(TriInd(triangles.size() - 1));
     }
-    return iMid.value();
+    return iMid;
 }
 
 /* Flip edge between T and Topo:
@@ -2550,7 +2573,7 @@ void Triangulation<T, TNearPointLocator>::tryInitNearestPointLocator()
 }
 
 template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::refineTriangles(
+Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
     const VertInd maxVerticesToInsert,
     const RefinementCriterion::Enum refinementCriterion,
     const T refinementThreshold,
@@ -2562,6 +2585,7 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
 
     tryInitNearestPointLocator();
 
+    Unrefined unrefined;
     VertInd remainingVertexBudget = maxVerticesToInsert;
     const VertInd steinerVerticesOffset = VertInd(vertices.size());
 
@@ -2574,10 +2598,8 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
         refinementCriterion,
         refinementThreshold,
         toEraseOrNull,
-        minEdgeLength);
-
-    if(!remainingVertexBudget)
-        return;
+        minEdgeLength,
+        unrefined);
 
     // refine triangulation by inserting bad-quality triangles' circumcenters
     TriIndQueue badTriangles;
@@ -2608,13 +2630,17 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
         const V2d<T>& v2 = vertices[badT.vertices[2]];
         if(detail::doubledArea(v0, v1, v2) == T(0))
         {
-            continue; // degenerate triangle: no well-defined circumcenter
+            // degenerate triangle: no well-defined circumcenter
+            unrefined.degenerate.push_back(badT.vertices);
+            continue;
         }
         const T shortestEdge = std::min(
             distance(v0, v1), std::min(distance(v1, v2), distance(v2, v0)));
         if(shortestEdge <= minEdgeLength)
         {
-            continue; // same minEdgeLength give-up
+            // same minEdgeLength give-up
+            unrefined.short_edge.push_back(badT.vertices);
+            continue;
         }
         const V2d<T> circumcenterPos = detail::circumcenter(v0, v1, v2);
         const OptionalTriInd triAtCircumcenter = walkTriangles(
@@ -2622,7 +2648,9 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
             circumcenterPos);
         if(!triAtCircumcenter.hasValue())
         {
-            continue; // circumcenter falls outside triangulated area
+            // circumcenter falls outside triangulated area
+            unrefined.circumcenter_outside.push_back(badT.vertices);
+            continue;
         }
 
         const VertInd budgetBeforeSplits = remainingVertexBudget;
@@ -2635,7 +2663,8 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
             refinementCriterion,
             refinementThreshold,
             toEraseOrNull,
-            minEdgeLength);
+            minEdgeLength,
+            unrefined);
         if(!remainingVertexBudget)
             break;
 
@@ -2661,7 +2690,9 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
             vertices[circumcenterTri.vertices[2]]);
         if(loc == PtTriLocation::OnVertex)
         {
-            continue; // circumcenter coincides with an existing vertex
+            // circumcenter coincides with an existing vertex
+            unrefined.circumcenter_on_vertex.push_back(badT.vertices);
+            continue;
         }
         const array<TriInd, 2> trisAt = {
             iCircumcenterTri,
@@ -2705,6 +2736,30 @@ void Triangulation<T, TNearPointLocator>::refineTriangles(
             currTri = t.next(iVert).first;
         } while(currTri != start);
     }
+
+    // sharp corners that come from the input are impossible to refine: report
+    // the triangles that are left too sharp because of them
+    if(refinementCriterion == RefinementCriterion::SmallestAngle)
+    {
+        for(TriInd iT(0), n(triangles.size()); iT < n; ++iT)
+        {
+            const Triangle& t = triangles[iT];
+            if(touchesSuperTriangle(t) ||
+               (toEraseOrNull && toEraseOrNull->count(iT)))
+            {
+                continue;
+            }
+            if(smallestAngle(
+                   vertices[t.vertices[0]],
+                   vertices[t.vertices[1]],
+                   vertices[t.vertices[2]]) < refinementThreshold &&
+               isSmallestAngleFixed(t))
+            {
+                unrefined.sharp_fixed_corner.push_back(t.vertices);
+            }
+        }
+    }
+    return unrefined;
 }
 
 } // namespace CDT

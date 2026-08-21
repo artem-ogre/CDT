@@ -363,6 +363,7 @@ typedef std::queue<TriInd> TriIndQueue;           ///< Queue of triangles
 typedef unordered_set<Edge> EdgeUSet;             ///< Hash table of edges
 typedef unordered_set<TriInd> TriIndUSet;         ///< Hash table of triangles
 typedef unordered_map<TriInd, TriInd> TriIndUMap; ///< Triangle hash map
+typedef std::vector<VerticesArr3> TriVerticesVec; ///< Triangles (vertices-only)
 
 /// Triangulation triangle (counter-clockwise winding)
 /*

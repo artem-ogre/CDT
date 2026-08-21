@@ -1150,10 +1150,10 @@ TEST_CASE("Callbacks test: vertices added by refinement report their type")
     const std::size_t vertsBefore = cdt.vertices.size();
     // area criterion: refinement has to insert circumcenters, and splits the
     // boundary segments they encroach on
-    cdt.refineTriangles(
-        VertInd(10000), RefinementCriterion::LargestArea, 1.0);
+    cdt.refineTriangles(VertInd(10000), RefinementCriterion::LargestArea, 1.0);
 
-    REQUIRE(callbackHandler.counts[AddVertexType::UserInput] == vertices.size());
+    REQUIRE(
+        callbackHandler.counts[AddVertexType::UserInput] == vertices.size());
     REQUIRE(callbackHandler.counts[AddVertexType::FixedEdgeMidpoint] == 0);
     REQUIRE(callbackHandler.counts[AddVertexType::FixedEdgesIntersection] == 0);
     REQUIRE(callbackHandler.counts[AddVertexType::RefinementEdgeSplit] > 0);
@@ -1558,8 +1558,16 @@ TEST_CASE("Ruppert refinement with zero threshold is a no-op", "")
     cdt.insertEdges(edges);
     const std::size_t vertsBefore = cdt.vertices.size();
 
-    cdt.refineTriangles(VertInd(10000), RefinementCriterion::SmallestAngle, 0.);
+    const auto unrefined = cdt.refineTriangles(
+        VertInd(10000), RefinementCriterion::SmallestAngle, 0.);
 
+    REQUIRE(unrefined.short_edge.empty());
+    REQUIRE(unrefined.degenerate.empty());
+    REQUIRE(unrefined.circumcenter_outside.empty());
+    REQUIRE(unrefined.circumcenter_on_vertex.empty());
+    REQUIRE(unrefined.sharp_fixed_corner.empty());
+    REQUIRE(unrefined.short_edges.empty());
+    REQUIRE(unrefined.mid_outside_neighbours.empty());
     REQUIRE(cdt.vertices.size() == vertsBefore);
 }
 
@@ -1620,12 +1628,14 @@ TEST_CASE(
     const std::size_t vertsBefore = cdt.vertices.size();
 
     const VertInd budget(100);
-    cdt.refineTriangles(
+    const auto unrefined = cdt.refineTriangles(
         budget,
         RefinementCriterion::SmallestAngle,
         degToRad(20.),
         nullptr,
         0.05);
+    // the sharp corner comes from the input: it can not be refined away
+    REQUIRE(unrefined.sharp_fixed_corner.size() == std::size_t(1));
     REQUIRE(CDT::verifyTopology(cdt));
     REQUIRE(cdt.vertices.size() < vertsBefore + std::size_t(budget));
 
@@ -1645,7 +1655,9 @@ TEST_CASE(
         Catch::Matchers::WithinRel(subsegmentLengths[1], 1e-9));
 }
 
-TEST_CASE("Ruppert refinement near close non-adjacent fixed edges terminates", "")
+TEST_CASE(
+    "Ruppert refinement near close non-adjacent fixed edges terminates",
+    "")
 {
     const std::vector<V2d<double> > vertices = {
         {0., 0.},
@@ -1694,6 +1706,23 @@ TEST_CASE("Ruppert refinement near close non-adjacent fixed edges terminates", "
             0.005);
         REQUIRE(CDT::verifyTopology(cdt));
         REQUIRE(cdt.vertices.size() < std::size_t(2000));
+    }
+    SECTION("triangles given up on because of minEdgeLength are reported")
+    {
+        auto cdt = Triangulation<double>();
+        cdt.insertVertices(vertices);
+        cdt.insertEdges(edges);
+        const auto unrefined = cdt.refineTriangles(
+            VertInd(5000),
+            RefinementCriterion::SmallestAngle,
+            degToRad(20.),
+            nullptr,
+            0.05);
+        REQUIRE(!unrefined.short_edge.empty());
+        REQUIRE(unrefined.degenerate.empty());
+        REQUIRE(unrefined.circumcenter_outside.empty());
+        REQUIRE(unrefined.circumcenter_on_vertex.empty());
+        REQUIRE(unrefined.mid_outside_neighbours.empty());
     }
 }
 
@@ -1780,22 +1809,20 @@ TEST_CASE(
     cdt.insertVertices(vertices);
     cdt.insertEdges(edges);
     REQUIRE(CDT::verifyTopology(cdt));
-    REQUIRE_THROWS_AS(
-        cdt.refineTriangles(
-            VertInd(300),
-            RefinementCriterion::SmallestAngle,
-            degToRad(25.),
-            nullptr,
-            1e-6),
-        CDT::Error);
-    // an invalid split is rejected before anything is modified: refinement is
-    // aborted part-way, leaving a valid and usable triangulation behind
+    const auto unrefined = cdt.refineTriangles(
+        VertInd(300),
+        RefinementCriterion::SmallestAngle,
+        degToRad(25.),
+        nullptr,
+        1e-6);
+    REQUIRE(!unrefined.mid_outside_neighbours.empty());
+    // an invalid split is rejected before anything is modified: the edge is
+    // left alone and the triangulation stays valid and usable
     REQUIRE(CDT::verifyTopology(cdt));
 }
 
 TEST_CASE(
-    "Ruppert refinement aborted by an invalid split leaves a usable "
-    "triangulation",
+    "Ruppert refinement past an invalid split leaves a usable triangulation",
     "")
 {
     const auto [vv, ee] =
@@ -1805,11 +1832,14 @@ TEST_CASE(
     cdt.insertEdges(ee);
     const std::size_t vertsBefore = cdt.vertices.size();
 
-    REQUIRE_THROWS_AS(
-        cdt.refineTriangles(
-            VertInd(10000), RefinementCriterion::SmallestAngle, degToRad(20.)),
-        CDT::Error);
+    auto unrefined = cdt.refineTriangles(
+        VertInd(10000), RefinementCriterion::SmallestAngle, degToRad(20.));
 
+    REQUIRE(!unrefined.mid_outside_neighbours.empty());
+    // the same edge is reported once per attempt to split it
+    const std::size_t withDuplicates = unrefined.mid_outside_neighbours.size();
+    unrefined.deduplicate();
+    REQUIRE(unrefined.mid_outside_neighbours.size() < withDuplicates);
     REQUIRE(CDT::verifyTopology(cdt));
     REQUIRE(cdt.vertices.size() > vertsBefore);
     REQUIRE_NOTHROW(cdt.eraseOuterTrianglesAndHoles());
