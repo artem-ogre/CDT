@@ -54,20 +54,6 @@ struct CDT_EXPORT VertexInsertionOrder
     };
 };
 
-/// Enum of what type of geometry used to embed triangulation into
-struct CDT_EXPORT SuperGeometryType
-{
-    /**
-     * The Enum itself
-     * @note needed to pre c++11 compilers that don't support 'class enum'
-     */
-    enum Enum
-    {
-        SuperTriangle, ///< conventional super-triangle
-        Custom,        ///< user-specified custom geometry (e.g., grid)
-    };
-};
-
 /**
  * Enum of strategies for treating intersecting constraint edges
  */
@@ -757,8 +743,6 @@ public:
         T minEdgeLength = T(1e-6));
     /**
      * Erase triangles adjacent to super triangle
-     *
-     * @note does nothing if custom geometry is used
      * @throw FinalizedError if triangulation was already finalized
      */
     void eraseSuperTriangle();
@@ -778,7 +762,6 @@ public:
     /**
      * Collect triangles adjacent to super-triangle: same triangles that
      * `eraseSuperTriangle` would remove.
-     * @note returns an empty set if custom geometry is used
      * @throw FinalizedError if triangulation was already finalized
      */
     TriIndUSet collectSuperTriangle() const;
@@ -795,7 +778,7 @@ public:
      */
     TriIndUSet collectOuterTrianglesAndHoles() const;
     /**
-     * Remove super-triangle (if used) and triangles with specified indices.
+     * Remove super-triangle and triangles with specified indices.
      * Adjust internal triangulation state accordingly.
      * @param removedTriangles indices of triangles to remove
      * @note pair with one of the `collectXXX` methods to combine erasing with
@@ -804,11 +787,6 @@ public:
      * @throw FinalizedError if triangulation was already finalized
      */
     void finalizeTriangulation(const TriIndUSet& removedTriangles);
-    /**
-     * Call this method after directly setting custom super-geometry via
-     * vertices and triangles members
-     */
-    void initializedWithCustomSuperGeometry();
 
     /**
      * Check if the triangulation was finalized with `erase...` method and
@@ -1183,8 +1161,6 @@ private:
     void tryInitNearestPointLocator();
 
     TNearPointLocator m_nearPtLocator;
-    VertInd m_nTargetVerts;
-    SuperGeometryType::Enum m_superGeomType;
     VertexInsertionOrder::Enum m_vertexInsertionOrder;
     IntersectingConstraintEdges::Enum m_intersectingEdgesStrategy;
     T m_minDistToConstraintEdge;
@@ -1277,7 +1253,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
     if(isFirstTime) // account for adding super-triangle on the first run
     {
         exactCapacityTriangles += 1;
-        exactCapacityVertices += nSuperTriangleVertices;
+        exactCapacityVertices += nSuperTriVerts;
     }
     std::size_t capacityTriangles = exactCapacityTriangles;
     std::size_t capacityVertices = exactCapacityVertices;
@@ -1364,8 +1340,8 @@ void Triangulation<T, TNearPointLocator>::insertEdges(
 #endif
         // +3 to account for super-triangle vertices
         const Edge edge(
-            VertInd(getStart(*first) + m_nTargetVerts),
-            VertInd(getEnd(*first) + m_nTargetVerts));
+            VertInd(getStart(*first) + nSuperTriVerts),
+            VertInd(getEnd(*first) + nSuperTriVerts));
         insertEdge(edge, edge, remaining, tppIterations);
     }
 }
@@ -1397,8 +1373,8 @@ void Triangulation<T, TNearPointLocator>::conformToEdges(
 #endif
         // +3 to account for super-triangle vertices
         const Edge e(
-            VertInd(getStart(*first) + m_nTargetVerts),
-            VertInd(getEnd(*first) + m_nTargetVerts));
+            VertInd(getStart(*first) + nSuperTriVerts),
+            VertInd(getEnd(*first) + nSuperTriVerts));
         conformToEdge(e, EdgeVec(1, e), 0, remaining);
     }
 }

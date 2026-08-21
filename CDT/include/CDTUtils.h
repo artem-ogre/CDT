@@ -223,7 +223,7 @@ const static IndexSizeType
     invalidIndexSizeType(std::numeric_limits<IndexSizeType>::max());
 /// Number of super triangle vertices
 /// @note placed in a constant so that it's easier to find usages in code
-const static IndexSizeType nSuperTriangleVertices(3);
+const static IndexSizeType nSuperTriVerts(3);
 /// Constant representing no valid neighbor for a triangle
 const static TriInd noNeighbor(invalidIndexSizeType);
 /// Constant representing no valid vertex for a triangle

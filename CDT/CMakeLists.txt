@@ -111,7 +111,6 @@ if(CDT_USE_AS_COMPILED_LIBRARY)
         include/Triangulation.hpp
         include/predicates.h
         extras/VerifyTopology.h
-        extras/InitializeWithGrid.h
     )
     add_library(${PROJECT_NAME} ${cdt_sources} ${cdt_headers})
     # Set symbols visibility to hidden by default

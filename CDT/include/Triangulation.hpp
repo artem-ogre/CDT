@@ -35,8 +35,6 @@ inline EdgeQueue toQueue(const EdgeVec& edges)
 namespace defaults
 {
 
-const std::size_t nTargetVerts = 0;
-const SuperGeometryType::Enum superGeomType = SuperGeometryType::SuperTriangle;
 const VertexInsertionOrder::Enum vertexInsertionOrder =
     VertexInsertionOrder::Auto;
 const IntersectingConstraintEdges::Enum intersectingEdgesStrategy =
@@ -49,9 +47,7 @@ const float minDistToConstraintEdge(0);
 
 template <typename T, typename TNearPointLocator>
 Triangulation<T, TNearPointLocator>::Triangulation()
-    : m_nTargetVerts(detail::defaults::nTargetVerts)
-    , m_superGeomType(detail::defaults::superGeomType)
-    , m_vertexInsertionOrder(detail::defaults::vertexInsertionOrder)
+    : m_vertexInsertionOrder(detail::defaults::vertexInsertionOrder)
     , m_intersectingEdgesStrategy(detail::defaults::intersectingEdgesStrategy)
     , m_minDistToConstraintEdge(detail::defaults::minDistToConstraintEdge)
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
@@ -62,9 +58,7 @@ Triangulation<T, TNearPointLocator>::Triangulation()
 template <typename T, typename TNearPointLocator>
 Triangulation<T, TNearPointLocator>::Triangulation(
     const VertexInsertionOrder::Enum vertexInsertionOrder)
-    : m_nTargetVerts(detail::defaults::nTargetVerts)
-    , m_superGeomType(detail::defaults::superGeomType)
-    , m_vertexInsertionOrder(vertexInsertionOrder)
+    : m_vertexInsertionOrder(vertexInsertionOrder)
     , m_intersectingEdgesStrategy(detail::defaults::intersectingEdgesStrategy)
     , m_minDistToConstraintEdge(detail::defaults::minDistToConstraintEdge)
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
@@ -77,9 +71,7 @@ Triangulation<T, TNearPointLocator>::Triangulation(
     const VertexInsertionOrder::Enum vertexInsertionOrder,
     const IntersectingConstraintEdges::Enum intersectingEdgesStrategy,
     const T minDistToConstraintEdge)
-    : m_nTargetVerts(detail::defaults::nTargetVerts)
-    , m_superGeomType(detail::defaults::superGeomType)
-    , m_vertexInsertionOrder(vertexInsertionOrder)
+    : m_vertexInsertionOrder(vertexInsertionOrder)
     , m_intersectingEdgesStrategy(intersectingEdgesStrategy)
     , m_minDistToConstraintEdge(minDistToConstraintEdge)
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
@@ -94,8 +86,6 @@ Triangulation<T, TNearPointLocator>::Triangulation(
     const IntersectingConstraintEdges::Enum intersectingEdgesStrategy,
     const T minDistToConstraintEdge)
     : m_nearPtLocator(nearPtLocator)
-    , m_nTargetVerts(detail::defaults::nTargetVerts)
-    , m_superGeomType(detail::defaults::superGeomType)
     , m_vertexInsertionOrder(vertexInsertionOrder)
     , m_intersectingEdgesStrategy(intersectingEdgesStrategy)
     , m_minDistToConstraintEdge(minDistToConstraintEdge)
@@ -107,8 +97,6 @@ Triangulation<T, TNearPointLocator>::Triangulation(
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::eraseSuperTriangle()
 {
-    if(m_superGeomType != SuperGeometryType::SuperTriangle)
-        return;
     finalizeTriangulation(collectSuperTriangle());
 }
 
@@ -132,8 +120,6 @@ TriIndUSet Triangulation<T, TNearPointLocator>::collectSuperTriangle() const
 
     // find triangles adjacent to super-triangle's vertices
     TriIndUSet toErase;
-    if(m_superGeomType != SuperGeometryType::SuperTriangle)
-        return toErase;
     for(TriInd iT(0); iT < TriInd(triangles.size()); ++iT)
     {
         if(touchesSuperTriangle(triangles[iT]))
@@ -174,7 +160,8 @@ Triangulation<T, TNearPointLocator>::collectOuterTrianglesAndHoles() const
 /// Remap removing super-triangle: subtract 3 from vertices
 inline Edge RemapNoSuperTriangle(const Edge& e)
 {
-    return Edge(VertInd(e.v1() - 3), VertInd(e.v2() - 3));
+    return Edge(
+        VertInd(e.v1() - nSuperTriVerts), VertInd(e.v2() - nSuperTriVerts));
 }
 
 template <typename T, typename TNearPointLocator>
@@ -235,73 +222,54 @@ void Triangulation<T, TNearPointLocator>::finalizeTriangulation(
 
     m_vertTris = TriIndVec();
     // remove super-triangle
-    if(m_superGeomType == SuperGeometryType::SuperTriangle)
-    {
-        vertices.erase(
-            vertices.begin(), vertices.begin() + nSuperTriangleVertices);
-        // Edge re-mapping
-        { // fixed edges
-            EdgeUSet updatedFixedEdges;
-            typedef CDT::EdgeUSet::const_iterator It;
-            for(It e = fixedEdges.begin(); e != fixedEdges.end(); ++e)
-            {
-                updatedFixedEdges.insert(RemapNoSuperTriangle(*e));
-            }
-            fixedEdges = updatedFixedEdges;
+    vertices.erase(vertices.begin(), vertices.begin() + nSuperTriVerts);
+    // Edge re-mapping
+    { // fixed edges
+        EdgeUSet updatedFixedEdges;
+        typedef CDT::EdgeUSet::const_iterator It;
+        for(It e = fixedEdges.begin(); e != fixedEdges.end(); ++e)
+        {
+            updatedFixedEdges.insert(RemapNoSuperTriangle(*e));
         }
-        { // overlap count
-            unordered_map<Edge, BoundaryOverlapCount> updatedOverlapCount;
-            typedef unordered_map<Edge, BoundaryOverlapCount>::const_iterator
-                It;
-            for(It it = overlapCount.begin(); it != overlapCount.end(); ++it)
-            {
-                updatedOverlapCount.insert(
-                    std::make_pair(
-                        RemapNoSuperTriangle(it->first), it->second));
-            }
-            overlapCount = updatedOverlapCount;
+        fixedEdges = updatedFixedEdges;
+    }
+    { // overlap count
+        unordered_map<Edge, BoundaryOverlapCount> updatedOverlapCount;
+        typedef unordered_map<Edge, BoundaryOverlapCount>::const_iterator It;
+        for(It it = overlapCount.begin(); it != overlapCount.end(); ++it)
+        {
+            updatedOverlapCount.insert(
+                std::make_pair(RemapNoSuperTriangle(it->first), it->second));
         }
-        { // split edges mapping
-            unordered_map<Edge, EdgeVec> updatedPieceToOriginals;
-            typedef unordered_map<Edge, EdgeVec>::const_iterator It;
-            for(It it = pieceToOriginals.begin(); it != pieceToOriginals.end();
-                ++it)
+        overlapCount = updatedOverlapCount;
+    }
+    { // split edges mapping
+        unordered_map<Edge, EdgeVec> updatedPieceToOriginals;
+        typedef unordered_map<Edge, EdgeVec>::const_iterator It;
+        for(It it = pieceToOriginals.begin(); it != pieceToOriginals.end();
+            ++it)
+        {
+            EdgeVec ee = it->second;
+            for(EdgeVec::iterator eeIt = ee.begin(); eeIt != ee.end(); ++eeIt)
             {
-                EdgeVec ee = it->second;
-                for(EdgeVec::iterator eeIt = ee.begin(); eeIt != ee.end();
-                    ++eeIt)
-                {
-                    *eeIt = RemapNoSuperTriangle(*eeIt);
-                }
-                updatedPieceToOriginals.insert(
-                    std::make_pair(RemapNoSuperTriangle(it->first), ee));
+                *eeIt = RemapNoSuperTriangle(*eeIt);
             }
-            pieceToOriginals = updatedPieceToOriginals;
+            updatedPieceToOriginals.insert(
+                std::make_pair(RemapNoSuperTriangle(it->first), ee));
         }
+        pieceToOriginals = updatedPieceToOriginals;
     }
     // remove other triangles
     removeTriangles(removedTriangles);
     // adjust triangle vertices: account for removed super-triangle
-    if(m_superGeomType == SuperGeometryType::SuperTriangle)
+    for(TriangleVec::iterator t = triangles.begin(); t != triangles.end(); ++t)
     {
-        for(TriangleVec::iterator t = triangles.begin(); t != triangles.end();
-            ++t)
+        VerticesArr3& vv = t->vertices;
+        for(VerticesArr3::iterator v = vv.begin(); v != vv.end(); ++v)
         {
-            VerticesArr3& vv = t->vertices;
-            for(VerticesArr3::iterator v = vv.begin(); v != vv.end(); ++v)
-            {
-                *v -= nSuperTriangleVertices;
-            }
+            *v -= nSuperTriVerts;
         }
     }
-}
-
-template <typename T, typename TNearPointLocator>
-void Triangulation<T, TNearPointLocator>::initializedWithCustomSuperGeometry()
-{
-    m_nearPtLocator.initialize(vertices);
-    m_nTargetVerts = static_cast<IndexSizeType>(vertices.size());
-    m_superGeomType = SuperGeometryType::Custom;
 }
 
 template <typename T, typename TNearPointLocator>
@@ -510,8 +478,8 @@ Edge Triangulation<T, TNearPointLocator>::originalInputEdge(const Edge& e) const
     const Edge orig =
         pieceToOriginals.count(e) ? pieceToOriginals.at(e).front() : e;
     return Edge(
-        VertInd(orig.v1() - m_nTargetVerts),
-        VertInd(orig.v2() - m_nTargetVerts));
+        VertInd(orig.v1() - nSuperTriVerts),
+        VertInd(orig.v2() - nSuperTriVerts));
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1091,9 +1059,6 @@ Triangulation<T, TNearPointLocator>::intersectedTriangle(
 template <typename T, typename TNearPointLocator>
 void Triangulation<T, TNearPointLocator>::addSuperTriangle(const Box2d<T>& box)
 {
-    m_nTargetVerts = nSuperTriangleVertices;
-    m_superGeomType = SuperGeometryType::SuperTriangle;
-
     const V2d<T> center(
         (box.min.x + box.max.x) / T(2), (box.min.y + box.max.y) / T(2));
     const T w = box.max.x - box.min.x;
@@ -1356,44 +1321,37 @@ bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
     const V2d<T>& v2 = vertices[iV2];
     const V2d<T>& v3 = vertices[iV3];
     const V2d<T>& v4 = vertices[iV4];
-    if(m_superGeomType == SuperGeometryType::SuperTriangle)
+    // If flip-candidate edge touches super-triangle in-circumference
+    // test has to be replaced with orient2d test against the line
+    // formed by two non-artificial vertices (that don't belong to
+    // super-triangle)
+    if(iV1 < nSuperTriVerts) // flip-candidate edge touches super-triangle
     {
-        // If flip-candidate edge touches super-triangle in-circumference
-        // test has to be replaced with orient2d test against the line
-        // formed by two non-artificial vertices (that don't belong to
-        // super-triangle)
-        if(iV1 < 3) // flip-candidate edge touches super-triangle
-        {
-            // does original edge also touch super-triangle?
-            if(iV2 < 3)
-                return locatePointLine(v2, v3, v4) ==
-                       locatePointLine(v1, v3, v4);
-            if(iV4 < 3)
-                return locatePointLine(v4, v2, v3) ==
-                       locatePointLine(v1, v2, v3);
-            return false; // original edge does not touch super-triangle
-        }
-        if(iV3 < 3) // flip-candidate edge touches super-triangle
-        {
-            // does original edge also touch super-triangle?
-            if(iV2 < 3)
-            {
-                return locatePointLine(v2, v1, v4) ==
-                       locatePointLine(v3, v1, v4);
-            }
-            if(iV4 < 3)
-            {
-                return locatePointLine(v4, v2, v1) ==
-                       locatePointLine(v3, v2, v1);
-            }
-            return false; // original edge does not touch super-triangle
-        }
-        // flip-candidate edge does not touch super-triangle
-        if(iV2 < 3)
+        // does original edge also touch super-triangle?
+        if(iV2 < nSuperTriVerts)
             return locatePointLine(v2, v3, v4) == locatePointLine(v1, v3, v4);
-        if(iV4 < 3)
+        if(iV4 < nSuperTriVerts)
             return locatePointLine(v4, v2, v3) == locatePointLine(v1, v2, v3);
+        return false; // original edge does not touch super-triangle
     }
+    if(iV3 < nSuperTriVerts) // flip-candidate edge touches super-triangle
+    {
+        // does original edge also touch super-triangle?
+        if(iV2 < nSuperTriVerts)
+        {
+            return locatePointLine(v2, v1, v4) == locatePointLine(v3, v1, v4);
+        }
+        if(iV4 < nSuperTriVerts)
+        {
+            return locatePointLine(v4, v2, v1) == locatePointLine(v3, v2, v1);
+        }
+        return false; // original edge does not touch super-triangle
+    }
+    // flip-candidate edge does not touch super-triangle
+    if(iV2 < nSuperTriVerts)
+        return locatePointLine(v2, v3, v4) == locatePointLine(v1, v3, v4);
+    if(iV4 < nSuperTriVerts)
+        return locatePointLine(v4, v2, v3) == locatePointLine(v1, v2, v3);
     return isInCircumcircle(v1, v2, v3, v4);
 }
 
@@ -1999,8 +1957,8 @@ array<TriInd, 2> Triangulation<T, TNearPointLocator>::walkingSearchTrianglesAt(
                               : v2 == v ? t.vertices[1]
                                         : t.vertices[2];
         handleException(DuplicateVertexError(
-            VertInd(iV - m_nTargetVerts),
-            VertInd(iDupe - m_nTargetVerts),
+            VertInd(iV - nSuperTriVerts),
+            VertInd(iDupe - nSuperTriVerts),
             CDT_SOURCE_LOCATION));
     }
 

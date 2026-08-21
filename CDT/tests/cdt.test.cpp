@@ -1042,9 +1042,7 @@ TEST_CASE("Callbacks test: count number of callback calls")
     }
     REQUIRE(CDT::verifyTopology(cdt));
     REQUIRE(callbackHandler.nAddedVertices == 32);
-    REQUIRE(
-        callbackHandler.nAddedVertices ==
-        vv.size() + CDT::nSuperTriangleVertices);
+    REQUIRE(callbackHandler.nAddedVertices == vv.size() + CDT::nSuperTriVerts);
     REQUIRE(callbackHandler.nModifiedTriangles == 168);
     REQUIRE(callbackHandler.nAddedTriangles == 59);
     REQUIRE(callbackHandler.nAddedTriangles == vv.size() * 2 + 1);

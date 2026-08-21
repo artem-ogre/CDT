@@ -15,7 +15,6 @@
 
 #include "CDT.hpp"
 #include "CDTUtils.hpp"
-#include "InitializeWithGrid.h"
 #include "Triangulation.hpp"
 #include "VerifyTopology.h"
 
@@ -63,32 +62,13 @@ verifyTopology<float>(const CDT::Triangulation<float>&);
 template CDT_EXPORT bool
 verifyTopology<double>(const CDT::Triangulation<double>&);
 
-template CDT_EXPORT void initializeWithRegularGrid<float>(
-    float,
-    float,
-    float,
-    float,
-    std::size_t,
-    std::size_t,
-    Triangulation<float>&);
-template CDT_EXPORT void initializeWithRegularGrid<double>(
-    double,
-    double,
-    double,
-    double,
-    std::size_t,
-    std::size_t,
-    Triangulation<double>&);
+template CDT_EXPORT float distance(const V2d<float>& a, const V2d<float>& b);
+template CDT_EXPORT double distance(const V2d<double>& a, const V2d<double>& b);
 
-template
-CDT_EXPORT float distance(const V2d<float>& a, const V2d<float>& b);
-template
-CDT_EXPORT double distance(const V2d<double>& a, const V2d<double>& b);
-
-template
-CDT_EXPORT float distanceSquared(const V2d<float>& a, const V2d<float>& b);
-template
-CDT_EXPORT double distanceSquared(const V2d<double>& a, const V2d<double>& b);
+template CDT_EXPORT float
+distanceSquared(const V2d<float>& a, const V2d<float>& b);
+template CDT_EXPORT double
+distanceSquared(const V2d<double>& a, const V2d<double>& b);
 
 } // namespace CDT
 
