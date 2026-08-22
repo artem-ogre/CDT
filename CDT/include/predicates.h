@@ -438,7 +438,7 @@ namespace detail {
 			static inline Expansion<T, 4> TwoTwoDiffZeroCheck(const T ax, const T by, const T ay, const T bx) {
 				Expansion<T, 4> e;
 				if(T(0) == ax && T(0) == ay) return e;
-				else if(T(0) == ax) e = Mult(ay, bx);
+				else if(T(0) == ax) e = -Mult(ay, bx);
 				else if(T(0) == ay) e = Mult(ax, by);
 				else e = TwoTwoDiff(ax, by, ay, bx);
 				return e;
