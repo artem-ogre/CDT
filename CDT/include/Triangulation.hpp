@@ -55,12 +55,12 @@ const float minDistToConstraintEdge(0);
 
 CDT_INLINE_IF_HEADER_ONLY void Unrefined::deduplicate()
 {
-    detail::sortUnique(shortEdge);
+    detail::sortUnique(shortEdgeTriangles);
     detail::sortUnique(circumcenterOutside);
     detail::sortUnique(circumcenterOnVertex);
     detail::sortUnique(sharpFixedCorner);
     detail::sortUnique(shortEdges);
-    detail::sortUnique(midOutsideNeighbours);
+    detail::sortUnique(splitVertexInvalid);
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1677,7 +1677,7 @@ OptionalVertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
         edge, mid, iT, iTopo, AddVertexType::RefinementEdgeSplit);
     if(!iMid.hasValue())
     {
-        unrefined.midOutsideNeighbours.push_back(edge);
+        unrefined.splitVertexInvalid.push_back(edge);
     }
     else if(toEraseOrNull)
     {
@@ -2621,7 +2621,7 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
         if(shortestEdge <= minEdgeLength)
         {
             // same minEdgeLength give-up
-            unrefined.shortEdge.push_back(badTVerts);
+            unrefined.shortEdgeTriangles.push_back(badTVerts);
             continue;
         }
         const V2d<T> circumcenterPos = detail::circumcenter(v0, v1, v2);

@@ -1561,12 +1561,12 @@ TEST_CASE("Ruppert refinement with zero threshold is a no-op", "")
     const auto unrefined = cdt.refineTriangles(
         VertInd(10000), RefinementCriterion::SmallestAngle, 0.);
 
-    REQUIRE(unrefined.shortEdge.empty());
+    REQUIRE(unrefined.shortEdgeTriangles.empty());
     REQUIRE(unrefined.circumcenterOutside.empty());
     REQUIRE(unrefined.circumcenterOnVertex.empty());
     REQUIRE(unrefined.sharpFixedCorner.empty());
     REQUIRE(unrefined.shortEdges.empty());
-    REQUIRE(unrefined.midOutsideNeighbours.empty());
+    REQUIRE(unrefined.splitVertexInvalid.empty());
     REQUIRE(cdt.vertices.size() == vertsBefore);
 }
 
@@ -1717,10 +1717,10 @@ TEST_CASE(
             degToRad(20.),
             nullptr,
             0.05);
-        REQUIRE(!unrefined.shortEdge.empty());
+        REQUIRE(!unrefined.shortEdgeTriangles.empty());
         REQUIRE(unrefined.circumcenterOutside.empty());
         REQUIRE(unrefined.circumcenterOnVertex.empty());
-        REQUIRE(unrefined.midOutsideNeighbours.empty());
+        REQUIRE(unrefined.splitVertexInvalid.empty());
     }
 }
 
@@ -1813,7 +1813,7 @@ TEST_CASE(
         degToRad(25.),
         nullptr,
         1e-6);
-    REQUIRE(!unrefined.midOutsideNeighbours.empty());
+    REQUIRE(!unrefined.splitVertexInvalid.empty());
     // an invalid split is rejected before anything is modified: the edge is
     // left alone and the triangulation stays valid and usable
     REQUIRE(CDT::verifyTopology(cdt));
@@ -1833,11 +1833,11 @@ TEST_CASE(
     auto unrefined = cdt.refineTriangles(
         VertInd(10000), RefinementCriterion::SmallestAngle, degToRad(20.));
 
-    REQUIRE(!unrefined.midOutsideNeighbours.empty());
+    REQUIRE(!unrefined.splitVertexInvalid.empty());
     // the same edge is reported once per attempt to split it
-    const std::size_t withDuplicates = unrefined.midOutsideNeighbours.size();
+    const std::size_t withDuplicates = unrefined.splitVertexInvalid.size();
     unrefined.deduplicate();
-    REQUIRE(unrefined.midOutsideNeighbours.size() < withDuplicates);
+    REQUIRE(unrefined.splitVertexInvalid.size() < withDuplicates);
     REQUIRE(CDT::verifyTopology(cdt));
     REQUIRE(cdt.vertices.size() > vertsBefore);
     REQUIRE_NOTHROW(cdt.eraseOuterTrianglesAndHoles());

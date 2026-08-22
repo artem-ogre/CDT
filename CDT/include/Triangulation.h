@@ -102,7 +102,7 @@ struct CDT_EXPORT RefinementCriterion
 struct CDT_EXPORT Unrefined
 {
     /// triangles whose shortest edge is shorter than the threshold
-    TriVerticesVec shortEdge;
+    TriVerticesVec shortEdgeTriangles;
     /// triangles whose circumcenter is outside the triangulated area
     TriVerticesVec circumcenterOutside;
     /// triangles whose circumcenter coincides with an existing vertex
@@ -112,10 +112,10 @@ struct CDT_EXPORT Unrefined
     TriVerticesVec sharpFixedCorner;
     /// fixed edges that are shorter than the threshold
     EdgeVec shortEdges;
-    /// fixed edges whose mid-point falls outside of the edge's neighbours:
-    /// inserting such vertex breaks the triangulation's topology
-    /// @note in practice one of those neighbours is thinner than an ulp
-    EdgeVec midOutsideNeighbours;
+    /// fixed edges whose split vertex can not be placed: inserting it would
+    /// break the triangulation's topology
+    /// @note in practice one of the edge's triangles is thinner than an ulp
+    EdgeVec splitVertexInvalid;
 
     /// Sort each of the vectors and remove the duplicates from it
     void deduplicate();

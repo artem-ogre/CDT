@@ -538,12 +538,12 @@ private:
                         m_minRefinementEdgeLength);
                     unrefined.deduplicate();
                     // store positions: finalizing invalidates the indices
-                    storeUnrefined(unrefined.shortEdge);
+                    storeUnrefined(unrefined.shortEdgeTriangles);
                     storeUnrefined(unrefined.circumcenterOutside);
                     storeUnrefined(unrefined.circumcenterOnVertex);
                     storeUnrefined(unrefined.sharpFixedCorner);
                     storeUnrefined(unrefined.shortEdges);
-                    storeUnrefined(unrefined.midOutsideNeighbours);
+                    storeUnrefined(unrefined.splitVertexInvalid);
                 }
                 catch(const CDT::Error& e)
                 {
