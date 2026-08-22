@@ -46,6 +46,11 @@ template CDT_EXPORT float degToRad<float>(float);
 template CDT_EXPORT double degToRad<double>(double);
 
 template CDT_EXPORT float
+orient2D<float>(const V2d<float>&, const V2d<float>&, const V2d<float>&);
+template CDT_EXPORT double
+orient2D<double>(const V2d<double>&, const V2d<double>&, const V2d<double>&);
+
+template CDT_EXPORT float
 area<float>(const V2d<float>&, const V2d<float>&, const V2d<float>&);
 template CDT_EXPORT double
 area<double>(const V2d<double>&, const V2d<double>&, const V2d<double>&);
@@ -61,6 +66,10 @@ template CDT_EXPORT bool
 verifyTopology<float>(const CDT::Triangulation<float>&);
 template CDT_EXPORT bool
 verifyTopology<double>(const CDT::Triangulation<double>&);
+
+template CDT_EXPORT bool verifyWinding<float>(const CDT::Triangulation<float>&);
+template CDT_EXPORT bool
+verifyWinding<double>(const CDT::Triangulation<double>&);
 
 template CDT_EXPORT float distance(const V2d<float>& a, const V2d<float>& b);
 template CDT_EXPORT double distance(const V2d<double>& a, const V2d<double>& b);
