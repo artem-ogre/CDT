@@ -1562,7 +1562,6 @@ TEST_CASE("Ruppert refinement with zero threshold is a no-op", "")
         VertInd(10000), RefinementCriterion::SmallestAngle, 0.);
 
     REQUIRE(unrefined.shortEdge.empty());
-    REQUIRE(unrefined.degenerate.empty());
     REQUIRE(unrefined.circumcenterOutside.empty());
     REQUIRE(unrefined.circumcenterOnVertex.empty());
     REQUIRE(unrefined.sharpFixedCorner.empty());
@@ -1719,7 +1718,6 @@ TEST_CASE(
             nullptr,
             0.05);
         REQUIRE(!unrefined.shortEdge.empty());
-        REQUIRE(unrefined.degenerate.empty());
         REQUIRE(unrefined.circumcenterOutside.empty());
         REQUIRE(unrefined.circumcenterOnVertex.empty());
         REQUIRE(unrefined.midOutsideNeighbours.empty());
@@ -1901,6 +1899,48 @@ TEST_CASE(
             cdt.vertices[t.vertices[2]]);
         REQUIRE(angle >= minAngle - 1e-9);
     }
+}
+
+// splitting a small-angle corner repeatedly leaves sliver triangles: the
+// quadrilateral being re-triangulated goes non-convex and split vertices
+// rounded off their edge used to be accepted there
+template <typename T>
+static Triangulation<T>
+smallAngleCorner(const V2d<T>& corner, const V2d<T>& a, const V2d<T>& b)
+{
+    Triangulation<T> cdt;
+    cdt.insertVertices(std::vector<V2d<T> >{corner, a, b});
+    cdt.insertEdges(std::vector<Edge>{
+        Edge(VertInd(0), VertInd(1)), Edge(VertInd(0), VertInd(2))});
+    return cdt;
+}
+
+TEST_CASE("Refinement edge split does not create a degenerate triangle", "")
+{
+    auto cdt = smallAngleCorner<double>({2., 8.}, {12., 11.}, {12., 10.});
+    // the collapsed triangle is flipped away again: only circumcenter's assert
+    // catches this one in a release build
+    cdt.refineTriangles(
+        VertInd(10000), RefinementCriterion::SmallestAngle, degToRad(25.));
+    REQUIRE(CDT::verifyWinding(cdt));
+    REQUIRE(CDT::verifyTopology(cdt));
+}
+
+TEMPLATE_LIST_TEST_CASE(
+    "Refinement edge split does not invert a triangle",
+    "",
+    CoordTypes)
+{
+    typedef TestType T;
+    const auto minAngleDegrees = GENERATE(T(15), T(20), T(25), T(30));
+    auto cdt = smallAngleCorner<T>(
+        {T(111), T(344)}, {T(157), T(282)}, {T(151), T(306)});
+    cdt.refineTriangles(
+        VertInd(10000),
+        RefinementCriterion::SmallestAngle,
+        degToRad(minAngleDegrees));
+    REQUIRE(CDT::verifyWinding(cdt));
+    REQUIRE(CDT::verifyTopology(cdt));
 }
 
 TEST_CASE("Finalized triangulation rejects erasing, collecting, refining", "")

@@ -56,7 +56,6 @@ const float minDistToConstraintEdge(0);
 CDT_INLINE_IF_HEADER_ONLY void Unrefined::deduplicate()
 {
     detail::sortUnique(shortEdge);
-    detail::sortUnique(degenerate);
     detail::sortUnique(circumcenterOutside);
     detail::sortUnique(circumcenterOnVertex);
     detail::sortUnique(sharpFixedCorner);
@@ -449,7 +448,7 @@ OptionalVertInd Triangulation<T, TNearPointLocator>::splitFixedEdgeAt(
     const TriInd iTopo,
     const AddVertexType::Enum vertexType)
 {
-    if(!isEdgeSplitVertexValid(splitVert, iT, iTopo, edge.v1(), edge.v2()))
+    if(!isEdgeSplitVertexValid(splitVert, iT, iTopo))
         return OptionalVertInd(noVertex);
     const VertInd iSplitVert =
         addSplitEdgeVertex(splitVert, iT, iTopo, vertexType);
@@ -461,34 +460,21 @@ template <typename T, typename TNearPointLocator>
 bool Triangulation<T, TNearPointLocator>::isEdgeSplitVertexValid(
     const V2d<T>& splitVert,
     const TriInd iT,
-    const TriInd iTopo,
-    const VertInd iVL,
-    const VertInd iVR) const
+    const TriInd iTopo) const
 {
-    // Orient the split edge as it appears (counter-clockwise) in iT. Locating
-    // the (floating-point-rounded) split vertex against it both tells whether
-    // the split is safe and which of the two triangles sharing the edge must
-    // contain the vertex: 'Left' is iT's interior side, 'Right' is iTopo's.
-    const Triangle& tL = triangles[iT];
-    const Index sL = edgeNeighborInd(tL.vertices, iVL, iVR);
-    const PtLineLocation::Enum side = locatePointLine(
-        splitVert, vertices[tL.vertices[sL]], vertices[tL.vertices[ccw(sL)]]);
-    if(side == PtLineLocation::OnLine)
-    {
-        return splitVert != vertices[iVL] && splitVert != vertices[iVR];
-    }
-    const Triangle& t = side == PtLineLocation::Left ? tL : triangles[iTopo];
-
-    // The split vertex must not fall outside that triangle. Its relation to the
-    // split edge is already established by 'side', so only the two edges
-    // meeting at the apex (opposite the split edge) are tested. A point to the
-    // right of a counter-clockwise triangle's edge lies outside it.
-    const Index s = edgeNeighborInd(t.vertices, iVL, iVR);
-    const V2d<T>& from = vertices[t.vertices[s]];     // split edge tail (CCW)
-    const V2d<T>& to = vertices[t.vertices[ccw(s)]];  // split edge head (CCW)
-    const V2d<T>& apex = vertices[t.vertices[cw(s)]]; // opposite the split edge
-    return locatePointLine(splitVert, to, apex) != PtLineLocation::Right &&
-           locatePointLine(splitVert, apex, from) != PtLineLocation::Right;
+    // quadrilateral of the two triangles, CCW: v2 and v4 end the split edge
+    const Triangle& t1 = triangles[iT];
+    const Index i = opposedVertexInd(t1.neighbors, iTopo);
+    const V2d<T>& v1 = vertices[t1.vertices[i]];
+    const V2d<T>& v2 = vertices[t1.vertices[ccw(i)]];
+    const V2d<T>& v4 = vertices[t1.vertices[cw(i)]];
+    const Triangle& t2 = triangles[iTopo];
+    const V2d<T>& v3 =
+        vertices[t2.vertices[opposedVertexInd(t2.neighbors, iT)]];
+    return locatePointLine(splitVert, v1, v2) == PtLineLocation::Left &&
+           locatePointLine(splitVert, v2, v3) == PtLineLocation::Left &&
+           locatePointLine(splitVert, v3, v4) == PtLineLocation::Left &&
+           locatePointLine(splitVert, v4, v1) == PtLineLocation::Left;
 }
 
 template <typename T, typename TNearPointLocator>
@@ -2630,12 +2616,6 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
         const V2d<T>& v0 = vertices[badTVerts[0]];
         const V2d<T>& v1 = vertices[badTVerts[1]];
         const V2d<T>& v2 = vertices[badTVerts[2]];
-        if(detail::doubledArea(v0, v1, v2) == T(0))
-        {
-            // degenerate triangle: no well-defined circumcenter
-            unrefined.degenerate.push_back(badTVerts);
-            continue;
-        }
         const T shortestEdge = std::min(
             distance(v0, v1), std::min(distance(v1, v2), distance(v2, v0)));
         if(shortestEdge <= minEdgeLength)

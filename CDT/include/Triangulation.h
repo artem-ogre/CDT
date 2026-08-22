@@ -103,8 +103,6 @@ struct CDT_EXPORT Unrefined
 {
     /// triangles whose shortest edge is shorter than the threshold
     TriVerticesVec shortEdge;
-    /// degenerate (collinear) triangles: they have no circumcenter
-    TriVerticesVec degenerate;
     /// triangles whose circumcenter is outside the triangulated area
     TriVerticesVec circumcenterOutside;
     /// triangles whose circumcenter coincides with an existing vertex
@@ -1120,29 +1118,22 @@ private:
         const TriInd iTopo,
         const AddVertexType::Enum vertexType);
     /**
-     * Check that a fixed-edge split vertex computed from a constraint-edges
-     * intersection can be safely inserted.
+     * Check that a computed fixed-edge split vertex can be safely inserted.
      *
-     * The split position is computed with floating-point arithmetic and may be
-     * rounded to a location that no longer lies within the two triangles
-     * sharing the edge being split. Inserting it there would produce an
-     * inverted/degenerate triangle and break triangulation invariants. As the
-     * point nominally lies on the split edge, its side relative to that edge
-     * selects the adjacent triangle it must be contained in; only the two other
-     * edges of that triangle are tested (robust predicates).
+     * Splitting fans four triangles around the split vertex, so all of them are
+     * wound correctly only if the (floating-point-rounded) vertex lies strictly
+     * inside the kernel of the quadrilateral formed by the two triangles being
+     * split. Containment in one of them is not enough: the quadrilateral can be
+     * non-convex.
      * @param splitVert position of the candidate split vertex
      * @param iT index of a first triangle adjacent to the split edge
      * @param iTopo index of a second triangle adjacent to the split edge
-     * @param iVL first vertex of the edge being split
-     * @param iVR second vertex of the edge being split
-     * @return true if the split vertex lies within the adjacent triangles
+     * @return true if the split vertex can be inserted
      */
     bool isEdgeSplitVertexValid(
         const V2d<T>& splitVert,
         TriInd iT,
-        TriInd iTopo,
-        VertInd iVL,
-        VertInd iVR) const;
+        TriInd iTopo) const;
     /**
      * Convert an internal edge to the original input edge it represents:
      * resolve edge pieces to their original and drop the super-triangle vertex

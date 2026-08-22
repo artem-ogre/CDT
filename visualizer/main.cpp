@@ -539,7 +539,6 @@ private:
                     unrefined.deduplicate();
                     // store positions: finalizing invalidates the indices
                     storeUnrefined(unrefined.shortEdge);
-                    storeUnrefined(unrefined.degenerate);
                     storeUnrefined(unrefined.circumcenterOutside);
                     storeUnrefined(unrefined.circumcenterOnVertex);
                     storeUnrefined(unrefined.sharpFixedCorner);
