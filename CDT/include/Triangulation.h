@@ -102,21 +102,21 @@ struct CDT_EXPORT RefinementCriterion
 struct CDT_EXPORT Unrefined
 {
     /// triangles whose shortest edge is shorter than the threshold
-    TriVerticesVec short_edge;
+    TriVerticesVec shortEdge;
     /// degenerate (collinear) triangles: they have no circumcenter
     TriVerticesVec degenerate;
     /// triangles whose circumcenter is outside the triangulated area
-    TriVerticesVec circumcenter_outside;
+    TriVerticesVec circumcenterOutside;
     /// triangles whose circumcenter coincides with an existing vertex
-    TriVerticesVec circumcenter_on_vertex;
+    TriVerticesVec circumcenterOnVertex;
     /// triangles whose smallest angle is enclosed by two fixed edges: such an
     /// angle comes from the input and can not be made any larger
-    TriVerticesVec sharp_fixed_corner;
+    TriVerticesVec sharpFixedCorner;
     /// fixed edges that are shorter than the threshold
-    EdgeVec short_edges;
+    EdgeVec shortEdges;
     /// fixed edges whose mid-point falls outside of the edge's neighbours:
     /// inserting such vertex breaks the triangulation's topology
-    EdgeVec mid_outside_neighbours;
+    EdgeVec midOutsideNeighbours;
 
     /// Sort each of the vectors and remove the duplicates from it
     void deduplicate();
@@ -762,7 +762,7 @@ public:
      * #finalizeTriangulation.
      * @param minEdgeLength don't split edges/triangles already this short:
      * acute corners and close fixed edges can otherwise force ever-shrinking
-     * splits. 0 (default) never gives up.
+     * splits. 0 never gives up.
      * @return refinements that could not be performed
      * @throw FinalizedError if triangulation was already finalized
      */
