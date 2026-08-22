@@ -1910,8 +1910,9 @@ smallAngleCorner(const V2d<T>& corner, const V2d<T>& a, const V2d<T>& b)
 {
     Triangulation<T> cdt;
     cdt.insertVertices(std::vector<V2d<T> >{corner, a, b});
-    cdt.insertEdges(std::vector<Edge>{
-        Edge(VertInd(0), VertInd(1)), Edge(VertInd(0), VertInd(2))});
+    cdt.insertEdges(
+        std::vector<Edge>{
+            Edge(VertInd(0), VertInd(1)), Edge(VertInd(0), VertInd(2))});
     return cdt;
 }
 
