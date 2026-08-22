@@ -114,6 +114,7 @@ struct CDT_EXPORT Unrefined
     EdgeVec shortEdges;
     /// fixed edges whose mid-point falls outside of the edge's neighbours:
     /// inserting such vertex breaks the triangulation's topology
+    /// @note in practice one of those neighbours is thinner than an ulp
     EdgeVec midOutsideNeighbours;
 
     /// Sort each of the vectors and remove the duplicates from it
