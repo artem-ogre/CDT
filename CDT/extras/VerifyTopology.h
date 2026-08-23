@@ -74,6 +74,26 @@ inline bool verifyTopology(const CDT::Triangulation<T, TNearPointLocator>& cdt)
     return true;
 }
 
+/// Check that every triangle is wound counter-clockwise: degenerate and
+/// inverted triangles are topologically consistent, so #verifyTopology misses
+/// them
+template <typename T, typename TNearPointLocator>
+inline bool verifyWinding(const CDT::Triangulation<T, TNearPointLocator>& cdt)
+{
+    typedef TriangleVec::const_iterator Cit;
+    for(Cit t = cdt.triangles.begin(); t != cdt.triangles.end(); ++t)
+    {
+        if(orient2D(
+               cdt.vertices[t->vertices[2]],
+               cdt.vertices[t->vertices[0]],
+               cdt.vertices[t->vertices[1]]) <= T(0))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 /// Check that each vertex has a neighbor triangle
 template <typename T, typename TNearPointLocator>
 inline bool eachVertexHasNeighborTriangle(

@@ -15,7 +15,6 @@
 
 #include "CDT.hpp"
 #include "CDTUtils.hpp"
-#include "InitializeWithGrid.h"
 #include "Triangulation.hpp"
 #include "VerifyTopology.h"
 
@@ -43,37 +42,42 @@ template CDT_EXPORT DuplicatesInfo RemoveDuplicatesAndRemapEdges<double>(
     std::vector<V2d<double> >&,
     std::vector<Edge>&);
 
+template CDT_EXPORT float degToRad<float>(float);
+template CDT_EXPORT double degToRad<double>(double);
+
+template CDT_EXPORT float
+orient2D<float>(const V2d<float>&, const V2d<float>&, const V2d<float>&);
+template CDT_EXPORT double
+orient2D<double>(const V2d<double>&, const V2d<double>&, const V2d<double>&);
+
+template CDT_EXPORT float
+area<float>(const V2d<float>&, const V2d<float>&, const V2d<float>&);
+template CDT_EXPORT double
+area<double>(const V2d<double>&, const V2d<double>&, const V2d<double>&);
+
+template CDT_EXPORT float
+smallestAngle<float>(const V2d<float>&, const V2d<float>&, const V2d<float>&);
+template CDT_EXPORT double smallestAngle<double>(
+    const V2d<double>&,
+    const V2d<double>&,
+    const V2d<double>&);
+
 template CDT_EXPORT bool
 verifyTopology<float>(const CDT::Triangulation<float>&);
 template CDT_EXPORT bool
 verifyTopology<double>(const CDT::Triangulation<double>&);
 
-template CDT_EXPORT void initializeWithRegularGrid<float>(
-    float,
-    float,
-    float,
-    float,
-    std::size_t,
-    std::size_t,
-    Triangulation<float>&);
-template CDT_EXPORT void initializeWithRegularGrid<double>(
-    double,
-    double,
-    double,
-    double,
-    std::size_t,
-    std::size_t,
-    Triangulation<double>&);
+template CDT_EXPORT bool verifyWinding<float>(const CDT::Triangulation<float>&);
+template CDT_EXPORT bool
+verifyWinding<double>(const CDT::Triangulation<double>&);
 
-template
-CDT_EXPORT float distance(const V2d<float>& a, const V2d<float>& b);
-template
-CDT_EXPORT double distance(const V2d<double>& a, const V2d<double>& b);
+template CDT_EXPORT float distance(const V2d<float>& a, const V2d<float>& b);
+template CDT_EXPORT double distance(const V2d<double>& a, const V2d<double>& b);
 
-template
-CDT_EXPORT float distanceSquared(const V2d<float>& a, const V2d<float>& b);
-template
-CDT_EXPORT double distanceSquared(const V2d<double>& a, const V2d<double>& b);
+template CDT_EXPORT float
+distanceSquared(const V2d<float>& a, const V2d<float>& b);
+template CDT_EXPORT double
+distanceSquared(const V2d<double>& a, const V2d<double>& b);
 
 } // namespace CDT
 

@@ -32,6 +32,8 @@ typedef CDT::Triangle Triangle;
 typedef CDT::Box2d<CoordType> Box2d;
 typedef CDT::Edge Edge;
 
+const int defaultRefinementLimit = 99999;
+
 enum class TriangulationType
 {
     ConstraintDelaunay,
@@ -151,15 +153,21 @@ public:
         : QWidget(parent)
         , m_ptLimit(9999999)
         , m_edgeLimit(9999999)
+        , m_refinementLimit(9999999)
+        , m_minRefinementEdgeLength(1e-6)
+        , m_refinementCriterion(CDT::RefinementCriterion::SmallestAngle)
+        , m_refinementThreshold(20.0)
         , m_vertexInsertionOrder(CDT::VertexInsertionOrder::Auto)
         , m_intersectingEdgesStrategy(
               CDT::IntersectingConstraintEdges::TryResolve)
         , m_minDistToConstraintEdge(1e-6)
         , m_triangulationType(TriangulationType::ConstraintDelaunay)
         , m_finalizeType(FinalizeTriangulation::DontFinalize)
+        , m_isDoRuppert(false)
         , m_fixDuplicates(true)
         , m_isHidePoints(false)
         , m_isDisplayIndices(false)
+        , m_isHighlightUnrefined(false)
         , m_translation(0., 0.)
         , m_scale(1.0)
     {
@@ -247,6 +255,32 @@ public slots:
         updateCDT();
     }
 
+    void setRefinementLimit(int limit)
+    {
+        m_refinementLimit = static_cast<std::size_t>(limit);
+        updateCDT();
+    }
+
+    void setMinRefinementEdgeLength(double len)
+    {
+        m_minRefinementEdgeLength = static_cast<CoordType>(len);
+        updateCDT();
+    }
+
+    void setRefinementCriterion(int index)
+    {
+        m_refinementCriterion = index == 0
+                                    ? CDT::RefinementCriterion::SmallestAngle
+                                    : CDT::RefinementCriterion::LargestArea;
+        updateCDT();
+    }
+
+    void setRefinementThreshold(double threshold)
+    {
+        m_refinementThreshold = static_cast<CoordType>(threshold);
+        updateCDT();
+    }
+
     void hidePoints(int isHidePoints)
     {
         m_isHidePoints = (isHidePoints != 0);
@@ -273,6 +307,12 @@ public slots:
         updateCDT();
     }
 
+    void doRuppertRefinement(int isDoRuppert)
+    {
+        m_isDoRuppert = (isDoRuppert != 0);
+        updateCDT();
+    }
+
     void setFixDuplicates(int index)
     {
         m_fixDuplicates = (index == 0);
@@ -282,6 +322,12 @@ public slots:
     void displayIndices(int isDisplayIndices)
     {
         m_isDisplayIndices = (isDisplayIndices != 0);
+        update();
+    }
+
+    void highlightUnrefined(int isHighlightUnrefined)
+    {
+        m_isHighlightUnrefined = (isHighlightUnrefined != 0);
         update();
     }
 
@@ -360,8 +406,34 @@ private:
         inStream.skipWhiteSpace();
     }
 
+    void storeUnrefined(const CDT::TriVerticesVec& tris)
+    {
+        typedef CDT::TriVerticesVec::const_iterator Cit;
+        for(Cit t = tris.begin(); t != tris.end(); ++t)
+        {
+            const CDT::array<V2d, 3> tri = {
+                m_cdt.vertices[(*t)[0]],
+                m_cdt.vertices[(*t)[1]],
+                m_cdt.vertices[(*t)[2]]};
+            m_unrefinedTris.push_back(tri);
+        }
+    }
+
+    void storeUnrefined(const CDT::EdgeVec& edges)
+    {
+        typedef CDT::EdgeVec::const_iterator Cit;
+        for(Cit e = edges.begin(); e != edges.end(); ++e)
+        {
+            const CDT::array<V2d, 2> edge = {
+                m_cdt.vertices[e->v1()], m_cdt.vertices[e->v2()]};
+            m_unrefinedEdges.push_back(edge);
+        }
+    }
+
     void updateCDT()
     {
+        m_unrefinedTris.clear();
+        m_unrefinedEdges.clear();
         m_cdt = Triangulation(
             m_vertexInsertionOrder,
             m_intersectingEdgesStrategy,
@@ -430,20 +502,63 @@ private:
                     return;
                 }
             }
+
+            // collect which triangles the chosen finalize option would erase
+            // upfront so refinement (below) can skip refining them
+            CDT::TriIndUSet toErase;
             switch(m_finalizeType)
             {
             case FinalizeTriangulation::DontFinalize:
                 break;
             case FinalizeTriangulation::EraseSuperTriangle:
-                m_cdt.eraseSuperTriangle();
+                toErase = m_cdt.collectSuperTriangle();
                 break;
             case FinalizeTriangulation::EraseOuterTriangles:
-                m_cdt.eraseOuterTriangles();
+                toErase = m_cdt.collectOuterTriangles();
                 break;
             case FinalizeTriangulation::EraseOuterTrianglesAndHoles:
-                m_cdt.eraseOuterTrianglesAndHoles();
+                toErase = m_cdt.collectOuterTrianglesAndHoles();
                 break;
             }
+
+            if(m_isDoRuppert)
+            {
+                const CoordType threshold =
+                    m_refinementCriterion ==
+                            CDT::RefinementCriterion::SmallestAngle
+                        ? CDT::degToRad(CoordType(m_refinementThreshold))
+                        : m_refinementThreshold;
+                try
+                {
+                    CDT::Unrefined unrefined = m_cdt.refineTriangles(
+                        m_refinementLimit,
+                        m_refinementCriterion,
+                        threshold,
+                        &toErase,
+                        m_minRefinementEdgeLength);
+                    unrefined.deduplicate();
+                    // store positions: finalizing invalidates the indices
+                    storeUnrefined(unrefined.shortEdgeTriangles);
+                    storeUnrefined(unrefined.circumcenterOutside);
+                    storeUnrefined(unrefined.circumcenterOnVertex);
+                    storeUnrefined(unrefined.sharpFixedCorner);
+                    storeUnrefined(unrefined.shortEdges);
+                    storeUnrefined(unrefined.splitVertexInvalid);
+                }
+                catch(const CDT::Error& e)
+                {
+                    QMessageBox errBox;
+                    errBox.setText(e.what());
+                    errBox.exec();
+                    return;
+                }
+            }
+
+            if(m_finalizeType != FinalizeTriangulation::DontFinalize)
+            {
+                m_cdt.finalizeTriangulation(toErase);
+            }
+
             const CDT::unordered_map<Edge, CDT::EdgeVec> tmp =
                 CDT::EdgeToPiecesMapping(m_cdt.pieceToOriginals);
             const CDT::unordered_map<Edge, std::vector<CDT::VertInd> >
@@ -510,6 +625,8 @@ private:
         const QColor pointColor(3, 102, 214);
         const QColor pointLabelColor(150, 0, 150);
         const QColor triangleLabelColor(0, 150, 150);
+        const QColor unrefinedColor(200, 30, 30);
+        const QColor unrefinedBrushColor(255, 80, 80, 90);
 
         QPainter p(pd);
         p.setRenderHints(QPainter::Antialiasing);
@@ -618,6 +735,33 @@ private:
             const V2d& v2 = m_cdt.vertices[e->v2()];
             p.drawLine(sceneToScreen(v1), sceneToScreen(v2));
         }
+        // triangles and fixed edges that refinement was not able to refine
+        if(m_isHighlightUnrefined)
+        {
+            pen.setColor(unrefinedColor);
+            pen.setWidthF(2.0);
+            p.setPen(pen);
+            p.setBrush(QBrush(unrefinedBrushColor));
+            typedef std::vector<CDT::array<V2d, 3> >::const_iterator TUit;
+            for(TUit t = m_unrefinedTris.begin(); t != m_unrefinedTris.end();
+                ++t)
+            {
+                const CDT::array<QPointF, 3> pts = {
+                    sceneToScreen((*t)[0]),
+                    sceneToScreen((*t)[1]),
+                    sceneToScreen((*t)[2])};
+                p.drawPolygon(pts.data(), pts.size());
+            }
+            p.setBrush(QBrush(Qt::white));
+            pen.setWidthF(4.0);
+            p.setPen(pen);
+            typedef std::vector<CDT::array<V2d, 2> >::const_iterator EUit;
+            for(EUit e = m_unrefinedEdges.begin(); e != m_unrefinedEdges.end();
+                ++e)
+            {
+                p.drawLine(sceneToScreen((*e)[0]), sceneToScreen((*e)[1]));
+            }
+        }
         // last added edge
         if(m_edgeLimit && m_edgeLimit <= m_edges.size())
         {
@@ -657,6 +801,15 @@ private:
             pen.setWidthF(9.0);
             p.setPen(pen);
             p.drawPoint(sceneToScreen(m_points[m_ptLimit - 1]));
+        }
+        else if(
+            m_isDoRuppert && m_refinementLimit &&
+            m_refinementLimit != defaultRefinementLimit)
+        {
+            pen.setColor(highlightColor);
+            pen.setWidthF(9.0);
+            p.setPen(pen);
+            p.drawPoint(sceneToScreen(m_cdt.vertices.back()));
         }
     }
 
@@ -712,14 +865,22 @@ private:
     std::vector<Edge> m_edges;
     std::size_t m_ptLimit;
     std::size_t m_edgeLimit;
+    std::size_t m_refinementLimit;
+    CoordType m_minRefinementEdgeLength;
+    CDT::RefinementCriterion::Enum m_refinementCriterion;
+    CoordType m_refinementThreshold; // degrees if SmallestAngle, else raw area
     CDT::VertexInsertionOrder::Enum m_vertexInsertionOrder;
     CDT::IntersectingConstraintEdges::Enum m_intersectingEdgesStrategy;
     CoordType m_minDistToConstraintEdge;
     TriangulationType m_triangulationType;
     FinalizeTriangulation m_finalizeType;
+    bool m_isDoRuppert;
     bool m_fixDuplicates;
     bool m_isHidePoints;
     bool m_isDisplayIndices;
+    bool m_isHighlightUnrefined;
+    std::vector<CDT::array<V2d, 3> > m_unrefinedTris;
+    std::vector<CDT::array<V2d, 2> > m_unrefinedEdges;
 
     QPointF m_prevMousePos;
     QPointF m_translation;
@@ -838,9 +999,67 @@ public:
             SLOT(setEdgeLimit(int)));
         edgesSpinbox->setValue(9999999);
 
+        QSpinBox* refinementSpinbox = new QSpinBox;
+        refinementSpinbox->setRange(0, 9999999);
+        connect(
+            refinementSpinbox,
+            SIGNAL(valueChanged(int)),
+            m_cdtWidget,
+            SLOT(setRefinementLimit(int)));
+        refinementSpinbox->setValue(defaultRefinementLimit);
+
+        QComboBox* refinementCriterion = new QComboBox;
+        refinementCriterion->addItem("smallest angle");
+        refinementCriterion->addItem("largest area");
+        connect(
+            refinementCriterion,
+            SIGNAL(currentIndexChanged(int)),
+            m_cdtWidget,
+            SLOT(setRefinementCriterion(int)));
+
+        QDoubleSpinBox* refinementThreshold = new QDoubleSpinBox;
+        refinementThreshold->setDecimals(6);
+        refinementThreshold->setRange(0.0, 1000000.0);
+        refinementThreshold->setValue(20.0);
+        refinementThreshold->setToolTip(
+            tr("Bad-triangle threshold: minimum angle in degrees for 'smallest "
+               "angle', maximum area (in the input's own units) for 'largest "
+               "area'."));
+        connect(
+            refinementThreshold,
+            SIGNAL(valueChanged(double)),
+            m_cdtWidget,
+            SLOT(setRefinementThreshold(double)));
+
+        QDoubleSpinBox* minRefinementEdgeLength = new QDoubleSpinBox;
+        minRefinementEdgeLength->setDecimals(6);
+        minRefinementEdgeLength->setRange(0.0, 1.0);
+        minRefinementEdgeLength->setSingleStep(1e-6);
+        minRefinementEdgeLength->setValue(1e-6);
+        minRefinementEdgeLength->setToolTip(
+            tr("Give up splitting a fixed edge or triangle further once it's "
+               "already this short, instead of trying forever: refinement near "
+               "acute corners or narrow features isn't always guaranteed to "
+               "terminate otherwise. 0 disables the cutoff (may hang or throw "
+               "on such inputs)."));
+        connect(
+            minRefinementEdgeLength,
+            SIGNAL(valueChanged(double)),
+            m_cdtWidget,
+            SLOT(setMinRefinementEdgeLength(double)));
+
         QFormLayout* limitsLayout = new QFormLayout;
         limitsLayout->addRow(new QLabel(tr("Points")), ptsSpinbox);
         limitsLayout->addRow(new QLabel(tr("Edges")), edgesSpinbox);
+        limitsLayout->addRow(
+            new QLabel(tr("Refinement points")), refinementSpinbox);
+        limitsLayout->addRow(
+            new QLabel(tr("Refinement criterion")), refinementCriterion);
+        limitsLayout->addRow(
+            new QLabel(tr("Refinement threshold")), refinementThreshold);
+        limitsLayout->addRow(
+            new QLabel(tr("Refinement min edge length")),
+            minRefinementEdgeLength);
         QGroupBox* limitsGroup = new QGroupBox("Limits");
         limitsGroup->setLayout(limitsLayout);
 
@@ -863,11 +1082,32 @@ public:
         m_cdtWidget->hidePoints(0);
         hidePoints->setChecked(false);
 
+        QCheckBox* highlightUnrefined =
+            new QCheckBox(QStringLiteral("Highlight unrefined"));
+        connect(
+            highlightUnrefined,
+            SIGNAL(stateChanged(int)),
+            m_cdtWidget,
+            SLOT(highlightUnrefined(int)));
+        m_cdtWidget->highlightUnrefined(0);
+        highlightUnrefined->setChecked(false);
+
         QFormLayout* visOptions = new QFormLayout;
         visOptions->addRow(displayIndices);
         visOptions->addRow(hidePoints);
+        visOptions->addRow(highlightUnrefined);
         QGroupBox* visOptionsGroup = new QGroupBox("Visualization");
         visOptionsGroup->setLayout(visOptions);
+
+        QCheckBox* doRuppert =
+            new QCheckBox(QStringLiteral("Ruppert refinement"));
+        connect(
+            doRuppert,
+            SIGNAL(stateChanged(int)),
+            m_cdtWidget,
+            SLOT(doRuppertRefinement(int)));
+        m_cdtWidget->doRuppertRefinement(0);
+        doRuppert->setChecked(false);
 
         QPushButton* screenshotBtn = new QPushButton(tr("Make Screenshot"));
         connect(screenshotBtn, SIGNAL(clicked()), m_cdtWidget, SLOT(prtScn()));
@@ -882,6 +1122,7 @@ public:
         rightLayout->addWidget(triOptGroup, cntr++, 0);
         rightLayout->addWidget(limitsGroup, cntr++, 0);
         rightLayout->addWidget(visOptionsGroup, cntr++, 0);
+        rightLayout->addWidget(doRuppert, cntr++, 0);
         rightLayout->addWidget(screenshotBtn, cntr++, 0);
         rightLayout->addWidget(saveBtn, cntr++, 0);
 

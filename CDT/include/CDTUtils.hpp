@@ -44,7 +44,7 @@ CDT_INLINE_IF_HEADER_ONLY Index edgeNeighbor(const PtTriLocation::Enum location)
 template <typename T>
 T orient2D(const V2d<T>& p, const V2d<T>& v1, const V2d<T>& v2)
 {
-    return predicates::adaptive::orient2d(v1.x, v1.y, v2.x, v2.y, p.x, p.y);
+    return predicates::orient2d(v1.x, v1.y, v2.x, v2.y, p.x, p.y);
 }
 
 template <typename T>
@@ -75,7 +75,6 @@ PtTriLocation::Enum locatePointTriangle(
     const V2d<T>& v2,
     const V2d<T>& v3)
 {
-    using namespace predicates::adaptive;
     PtTriLocation::Enum result = PtTriLocation::Inside;
     PtLineLocation::Enum edgeCheck = locatePointLine(p, v1, v2);
     if(edgeCheck == PtLineLocation::Right)
@@ -219,8 +218,8 @@ bool isInCircumcircle(
     const V2d<T>& v2,
     const V2d<T>& v3)
 {
-    using namespace predicates::adaptive;
-    return incircle(v1.x, v1.y, v2.x, v2.y, v3.x, v3.y, p.x, p.y) > T(0);
+    return predicates::incircle(v1.x, v1.y, v2.x, v2.y, v3.x, v3.y, p.x, p.y) >
+           T(0);
 }
 
 CDT_INLINE_IF_HEADER_ONLY
@@ -260,7 +259,75 @@ T distanceSquared(const V2d<T>& a, const V2d<T>& b)
 
 bool touchesSuperTriangle(const Triangle& t)
 {
-    return t.vertices[0] < 3 || t.vertices[1] < 3 || t.vertices[2] < 3;
+    return t.vertices[0] < nSuperTriVerts || t.vertices[1] < nSuperTriVerts ||
+           t.vertices[2] < nSuperTriVerts;
+}
+
+namespace detail
+{
+
+template <typename T>
+bool isEncroachingOnEdge(
+    const V2d<T>& v,
+    const V2d<T>& edgeStart,
+    const V2d<T>& edgeEnd)
+{
+    // strictly inside the edge's diametral circle: the angle at v is obtuse
+    return predicates::indiamcircle(
+               edgeStart.x, edgeStart.y, edgeEnd.x, edgeEnd.y, v.x, v.y) >
+           T(0);
+}
+
+template <typename T>
+V2d<T> circumcenter(V2d<T> a, V2d<T> b, V2d<T> c)
+{
+    const T denom = T(2) * orient2D(a, b, c);
+    assert(denom != T(0));
+    const T aLenSq = distanceSquared(a, c), bLenSq = distanceSquared(b, c);
+    a.x -= c.x, a.y -= c.y;
+    b.x -= c.x, b.y -= c.y;
+    c.x += (b.y * aLenSq - a.y * bLenSq) / denom;
+    c.y += (a.x * bLenSq - b.x * aLenSq) / denom;
+    return c;
+}
+
+template <typename T>
+T doubledArea(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c)
+{
+    return std::abs(orient2D(a, b, c));
+}
+
+template <typename T>
+T sineOfSmallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c)
+{
+    // find sides of the smallest angle using law of sines:
+    T sideA = distance(a, b), sideB = distance(b, c);
+    if(sideA > sideB)
+        std::swap(sideA, sideB);
+    sideA = std::max(sideA, distance(a, c));
+    return (doubledArea(a, b, c) / sideA) / sideB;
+}
+
+} // namespace detail
+
+template <typename T>
+T area(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c)
+{
+    return detail::doubledArea(a, b, c) / T(2);
+}
+
+template <typename T>
+T smallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c)
+{
+    const T angleSine = detail::sineOfSmallestAngle(a, b, c);
+    assert(angleSine >= -1 && angleSine <= 1);
+    return std::asin(angleSine);
+}
+
+template <typename T>
+T degToRad(const T degrees)
+{
+    return degrees / T(180) * T(CDT_M_PI);
 }
 
 } // namespace CDT

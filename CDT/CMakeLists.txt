@@ -111,7 +111,6 @@ if(CDT_USE_AS_COMPILED_LIBRARY)
         include/Triangulation.hpp
         include/predicates.h
         extras/VerifyTopology.h
-        extras/InitializeWithGrid.h
     )
     add_library(${PROJECT_NAME} ${cdt_sources} ${cdt_headers})
     # Set symbols visibility to hidden by default
@@ -283,15 +282,26 @@ if(CDT_ENABLE_TESTING)
     set(TEST_TARGET_NAME ${PROJECT_NAME}-tests)
     add_executable(${TEST_TARGET_NAME})
     set_property(TARGET ${TEST_TARGET_NAME} PROPERTY CXX_STANDARD 17)
-    target_sources(${TEST_TARGET_NAME} PRIVATE tests/cdt.test.cpp)
+    target_sources(
+        ${TEST_TARGET_NAME}
+        PRIVATE
+            tests/cdt.test.cpp
+            tests/predicates.test.cpp
+    )
     target_link_libraries(
         ${TEST_TARGET_NAME}
         PRIVATE
             Catch2::Catch2WithMain
             CDT::CDT
     )
+    # fall-back for test data when the tests are not run from ctest, which sets
+    # the working directory below
+    target_compile_definitions(
+        ${TEST_TARGET_NAME}
+        PRIVATE CDT_TESTS_DIRECTORY="${PROJECT_SOURCE_DIR}/tests"
+    )
     include(Catch)
-    catch_discover_tests(${TEST_TARGET_NAME} WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/tests")
+    catch_discover_tests(${TEST_TARGET_NAME} WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/tests")
 endif()
 
 # -----------------

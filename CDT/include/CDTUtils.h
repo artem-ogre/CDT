@@ -53,7 +53,14 @@ typedef char couldnt_parse_cxx_standard[-1]; ///< Error: couldn't parse standard
 #include <cassert>
 #include <cmath>
 #include <limits>
+#include <queue>
 #include <vector>
+
+#ifdef M_PI
+#define CDT_M_PI M_PI
+#else
+#define CDT_M_PI 3.14159265358979323846
+#endif
 
 #ifdef CDT_USE_STRONG_TYPING
 #include <boost/serialization/strong_typedef.hpp>
@@ -216,7 +223,7 @@ const static IndexSizeType
     invalidIndexSizeType(std::numeric_limits<IndexSizeType>::max());
 /// Number of super triangle vertices
 /// @note placed in a constant so that it's easier to find usages in code
-const static IndexSizeType nSuperTriangleVertices(3);
+const static IndexSizeType nSuperTriVerts(3);
 /// Constant representing no valid neighbor for a triangle
 const static TriInd noNeighbor(invalidIndexSizeType);
 /// Constant representing no valid vertex for a triangle
@@ -303,6 +310,13 @@ struct CDT_EXPORT Edge
         return !(this->operator==(other));
     }
 
+    /// Less-than operator: orders by (v1, v2); used to get a deterministic
+    /// order out of hash-set iteration (which is platform-dependent)
+    bool operator<(const Edge& other) const
+    {
+        return m_vertices < other.m_vertices;
+    }
+
     /// V1 getter
     VertInd v1() const
     {
@@ -344,9 +358,12 @@ inline Edge edge_make(VertInd iV1, VertInd iV2)
 }
 
 typedef std::vector<Edge> EdgeVec;                ///< Vector of edges
+typedef std::queue<Edge> EdgeQueue;               ///< Queue of edges
+typedef std::queue<TriInd> TriIndQueue;           ///< Queue of triangles
 typedef unordered_set<Edge> EdgeUSet;             ///< Hash table of edges
 typedef unordered_set<TriInd> TriIndUSet;         ///< Hash table of triangles
 typedef unordered_map<TriInd, TriInd> TriIndUMap; ///< Triangle hash map
+typedef std::vector<VerticesArr3> TriVerticesVec; ///< Triangles (vertices-only)
 
 /// Triangulation triangle (counter-clockwise winding)
 /*
@@ -486,7 +503,7 @@ CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index
 opposedTriangleInd(const VerticesArr3& vv, VertInd iVert);
 
 /// Index of triangle's neighbor opposed to an edge
-CDT_INLINE_IF_HEADER_ONLY Index
+CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY Index
 edgeNeighborInd(const VerticesArr3& vv, VertInd iVedge1, VertInd iVedge2);
 
 /// Index of triangle's vertex opposed to a triangle
@@ -530,7 +547,45 @@ template <typename T>
 CDT_EXPORT T distanceSquared(const V2d<T>& a, const V2d<T>& b);
 
 /// Check if any of triangle's vertices belongs to a super-triangle
-CDT_INLINE_IF_HEADER_ONLY bool touchesSuperTriangle(const Triangle& t);
+CDT_EXPORT CDT_INLINE_IF_HEADER_ONLY bool
+touchesSuperTriangle(const Triangle& t);
+
+namespace detail
+{
+
+/// Check if vertex V is encroaching on diametral circle of an edge
+template <typename T>
+bool isEncroachingOnEdge(
+    const V2d<T>& v,
+    const V2d<T>& edgeStart,
+    const V2d<T>& edgeEnd);
+
+/// Position of ABC triangle circumcenter
+template <typename T>
+V2d<T> circumcenter(V2d<T> a, V2d<T> b, V2d<T> c);
+
+/// Doubled surface area of a triangle ABC
+template <typename T>
+T doubledArea(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
+
+/// Sine of smallest angle of triangle ABC
+template <typename T>
+T sineOfSmallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
+
+} // namespace detail
+
+/// Surface area of a triangle ABC
+template <typename T>
+CDT_EXPORT T area(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
+
+/// Smallest angle of triangle ABC in radians
+template <typename T>
+CDT_EXPORT T smallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
+
+/// Convert an angle from degrees to radians
+template <typename T>
+CDT_EXPORT T degToRad(T degrees);
+
 } // namespace CDT
 
 #ifndef CDT_USE_AS_COMPILED_LIBRARY
