@@ -20,7 +20,6 @@
 #include <cstdlib>
 #include <iterator>
 #include <memory>
-#include <stack>
 #include <vector>
 
 /// Namespace containing triangulation functionality

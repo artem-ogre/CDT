@@ -35,6 +35,23 @@
 
 //@reference: https://www.cs.cmu.edu/~quake/robust.html
 
+//@note: the error-free transformations below need IEEE-754 semantics:
+//       re-associating floating-point expressions silently breaks every result
+#if defined(__FAST_MATH__) || defined(_M_FP_FAST)
+#error "predicates.h needs IEEE-754 arithmetic: no -ffast-math / -Ofast / /fp:fast"
+#endif
+
+//@note: best effort: stops a*b+c contracting into an fma, but not the
+//       re-association guarded above, and applies to the rest of the including
+//       translation unit. gcc has no such pragma: use -ffp-contract=off
+#if defined(__clang__)
+#pragma clang fp contract(off)
+#elif defined(_MSC_VER)
+#pragma fp_contract(off)
+#elif !defined(__GNUC__)
+#pragma STDC FP_CONTRACT OFF
+#endif
+
 namespace  predicates {
     //@brief: geometric predicates using arbitrary precision arithmetic
     //@note : implementation detail: the predicates below fall back to these when their floating-point filters are inconclusive
@@ -80,6 +97,26 @@ namespace  predicates {
             //@return  : determinant of {{ax - dx, ay - dy, (ax - dx)^2 + (ay - dy)^2}, {bx - dx, by - dy, (bx - dx)^2 + (by - dy)^2}, {cx - dx, cy - dy, (cx - dx)^2 + (cy - dy)^2}}
             //@note    : positive, 0, negative result for d inside, on, or outside the circle defined by a, b, and c
             template <typename T> T incircle(T const*const pa, T const*const pb, T const*const pc, T const*const pd);
+
+            //@brief   : determine if the 2d point c is inside, on, or outside the circle that has the segment ab as its diameter
+            //@param ax: X-coordinate of a
+            //@param ay: Y-coordinate of a
+            //@param bx: X-coordinate of b
+            //@param by: Y-coordinate of b
+            //@param cx: X-coordinate of c
+            //@param cy: Y-coordinate of c
+            //@return  : -( (a - c) . (b - c) ), which is |c - (a + b) / 2|^2 - |a - b|^2 / 4 negated
+            //@note    : positive, 0, negative result for c inside, on, or outside the circle with diameter ab
+            //@note    : equivalently the sign of the angle acb: positive when obtuse, 0 when right, negative when acute
+            template <typename T> T indiamcircle(T const ax, T const ay, T const bx, T const by, T const cx, T const cy);
+
+            //@brief   : determine if the 2d point c is inside, on, or outside the circle that has the segment ab as its diameter
+            //@param pa: pointer to a as {x, y}
+            //@param pb: pointer to b as {x, y}
+            //@param pc: pointer to c as {x, y}
+            //@return  : -( (a - c) . (b - c) ), which is |c - (a + b) / 2|^2 - |a - b|^2 / 4 negated
+            //@note    : positive, 0, negative result for c inside, on, or outside the circle with diameter ab
+            template <typename T> T indiamcircle(T const*const pa, T const*const pb, T const*const pc);
 
             //@brief   : determine if the 3d point d is above, on, or below the plane defined by a, b, and c
             //@param pa: pointer to a as {x, y, z}
@@ -144,6 +181,26 @@ namespace  predicates {
     //@return  : determinant of {{ax - dx, ay - dy, (ax - dx)^2 + (ay - dy)^2}, {bx - dx, by - dy, (bx - dx)^2 + (by - dy)^2}, {cx - dx, cy - dy, (cx - dx)^2 + (cy - dy)^2}}
     //@note    : positive, 0, negative result for d inside, on, or outside the circle defined by a, b, and c
     template <typename T> T incircle(T const*const pa, T const*const pb, T const*const pc, T const*const pd);
+
+    //@brief   : determine if the 2d point c is inside, on, or outside the circle that has the segment ab as its diameter
+    //@param ax: X-coordinate of a
+    //@param ay: Y-coordinate of a
+    //@param bx: X-coordinate of b
+    //@param by: Y-coordinate of b
+    //@param cx: X-coordinate of c
+    //@param cy: Y-coordinate of c
+    //@return  : -( (a - c) . (b - c) ), which is |c - (a + b) / 2|^2 - |a - b|^2 / 4 negated
+    //@note    : positive, 0, negative result for c inside, on, or outside the circle with diameter ab
+    //@note    : equivalently the sign of the angle acb: positive when obtuse, 0 when right, negative when acute
+    template <typename T> T indiamcircle(T const ax, T const ay, T const bx, T const by, T const cx, T const cy);
+
+    //@brief   : determine if the 2d point c is inside, on, or outside the circle that has the segment ab as its diameter
+    //@param pa: pointer to a as {x, y}
+    //@param pb: pointer to b as {x, y}
+    //@param pc: pointer to c as {x, y}
+    //@return  : -( (a - c) . (b - c) ), which is |c - (a + b) / 2|^2 - |a - b|^2 / 4 negated
+    //@note    : positive, 0, negative result for c inside, on, or outside the circle with diameter ab
+    template <typename T> T indiamcircle(T const*const pa, T const*const pb, T const*const pc);
 
     //@brief   : determine if the 3d point d is above, on, or below the plane defined by a, b, and c
     //@param pa: pointer to a as {x, y, z}
@@ -497,6 +554,22 @@ namespace detail {
                 return incircle(pa[0], pa[1], pb[0], pb[1], pc[0], pc[1], pd[0], pd[1]);
             }
 
+            template <typename T> T indiamcircle(T const ax, T const ay, T const bx, T const by, T const cx, T const cy) {
+                //-( (a - c) . (b - c) ) expanded over the raw coordinates:
+                //  -(ax - cx)(bx - cx) - (ay - cy)(by - cy)
+                //  = (ax*cx - ax*bx) + (cx*bx - cx*cx) + (ay*cy - ay*by) + (cy*by - cy*cy)
+                const detail::Expansion<T, 4> axterms = detail::ExpansionBase<T>::TwoTwoDiff(ax, cx, ax, bx);
+                const detail::Expansion<T, 4> cxterms = detail::ExpansionBase<T>::TwoTwoDiff(cx, bx, cx, cx);
+                const detail::Expansion<T, 4> ayterms = detail::ExpansionBase<T>::TwoTwoDiff(ay, cy, ay, by);
+                const detail::Expansion<T, 4> cyterms = detail::ExpansionBase<T>::TwoTwoDiff(cy, by, cy, cy);
+                const detail::Expansion<T, 16> w = (axterms + cxterms) + (ayterms + cyterms);
+                return w.mostSignificant();
+            }
+
+            template <typename T> T indiamcircle(T const*const pa, T const*const pb, T const*const pc) {
+                return indiamcircle(pa[0], pa[1], pb[0], pb[1], pc[0], pc[1]);
+            }
+
             //@brief   : determine if the 3d point d is above, on, or below the plane defined by a, b, and c
             //@param pa: pointer to a as {x, y, z}
             //@param pb: pointer to b as {x, y, z}
@@ -705,6 +778,53 @@ namespace detail {
 
     template <typename T> T incircle(T const*const pa, T const*const pb, T const*const pc, T const*const pd) {
         return incircle(pa[0], pa[1], pb[0], pb[1], pc[0], pc[1], pd[0], pd[1]);
+    }
+
+    template <typename T> T indiamcircle(T const ax, T const ay, T const bx, T const by, T const cx, T const cy) {
+        const T acx = ax - cx;
+        const T acy = ay - cy;
+        const T bcx = bx - cx;
+        const T bcy = by - cy;
+        /* c is inside the circle with diameter ab exactly when the angle acb is
+           obtuse, because |c - (a + b) / 2|^2 - |a - b|^2 / 4 == (a - c).(b - c).
+           Negating that dot product to get the incircle sign convention leaves
+           the determinant of (acx, acy) and (bcy, -bcx), which has the very
+           shape orient2d's filters and error bounds below are derived for:
+           two products of computed differences, subtracted. Negation is exact,
+           so -bcx and its round-off -bcxtail cost no accuracy. */
+        const T nbcx = -bcx;
+        const T detleft = acx * nbcx;
+        const T detright = acy * bcy;
+        T det = detleft - detright;
+        if((detleft < 0) != (detright < 0)) return det;
+        if(T(0) == detleft || T(0) == detright) return det;
+
+        const T detsum = std::abs(detleft + detright);
+        T errbound = Constants<T>::ccwerrboundA * detsum;
+        if(std::abs(det) >= std::abs(errbound)) return det;
+
+        const detail::Expansion<T, 4> B = detail::ExpansionBase<T>::TwoTwoDiff(acx, nbcx, acy, bcy);
+        det = B.estimate();
+        errbound = Constants<T>::ccwerrboundB * detsum;
+        if(std::abs(det) >= std::abs(errbound)) return det;
+
+        const T acxtail = detail::ExpansionBase<T>::MinusTail(ax, cx, acx);
+        const T acytail = detail::ExpansionBase<T>::MinusTail(ay, cy, acy);
+        const T bcxtail = detail::ExpansionBase<T>::MinusTail(bx, cx, bcx);
+        const T bcytail = detail::ExpansionBase<T>::MinusTail(by, cy, bcy);
+        const T nbcxtail = -bcxtail;
+        if(T(0) == acxtail && T(0) == nbcxtail && T(0) == acytail && T(0) == bcytail) return det;
+
+        errbound = Constants<T>::ccwerrboundC * detsum + Constants<T>::resulterrbound * std::abs(det);
+        det += (acx * nbcxtail + nbcx * acxtail) - (acy * bcytail + bcy * acytail);
+        if(std::abs(det) >= std::abs(errbound)) return det;
+
+        const detail::Expansion<T, 16> D = ((B + detail::ExpansionBase<T>::TwoTwoDiff(acxtail, nbcx, acytail, bcy)) + detail::ExpansionBase<T>::TwoTwoDiff(acx, nbcxtail, acy, bcytail)) + detail::ExpansionBase<T>::TwoTwoDiff(acxtail, nbcxtail, acytail, bcytail);
+        return D.mostSignificant();
+    }
+
+    template <typename T> T indiamcircle(T const*const pa, T const*const pb, T const*const pc) {
+        return indiamcircle(pa[0], pa[1], pb[0], pb[1], pc[0], pc[1]);
     }
 
     //@brief   : determine if the 3d point d is above, on, or below the plane defined by a, b, and c

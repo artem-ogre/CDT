@@ -272,12 +272,9 @@ bool isEncroachingOnEdge(
     const V2d<T>& edgeStart,
     const V2d<T>& edgeEnd)
 {
-    /*
-     * Contains a point in its diametral circle:
-     * the angle between v and edge end points is obtuse
-     */
-    return (edgeStart.x - v.x) * (edgeEnd.x - v.x) +
-               (edgeStart.y - v.y) * (edgeEnd.y - v.y) <
+    // strictly inside the edge's diametral circle: the angle at v is obtuse
+    return predicates::indiamcircle(
+               edgeStart.x, edgeStart.y, edgeEnd.x, edgeEnd.y, v.x, v.y) >
            T(0);
 }
 
