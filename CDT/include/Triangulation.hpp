@@ -539,16 +539,14 @@ V2d<T> intersectionPosition(
     const V2d<T>& c,
     const V2d<T>& d)
 {
-    using namespace predicates::adaptive;
-
     // note: for better accuracy we interpolate x and y separately
     // on a segment with the shortest x/y-projection correspondingly
-    const T a_cd = orient2d(c.x, c.y, d.x, d.y, a.x, a.y);
-    const T b_cd = orient2d(c.x, c.y, d.x, d.y, b.x, b.y);
+    const T a_cd = predicates::orient2d(c.x, c.y, d.x, d.y, a.x, a.y);
+    const T b_cd = predicates::orient2d(c.x, c.y, d.x, d.y, b.x, b.y);
     const T t_ab = a_cd / (a_cd - b_cd);
 
-    const T c_ab = orient2d(a.x, a.y, b.x, b.y, c.x, c.y);
-    const T d_ab = orient2d(a.x, a.y, b.x, b.y, d.x, d.y);
+    const T c_ab = predicates::orient2d(a.x, a.y, b.x, b.y, c.x, c.y);
+    const T d_ab = predicates::orient2d(a.x, a.y, b.x, b.y, d.x, d.y);
     const T t_cd = c_ab / (c_ab - d_ab);
 
     return V2d<T>(

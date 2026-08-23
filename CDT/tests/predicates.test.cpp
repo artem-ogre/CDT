@@ -389,38 +389,38 @@ TEMPLATE_LIST_TEST_CASE(
 
     SECTION("point to the left of a -> b is positive")
     {
-        REQUIRE(predicates::exact::orient2d(a, b, left) > TestType(0));
-        REQUIRE(predicates::adaptive::orient2d(a, b, left) > TestType(0));
+        REQUIRE(predicates::detail::exact::orient2d(a, b, left) > TestType(0));
+        REQUIRE(predicates::orient2d(a, b, left) > TestType(0));
     }
     SECTION("point to the right of a -> b is negative")
     {
-        REQUIRE(predicates::exact::orient2d(a, b, right) < TestType(0));
-        REQUIRE(predicates::adaptive::orient2d(a, b, right) < TestType(0));
+        REQUIRE(predicates::detail::exact::orient2d(a, b, right) < TestType(0));
+        REQUIRE(predicates::orient2d(a, b, right) < TestType(0));
     }
     SECTION("collinear point is exactly zero")
     {
-        REQUIRE(predicates::exact::orient2d(a, b, on) == TestType(0));
-        REQUIRE(predicates::adaptive::orient2d(a, b, on) == TestType(0));
+        REQUIRE(predicates::detail::exact::orient2d(a, b, on) == TestType(0));
+        REQUIRE(predicates::orient2d(a, b, on) == TestType(0));
     }
     SECTION("the scalar and pointer overloads agree")
     {
         REQUIRE(
-            predicates::exact::orient2d(a, b, left) ==
-            predicates::exact::orient2d(
+            predicates::detail::exact::orient2d(a, b, left) ==
+            predicates::detail::exact::orient2d(
                 a[0], a[1], b[0], b[1], left[0], left[1]));
         REQUIRE(
-            predicates::adaptive::orient2d(a, b, left) ==
-            predicates::adaptive::orient2d(
+            predicates::orient2d(a, b, left) ==
+            predicates::orient2d(
                 a[0], a[1], b[0], b[1], left[0], left[1]));
     }
     SECTION("degenerate inputs")
     {
-        REQUIRE(predicates::exact::orient2d(a, a, b) == TestType(0));
-        REQUIRE(predicates::adaptive::orient2d(a, a, b) == TestType(0));
-        REQUIRE(predicates::exact::orient2d(a, b, b) == TestType(0));
-        REQUIRE(predicates::adaptive::orient2d(a, b, b) == TestType(0));
-        REQUIRE(predicates::exact::orient2d(a, a, a) == TestType(0));
-        REQUIRE(predicates::adaptive::orient2d(a, a, a) == TestType(0));
+        REQUIRE(predicates::detail::exact::orient2d(a, a, b) == TestType(0));
+        REQUIRE(predicates::orient2d(a, a, b) == TestType(0));
+        REQUIRE(predicates::detail::exact::orient2d(a, b, b) == TestType(0));
+        REQUIRE(predicates::orient2d(a, b, b) == TestType(0));
+        REQUIRE(predicates::detail::exact::orient2d(a, a, a) == TestType(0));
+        REQUIRE(predicates::orient2d(a, a, a) == TestType(0));
     }
 }
 
@@ -439,41 +439,41 @@ TEMPLATE_LIST_TEST_CASE(
 
     SECTION("point inside the circumcircle is positive")
     {
-        REQUIRE(predicates::exact::incircle(a, b, c, inside) > TestType(0));
-        REQUIRE(predicates::adaptive::incircle(a, b, c, inside) > TestType(0));
+        REQUIRE(predicates::detail::exact::incircle(a, b, c, inside) > TestType(0));
+        REQUIRE(predicates::incircle(a, b, c, inside) > TestType(0));
     }
     SECTION("cocircular point is exactly zero")
     {
-        REQUIRE(predicates::exact::incircle(a, b, c, on) == TestType(0));
-        REQUIRE(predicates::adaptive::incircle(a, b, c, on) == TestType(0));
+        REQUIRE(predicates::detail::exact::incircle(a, b, c, on) == TestType(0));
+        REQUIRE(predicates::incircle(a, b, c, on) == TestType(0));
     }
     SECTION("point outside the circumcircle is negative")
     {
-        REQUIRE(predicates::exact::incircle(a, b, c, outside) < TestType(0));
-        REQUIRE(predicates::adaptive::incircle(a, b, c, outside) < TestType(0));
+        REQUIRE(predicates::detail::exact::incircle(a, b, c, outside) < TestType(0));
+        REQUIRE(predicates::incircle(a, b, c, outside) < TestType(0));
     }
     SECTION("a clockwise triangle flips the sign")
     {
-        REQUIRE(predicates::exact::incircle(c, b, a, inside) < TestType(0));
-        REQUIRE(predicates::adaptive::incircle(c, b, a, inside) < TestType(0));
+        REQUIRE(predicates::detail::exact::incircle(c, b, a, inside) < TestType(0));
+        REQUIRE(predicates::incircle(c, b, a, inside) < TestType(0));
     }
     SECTION("the scalar and pointer overloads agree")
     {
         REQUIRE(
-            predicates::exact::incircle(a, b, c, inside) ==
-            predicates::exact::incircle(
+            predicates::detail::exact::incircle(a, b, c, inside) ==
+            predicates::detail::exact::incircle(
                 a[0], a[1], b[0], b[1], c[0], c[1], inside[0], inside[1]));
         REQUIRE(
-            predicates::adaptive::incircle(a, b, c, inside) ==
-            predicates::adaptive::incircle(
+            predicates::incircle(a, b, c, inside) ==
+            predicates::incircle(
                 a[0], a[1], b[0], b[1], c[0], c[1], inside[0], inside[1]));
     }
     SECTION("a duplicated point makes the result zero")
     {
-        REQUIRE(predicates::exact::incircle(a, b, c, a) == TestType(0));
-        REQUIRE(predicates::adaptive::incircle(a, b, c, a) == TestType(0));
-        REQUIRE(predicates::exact::incircle(a, a, c, inside) == TestType(0));
-        REQUIRE(predicates::adaptive::incircle(a, a, c, inside) == TestType(0));
+        REQUIRE(predicates::detail::exact::incircle(a, b, c, a) == TestType(0));
+        REQUIRE(predicates::incircle(a, b, c, a) == TestType(0));
+        REQUIRE(predicates::detail::exact::incircle(a, a, c, inside) == TestType(0));
+        REQUIRE(predicates::incircle(a, a, c, inside) == TestType(0));
     }
 }
 
@@ -489,12 +489,12 @@ TEMPLATE_LIST_TEST_CASE(
     const TestType below[3] = {TestType(0), TestType(0), TestType(-1)};
     const TestType on[3] = {TestType(0), TestType(0), TestType(0)};
 
-    REQUIRE(predicates::exact::orient3d(a, b, c, above) > TestType(0));
-    REQUIRE(predicates::adaptive::orient3d(a, b, c, above) > TestType(0));
-    REQUIRE(predicates::exact::orient3d(a, b, c, below) < TestType(0));
-    REQUIRE(predicates::adaptive::orient3d(a, b, c, below) < TestType(0));
-    REQUIRE(predicates::exact::orient3d(a, b, c, on) == TestType(0));
-    REQUIRE(predicates::adaptive::orient3d(a, b, c, on) == TestType(0));
+    REQUIRE(predicates::detail::exact::orient3d(a, b, c, above) > TestType(0));
+    REQUIRE(predicates::orient3d(a, b, c, above) > TestType(0));
+    REQUIRE(predicates::detail::exact::orient3d(a, b, c, below) < TestType(0));
+    REQUIRE(predicates::orient3d(a, b, c, below) < TestType(0));
+    REQUIRE(predicates::detail::exact::orient3d(a, b, c, on) == TestType(0));
+    REQUIRE(predicates::orient3d(a, b, c, on) == TestType(0));
 
     SECTION("one ULP off the plane is still resolved")
     {
@@ -502,10 +502,10 @@ TEMPLATE_LIST_TEST_CASE(
             0, 0, std::nextafter(TestType(0), TestType(1))};
         const TestType down[3] = {
             0, 0, std::nextafter(TestType(0), TestType(-1))};
-        REQUIRE(predicates::exact::orient3d(a, b, c, up) > TestType(0));
-        REQUIRE(predicates::adaptive::orient3d(a, b, c, up) > TestType(0));
-        REQUIRE(predicates::exact::orient3d(a, b, c, down) < TestType(0));
-        REQUIRE(predicates::adaptive::orient3d(a, b, c, down) < TestType(0));
+        REQUIRE(predicates::detail::exact::orient3d(a, b, c, up) > TestType(0));
+        REQUIRE(predicates::orient3d(a, b, c, up) > TestType(0));
+        REQUIRE(predicates::detail::exact::orient3d(a, b, c, down) < TestType(0));
+        REQUIRE(predicates::orient3d(a, b, c, down) < TestType(0));
     }
 }
 
@@ -522,12 +522,12 @@ TEMPLATE_LIST_TEST_CASE(
     const TestType outside[3] = {TestType(0), TestType(0), TestType(2)};
     const TestType on[3] = {TestType(0), TestType(0), TestType(-1)};
 
-    REQUIRE(predicates::exact::insphere(a, b, c, d, inside) > TestType(0));
-    REQUIRE(predicates::adaptive::insphere(a, b, c, d, inside) > TestType(0));
-    REQUIRE(predicates::exact::insphere(a, b, c, d, outside) < TestType(0));
-    REQUIRE(predicates::adaptive::insphere(a, b, c, d, outside) < TestType(0));
-    REQUIRE(predicates::exact::insphere(a, b, c, d, on) == TestType(0));
-    REQUIRE(predicates::adaptive::insphere(a, b, c, d, on) == TestType(0));
+    REQUIRE(predicates::detail::exact::insphere(a, b, c, d, inside) > TestType(0));
+    REQUIRE(predicates::insphere(a, b, c, d, inside) > TestType(0));
+    REQUIRE(predicates::detail::exact::insphere(a, b, c, d, outside) < TestType(0));
+    REQUIRE(predicates::insphere(a, b, c, d, outside) < TestType(0));
+    REQUIRE(predicates::detail::exact::insphere(a, b, c, d, on) == TestType(0));
+    REQUIRE(predicates::insphere(a, b, c, d, on) == TestType(0));
 
     SECTION("one ULP off the sphere is still resolved")
     {
@@ -535,10 +535,10 @@ TEMPLATE_LIST_TEST_CASE(
             0, 0, std::nextafter(TestType(-1), TestType(0))};
         const TestType out[3] = {
             0, 0, std::nextafter(TestType(-1), TestType(-2))};
-        REQUIRE(predicates::exact::insphere(a, b, c, d, in) > TestType(0));
-        REQUIRE(predicates::adaptive::insphere(a, b, c, d, in) > TestType(0));
-        REQUIRE(predicates::exact::insphere(a, b, c, d, out) < TestType(0));
-        REQUIRE(predicates::adaptive::insphere(a, b, c, d, out) < TestType(0));
+        REQUIRE(predicates::detail::exact::insphere(a, b, c, d, in) > TestType(0));
+        REQUIRE(predicates::insphere(a, b, c, d, in) > TestType(0));
+        REQUIRE(predicates::detail::exact::insphere(a, b, c, d, out) < TestType(0));
+        REQUIRE(predicates::insphere(a, b, c, d, out) < TestType(0));
     }
 }
 
@@ -573,25 +573,25 @@ TEST_CASE(
                 what << "iteration " << iter << ", swap " << i << "<->" << j;
 
                 if(j < 3 &&
-                   signOf(predicates::exact::orient2d(q[0], q[1], q[2])) !=
+                   signOf(predicates::detail::exact::orient2d(q[0], q[1], q[2])) !=
                        -signOf(
-                           predicates::exact::orient2d(p[0], p[1], p[2])))
+                           predicates::detail::exact::orient2d(p[0], p[1], p[2])))
                     log.add("orient2d, " + what.str());
                 if(j < 4 &&
-                   signOf(predicates::exact::incircle(
+                   signOf(predicates::detail::exact::incircle(
                        q[0], q[1], q[2], q[3])) !=
-                       -signOf(predicates::exact::incircle(
+                       -signOf(predicates::detail::exact::incircle(
                            p[0], p[1], p[2], p[3])))
                     log.add("incircle, " + what.str());
                 if(j < 4 &&
-                   signOf(predicates::exact::orient3d(
+                   signOf(predicates::detail::exact::orient3d(
                        q[0], q[1], q[2], q[3])) !=
-                       -signOf(predicates::exact::orient3d(
+                       -signOf(predicates::detail::exact::orient3d(
                            p[0], p[1], p[2], p[3])))
                     log.add("orient3d, " + what.str());
-                if(signOf(predicates::exact::insphere(
+                if(signOf(predicates::detail::exact::insphere(
                        q[0], q[1], q[2], q[3], q[4])) !=
-                   -signOf(predicates::exact::insphere(
+                   -signOf(predicates::detail::exact::insphere(
                        p[0], p[1], p[2], p[3], p[4])))
                     log.add("insphere, " + what.str());
             }
@@ -633,9 +633,9 @@ TEMPLATE_LIST_TEST_CASE(
                 toCoords(b, fb);
                 toCoords(c, fc);
                 const int gotExact =
-                    signOf(predicates::exact::orient2d(fa, fb, fc));
+                    signOf(predicates::detail::exact::orient2d(fa, fb, fc));
                 const int gotAdaptive =
-                    signOf(predicates::adaptive::orient2d(fa, fb, fc));
+                    signOf(predicates::orient2d(fa, fb, fc));
                 if(gotExact != expected || gotAdaptive != expected)
                 {
                     std::ostringstream o;
@@ -687,9 +687,9 @@ TEMPLATE_LIST_TEST_CASE(
                     toCoords(c, fc);
                     toCoords(d, fd);
                     const int gotExact =
-                        signOf(predicates::exact::incircle(fa, fb, fc, fd));
+                        signOf(predicates::detail::exact::incircle(fa, fb, fc, fd));
                     const int gotAdaptive =
-                        signOf(predicates::adaptive::incircle(fa, fb, fc, fd));
+                        signOf(predicates::incircle(fa, fb, fc, fd));
                     if(gotExact != expected || gotAdaptive != expected)
                     {
                         std::ostringstream o;
@@ -737,9 +737,9 @@ TEST_CASE(
         const int expected3d = signOf(orient3dInt(p[0], p[1], p[2], p[3]));
         if(expected3d == 0)
             ++coplanar;
-        if(signOf(predicates::exact::orient3d(a, b, c, d)) !=
+        if(signOf(predicates::detail::exact::orient3d(a, b, c, d)) !=
                expected3d ||
-           signOf(predicates::adaptive::orient3d(a, b, c, d)) !=
+           signOf(predicates::orient3d(a, b, c, d)) !=
                expected3d)
         {
             std::ostringstream o;
@@ -751,9 +751,9 @@ TEST_CASE(
             signOf(insphereInt(p[0], p[1], p[2], p[3], p[4]));
         if(expectedSphere == 0)
             ++cospherical;
-        if(signOf(predicates::exact::insphere(a, b, c, d, e)) !=
+        if(signOf(predicates::detail::exact::insphere(a, b, c, d, e)) !=
                expectedSphere ||
-           signOf(predicates::adaptive::insphere(a, b, c, d, e)) !=
+           signOf(predicates::insphere(a, b, c, d, e)) !=
                expectedSphere)
         {
             std::ostringstream o;
@@ -789,10 +789,10 @@ TEMPLATE_LIST_TEST_CASE(
         {
             const TestType x = r + w * TestType(i) / TestType(128);
             const TestType y = r + w * TestType(j) / TestType(128);
-            const int expected = signOf(predicates::exact::orient2d(
+            const int expected = signOf(predicates::detail::exact::orient2d(
                 x, y, q, q, p, p));
             const int got =
-                signOf(predicates::adaptive::orient2d(x, y, q, q, p, p));
+                signOf(predicates::orient2d(x, y, q, q, p, p));
             if(got != expected)
             {
                 std::ostringstream o;
@@ -826,14 +826,14 @@ TEST_CASE(
         std::ostringstream at;
         at << " at x=" << x;
 
-        if(!(predicates::adaptive::incircle(a, b, c, inside) > 0) ||
-           !(predicates::exact::incircle(a, b, c, inside) > 0))
+        if(!(predicates::incircle(a, b, c, inside) > 0) ||
+           !(predicates::detail::exact::incircle(a, b, c, inside) > 0))
             log.add("inside" + at.str());
-        if(!(predicates::adaptive::incircle(a, b, c, outside) < 0) ||
-           !(predicates::exact::incircle(a, b, c, outside) < 0))
+        if(!(predicates::incircle(a, b, c, outside) < 0) ||
+           !(predicates::detail::exact::incircle(a, b, c, outside) < 0))
             log.add("outside" + at.str());
-        if(predicates::adaptive::incircle(a, b, c, on) != 0 ||
-           predicates::exact::incircle(a, b, c, on) != 0)
+        if(predicates::incircle(a, b, c, on) != 0 ||
+           predicates::detail::exact::incircle(a, b, c, on) != 0)
             log.add("cocircular" + at.str());
 
         x *= 10;
@@ -859,10 +859,10 @@ TEST_CASE(
         const double c[3] = {24, 24, 24};
         const double d[3] = {48, 48, 48};
 
-        if(predicates::adaptive::orient3d(b, c, d, a) != 0 ||
-           predicates::exact::orient3d(b, c, d, a) != 0 ||
-           predicates::adaptive::orient3d(c, d, a, b) != 0 ||
-           predicates::exact::orient3d(c, d, a, b) != 0)
+        if(predicates::orient3d(b, c, d, a) != 0 ||
+           predicates::detail::exact::orient3d(b, c, d, a) != 0 ||
+           predicates::orient3d(c, d, a, b) != 0 ||
+           predicates::detail::exact::orient3d(c, d, a, b) != 0)
         {
             log.add("iteration " + std::to_string(i));
         }
@@ -893,8 +893,8 @@ TEST_CASE(
         const double c[2] = {
             a[0] + t * (b[0] - a[0]), a[1] + t * (b[1] - a[1])};
 
-        if(signOf(predicates::adaptive::orient2d(a, b, c)) !=
-           signOf(predicates::exact::orient2d(a, b, c)))
+        if(signOf(predicates::orient2d(a, b, c)) !=
+           signOf(predicates::detail::exact::orient2d(a, b, c)))
         {
             collinear.add("iteration " + std::to_string(iter));
         }
@@ -910,9 +910,9 @@ TEST_CASE(
             circle[i][0] = a[0] + radius * std::cos(phi);
             circle[i][1] = a[1] + radius * std::sin(phi);
         }
-        if(signOf(predicates::adaptive::incircle(
+        if(signOf(predicates::incircle(
                circle[0], circle[1], circle[2], b)) !=
-           signOf(predicates::exact::incircle(
+           signOf(predicates::detail::exact::incircle(
                circle[0], circle[1], circle[2], b)))
         {
             cocircular.add("iteration " + std::to_string(iter));
@@ -949,18 +949,18 @@ TEST_CASE(
             what << "exponent range " << exponentRanges[e] << ", iteration "
                  << iter;
 
-            if(signOf(predicates::adaptive::orient2d(p[0], p[1], p[2])) !=
-               signOf(predicates::exact::orient2d(p[0], p[1], p[2])))
+            if(signOf(predicates::orient2d(p[0], p[1], p[2])) !=
+               signOf(predicates::detail::exact::orient2d(p[0], p[1], p[2])))
                 log.add("orient2d, " + what.str());
-            if(signOf(predicates::adaptive::incircle(p[0], p[1], p[2], p[3])) !=
-               signOf(predicates::exact::incircle(p[0], p[1], p[2], p[3])))
+            if(signOf(predicates::incircle(p[0], p[1], p[2], p[3])) !=
+               signOf(predicates::detail::exact::incircle(p[0], p[1], p[2], p[3])))
                 log.add("incircle, " + what.str());
-            if(signOf(predicates::adaptive::orient3d(p[0], p[1], p[2], p[3])) !=
-               signOf(predicates::exact::orient3d(p[0], p[1], p[2], p[3])))
+            if(signOf(predicates::orient3d(p[0], p[1], p[2], p[3])) !=
+               signOf(predicates::detail::exact::orient3d(p[0], p[1], p[2], p[3])))
                 log.add("orient3d, " + what.str());
-            if(signOf(predicates::adaptive::insphere(
+            if(signOf(predicates::insphere(
                    p[0], p[1], p[2], p[3], p[4])) !=
-               signOf(predicates::exact::insphere(
+               signOf(predicates::detail::exact::insphere(
                    p[0], p[1], p[2], p[3], p[4])))
                 log.add("insphere, " + what.str());
         }
@@ -994,18 +994,18 @@ TEST_CASE(
         std::ostringstream what;
         what << "iteration " << iter;
 
-        if(signOf(predicates::adaptive::orient2d(f[0], f[1], f[2])) !=
-           signOf(predicates::exact::orient2d(d[0], d[1], d[2])))
+        if(signOf(predicates::orient2d(f[0], f[1], f[2])) !=
+           signOf(predicates::detail::exact::orient2d(d[0], d[1], d[2])))
             log.add("orient2d, " + what.str());
-        if(signOf(predicates::adaptive::incircle(f[0], f[1], f[2], f[3])) !=
-           signOf(predicates::exact::incircle(d[0], d[1], d[2], d[3])))
+        if(signOf(predicates::incircle(f[0], f[1], f[2], f[3])) !=
+           signOf(predicates::detail::exact::incircle(d[0], d[1], d[2], d[3])))
             log.add("incircle, " + what.str());
-        if(signOf(predicates::adaptive::orient3d(f[0], f[1], f[2], f[3])) !=
-           signOf(predicates::exact::orient3d(d[0], d[1], d[2], d[3])))
+        if(signOf(predicates::orient3d(f[0], f[1], f[2], f[3])) !=
+           signOf(predicates::detail::exact::orient3d(d[0], d[1], d[2], d[3])))
             log.add("orient3d, " + what.str());
-        if(signOf(predicates::adaptive::insphere(
+        if(signOf(predicates::insphere(
                f[0], f[1], f[2], f[3], f[4])) !=
-           signOf(predicates::exact::insphere(
+           signOf(predicates::detail::exact::insphere(
                d[0], d[1], d[2], d[3], d[4])))
             log.add("insphere, " + what.str());
     }
@@ -1028,13 +1028,13 @@ TEST_CASE("Predicates: smallest normal coordinates", "[predicates]")
 
         for(std::size_t i = 0; i < 2; ++i)
         {
-            REQUIRE(predicates::exact::orient2d(from, to, onLine[i]) == 0);
-            REQUIRE(predicates::adaptive::orient2d(from, to, onLine[i]) == 0);
+            REQUIRE(predicates::detail::exact::orient2d(from, to, onLine[i]) == 0);
+            REQUIRE(predicates::orient2d(from, to, onLine[i]) == 0);
         }
-        REQUIRE(predicates::exact::orient2d(from, to, left) > 0);
-        REQUIRE(predicates::adaptive::orient2d(from, to, left) > 0);
-        REQUIRE(predicates::exact::orient2d(from, to, right) < 0);
-        REQUIRE(predicates::adaptive::orient2d(from, to, right) < 0);
+        REQUIRE(predicates::detail::exact::orient2d(from, to, left) > 0);
+        REQUIRE(predicates::orient2d(from, to, left) > 0);
+        REQUIRE(predicates::detail::exact::orient2d(from, to, right) < 0);
+        REQUIRE(predicates::orient2d(from, to, right) < 0);
     }
 
     SECTION("orient3d")
@@ -1046,12 +1046,12 @@ TEST_CASE("Predicates: smallest normal coordinates", "[predicates]")
         const double above[3] = {-tiny, -tiny, -tiny};
         const double on[3] = {0, 0, 0};
 
-        REQUIRE(predicates::exact::orient3d(a, b, c, below) < 0);
-        REQUIRE(predicates::adaptive::orient3d(a, b, c, below) < 0);
-        REQUIRE(predicates::exact::orient3d(a, b, c, above) > 0);
-        REQUIRE(predicates::adaptive::orient3d(a, b, c, above) > 0);
-        REQUIRE(predicates::exact::orient3d(a, b, c, on) == 0);
-        REQUIRE(predicates::adaptive::orient3d(a, b, c, on) == 0);
+        REQUIRE(predicates::detail::exact::orient3d(a, b, c, below) < 0);
+        REQUIRE(predicates::orient3d(a, b, c, below) < 0);
+        REQUIRE(predicates::detail::exact::orient3d(a, b, c, above) > 0);
+        REQUIRE(predicates::orient3d(a, b, c, above) > 0);
+        REQUIRE(predicates::detail::exact::orient3d(a, b, c, on) == 0);
+        REQUIRE(predicates::orient3d(a, b, c, on) == 0);
     }
 
     SECTION("incircle")
@@ -1062,10 +1062,10 @@ TEST_CASE("Predicates: smallest normal coordinates", "[predicates]")
         const double right[2] = {tiny, -tiny};
         const double query[2] = {2, 2};
 
-        REQUIRE(predicates::exact::incircle(from, left, to, query) > 0);
-        REQUIRE(predicates::adaptive::incircle(from, left, to, query) > 0);
-        REQUIRE(predicates::exact::incircle(from, to, right, query) > 0);
-        REQUIRE(predicates::adaptive::incircle(from, to, right, query) > 0);
+        REQUIRE(predicates::detail::exact::incircle(from, left, to, query) > 0);
+        REQUIRE(predicates::incircle(from, left, to, query) > 0);
+        REQUIRE(predicates::detail::exact::incircle(from, to, right, query) > 0);
+        REQUIRE(predicates::incircle(from, to, right, query) > 0);
     }
 }
 
@@ -1083,10 +1083,10 @@ TEST_CASE("Predicates: regression, georust/robust issue #48", "[predicates]")
         const double d[2] = {-0.9999999999999922, -7.073397829693697e-15};
         const double expected = -8.0140565430358e-30; // from predicates.c
 
-        REQUIRE(predicates::exact::incircle(a, b, c, d) < 0);
-        REQUIRE(predicates::adaptive::incircle(a, b, c, d) < 0);
+        REQUIRE(predicates::detail::exact::incircle(a, b, c, d) < 0);
+        REQUIRE(predicates::incircle(a, b, c, d) < 0);
         REQUIRE(
-            std::abs(predicates::adaptive::incircle(a, b, c, d) - expected) <
+            std::abs(predicates::incircle(a, b, c, d) - expected) <
             std::abs(expected));
     }
 
@@ -1098,10 +1098,10 @@ TEST_CASE("Predicates: regression, georust/robust issue #48", "[predicates]")
         const double d[2] = {-0.9999999999999946, -6.6797960341085084e-15};
         const double expected = 7.226864249343135e-30; // from predicates.c
 
-        REQUIRE(predicates::exact::incircle(a, b, c, d) > 0);
-        REQUIRE(predicates::adaptive::incircle(a, b, c, d) > 0);
+        REQUIRE(predicates::detail::exact::incircle(a, b, c, d) > 0);
+        REQUIRE(predicates::incircle(a, b, c, d) > 0);
         REQUIRE(
-            std::abs(predicates::adaptive::incircle(a, b, c, d) - expected) <
+            std::abs(predicates::incircle(a, b, c, d) - expected) <
             std::abs(expected));
     }
 }
@@ -1121,9 +1121,9 @@ TEST_CASE("Predicates: orient2d hard-case fixtures", "[predicates]")
         const double* c = fixtures[i].c;
         const int expected = fixtures[i].expectedSign;
         const int gotExact =
-            signOf(predicates::exact::orient2d(c, c + 2, c + 4));
+            signOf(predicates::detail::exact::orient2d(c, c + 2, c + 4));
         const int gotAdaptive =
-            signOf(predicates::adaptive::orient2d(c, c + 2, c + 4));
+            signOf(predicates::orient2d(c, c + 2, c + 4));
         if(gotExact != expected || gotAdaptive != expected)
         {
             std::ostringstream o;
@@ -1147,9 +1147,9 @@ TEST_CASE("Predicates: incircle hard-case fixtures", "[predicates]")
         const double* c = fixtures[i].c;
         const int expected = fixtures[i].expectedSign;
         const int gotExact =
-            signOf(predicates::exact::incircle(c, c + 2, c + 4, c + 6));
+            signOf(predicates::detail::exact::incircle(c, c + 2, c + 4, c + 6));
         const int gotAdaptive =
-            signOf(predicates::adaptive::incircle(c, c + 2, c + 4, c + 6));
+            signOf(predicates::incircle(c, c + 2, c + 4, c + 6));
         if(gotExact != expected || gotAdaptive != expected)
         {
             std::ostringstream o;
@@ -1173,9 +1173,9 @@ TEST_CASE("Predicates: orient3d hard-case fixtures", "[predicates]")
         const double* c = fixtures[i].c;
         const int expected = fixtures[i].expectedSign;
         const int gotExact =
-            signOf(predicates::exact::orient3d(c, c + 3, c + 6, c + 9));
+            signOf(predicates::detail::exact::orient3d(c, c + 3, c + 6, c + 9));
         const int gotAdaptive =
-            signOf(predicates::adaptive::orient3d(c, c + 3, c + 6, c + 9));
+            signOf(predicates::orient3d(c, c + 3, c + 6, c + 9));
         if(gotExact != expected || gotAdaptive != expected)
         {
             std::ostringstream o;
@@ -1199,9 +1199,9 @@ TEST_CASE("Predicates: insphere hard-case fixtures", "[predicates]")
         const double* c = fixtures[i].c;
         const int expected = fixtures[i].expectedSign;
         const int gotExact = signOf(
-            predicates::exact::insphere(c, c + 3, c + 6, c + 9, c + 12));
+            predicates::detail::exact::insphere(c, c + 3, c + 6, c + 9, c + 12));
         const int gotAdaptive = signOf(
-            predicates::adaptive::insphere(c, c + 3, c + 6, c + 9, c + 12));
+            predicates::insphere(c, c + 3, c + 6, c + 9, c + 12));
         if(gotExact != expected || gotAdaptive != expected)
         {
             std::ostringstream o;

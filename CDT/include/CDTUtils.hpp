@@ -44,7 +44,7 @@ CDT_INLINE_IF_HEADER_ONLY Index edgeNeighbor(const PtTriLocation::Enum location)
 template <typename T>
 T orient2D(const V2d<T>& p, const V2d<T>& v1, const V2d<T>& v2)
 {
-    return predicates::adaptive::orient2d(v1.x, v1.y, v2.x, v2.y, p.x, p.y);
+    return predicates::orient2d(v1.x, v1.y, v2.x, v2.y, p.x, p.y);
 }
 
 template <typename T>
@@ -75,7 +75,6 @@ PtTriLocation::Enum locatePointTriangle(
     const V2d<T>& v2,
     const V2d<T>& v3)
 {
-    using namespace predicates::adaptive;
     PtTriLocation::Enum result = PtTriLocation::Inside;
     PtLineLocation::Enum edgeCheck = locatePointLine(p, v1, v2);
     if(edgeCheck == PtLineLocation::Right)
@@ -219,8 +218,8 @@ bool isInCircumcircle(
     const V2d<T>& v2,
     const V2d<T>& v3)
 {
-    using namespace predicates::adaptive;
-    return incircle(v1.x, v1.y, v2.x, v2.y, v3.x, v3.y, p.x, p.y) > T(0);
+    return predicates::incircle(v1.x, v1.y, v2.x, v2.y, v3.x, v3.y, p.x, p.y) >
+           T(0);
 }
 
 CDT_INLINE_IF_HEADER_ONLY
