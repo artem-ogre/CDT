@@ -1239,6 +1239,60 @@ TEST_CASE("Callbacks test: refinement inserts no encroaching circumcenter")
     REQUIRE(callbackHandler.encroaching == std::size_t(0));
 }
 
+TEST_CASE(
+    "Callbacks test: no encroaching circumcenter when a split is given up on")
+{
+    // Refinement only re-visits a bad triangle when splitting the fixed edges
+    // its circumcenter encroaches on actually consumed vertices. Splitting can
+    // also give up (split vertex invalid, or edge already at minEdgeLength),
+    // and then the encroaching circumcenter used to be inserted anyway.
+    const auto [vv, ee] =
+        readInputFromFile<double>("inputs/refine-encroaching-circumcenter.txt");
+
+    struct CallbackHandler final : public CDT::ICallbackHandler
+    {
+        const Triangulation<double>* cdt = nullptr;
+        std::size_t circumcenters = 0;
+        std::size_t encroaching = 0;
+
+        void onAddVertexStart(
+            const VertInd iV,
+            const AddVertexType::Enum vertexType) override
+        {
+            if(vertexType != AddVertexType::RefinementCircumcenter)
+                return;
+            ++circumcenters;
+            const V2d<double>& v = cdt->vertices[iV];
+            for(const Edge& e : cdt->fixedEdges)
+            {
+                const V2d<double>& start = cdt->vertices[e.v1()];
+                const V2d<double>& end = cdt->vertices[e.v2()];
+                // inside the diametral circle: the angle at v is obtuse
+                if((start.x - v.x) * (end.x - v.x) +
+                       (start.y - v.y) * (end.y - v.y) <
+                   0.)
+                {
+                    ++encroaching;
+                }
+            }
+        }
+    };
+
+    CallbackHandler callbackHandler;
+    auto cdt = Triangulation<double>();
+    cdt.setCallbackHandler(&callbackHandler);
+    callbackHandler.cdt = &cdt;
+    cdt.insertVertices(vv);
+    cdt.insertEdges(ee);
+    const auto unrefined = cdt.refineTriangles(
+        VertInd(400), RefinementCriterion::SmallestAngle, degToRad(20.));
+
+    // the input is chosen so that splitting an encroached edge does give up
+    REQUIRE(!unrefined.splitVertexInvalid.empty());
+    REQUIRE(callbackHandler.circumcenters > std::size_t(0));
+    REQUIRE(callbackHandler.encroaching == std::size_t(0));
+}
+
 #endif
 
 TEST_CASE("KDtree regression (#200)")
@@ -1918,6 +1972,37 @@ TEST_CASE(
     REQUIRE(
         cdt.findUnrefinedTriangles(RefinementCriterion::SmallestAngle, minAngle)
             .empty());
+}
+
+TEST_CASE("Ruppert refinement combined with erasing the super-triangle", "")
+{
+    // Erasure marks survive refinement because edge flips never cross a fixed
+    // edge, so a triangle can not move between the marked and the unmarked
+    // side. That only holds when the marked set is bounded by fixed edges:
+    // collectSuperTriangle's is bounded by "touches a super-triangle vertex"
+    // instead, and a flip can make a marked triangle stop touching it.
+    const auto [vv, ee] = readInputFromFile<double>(
+        "inputs/refine-super-triangle-erase-marks.txt");
+    auto cdt = Triangulation<double>();
+    cdt.insertVertices(vv);
+    cdt.insertEdges(ee);
+    auto toErase = cdt.collectSuperTriangle();
+
+    cdt.refineTriangles(
+        VertInd(400),
+        RefinementCriterion::SmallestAngle,
+        degToRad(25.),
+        &toErase);
+
+    // no real triangle may be left marked for erasure, and no triangle that
+    // came to touch the super-triangle may be left unmarked
+    REQUIRE(toErase == cdt.collectSuperTriangle());
+
+    const std::size_t nKept = cdt.triangles.size() - toErase.size();
+    cdt.finalizeTriangulation(toErase);
+    REQUIRE(cdt.triangles.size() == nKept);
+    REQUIRE(CDT::verifyTopology(cdt));
+    REQUIRE(CDT::verifyWinding(cdt));
 }
 
 // splitting a small-angle corner repeatedly leaves sliver triangles: the
