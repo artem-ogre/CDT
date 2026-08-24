@@ -406,15 +406,16 @@ private:
         inStream.skipWhiteSpace();
     }
 
-    void storeUnrefined(const CDT::TriVerticesVec& tris)
+    void storeUnrefined(const CDT::TriIndVec& tris)
     {
-        typedef CDT::TriVerticesVec::const_iterator Cit;
-        for(Cit t = tris.begin(); t != tris.end(); ++t)
+        typedef CDT::TriIndVec::const_iterator Cit;
+        for(Cit iT = tris.begin(); iT != tris.end(); ++iT)
         {
+            const CDT::VerticesArr3& vv = m_cdt.triangles[*iT].vertices;
             const CDT::array<V2d, 3> tri = {
-                m_cdt.vertices[(*t)[0]],
-                m_cdt.vertices[(*t)[1]],
-                m_cdt.vertices[(*t)[2]]};
+                m_cdt.vertices[vv[0]],
+                m_cdt.vertices[vv[1]],
+                m_cdt.vertices[vv[2]]};
             m_unrefinedTris.push_back(tri);
         }
     }
@@ -521,29 +522,22 @@ private:
                 break;
             }
 
+            const CoordType threshold =
+                m_refinementCriterion == CDT::RefinementCriterion::SmallestAngle
+                    ? CDT::degToRad(CoordType(m_refinementThreshold))
+                    : m_refinementThreshold;
             if(m_isDoRuppert)
             {
-                const CoordType threshold =
-                    m_refinementCriterion ==
-                            CDT::RefinementCriterion::SmallestAngle
-                        ? CDT::degToRad(CoordType(m_refinementThreshold))
-                        : m_refinementThreshold;
                 try
                 {
-                    CDT::Unrefined unrefined = m_cdt.refineTriangles(
+                    m_cdt.refineTriangles(
                         m_refinementLimit,
                         m_refinementCriterion,
                         threshold,
                         &toErase,
                         m_minRefinementEdgeLength);
-                    unrefined.deduplicate();
                     // store positions: finalizing invalidates the indices
-                    storeUnrefined(unrefined.shortEdgeTriangles);
-                    storeUnrefined(unrefined.circumcenterOutside);
-                    storeUnrefined(unrefined.circumcenterOnVertex);
-                    storeUnrefined(unrefined.sharpFixedCorner);
-                    storeUnrefined(unrefined.shortEdges);
-                    storeUnrefined(unrefined.splitVertexInvalid);
+                    storeUnrefined(m_cdt.findEncroachedFixedEdges());
                 }
                 catch(const CDT::Error& e)
                 {
@@ -557,6 +551,12 @@ private:
             if(m_finalizeType != FinalizeTriangulation::DontFinalize)
             {
                 m_cdt.finalizeTriangulation(toErase);
+            }
+
+            if(m_isDoRuppert)
+            {
+                storeUnrefined(m_cdt.findUnrefinedTriangles(
+                    m_refinementCriterion, threshold));
             }
 
             const CDT::unordered_map<Edge, CDT::EdgeVec> tmp =

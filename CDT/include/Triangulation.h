@@ -92,33 +92,35 @@ struct CDT_EXPORT RefinementCriterion
 };
 
 /**
- * Refinements that Triangulation::refineTriangles was not able to perform
- * @note recorded triangles are not necessarily present in the resulting
- * triangulation: refining the surrounding triangles can replace them
- * @note a triangle or an edge is recorded once per attempt to refine it and
- * is re-visited after nearby splits: by default the vectors may contain
- * duplicates, call #deduplicate to remove them
+ * Counts of the refinements that Triangulation::refineTriangles was not able
+ * to perform
+ * @note a triangle or an edge is counted once per attempt to refine it and is
+ * re-visited after nearby splits: the same triangle or edge can be counted
+ * more than once
+ * @note to locate the problems in the resulting triangulation use
+ * Triangulation::findUnrefinedTriangles and
+ * Triangulation::findEncroachedFixedEdges
  */
 struct CDT_EXPORT Unrefined
 {
     /// triangles whose shortest edge is shorter than the threshold
-    TriVerticesVec shortEdgeTriangles;
+    std::size_t shortEdgeTriangles;
     /// triangles whose circumcenter is outside the triangulated area
-    TriVerticesVec circumcenterOutside;
+    std::size_t circumcenterOutside;
     /// triangles whose circumcenter coincides with an existing vertex
-    TriVerticesVec circumcenterOnVertex;
+    std::size_t circumcenterOnVertex;
     /// triangles whose smallest angle is enclosed by two fixed edges: such an
     /// angle comes from the input and can not be made any larger
-    TriVerticesVec sharpFixedCorner;
+    std::size_t sharpFixedCorner;
     /// fixed edges that are shorter than the threshold
-    EdgeVec shortEdges;
+    std::size_t shortEdges;
     /// fixed edges whose split vertex can not be placed: inserting it would
     /// break the triangulation's topology
     /// @note in practice one of the edge's triangles is thinner than an ulp
-    EdgeVec splitVertexInvalid;
+    std::size_t splitVertexInvalid;
 
-    /// Sort each of the vectors and remove the duplicates from it
-    void deduplicate();
+    /// Constructor: all the counts start at zero
+    Unrefined();
 };
 
 /**
@@ -773,6 +775,30 @@ public:
         TriIndUSet* toEraseOrNull = NULL,
         T minEdgeLength = T(1e-6));
     /**
+     * Find all fixed edges encroached by their opposed vertices
+     * @return encroached fixed edges, sorted for deterministic order
+     * @note can be used to scan the triangulation for the problems that
+     * #refineTriangles was not able to resolve
+     * @throw FinalizedError if triangulation was already finalized: finalizing
+     * discards the vertex adjacency this relies on
+     */
+    EdgeVec findEncroachedFixedEdges() const;
+    /**
+     * Find triangles that don't fulfill the refinement criterion
+     * @param refinementCriterion refinement strategy that is used to identify
+     * bad triangles
+     * @param refinementThreshold threshold value for refinement
+     * @return indices of the triangles that are still bad
+     * @note triangles whose smallest angle is enclosed by two fixed edges are
+     * not reported: such an angle comes from the input and can not be refined
+     * @note can be used to scan the triangulation for the problems that
+     * #refineTriangles was not able to resolve
+     */
+    TriIndVec findUnrefinedTriangles(
+        RefinementCriterion::Enum refinementCriterion =
+            RefinementCriterion::SmallestAngle,
+        T refinementThreshold = degToRad(T(20))) const;
+    /**
      * Erase triangles adjacent to super triangle
      * @throw FinalizedError if triangulation was already finalized
      */
@@ -1028,9 +1054,6 @@ private:
     /// Check if edge is encroached by its opposed vertices
     bool isEdgeEncroached(const Edge& edge) const;
     bool isEdgeEncroachedBy(const Edge& edge, const V2d<T>& v) const;
-    /// Find all fixed edges encroached by its opposed vertices, sorted for
-    /// deterministic processing order
-    EdgeVec findEncroachedFixedEdges() const;
     /// Find all fixed edges encroached by a vertex that is about to be added
     /// at a given position
     /// @param v position of the vertex

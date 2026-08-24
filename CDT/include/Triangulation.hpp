@@ -53,15 +53,14 @@ const float minDistToConstraintEdge(0);
 
 } // namespace detail
 
-CDT_INLINE_IF_HEADER_ONLY void Unrefined::deduplicate()
-{
-    detail::sortUnique(shortEdgeTriangles);
-    detail::sortUnique(circumcenterOutside);
-    detail::sortUnique(circumcenterOnVertex);
-    detail::sortUnique(sharpFixedCorner);
-    detail::sortUnique(shortEdges);
-    detail::sortUnique(splitVertexInvalid);
-}
+CDT_INLINE_IF_HEADER_ONLY Unrefined::Unrefined()
+    : shortEdgeTriangles(0)
+    , circumcenterOutside(0)
+    , circumcenterOnVertex(0)
+    , sharpFixedCorner(0)
+    , shortEdges(0)
+    , splitVertexInvalid(0)
+{}
 
 template <typename T, typename TNearPointLocator>
 Triangulation<T, TNearPointLocator>::Triangulation()
@@ -1493,6 +1492,9 @@ bool Triangulation<T, TNearPointLocator>::isEdgeEncroachedBy(
 template <typename T, typename TNearPointLocator>
 EdgeVec Triangulation<T, TNearPointLocator>::findEncroachedFixedEdges() const
 {
+    if(isFinalized())
+        handleException(FinalizedError(CDT_SOURCE_LOCATION));
+
     // Search in all fixed edges to find encroached edges
     EdgeVec encroachedEdges;
     typedef EdgeUSet::const_iterator Iter;
@@ -1508,6 +1510,24 @@ EdgeVec Triangulation<T, TNearPointLocator>::findEncroachedFixedEdges() const
     // so sort to keep refinement output deterministic
     std::sort(encroachedEdges.begin(), encroachedEdges.end());
     return encroachedEdges;
+}
+
+template <typename T, typename TNearPointLocator>
+TriIndVec Triangulation<T, TNearPointLocator>::findUnrefinedTriangles(
+    const RefinementCriterion::Enum refinementCriterion,
+    const T refinementThreshold) const
+{
+    const bool hasSuperTriangle = !isFinalized();
+    TriIndVec unrefinedTriangles;
+    for(TriInd iT(0), n(triangles.size()); iT < n; ++iT)
+    {
+        const Triangle& t = triangles[iT];
+        if(hasSuperTriangle && touchesSuperTriangle(t))
+            continue;
+        if(isRefinementNeeded(t, refinementCriterion, refinementThreshold))
+            unrefinedTriangles.push_back(iT);
+    }
+    return unrefinedTriangles;
 }
 
 template <typename T, typename TNearPointLocator>
@@ -1584,7 +1604,7 @@ TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
         // give up on already-too-short edges rather than split forever
         if(distance(vertices[edge.v1()], vertices[edge.v2()]) <= minEdgeLength)
         {
-            unrefined.shortEdges.push_back(edge);
+            ++unrefined.shortEdges;
             continue;
         }
         // split encroached edge
@@ -1675,7 +1695,7 @@ OptionalVertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
         edge, mid, iT, iTopo, AddVertexType::RefinementEdgeSplit);
     if(!iMid.hasValue())
     {
-        unrefined.splitVertexInvalid.push_back(edge);
+        ++unrefined.splitVertexInvalid;
     }
     else if(toEraseOrNull)
     {
@@ -2619,7 +2639,7 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
         if(shortestEdge <= minEdgeLength)
         {
             // same minEdgeLength give-up
-            unrefined.shortEdgeTriangles.push_back(badTVerts);
+            ++unrefined.shortEdgeTriangles;
             continue;
         }
         const V2d<T> circumcenterPos = detail::circumcenter(v0, v1, v2);
@@ -2629,7 +2649,7 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
         if(!triAtCircumcenter.hasValue())
         {
             // circumcenter falls outside triangulated area
-            unrefined.circumcenterOutside.push_back(badTVerts);
+            ++unrefined.circumcenterOutside;
             continue;
         }
 
@@ -2671,7 +2691,7 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
         if(loc == PtTriLocation::OnVertex)
         {
             // circumcenter coincides with an existing vertex
-            unrefined.circumcenterOnVertex.push_back(badTVerts);
+            ++unrefined.circumcenterOnVertex;
             continue;
         }
         const array<TriInd, 2> trisAt = {
@@ -2683,7 +2703,7 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
            (toEraseOrNull->count(trisAt[0]) || toEraseOrNull->count(trisAt[1])))
         {
             // circumcenter falls into a triangle that will be removed
-            unrefined.circumcenterOutside.push_back(badTVerts);
+            ++unrefined.circumcenterOutside;
             continue;
         }
 
@@ -2737,7 +2757,7 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
                    vertices[t.vertices[2]]) < refinementThreshold &&
                isSmallestAngleFixed(t))
             {
-                unrefined.sharpFixedCorner.push_back(t.vertices);
+                ++unrefined.sharpFixedCorner;
             }
         }
     }

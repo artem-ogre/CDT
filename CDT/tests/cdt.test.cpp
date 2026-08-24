@@ -1487,18 +1487,14 @@ TEST_CASE("Ruppert refinement achieves the requested minimum angle", "")
     const double minAngle = degToRad(20.);
     cdt.refineTriangles(
         VertInd(10000), RefinementCriterion::SmallestAngle, minAngle, &toErase);
+    REQUIRE(cdt.findEncroachedFixedEdges().empty());
     cdt.finalizeTriangulation(toErase);
 
     REQUIRE(CDT::verifyTopology(cdt));
     REQUIRE(cdt.triangles.size() > std::size_t(2));
-    for(const auto& t : cdt.triangles)
-    {
-        const double angle = smallestAngle(
-            cdt.vertices[t.vertices[0]],
-            cdt.vertices[t.vertices[1]],
-            cdt.vertices[t.vertices[2]]);
-        REQUIRE(angle >= minAngle - 1e-9);
-    }
+    REQUIRE(
+        cdt.findUnrefinedTriangles(RefinementCriterion::SmallestAngle, minAngle)
+            .empty());
 }
 
 TEST_CASE("Ruppert refinement with LargestArea criterion", "")
@@ -1523,18 +1519,56 @@ TEST_CASE("Ruppert refinement with LargestArea criterion", "")
     const double maxArea = 1.0;
     cdt.refineTriangles(
         VertInd(10000), RefinementCriterion::LargestArea, maxArea, &toErase);
+    REQUIRE(cdt.findEncroachedFixedEdges().empty());
     cdt.finalizeTriangulation(toErase);
 
     REQUIRE(CDT::verifyTopology(cdt));
     REQUIRE(cdt.triangles.size() > std::size_t(2));
-    for(const auto& t : cdt.triangles)
-    {
-        const double triArea = area(
-            cdt.vertices[t.vertices[0]],
-            cdt.vertices[t.vertices[1]],
-            cdt.vertices[t.vertices[2]]);
-        REQUIRE(triArea <= maxArea + 1e-9);
-    }
+    REQUIRE(
+        cdt.findUnrefinedTriangles(RefinementCriterion::LargestArea, maxArea)
+            .empty());
+}
+
+TEST_CASE("Scanning a triangulation for the problems left unrefined", "")
+{
+    const std::vector<V2d<double> > vertices = {
+        {0., 0.},
+        {10., 0.},
+        {10., 10.},
+        {0., 10.},
+        {5., 0.5}, // encroaches on the bottom edge
+    };
+    const std::vector<Edge> edges = {
+        {VertInd(0), VertInd(1)},
+        {VertInd(1), VertInd(2)},
+        {VertInd(2), VertInd(3)},
+        {VertInd(3), VertInd(0)},
+    };
+    auto cdt = Triangulation<double>();
+    cdt.insertVertices(vertices);
+    cdt.insertEdges(edges);
+
+    const double minAngle = degToRad(20.);
+    REQUIRE(
+        cdt.findEncroachedFixedEdges() ==
+        EdgeVec{Edge(VertInd(3), VertInd(4))});
+    REQUIRE(!cdt.findUnrefinedTriangles(
+                    RefinementCriterion::SmallestAngle, minAngle)
+                 .empty());
+
+    auto toErase = cdt.collectOuterTrianglesAndHoles();
+    cdt.refineTriangles(
+        VertInd(10000), RefinementCriterion::SmallestAngle, minAngle, &toErase);
+
+    REQUIRE(cdt.findEncroachedFixedEdges().empty());
+    REQUIRE(
+        cdt.findUnrefinedTriangles(RefinementCriterion::SmallestAngle, minAngle)
+            .empty());
+    // triangles can be scanned on a finalized triangulation as well
+    cdt.finalizeTriangulation(toErase);
+    REQUIRE(
+        cdt.findUnrefinedTriangles(RefinementCriterion::SmallestAngle, minAngle)
+            .empty());
 }
 
 TEST_CASE("Ruppert refinement with zero threshold is a no-op", "")
@@ -1561,12 +1595,12 @@ TEST_CASE("Ruppert refinement with zero threshold is a no-op", "")
     const auto unrefined = cdt.refineTriangles(
         VertInd(10000), RefinementCriterion::SmallestAngle, 0.);
 
-    REQUIRE(unrefined.shortEdgeTriangles.empty());
-    REQUIRE(unrefined.circumcenterOutside.empty());
-    REQUIRE(unrefined.circumcenterOnVertex.empty());
-    REQUIRE(unrefined.sharpFixedCorner.empty());
-    REQUIRE(unrefined.shortEdges.empty());
-    REQUIRE(unrefined.splitVertexInvalid.empty());
+    REQUIRE(unrefined.shortEdgeTriangles == std::size_t(0));
+    REQUIRE(unrefined.circumcenterOutside == std::size_t(0));
+    REQUIRE(unrefined.circumcenterOnVertex == std::size_t(0));
+    REQUIRE(unrefined.sharpFixedCorner == std::size_t(0));
+    REQUIRE(unrefined.shortEdges == std::size_t(0));
+    REQUIRE(unrefined.splitVertexInvalid == std::size_t(0));
     REQUIRE(cdt.vertices.size() == vertsBefore);
 }
 
@@ -1634,7 +1668,7 @@ TEST_CASE(
         nullptr,
         0.05);
     // the sharp corner comes from the input: it can not be refined away
-    REQUIRE(unrefined.sharpFixedCorner.size() == std::size_t(1));
+    REQUIRE(unrefined.sharpFixedCorner == std::size_t(1));
     REQUIRE(CDT::verifyTopology(cdt));
     REQUIRE(cdt.vertices.size() < vertsBefore + std::size_t(budget));
 
@@ -1681,16 +1715,10 @@ TEST_CASE(
             budget, RefinementCriterion::SmallestAngle, minAngle);
         REQUIRE(CDT::verifyTopology(cdt));
         REQUIRE(cdt.vertices.size() < vertsBefore + std::size_t(budget));
-        for(const auto& t : cdt.triangles)
-        {
-            if(touchesSuperTriangle(t))
-                continue;
-            const double angle = smallestAngle(
-                cdt.vertices[t.vertices[0]],
-                cdt.vertices[t.vertices[1]],
-                cdt.vertices[t.vertices[2]]);
-            REQUIRE(angle >= minAngle - 1e-9);
-        }
+        REQUIRE(cdt.findUnrefinedTriangles(
+                       RefinementCriterion::SmallestAngle, minAngle)
+                    .empty());
+        REQUIRE(cdt.findEncroachedFixedEdges().empty());
     }
     SECTION("with minEdgeLength: converges well under budget")
     {
@@ -1717,10 +1745,14 @@ TEST_CASE(
             degToRad(20.),
             nullptr,
             0.05);
-        REQUIRE(!unrefined.shortEdgeTriangles.empty());
-        REQUIRE(unrefined.circumcenterOutside.empty());
-        REQUIRE(unrefined.circumcenterOnVertex.empty());
-        REQUIRE(unrefined.splitVertexInvalid.empty());
+        REQUIRE(unrefined.shortEdgeTriangles > std::size_t(0));
+        REQUIRE(unrefined.circumcenterOutside == std::size_t(0));
+        REQUIRE(unrefined.circumcenterOnVertex == std::size_t(0));
+        REQUIRE(unrefined.splitVertexInvalid == std::size_t(0));
+        // the triangles that were given up on are still there
+        REQUIRE(!cdt.findUnrefinedTriangles(
+                        RefinementCriterion::SmallestAngle, degToRad(20.))
+                     .empty());
     }
 }
 
@@ -1755,16 +1787,10 @@ TEST_CASE(
 
     REQUIRE(CDT::verifyTopology(cdt));
     REQUIRE(cdt.vertices.size() < vertsBefore + std::size_t(150));
-    for(const auto& t : cdt.triangles)
-    {
-        if(touchesSuperTriangle(t))
-            continue;
-        const double angle = smallestAngle(
-            cdt.vertices[t.vertices[0]],
-            cdt.vertices[t.vertices[1]],
-            cdt.vertices[t.vertices[2]]);
-        REQUIRE(angle >= minAngle - 1e-9);
-    }
+    REQUIRE(
+        cdt.findUnrefinedTriangles(RefinementCriterion::SmallestAngle, minAngle)
+            .empty());
+    REQUIRE(cdt.findEncroachedFixedEdges().empty());
 }
 
 TEST_CASE(
@@ -1813,7 +1839,7 @@ TEST_CASE(
         degToRad(25.),
         nullptr,
         1e-6);
-    REQUIRE(!unrefined.splitVertexInvalid.empty());
+    REQUIRE(unrefined.splitVertexInvalid > std::size_t(0));
     // an invalid split is rejected before anything is modified: the edge is
     // left alone and the triangulation stays valid and usable
     REQUIRE(CDT::verifyTopology(cdt));
@@ -1830,14 +1856,11 @@ TEST_CASE(
     cdt.insertEdges(ee);
     const std::size_t vertsBefore = cdt.vertices.size();
 
-    auto unrefined = cdt.refineTriangles(
+    const auto unrefined = cdt.refineTriangles(
         VertInd(10000), RefinementCriterion::SmallestAngle, degToRad(20.));
 
-    REQUIRE(!unrefined.splitVertexInvalid.empty());
-    // the same edge is reported once per attempt to split it
-    const std::size_t withDuplicates = unrefined.splitVertexInvalid.size();
-    unrefined.deduplicate();
-    REQUIRE(unrefined.splitVertexInvalid.size() < withDuplicates);
+    // the same edge is counted once per attempt to split it
+    REQUIRE(unrefined.splitVertexInvalid > std::size_t(1));
     REQUIRE(CDT::verifyTopology(cdt));
     REQUIRE(cdt.vertices.size() > vertsBefore);
     REQUIRE_NOTHROW(cdt.eraseOuterTrianglesAndHoles());
@@ -1888,17 +1911,13 @@ TEST_CASE(
     }
     REQUIRE(toErase == cdt.collectOuterTrianglesAndHoles());
 
+    REQUIRE(cdt.findEncroachedFixedEdges().empty());
     cdt.finalizeTriangulation(toErase);
 
     REQUIRE(CDT::verifyTopology(cdt));
-    for(const auto& t : cdt.triangles)
-    {
-        const double angle = smallestAngle(
-            cdt.vertices[t.vertices[0]],
-            cdt.vertices[t.vertices[1]],
-            cdt.vertices[t.vertices[2]]);
-        REQUIRE(angle >= minAngle - 1e-9);
-    }
+    REQUIRE(
+        cdt.findUnrefinedTriangles(RefinementCriterion::SmallestAngle, minAngle)
+            .empty());
 }
 
 // splitting a small-angle corner repeatedly leaves sliver triangles: the
@@ -1972,6 +1991,7 @@ TEST_CASE("Finalized triangulation rejects erasing, collecting, refining", "")
     REQUIRE_THROWS_AS(cdt.collectOuterTriangles(), FinalizedError);
     REQUIRE_THROWS_AS(cdt.collectOuterTrianglesAndHoles(), FinalizedError);
     REQUIRE_THROWS_AS(cdt.refineTriangles(VertInd(100)), FinalizedError);
+    REQUIRE_THROWS_AS(cdt.findEncroachedFixedEdges(), FinalizedError);
 
     REQUIRE(cdt.vertices.size() == std::size_t(4));
     REQUIRE(CDT::verifyTopology(cdt));
