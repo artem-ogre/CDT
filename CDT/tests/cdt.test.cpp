@@ -1242,12 +1242,11 @@ TEST_CASE("Callbacks test: refinement inserts no encroaching circumcenter")
 TEST_CASE(
     "Callbacks test: no encroaching circumcenter when a split is given up on")
 {
-    // Refinement only re-visits a bad triangle when splitting the fixed edges
-    // its circumcenter encroaches on actually consumed vertices. Splitting can
-    // also give up (split vertex invalid, or edge already at minEdgeLength),
-    // and then the encroaching circumcenter used to be inserted anyway.
-    const auto [vv, ee] =
-        readInputFromFile<double>("inputs/refine-encroaching-circumcenter.txt");
+    // A bad triangle is re-visited only when splitting the edges its
+    // circumcenter encroaches on consumed vertices: giving up on all of them
+    // used to let the encroaching circumcenter through.
+    const auto [vv, ee] = readInputFromFile<double>(
+        "inputs/dont_flip_constraint_when_resolving_intersection.txt");
 
     struct CallbackHandler final : public CDT::ICallbackHandler
     {
@@ -1279,13 +1278,20 @@ TEST_CASE(
     };
 
     CallbackHandler callbackHandler;
-    auto cdt = Triangulation<double>();
+    auto cdt = Triangulation<double>(
+        VertexInsertionOrder::Auto,
+        IntersectingConstraintEdges::TryResolve,
+        1e-6);
     cdt.setCallbackHandler(&callbackHandler);
     callbackHandler.cdt = &cdt;
     cdt.insertVertices(vv);
     cdt.insertEdges(ee);
     const auto unrefined = cdt.refineTriangles(
-        VertInd(400), RefinementCriterion::SmallestAngle, degToRad(20.));
+        VertInd(2000),
+        RefinementCriterion::SmallestAngle,
+        degToRad(20.),
+        nullptr,
+        0.);
 
     // the input is chosen so that splitting an encroached edge does give up
     REQUIRE(unrefined.splitVertexInvalid > std::size_t(0));
@@ -1900,9 +1906,10 @@ TEST_CASE(
 }
 
 TEST_CASE(
-    "Ruppert refinement past an invalid split leaves a usable triangulation",
+    "Ruppert refinement of double-hanging edges places every split vertex",
     "")
 {
+    // used to give up on 82 splits, all blocked by a flat triangle
     const auto [vv, ee] =
         readInputFromFile<double>("inputs/issue-142-double-hanging-edge.txt");
     auto cdt = Triangulation<double>();
@@ -1913,12 +1920,87 @@ TEST_CASE(
     const auto unrefined = cdt.refineTriangles(
         VertInd(10000), RefinementCriterion::SmallestAngle, degToRad(20.));
 
-    // the same edge is counted once per attempt to split it
-    REQUIRE(unrefined.splitVertexInvalid > std::size_t(1));
+    REQUIRE(unrefined.splitVertexInvalid == std::size_t(0));
     REQUIRE(CDT::verifyTopology(cdt));
+    REQUIRE(CDT::verifyWinding(cdt));
     REQUIRE(cdt.vertices.size() > vertsBefore);
     REQUIRE_NOTHROW(cdt.eraseOuterTrianglesAndHoles());
     REQUIRE(CDT::verifyTopology(cdt));
+}
+
+/// Count triangles made of two pieces of one input edge: those are flat
+static std::size_t countFlatTriangles(const Triangulation<double>& cdt)
+{
+    const auto originalOf = [&cdt](const Edge& e) {
+        const auto it = cdt.pieceToOriginals.find(e);
+        return it == cdt.pieceToOriginals.end() ? e : it->second.front();
+    };
+    std::size_t count = 0;
+    for(const auto& t : cdt.triangles)
+    {
+        for(Index i(0); i < Index(3); ++i)
+        {
+            const Edge e1(t.vertices[i], t.vertices[ccw(i)]);
+            const Edge e2(t.vertices[i], t.vertices[cw(i)]);
+            if(cdt.fixedEdges.count(e1) && cdt.fixedEdges.count(e2) &&
+               originalOf(e1) == originalOf(e2))
+            {
+                ++count;
+            }
+        }
+    }
+    return count;
+}
+
+TEST_CASE("Ruppert refinement makes no triangle out of one input edge", "")
+{
+    // A flip used to close two pieces of one input edge into a triangle of
+    // ~1e-13 area, which then blocked splitting those pieces any further:
+    // the next split vertex fell outside the flattened quadrilateral.
+    const auto fileName = GENERATE(
+        "inputs/Hanging2.txt", "inputs/refine-encroaching-circumcenter.txt");
+    CAPTURE(fileName);
+    const auto [vv, ee] = readInputFromFile<double>(fileName);
+    auto cdt = Triangulation<double>(
+        VertexInsertionOrder::Auto,
+        IntersectingConstraintEdges::TryResolve,
+        1e-6);
+    cdt.insertVertices(vv);
+    cdt.insertEdges(ee);
+    const auto unrefined = cdt.refineTriangles(
+        VertInd(2000), RefinementCriterion::SmallestAngle, degToRad(20.));
+
+    REQUIRE(countFlatTriangles(cdt) == std::size_t(0));
+    REQUIRE(unrefined.splitVertexInvalid == std::size_t(0));
+    REQUIRE(cdt.findEncroachedFixedEdges().empty());
+    REQUIRE(CDT::verifyTopology(cdt));
+    REQUIRE(CDT::verifyWinding(cdt));
+}
+
+TEST_CASE("Ruppert refinement skips a circumcenter that lands on a vertex", "")
+{
+    // A sharp corner with no minEdgeLength keeps refining until a rounded
+    // circumcenter falls exactly onto an existing vertex, which inserting
+    // would duplicate. Sensitive: a zero count needs a new input, not a
+    // relaxed assert.
+    const auto [vv, ee] =
+        readInputFromFile<double>("inputs/refine-circumcenter-on-vertex.txt");
+    auto cdt = Triangulation<double>(
+        VertexInsertionOrder::Auto,
+        IntersectingConstraintEdges::TryResolve,
+        1e-9);
+    cdt.insertVertices(vv);
+    cdt.insertEdges(ee);
+    const auto unrefined = cdt.refineTriangles(
+        VertInd(2000),
+        RefinementCriterion::SmallestAngle,
+        degToRad(20.),
+        nullptr,
+        0.);
+
+    REQUIRE(unrefined.circumcenterOnVertex > std::size_t(0));
+    REQUIRE(CDT::verifyTopology(cdt));
+    REQUIRE(CDT::verifyWinding(cdt));
 }
 
 TEST_CASE(

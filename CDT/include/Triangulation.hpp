@@ -415,6 +415,7 @@ void Triangulation<T, TNearPointLocator>::splitFixedEdge(
 
 template <typename T, typename TNearPointLocator>
 VertInd Triangulation<T, TNearPointLocator>::addSplitEdgeVertex(
+    const Edge& edge,
     const V2d<T>& splitVert,
     const TriInd iT,
     const TriInd iTopo,
@@ -434,6 +435,8 @@ VertInd Triangulation<T, TNearPointLocator>::addSplitEdgeVertex(
 #endif
 
     std::stack<TriInd> triStack = insertVertexOnEdge(iSplitVert, iT, iTopo);
+    // before the flips: isFlipNeeded needs the halves to be fixed
+    splitFixedEdge(edge, iSplitVert);
     tryAddVertexToLocator(iSplitVert);
     ensureDelaunayByEdgeFlips(iSplitVert, triStack);
     return iSplitVert;
@@ -450,8 +453,7 @@ OptionalVertInd Triangulation<T, TNearPointLocator>::splitFixedEdgeAt(
     if(!isEdgeSplitVertexValid(splitVert, iT, iTopo))
         return OptionalVertInd(noVertex);
     const VertInd iSplitVert =
-        addSplitEdgeVertex(splitVert, iT, iTopo, vertexType);
-    splitFixedEdge(edge, iSplitVert);
+        addSplitEdgeVertex(edge, splitVert, iT, iTopo, vertexType);
     return OptionalVertInd(iSplitVert);
 }
 
@@ -1287,6 +1289,20 @@ void Triangulation<T, TNearPointLocator>::edgeFlipInfo(
     }
 }
 
+template <typename T, typename TNearPointLocator>
+bool Triangulation<T, TNearPointLocator>::isSameOriginalEdge(
+    const Edge& e1,
+    const Edge& e2) const
+{
+    if(!fixedEdges.count(e1) || !fixedEdges.count(e2))
+        return false;
+    typedef unordered_map<Edge, EdgeVec>::const_iterator It;
+    const It it1 = pieceToOriginals.find(e1);
+    const It it2 = pieceToOriginals.find(e2);
+    return (it1 == pieceToOriginals.end() ? e1 : it1->second.front()) ==
+           (it2 == pieceToOriginals.end() ? e2 : it2->second.front());
+}
+
 /*!
  * Handles super-triangle vertices.
  * Super-tri points are not infinitely far and influence the input points
@@ -1319,6 +1335,10 @@ bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
 {
     if(fixedEdges.count(Edge(iV2, iV4)))
         return false; // flip not needed if the original edge is fixed
+    // the flip would make a triangle out of two pieces of one input edge
+    if(isSameOriginalEdge(Edge(iV1, iV2), Edge(iV2, iV3)) ||
+       isSameOriginalEdge(Edge(iV3, iV4), Edge(iV4, iV1)))
+        return false;
     const V2d<T>& v1 = vertices[iV1];
     const V2d<T>& v2 = vertices[iV2];
     const V2d<T>& v3 = vertices[iV3];
