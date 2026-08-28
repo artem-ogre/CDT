@@ -279,19 +279,6 @@ bool isEncroachingOnEdge(
 }
 
 template <typename T>
-V2d<T> circumcenter(V2d<T> a, V2d<T> b, V2d<T> c)
-{
-    const T denom = T(2) * orient2D(a, b, c);
-    assert(denom != T(0));
-    const T aLenSq = distanceSquared(a, c), bLenSq = distanceSquared(b, c);
-    a.x -= c.x, a.y -= c.y;
-    b.x -= c.x, b.y -= c.y;
-    c.x += (b.y * aLenSq - a.y * bLenSq) / denom;
-    c.y += (a.x * bLenSq - b.x * aLenSq) / denom;
-    return c;
-}
-
-template <typename T>
 T doubledArea(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c)
 {
     return std::abs(orient2D(a, b, c));
@@ -314,6 +301,19 @@ template <typename T>
 T area(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c)
 {
     return detail::doubledArea(a, b, c) / T(2);
+}
+
+template <typename T>
+V2d<T> circumcenter(V2d<T> a, V2d<T> b, V2d<T> c)
+{
+    const T denom = T(2) * orient2D(a, b, c);
+    assert(denom != T(0));
+    const T aLenSq = distanceSquared(a, c), bLenSq = distanceSquared(b, c);
+    a.x -= c.x, a.y -= c.y;
+    b.x -= c.x, b.y -= c.y;
+    c.x += (b.y * aLenSq - a.y * bLenSq) / denom;
+    c.y += (a.x * bLenSq - b.x * aLenSq) / denom;
+    return c;
 }
 
 template <typename T>

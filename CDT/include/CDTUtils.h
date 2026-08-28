@@ -559,10 +559,6 @@ bool isEncroachingOnEdge(
     const V2d<T>& edgeStart,
     const V2d<T>& edgeEnd);
 
-/// Position of ABC triangle circumcenter
-template <typename T>
-V2d<T> circumcenter(V2d<T> a, V2d<T> b, V2d<T> c);
-
 /// Doubled surface area of a triangle ABC
 template <typename T>
 T doubledArea(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
@@ -576,6 +572,10 @@ T sineOfSmallestAngle(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
 /// Surface area of a triangle ABC
 template <typename T>
 CDT_EXPORT T area(const V2d<T>& a, const V2d<T>& b, const V2d<T>& c);
+
+/// Position of ABC triangle circumcenter
+template <typename T>
+CDT_EXPORT V2d<T> circumcenter(V2d<T> a, V2d<T> b, V2d<T> c);
 
 /// Smallest angle of triangle ABC in radians
 template <typename T>

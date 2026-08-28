@@ -2642,7 +2642,7 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
             ++unrefined.shortEdgeTriangles;
             continue;
         }
-        const V2d<T> circumcenterPos = detail::circumcenter(v0, v1, v2);
+        const V2d<T> circumcenterPos = circumcenter(v0, v1, v2);
         const OptionalTriInd triAtCircumcenter = walkTriangles(
             m_nearPtLocator.nearPoint(circumcenterPos, vertices),
             circumcenterPos);

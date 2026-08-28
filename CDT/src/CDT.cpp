@@ -55,6 +55,11 @@ area<float>(const V2d<float>&, const V2d<float>&, const V2d<float>&);
 template CDT_EXPORT double
 area<double>(const V2d<double>&, const V2d<double>&, const V2d<double>&);
 
+template CDT_EXPORT V2d<float>
+circumcenter<float>(V2d<float>, V2d<float>, V2d<float>);
+template CDT_EXPORT V2d<double>
+circumcenter<double>(V2d<double>, V2d<double>, V2d<double>);
+
 template CDT_EXPORT float
 smallestAngle<float>(const V2d<float>&, const V2d<float>&, const V2d<float>&);
 template CDT_EXPORT double smallestAngle<double>(
