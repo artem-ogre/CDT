@@ -1450,11 +1450,7 @@ bool Triangulation<T, TNearPointLocator>::isRefinementNeeded(
     switch(refinementCriterion)
     {
     case RefinementCriterion::SmallestAngle:
-        if(smallestAngle(a, b, c) >= refinementThreshold)
-            return false;
-        if(isSmallestAngleFixed(tri))
-            return false; // fixed-edge sharp angle is impossible to refine
-        return true;
+        return smallestAngle(a, b, c) < refinementThreshold;
     case RefinementCriterion::LargestArea:
         return area(a, b, c) > refinementThreshold;
     }
@@ -2645,8 +2641,11 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
         if(toEraseOrNull && toEraseOrNull->count(iT))
             continue;
         if(!isRefinementNeeded(
-               triangles[iT], refinementCriterion, refinementThreshold))
+               triangles[iT], refinementCriterion, refinementThreshold) ||
+           (refinementCriterion == RefinementCriterion::SmallestAngle &&
+            isSmallestAngleFixed(triangles[iT])))
         {
+            // fixed-edge sharp angle is impossible to refine
             continue;
         }
         // copy: resolveEncroachedEdges below can re-allocate 'triangles'
@@ -2775,10 +2774,8 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
             {
                 continue;
             }
-            if(smallestAngle(
-                   vertices[t.vertices[0]],
-                   vertices[t.vertices[1]],
-                   vertices[t.vertices[2]]) < refinementThreshold &&
+            if(isRefinementNeeded(
+                   t, refinementCriterion, refinementThreshold) &&
                isSmallestAngleFixed(t))
             {
                 ++unrefined.sharpFixedCorner;

@@ -790,7 +790,8 @@ public:
      * @param refinementThreshold threshold value for refinement
      * @return indices of the triangles that are still bad
      * @note triangles whose smallest angle is enclosed by two fixed edges are
-     * not reported: such an angle comes from the input and can not be refined
+     * reported as well: such an angle comes from the input and can not be
+     * refined (see Unrefined::sharpFixedCorner)
      * @note can be used to scan the triangulation for the problems that
      * #refineTriangles was not able to resolve
      */
