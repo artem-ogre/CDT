@@ -752,6 +752,14 @@ private:
                     sceneToScreen((*t)[2])};
                 p.drawPolygon(pts.data(), pts.size());
             }
+            pen.setWidthF(9.0);
+            p.setPen(pen);
+            for(TUit t = m_unrefinedTris.begin(); t != m_unrefinedTris.end();
+                ++t)
+            {
+                p.drawPoint(sceneToScreen(
+                    CDT::circumcenter((*t)[0], (*t)[1], (*t)[2])));
+            }
             p.setBrush(QBrush(Qt::white));
             pen.setWidthF(4.0);
             p.setPen(pen);
