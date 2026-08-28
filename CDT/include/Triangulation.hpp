@@ -2654,9 +2654,10 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
         }
 
         const VertInd budgetBeforeSplits = remainingVertexBudget;
+        const EdgeVec encroachedEdges =
+            edgesEncroachedBy(circumcenterPos, triAtCircumcenter.value());
         const TriIndVec badTris = resolveEncroachedEdges(
-            detail::toQueue(
-                edgesEncroachedBy(circumcenterPos, triAtCircumcenter.value())),
+            detail::toQueue(encroachedEdges),
             remainingVertexBudget,
             steinerVerticesOffset,
             &circumcenterPos,
@@ -2680,6 +2681,9 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
             badTriangles.push(iT);
             continue;
         }
+        // splitting was given up on: inserting would encroach anyway
+        if(!encroachedEdges.empty())
+            continue;
 
         const TriInd iCircumcenterTri = triAtCircumcenter.value();
         const Triangle& circumcenterTri = triangles[iCircumcenterTri];
