@@ -1336,8 +1336,9 @@ bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
     if(fixedEdges.count(Edge(iV2, iV4)))
         return false; // flip not needed if the original edge is fixed
     // the flip would make a triangle out of two pieces of one input edge
-    if(isSameOriginalEdge(Edge(iV1, iV2), Edge(iV2, iV3)) ||
-       isSameOriginalEdge(Edge(iV3, iV4), Edge(iV4, iV1)))
+    if(!fixedEdges.empty() &&
+       (isSameOriginalEdge(Edge(iV1, iV2), Edge(iV2, iV3)) ||
+        isSameOriginalEdge(Edge(iV3, iV4), Edge(iV4, iV1))))
         return false;
     const V2d<T>& v1 = vertices[iV1];
     const V2d<T>& v2 = vertices[iV2];
