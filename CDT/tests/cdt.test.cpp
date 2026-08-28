@@ -1288,7 +1288,7 @@ TEST_CASE(
         VertInd(400), RefinementCriterion::SmallestAngle, degToRad(20.));
 
     // the input is chosen so that splitting an encroached edge does give up
-    REQUIRE(!unrefined.splitVertexInvalid.empty());
+    REQUIRE(unrefined.splitVertexInvalid > std::size_t(0));
     REQUIRE(callbackHandler.circumcenters > std::size_t(0));
     REQUIRE(callbackHandler.encroaching == std::size_t(0));
 }
