@@ -1139,7 +1139,7 @@ Triangulation<T, TNearPointLocator>::insertVertex_FlipFixedEdges(
         triStack.pop();
 
         edgeFlipInfo(iT, iV1, iTopo, iV2, iV3, iV4, n1, n2, n3, n4);
-        if(iTopo != noNeighbor && isFlipNeeded(iV1, iV2, iV3, iV4))
+        if(iTopo != noNeighbor && isFlipNeeded(iV1, iV2, iV3, iV4, true))
         {
             // if flipped edge is fixed, remember it
             const Edge flippedEdge(iV2, iV4);
@@ -1331,9 +1331,10 @@ bool Triangulation<T, TNearPointLocator>::isFlipNeeded(
     const VertInd iV1,
     const VertInd iV2,
     const VertInd iV3,
-    const VertInd iV4) const
+    const VertInd iV4,
+    const bool doFlipFixedEdges) const
 {
-    if(fixedEdges.count(Edge(iV2, iV4)))
+    if(!doFlipFixedEdges && fixedEdges.count(Edge(iV2, iV4)))
         return false; // flip not needed if the original edge is fixed
     // the flip would make a triangle out of two pieces of one input edge
     if(!fixedEdges.empty() &&

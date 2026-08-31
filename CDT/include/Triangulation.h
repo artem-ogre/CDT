@@ -1044,7 +1044,12 @@ private:
         TriInd& n2,
         TriInd& n3,
         TriInd& n4);
-    bool isFlipNeeded(VertInd iV1, VertInd iV2, VertInd iV3, VertInd iV4) const;
+    bool isFlipNeeded(
+        VertInd iV1,
+        VertInd iV2,
+        VertInd iV3,
+        VertInd iV4,
+        const bool doFlipFixedEdges = false) const;
     /// Check if two fixed edges are pieces of the same original input edge
     bool isSameOriginalEdge(const Edge& e1, const Edge& e2) const;
     bool isRefinementNeeded(

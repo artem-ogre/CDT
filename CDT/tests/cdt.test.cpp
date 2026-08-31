@@ -1,4 +1,5 @@
 #include <CDT.h>
+#include <predicates.h>
 #include <VerifyTopology.h>
 
 #include <catch2/benchmark/catch_benchmark.hpp>
@@ -656,6 +657,58 @@ TEMPLATE_LIST_TEST_CASE(
         else
             REQUIRE(topologyString(cdt) == topologyString(outFile));
     }
+}
+
+/// Count edges that don't fulfill the Delaunay condition
+static std::size_t countNonDelaunayEdges(const Triangulation<double>& cdt)
+{
+    std::size_t count = 0;
+    for(TriInd iT(0); iT < TriInd(cdt.triangles.size()); ++iT)
+    {
+        const Triangle& t = cdt.triangles[iT];
+        for(Index i(0); i < Index(3); ++i)
+        {
+            const TriInd iN = t.neighbors[i];
+            if(iN == noNeighbor || iN < iT)
+                continue;
+            const auto& a = cdt.vertices[t.vertices[0]];
+            const auto& b = cdt.vertices[t.vertices[1]];
+            const auto& c = cdt.vertices[t.vertices[2]];
+            const auto& d = cdt.vertices[opposedVertex(cdt.triangles[iN], iT)];
+            if(predicates::incircle(a.x, a.y, b.x, b.y, c.x, c.y, d.x, d.y) >
+               0.)
+            {
+                ++count;
+            }
+        }
+    }
+    return count;
+}
+
+TEST_CASE("Conforming triangulation is Delaunay", "")
+{
+    // Conforming used to flip a fixed edge and conform to it again afterwards.
+    // Without that the constraint (0, 1) is left non-Delaunay: the mid-point
+    // added when conforming to (0, 3) lands inside its triangle's
+    // circumcircle.
+    const std::vector<V2d<double> > vertices = {
+        {7., 3.},
+        {0., 4.},
+        {3., 1.},
+        {0., 6.},
+        {6., 8.},
+    };
+    const std::vector<Edge> edges = {
+        {VertInd(0), VertInd(1)},
+        {VertInd(0), VertInd(3)},
+    };
+    auto cdt = Triangulation<double>();
+    cdt.insertVertices(vertices);
+    cdt.conformToEdges(edges);
+    cdt.eraseSuperTriangle();
+
+    REQUIRE(CDT::verifyTopology(cdt));
+    REQUIRE(countNonDelaunayEdges(cdt) == std::size_t(0));
 }
 
 TEMPLATE_LIST_TEST_CASE("Ground truth tests: crossing edges", "", CoordTypes)
