@@ -110,6 +110,37 @@ std::string to_string(const T& value)
 } // namespace CDT
 #endif
 
+/// Ensure precise floating-point math without contraction to fused multiply-add operations.
+#ifdef _MSC_VER
+#define CDT_ENSURE_PRECISE_MATH \
+    __pragma(float_control(push)) \
+    __pragma(float_control(precise, on)) \
+    __pragma(fp_contract(off))
+#elif defined(__clang__)
+#define CDT_ENSURE_PRECISE_MATH \
+    _Pragma("float_control(push)") \
+    _Pragma("float_control(precise, on)") \
+    _Pragma("clang fp contract(off)")
+#elif defined(__GNUC__)
+#define CDT_ENSURE_PRECISE_MATH \
+    _Pragma("GCC push_options") \
+    _Pragma("GCC optimize(\"no-fast-math\")") \
+    _Pragma("GCC optimize(\"fp-contract=off\")")
+#else
+#define CDT_ENSURE_PRECISE_MATH _Pragma("STDC FP_CONTRACT OFF")
+#endif
+
+/// Restore default state for floating-point math.
+#if defined(_MSC_VER)
+#define CDT_RESTORE_MATH_SETTINGS __pragma(float_control(pop))
+#elif defined(__clang__)
+#define CDT_RESTORE_MATH_SETTINGS _Pragma("float_control(pop)")
+#elif defined(__GNUC__)
+#define CDT_RESTORE_MATH_SETTINGS _Pragma("GCC pop_options")
+#else
+#define CDT_RESTORE_MATH_SETTINGS _Pragma("STDC FP_CONTRACT DEFAULT")
+#endif
+
 namespace CDT
 {
 

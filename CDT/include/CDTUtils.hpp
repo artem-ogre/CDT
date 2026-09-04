@@ -15,6 +15,8 @@
 
 #include <stdexcept>
 
+CDT_ENSURE_PRECISE_MATH
+
 namespace CDT
 {
 
@@ -264,5 +266,7 @@ bool touchesSuperTriangle(const Triangle& t)
 }
 
 } // namespace CDT
+
+CDT_RESTORE_MATH_SETTINGS
 
 #endif // header-guard

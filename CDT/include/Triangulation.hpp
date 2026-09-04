@@ -18,6 +18,8 @@
 #include <deque>
 #include <stdexcept>
 
+CDT_ENSURE_PRECISE_MATH
+
 namespace CDT
 {
 
@@ -293,7 +295,7 @@ TriIndUSet Triangulation<T, TNearPointLocator>::growToBoundary(
 template <typename T, typename TNearPointLocator>
 TriInd Triangulation<T, TNearPointLocator>::addTriangle(const Triangle& t)
 {
-    const TriInd iT(triangles.size());
+    const TriInd iT = static_cast<TriInd>(triangles.size());
     triangles.push_back(t);
     return iT;
 }
@@ -2074,7 +2076,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices_KDTreeBFS(
     Box2d<T> box)
 {
     // calculate original indices
-    const VertInd vertexCount(vertices.size() - superGeomVertCount);
+    const TriInd vertexCount = static_cast<VertInd>(vertices.size() - superGeomVertCount);
     if(vertexCount <= VertInd(0))
         return;
     std::vector<VertInd> ii(vertexCount);
@@ -2215,5 +2217,7 @@ void Triangulation<T, TNearPointLocator>::tryInitNearestPointLocator()
 }
 
 } // namespace CDT
+
+CDT_RESTORE_MATH_SETTINGS
 
 #endif // header-guard

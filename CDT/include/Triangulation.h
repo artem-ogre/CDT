@@ -1139,15 +1139,15 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
     // because vertex is added for each intersection
     // and total number of intersections is unknown
     const VertInd overAllocationVerticesThreshold(1000);
-    const T overAllocationFactor(1.1);
+    const T overAllocationFactor = static_cast<T>(1.1);
     const bool isOverPreAllocated =
         m_intersectingEdgesStrategy ==
             IntersectingConstraintEdges::TryResolve &&
         VertInd(nNewVertices) >= overAllocationVerticesThreshold;
     if(isOverPreAllocated)
     {
-        capacityTriangles *= overAllocationFactor;
-        capacityVertices *= overAllocationFactor;
+        capacityTriangles = static_cast<std::size_t>(capacityTriangles*overAllocationFactor);
+        capacityVertices = static_cast<std::size_t>(capacityVertices*overAllocationFactor);
     }
     triangles.reserve(capacityTriangles);
     vertices.reserve(capacityVertices);

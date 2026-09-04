@@ -134,3 +134,44 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release
         cmake --build build-compiled -j
         ./build-compiled/CDT-standards-check
+
+  float-pragmas:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - name: "Float pragmas: Visual Studio"
+          os: windows-2025
+          options: "/arch:AVX2 /fp:fast /fp:contract"
+        - name: "Float pragmas: GCC"
+          os: ubuntu-24.04
+          options: "-march=haswell -ffast-math"
+        - name: "Float pragmas: Clang"
+          os: macos-15
+          options: "-ffast-math"
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+
+    - name: "Float pragmas: build and run"
+      if: matrix.config.os == 'windows-2025'
+      run: |
+        cmake -S CDT -B build-float-pragmas `
+          -DCMAKE_CXX_FLAGS_INIT="${{ matrix.config.options }}" `
+          -DCDT_ENABLE_TESTING=ON
+        cmake --build build-float-pragmas --config Release -j
+        cmake --build build-float-pragmas --config Release --target RUN_TESTS
+
+    - name: "Float pragmas: build and run"
+      if: matrix.config.os != 'windows-2025'
+      run: |
+        cmake -S CDT -B build-float-pragmas \
+          -DCMAKE_CXX_FLAGS_INIT="${{ matrix.config.options }}" \
+          -DCDT_ENABLE_TESTING=ON \
+          -DCMAKE_BUILD_TYPE=Release
+        cmake --build build-float-pragmas -j
+        cmake --build build-float-pragmas --target test
