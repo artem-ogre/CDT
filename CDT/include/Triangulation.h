@@ -920,6 +920,8 @@ private:
         IndexSizeType iB) const;
     TriInd addTriangle(const Triangle& t);
     TriInd addTriangle();
+    VertInd verticesCount() const;
+    TriInd trianglesCount() const;
     /**
      * Remove super-triangle (if used) and triangles with specified indices.
      * Adjust internal triangulation state accordingly.
@@ -1139,15 +1141,15 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
     // because vertex is added for each intersection
     // and total number of intersections is unknown
     const VertInd overAllocationVerticesThreshold(1000);
-    const T overAllocationFactor = static_cast<T>(1.1);
+    const std::size_t overAllocationFraction(10);
     const bool isOverPreAllocated =
         m_intersectingEdgesStrategy ==
             IntersectingConstraintEdges::TryResolve &&
         VertInd(nNewVertices) >= overAllocationVerticesThreshold;
     if(isOverPreAllocated)
     {
-        capacityTriangles = static_cast<std::size_t>(capacityTriangles*overAllocationFactor);
-        capacityVertices = static_cast<std::size_t>(capacityVertices*overAllocationFactor);
+        capacityTriangles += capacityTriangles / overAllocationFraction;
+        capacityVertices += capacityVertices / overAllocationFraction;
     }
     triangles.reserve(capacityTriangles);
     vertices.reserve(capacityVertices);
@@ -1160,7 +1162,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices(
         addSuperTriangle(box);
     }
     tryInitNearestPointLocator();
-    const VertInd nExistingVerts = static_cast<VertInd>(vertices.size());
+    const VertInd nExistingVerts = verticesCount();
 
     for(TVertexIter it = first; it != last; ++it)
         addNewVertex(V2d<T>(getX(*it), getY(*it)), noNeighbor);
