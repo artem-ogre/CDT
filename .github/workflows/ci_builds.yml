@@ -162,6 +162,6 @@ jobs:
       env:
         CXXFLAGS: ${{ matrix.flags }}
       run: |
-        cmake -S CDT -B build -DCDT_ENABLE_TESTING=ON -DCMAKE_BUILD_TYPE=Release
+        cmake -S CDT -B build -DCDT_ENABLE_TESTING=ON -DCMAKE_BUILD_TYPE=Release -DCDT_ENSURE_PRECISE_MATH_IN_CONSTRUCTIONS=ON
         cmake --build build --config Release -j
         ctest --test-dir build -C Release --output-on-failure

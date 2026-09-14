@@ -47,6 +47,10 @@ option(CDT_DISABLE_EXCEPTIONS
     "Disables exceptions: instead of throwing the library will call `std::terminate`"
     OFF)
 
+option(CDT_ENSURE_PRECISE_MATH_IN_CONSTRUCTIONS
+    "Disables fast-math and floating-point contraction in constructions too, not only in predicates"
+    OFF)
+
 if(CDT_DEVELOPER_BUILD)
     if (MSVC)
         # warning level 4 and all warnings as errors
@@ -81,6 +85,7 @@ message(STATUS "CDT_ENABLE_STANDARDS_CHECK is ${CDT_ENABLE_STANDARDS_CHECK}")
 message(STATUS "CDT_USE_STRONG_TYPING is ${CDT_USE_STRONG_TYPING}")
 message(STATUS "CDT_DEVELOPER_BUILD is ${CDT_DEVELOPER_BUILD}")
 message(STATUS "CDT_DISABLE_EXCEPTIONS is ${CDT_DISABLE_EXCEPTIONS}")
+message(STATUS "CDT_ENSURE_PRECISE_MATH_IN_CONSTRUCTIONS is ${CDT_ENSURE_PRECISE_MATH_IN_CONSTRUCTIONS}")
 
 # Use boost for c++98 versions of c++11 containers or for Boost::rtree
 if(CDT_USE_BOOST)
@@ -162,6 +167,7 @@ target_compile_definitions(
          $<$<BOOL:${CDT_ENABLE_CALLBACK_HANDLER}>:CDT_ENABLE_CALLBACK_HANDLER>
         $<$<BOOL:${CDT_USE_STRONG_TYPING}>:CDT_USE_STRONG_TYPING>
         $<$<BOOL:${CDT_DISABLE_EXCEPTIONS}>:CDT_DISABLE_EXCEPTIONS>
+        $<$<BOOL:${CDT_ENSURE_PRECISE_MATH_IN_CONSTRUCTIONS}>:CDT_ENSURE_PRECISE_MATH_IN_CONSTRUCTIONS>
 )
 
 target_link_libraries(${PROJECT_NAME} ${cdt_scope} $<$<BOOL:${CDT_USE_BOOST}>:Boost::boost>)
