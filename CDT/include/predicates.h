@@ -33,10 +33,12 @@
 #ifndef PREDICATES_H_INCLUDED
 #define PREDICATES_H_INCLUDED
 
+CDT_ENSURE_PRECISE_MATH
+
 //@reference: https://www.cs.cmu.edu/~quake/robust.html
 
 namespace  predicates {
-	//@brief: geometric predicates using arbitrary precision arithmetic 
+	//@brief: geometric predicates using arbitrary precision arithmetic
 	//@note : these are provided primarily for illustrative purposes and adaptive routines should be preferred
 	namespace exact {
 		//@brief   : determine if the 2d point c is above, on, or below the line defined by a and b
@@ -88,7 +90,7 @@ namespace  predicates {
 		//@return  : determinant of {{ax - dx, ay - dy, az - dz}, {bx - dx, by - dy, bz - dz}, {cx - dx, cy - dy, cz - dz}}
 		//@note    : positive, 0, negative result for c above, on, or below the plane defined by a, b, and c
 		template <typename T> T orient3d(T const*const pa, T const*const pb, T const*const pc, T const*const pd);
-		
+
 		//@brief   : determine if the 3d point e is inside, on, or outside the sphere defined by a, b, c, and d
 		//@param pa: pointer to a as {x, y, z}
 		//@param pb: pointer to b as {x, y, z}
@@ -347,7 +349,7 @@ namespace detail {
 				if(T(0) != Q) h[hIndex++] = Q;
 				return hIndex;
 			}
-		
+
 		public:
 			//roundoff error of x = a + b
 			static inline T PlusTail(const T a, const T b, const T x) {
@@ -911,5 +913,7 @@ namespace detail {
 		}
 	}
 }
+
+CDT_RESTORE_MATH_SETTINGS
 
 #endif
