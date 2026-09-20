@@ -23,6 +23,7 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 - [Table of Contents](#table-of-contents)
 - [What can CDT do?](#what-can-cdt-do)
 - [Properly Handling the Corner-Cases](#properly-handling-the-corner-cases)
+- [Refinement](#refinement)
 - [Online Documentation](#online-documentation)
 - [Algorithm](#algorithm)
 - [Implementation Details](#implementation-details)
@@ -33,6 +34,7 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
     - Delaunay triangulation without constraints (triangulated convex-hull)
     - Constrained Delaunay triangulation (auto-detected boundaries and holes)
     - Conforming Delaunay triangulation
+    - Refinement
     - Resolve edge intersections by adding new points and splitting edges
     - Custom point/edge type
     - Callbacks
@@ -47,10 +49,11 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 <a name="what-can-cdt-do"></a>
 
 ## What can CDT do?
-<img src="./images/show-case.png" alt="CDT show-case: constrained and conforming triangulations, convex hulls, automatically removing holes" style='height: 100%; width: 100%; max-height: 300px; object-fit: contain'/>
+<img src="./images/show-case.png" alt="CDT show-case: constrained and conforming triangulations, convex hulls, automatically removing holes, refinement" style='height: 100%; width: 100%; max-height: 300px; object-fit: contain'/>
 
 - Constrained Delaunay Triangulations: force edges into Delaunay triangulation
 - Conforming Delaunay Triangulations: add new points into Delaunay triangulation until the edge is present in triangulation
+- Refinement: add new points until triangles fulfill a minimum-angle or maximum-area criterion
 - Convex-hulls
 - Automatically finding and removing holes
 
@@ -62,6 +65,28 @@ CDT is a C++ library for generating constraint or conforming Delaunay triangulat
 - Points exactly on the edges
 - Exactly overlapping edges
 - Resolving intersecting edges by adding points at the intersections (with `CDT::IntersectingConstraintEdges::TryResolve`)
+
+<a name="refinement"></a>
+
+## Refinement
+<img src="./images/refinement.png" alt="CDT refinement: minimum angle and maximum triangle area criteria" style='height: 100%; width: 100%; max-height: 300px; object-fit: contain'/>
+
+`CDT::Triangulation::refineTriangles` improves the shape of the triangles by inserting new points (Steiner points).
+
+- Two criteria are supported with `CDT::RefinementCriterion`:
+    - `SmallestAngle`: smallest angle of a triangle must be at least the threshold (in radians, use `CDT::degToRad`)
+    - `LargestArea`: area of a triangle must be at most the threshold
+- Constraint edges are conformed to: an edge that is encroached by a nearby point is split. New points are never inserted across an input boundary.
+- Refinement stops when the budget of inserted vertices `maxVerticesToInsert` is used up. Edges and triangles that are already shorter than `minEdgeLength` are not split any further.
+- Refinement must be done before the triangulation is finalized with one of the `erase` methods. To refine only the triangles that are kept, collect the triangles to remove first (`CDT::Triangulation::collectSuperTriangle`, `CDT::Triangulation::collectOuterTriangles`, `CDT::Triangulation::collectOuterTrianglesAndHoles`), pass them to `CDT::Triangulation::refineTriangles`, and remove them afterwards with `CDT::Triangulation::finalizeTriangulation`.
+
+**Limits of refinement**
+
+<img src="./images/refinement-limits.png" alt="Sharp corner of the input that refinement can not improve" style='height: 100%; width: 100%; max-height: 200px; object-fit: contain'/>
+
+Some places can not be refined: e.g., a sharp angle between two constraint edges comes from the input and can not be made any larger.
+- `CDT::Triangulation::refineTriangles` returns `CDT::Unrefined` with the counts of the refinements that could not be performed
+- `CDT::Triangulation::findUnrefinedTriangles` and `CDT::Triangulation::findEncroachedFixedEdges` locate such places in the resulting triangulation
 
 
 <a name="online-documentation"></a>
@@ -80,6 +105,7 @@ when at least one vertex belongs to super-triangle are resolved using an approac
 - Order in which vertices are inserted is controlled by `CDT::VertexInsertionOrder`: 
   - `CDT::VertexInsertionOrder::Auto` uses breadth-first traversal of a Kd-tree for initial bulk-load <a href="#[4]">[4]</a> and randomized insertion order for the subsequent calls of `CDT::Triangulation::insertVertices`. Randomization improves performance and avoid worst-case scenarios. Generally vertex insertion with `CDT::VertexInsertionOrder::Auto` is faster.
   - The original vertices order can be optied-in using `CDT::VertexInsertionOrder::AsProvided` when constructing a triangulation. 
+- Refinement closely follows Ruppert's Delaunay refinement algorithm <a href="#[5]">[5]</a>. Encroached constraint edges are split before a circumcenter is inserted. At input corners with a small angle the edges are split on concentric shells (powers of two) so that refinement terminates.
 
 **Pre-conditions:**
 - No duplicated points (use provided functions for removing duplicate points and re-mapping edges)
@@ -236,6 +262,24 @@ cdt.eraseOuterTrianglesAndHoles();
 
 Use `CDT::Triangulation::conformToEdges` instead of `CDT::Triangulation::insertEdges`
 
+**Refinement**
+
+<img src="./images/A_refined.png" alt="Example of a refined triangulation" height="150"/>
+
+```cpp
+// ... same as above
+cdt.insertVertices(/* points */);
+cdt.insertEdges(/* boundary edges */);
+// collect the triangles to remove first so that they are not refined
+CDT::TriIndUSet toErase = cdt.collectOuterTrianglesAndHoles();
+CDT::Unrefined unrefined = cdt.refineTriangles(
+    /* max. Steiner vertices */ CDT::VertInd(10000),
+    CDT::RefinementCriterion::SmallestAngle,
+    CDT::degToRad(20.),
+    &toErase);
+cdt.finalizeTriangulation(toErase);
+```
+
 **Resolve edge intersections by adding new points and splitting edges**
 
 Pass `CDT::IntersectingConstraintEdges::TryResolve` to `CDT::Triangulation` constructor.
@@ -291,7 +335,7 @@ CDT reports errors by throwing exceptions. All of them derive from `CDT::Error` 
 
 | Exception | Thrown by | When                                                                                                                                                                                                  |
 |-----------|-----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `CDT::FinalizedError` | `insertVertices`, `insertEdges`, `conformToEdges` | triangulation was already finalized with one of the `erase` methods                                                                                                                                   |
+| `CDT::FinalizedError` | `insertVertices`, `insertEdges`, `conformToEdges`, `refineTriangles`, `findEncroachedFixedEdges`, `collect...` and `erase...` methods | triangulation was already finalized with one of the `erase` methods                                                                                                                                   |
 | `CDT::DuplicateVertexError` | `insertVertices` | inserted vertex coincides with an already inserted one                                                                                                                                                |
 | `CDT::IntersectingConstraintsError` | `insertEdges`, `conformToEdges` | constraint edges intersect while `CDT::IntersectingConstraintEdges::NotAllowed` is used                                                                                                               |
 | `CDT::InvalidEdgeSplitVertex` | `insertEdges`, `conformToEdges` | intersection of constraint edges can not be resolved while `CDT::IntersectingConstraintEdges::TryResolve` is used: split vertex position is breaking triangulation topology due to floating-point rounding errors |
@@ -321,6 +365,7 @@ For Python bindings check-out [PythonCDT](https://github.com/artem-ogre/PythonCD
 - [Madrich](https://github.com/Madrich): help with implementing user callbacks ([#178](https://github.com/artem-ogre/CDT/issues/178))
 - [davidkellerman](https://github.com/davidkellerman): finding and reproducing bug in KDTree's `nearest` method ([#200](https://github.com/artem-ogre/CDT/issues/200))
 - [Boris Clémençon](https://github.com/borisclemencon): finding and reproducing, and reporting a bug ([#204](https://github.com/artem-ogre/CDT/issues/204))
+- [Islam Omar](https://github.com/Islam0mar): first implementation of Ruppert refinement
 
 <a name="contributing"></a>
 
@@ -346,7 +391,7 @@ ${INSERT_FULL_MPL_2.0_TEXT}
 <a name="example-gallery"></a>
 
 ## Example Gallery
-<img src="./images/A.png" alt="A" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Bean.png" alt="Bean" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Guitar.png" alt="Guitar" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Guitar_no_holes.png" alt="Guitar with holes" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/LakeSuperior.png" alt="Lake Superior" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Sweden.png" alt="Sweden" style='height: 45%; width: 45%; object-fit: contain'/> <a name="overlapping-boundaries-example"/><img src="./images/Overlapping_boundaries.png" alt="Overlapping boundaries" style='height: 45%; width: 45%; object-fit: contain'/></a> 
+<img src="./images/A.png" alt="A" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Bean.png" alt="Bean" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Guitar.png" alt="Guitar" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Guitar_no_holes.png" alt="Guitar with holes" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Guitar_refined.png" alt="Guitar refined by maximum triangle area" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/LakeSuperior.png" alt="Lake Superior" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Sweden.png" alt="Sweden" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Sweden_refined.png" alt="Sweden refined by minimum angle" style='height: 45%; width: 45%; object-fit: contain'/> <a name="overlapping-boundaries-example"/><img src="./images/Overlapping_boundaries.png" alt="Overlapping boundaries" style='height: 45%; width: 45%; object-fit: contain'/></a> 
 
 <a name="bibliography"></a>
 
@@ -381,3 +426,12 @@ A new insertion sequence for incremental Delaunay triangulation.
 _Acta Mechanica Sinica_,
 Volume 29,
 2013
+
+<a name="[5]">[5]</a> Jim Ruppert,
+A Delaunay refinement algorithm for quality 2-dimensional mesh generation,
+_Journal of Algorithms_,
+Volume 18,
+Issue 3,
+Pages 548-585,
+1995,
+DOI 10.1006/jagm.1995.1021.
