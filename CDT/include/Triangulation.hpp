@@ -1693,12 +1693,11 @@ OptionalVertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
     assert(iT != noNeighbor && iTopo != noNeighbor);
 
     T split = T(0.5);
-    if((edge.v1() < steinerVerticesOffset &&
-        edge.v2() >= steinerVerticesOffset &&
-        hasAnotherFixedEdgeAtSmallAngle(edge.v1(), edge)) ||
-       (edge.v2() < steinerVerticesOffset &&
-        edge.v1() >= steinerVerticesOffset &&
-        hasAnotherFixedEdgeAtSmallAngle(edge.v2(), edge)))
+    // Edge sorts its vertices and Steiner ones are appended after the input
+    // ones, so only v1 can be an input vertex here
+    if(edge.v1() < steinerVerticesOffset &&
+       edge.v2() >= steinerVerticesOffset &&
+       hasAnotherFixedEdgeAtSmallAngle(edge.v1(), edge))
     {
         // In Ruppert's paper, he used D(0.01) factor to divide edge length, but
         // that introduces FP rounding errors, so it's avoided.
@@ -1715,8 +1714,6 @@ OptionalVertInd Triangulation<T, TNearPointLocator>::splitEncroachedEdge(
             nearestPowerOfTwo *= T(0.5);
         }
         split = nearestPowerOfTwo / len;
-        if(edge.v1() >= steinerVerticesOffset)
-            split = T(1) - split;
     }
 
     const V2d<T> mid = V2d<T>(
