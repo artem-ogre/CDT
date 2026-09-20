@@ -10,7 +10,7 @@ from conan.tools.env import Environment
 
 class CDTConan(ConanFile):
     name = "cdt"
-    version = "1.4.5"
+    version = "2.0.0"
     license = "MPL-2.0 License"
     url = "https://github.com/artem-ogre/CDT"
     description = "Numerically robust C++ implementation of constrained Delaunay triangulation (CDT)"

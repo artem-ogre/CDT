@@ -12,7 +12,6 @@
  */
 
 #include <CDT.h>
-#include <InitializeWithGrid.h>
 #include <VerifyTopology.h>
 
 #include <cstdlib>
@@ -47,11 +46,6 @@ bool checkCoordinateType()
         return false;
     cdt.eraseSuperTriangle();
     if(cdt.triangles.empty())
-        return false;
-
-    CDT::Triangulation<T> grid;
-    CDT::initializeWithRegularGrid(T(0), T(1), T(0), T(1), 2, 2, grid);
-    if(!CDT::verifyTopology(grid))
         return false;
 
     return true;

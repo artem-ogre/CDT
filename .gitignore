@@ -84,3 +84,6 @@ moc_*.h
 # Visual code files
 *.code-workspace
 *.vscode
+
+# Claude Code
+.claude/
