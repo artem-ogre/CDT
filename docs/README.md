@@ -148,6 +148,9 @@ CDT uses modern CMake and should *just work* out of the box without any surprise
 CDT uses exact adaptive predicates (orientation, in-circle tests) which require strict IEEE-754 math.
 Options like `-ffast-math`, `/fp:fast` or `-ffp-contract=fast` can break them.
 Fast-math and floating-point contraction are therefore always disabled in the predicates.
+`-ffast-math` also sets a process-wide hardware mode that flushes subnormal numbers to zero.
+The predicates cannot disable this mode, so subnormal coordinates reach them as zero.
+`float` reaches the subnormal range much sooner than `double`.
 Another way inexact math can affect topology is by changing positions of constructed newly inserted vertices (e.g., at edges intersection).
 Opt-into exact math with `CDT_ENSURE_PRECISE_MATH_IN_CONSTRUCTIONS`, this will also ensure that 'golden' file-based tests pass.
 

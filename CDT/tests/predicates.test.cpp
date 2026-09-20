@@ -38,6 +38,18 @@ namespace
 
 using CoordTypes = std::tuple<float, double>;
 
+/* -ffast-math links crtfastmath.o, which sets FTZ/DAZ in the FPU control word
+ * for the whole process (Clang does the same through FPCR on arm64). That is a
+ * runtime mode, so CDT_ENSURE_PRECISE_MATH in predicates.h cannot undo it:
+ * subnormal coordinates arrive already flushed to zero. */
+template <typename T>
+bool areSubnormalsFlushed()
+{
+    volatile T two = T(2);
+    volatile T subnormal = std::numeric_limits<T>::min() / two;
+    return subnormal == T(0);
+}
+
 template <typename T>
 int signOf(const T x)
 {
@@ -278,21 +290,14 @@ private:
  * followed by an expression that recovers the rounding error of that very
  * addition. Re-associating floating-point expressions (`-ffast-math`,
  * `-fassociative-math`, `/fp:fast`, `-Ofast`) turns those into literal zero and
- * every predicate below silently starts returning wrong signs. The canary. */
+ * every predicate below silently starts returning wrong signs.
+ * CDT_ENSURE_PRECISE_MATH is what keeps that from happening, so these are the
+ * assertions that hold it to it. */
 TEST_CASE(
     "Predicates: the build's floating-point model preserves error-free "
     "transformations",
     "[predicates]")
 {
-#ifdef __FAST_MATH__
-    FAIL(
-        "compiled with -ffast-math (or -Ofast): floating-point re-association "
-        "breaks the robust predicates");
-#endif
-#if defined(_M_FP_FAST)
-    FAIL("compiled with /fp:fast: this breaks the robust predicates");
-#endif
-
     using Base = predicates::detail::ExpansionBase<double>;
 
     SECTION("Two-Sum recovers the rounding error of an addition")
@@ -507,6 +512,8 @@ TEMPLATE_LIST_TEST_CASE(
 
     SECTION("one ULP off the plane is still resolved")
     {
+        if(areSubnormalsFlushed<TestType>())
+            SKIP("subnormals are flushed to zero in this build");
         const TestType up[3] = {0, 0, std::nextafter(TestType(0), TestType(1))};
         const TestType down[3] = {
             0, 0, std::nextafter(TestType(0), TestType(-1))};
