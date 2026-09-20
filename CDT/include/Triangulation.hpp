@@ -18,6 +18,8 @@
 #include <deque>
 #include <stdexcept>
 
+CDT_ENSURE_PRECISE_MATH_FOR_CONSTRUCTIONS
+
 namespace CDT
 {
 
@@ -316,7 +318,7 @@ TriIndUSet Triangulation<T, TNearPointLocator>::growToBoundary(
 template <typename T, typename TNearPointLocator>
 TriInd Triangulation<T, TNearPointLocator>::addTriangle(const Triangle& t)
 {
-    const TriInd iT(triangles.size());
+    const TriInd iT = trianglesCount();
     triangles.push_back(t);
     return iT;
 }
@@ -325,6 +327,18 @@ template <typename T, typename TNearPointLocator>
 TriInd Triangulation<T, TNearPointLocator>::addTriangle()
 {
     return addTriangle(Triangle());
+}
+
+template <typename T, typename TNearPointLocator>
+VertInd Triangulation<T, TNearPointLocator>::verticesCount() const
+{
+    return static_cast<VertInd>(vertices.size());
+}
+
+template <typename T, typename TNearPointLocator>
+TriInd Triangulation<T, TNearPointLocator>::trianglesCount() const
+{
+    return static_cast<TriInd>(triangles.size());
 }
 
 template <typename T, typename TNearPointLocator>
@@ -422,7 +436,7 @@ VertInd Triangulation<T, TNearPointLocator>::addSplitEdgeVertex(
     const AddVertexType::Enum vertexType)
 {
     // add a new point on the edge that splits an edge in two
-    const VertInd iSplitVert = static_cast<VertInd>(vertices.size());
+    const VertInd iSplitVert = verticesCount();
     addNewVertex(splitVert, noNeighbor);
 
 #ifdef CDT_ENABLE_CALLBACK_HANDLER
@@ -901,7 +915,7 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
     }
 
     // add mid-point to triangulation
-    const VertInd iMid = static_cast<VertInd>(vertices.size());
+    const VertInd iMid = verticesCount();
     const V2d<T>& start = vertices[iA];
     const V2d<T>& end = vertices[iB];
     addNewVertex(
@@ -2422,7 +2436,7 @@ void Triangulation<T, TNearPointLocator>::insertVertices_KDTreeBFS(
     Box2d<T> box)
 {
     // calculate original indices
-    const VertInd vertexCount(vertices.size() - superGeomVertCount);
+    const VertInd vertexCount(verticesCount() - superGeomVertCount);
     if(vertexCount <= VertInd(0))
         return;
     std::vector<VertInd> ii(vertexCount);
@@ -2788,5 +2802,7 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
 }
 
 } // namespace CDT
+
+CDT_RESTORE_MATH_SETTINGS_FOR_CONSTRUCTIONS
 
 #endif // header-guard

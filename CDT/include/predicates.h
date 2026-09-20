@@ -33,24 +33,9 @@
 #ifndef PREDICATES_H_INCLUDED
 #define PREDICATES_H_INCLUDED
 
+CDT_ENSURE_PRECISE_MATH
+
 //@reference: https://www.cs.cmu.edu/~quake/robust.html
-
-//@note: the error-free transformations below need IEEE-754 semantics:
-//       re-associating floating-point expressions silently breaks every result
-#if defined(__FAST_MATH__) || defined(_M_FP_FAST)
-#error "predicates.h needs IEEE-754 arithmetic: no -ffast-math / -Ofast / /fp:fast"
-#endif
-
-//@note: best effort: stops a*b+c contracting into an fma, but not the
-//       re-association guarded above, and applies to the rest of the including
-//       translation unit. gcc has no such pragma: use -ffp-contract=off
-#if defined(__clang__)
-#pragma clang fp contract(off)
-#elif defined(_MSC_VER)
-#pragma fp_contract(off)
-#elif !defined(__GNUC__)
-#pragma STDC FP_CONTRACT OFF
-#endif
 
 namespace  predicates {
     //@brief: geometric predicates using arbitrary precision arithmetic
@@ -404,7 +389,7 @@ namespace detail {
                 if(T(0) != Q) h[hIndex++] = Q;
                 return hIndex;
             }
-        
+
         public:
             //roundoff error of x = a + b
             static inline T PlusTail(const T a, const T b, const T x) {
@@ -1031,5 +1016,7 @@ namespace detail {
         return detail::exact::insphere(pa, pb, pc, pd, pe);
     }
 }
+
+CDT_RESTORE_MATH_SETTINGS
 
 #endif

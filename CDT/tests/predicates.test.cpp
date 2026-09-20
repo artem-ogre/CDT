@@ -9,6 +9,7 @@
  * `inputs/predicates/README.md`.
  */
 
+#include <CDTUtils.h> // CDT_ENSURE_PRECISE_MATH used by predicates.h
 #include <predicates.h>
 
 #include <catch2/catch_template_test_macros.hpp>

@@ -119,7 +119,7 @@ CDT is not in the conan-center but there's a `conanfile.py` recipe provided (in 
 Note that it might need small adjustments like changing boost version to fit your needs.
 
 ### spack
-A [recipe](https://github.com/spack/spack/blob/develop/var/spack/repos/builtin/packages/cdt/package.py) for CDT is [available](https://spack.readthedocs.io/en/latest/package_list.html#cdt) in [spack](https://spack.io).
+A [recipe](https://packages.spack.io/package.html?name=cdt) for CDT is available in [spack](https://spack.io).
 
 <a name="installationbuilding"></a>
 
@@ -139,6 +139,17 @@ CDT uses modern CMake and should *just work* out of the box without any surprise
 | `CDT_USE_AS_COMPILED_LIBRARY` |      `OFF`      | Instantiate templates for float and double and compiled into a library                         |
 | `CDT_DISABLE_EXCEPTIONS`      |      `OFF`      | Disables exceptions: instead of throwing the library will call `std::terminate`                |
 | `CDT_ENABLE_CALLBACK_HANDLER` |      `OFF`      | If enabled it is possible to provide a callback handler to the triangulation                   |
+| `CDT_ENSURE_PRECISE_MATH_IN_CONSTRUCTIONS` | `OFF` | Disables fast-math and floating-point contraction in constructions too, not only in predicates. See [Floating-point compiler options](#floating-point-options) |
+
+<a name="floating-point-options"></a>
+
+**Floating-point compiler options**
+
+CDT uses exact adaptive predicates (orientation, in-circle tests) which require strict IEEE-754 math.
+Options like `-ffast-math`, `/fp:fast` or `-ffp-contract=fast` can break them.
+Fast-math and floating-point contraction are therefore always disabled in the predicates.
+Another way inexact math can affect topology is by changing positions of constructed newly inserted vertices (e.g., at edges intersection).
+Opt-into exact math with `CDT_ENSURE_PRECISE_MATH_IN_CONSTRUCTIONS`, this will also ensure that 'golden' file-based tests pass.
 
 **Adding to CMake project directly**
 

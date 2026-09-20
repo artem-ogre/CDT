@@ -134,3 +134,34 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release
         cmake --build build-compiled -j
         ./build-compiled/CDT-standards-check
+
+  fast-math:
+    name: "Fast math (${{ matrix.compiler }})"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - compiler: MSVC
+          os: windows-2025
+          flags: "/arch:AVX2 /fp:fast /fp:contract"
+        - compiler: GCC
+          os: ubuntu-24.04
+          flags: "-march=haswell -ffast-math"
+        - compiler: Clang
+          os: macos-15
+          flags: "-ffast-math"
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+
+    - name: Build and test
+      shell: bash
+      env:
+        CXXFLAGS: ${{ matrix.flags }}
+      run: |
+        cmake -S CDT -B build -DCDT_ENABLE_TESTING=ON -DCMAKE_BUILD_TYPE=Release -DCDT_ENSURE_PRECISE_MATH_IN_CONSTRUCTIONS=ON
+        cmake --build build --config Release -j
+        ctest --test-dir build -C Release --output-on-failure
