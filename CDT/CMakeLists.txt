@@ -200,6 +200,11 @@ install(
 
 install(EXPORT ${PROJECT_NAME}Config NAMESPACE CDT:: DESTINATION cmake)
 
+install(
+  FILES LICENSE LICENSE-predicates.txt LICENSE-LLVM.txt
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/${PROJECT_NAME}
+)
+
 # ------------
 # documentation
 # ------------
