@@ -11,7 +11,7 @@ from conan.tools.env import Environment
 class CDTConan(ConanFile):
     name = "cdt"
     version = "2.0.1"
-    license = "MPL-2.0 License"
+    license = "MPL-2.0 AND BSD-3-Clause AND Apache-2.0 WITH LLVM-exception"
     url = "https://github.com/artem-ogre/CDT"
     description = "Numerically robust C++ implementation of constrained Delaunay triangulation (CDT)"
     settings = "os", "compiler", "build_type", "arch"

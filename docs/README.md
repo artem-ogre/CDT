@@ -378,6 +378,10 @@ Any feedback and contributions are welcome.
 
 [Mozilla Public License,  v. 2.0](https://www.mozilla.org/en-US/MPL/2.0/FAQ/)
 
+CDT includes third-party code under other licenses:
+- [`predicates.h`](../CDT/include/predicates.h): BSD-3-Clause, see [LICENSE-predicates.txt](../CDT/LICENSE-predicates.txt)
+- [`portable_nth_element.hpp`](../CDT/include/portable_nth_element.hpp): Apache-2.0 WITH LLVM-exception, see [LICENSE-LLVM.txt](../CDT/LICENSE-LLVM.txt)
+
 For attribution you can use the following template:
 ```
 This software is based part on CDT (C++ library for constrained Delaunay triangulation):
