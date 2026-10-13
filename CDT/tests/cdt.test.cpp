@@ -1578,6 +1578,50 @@ TEST_CASE("Duplicated constraint edge with intersecting constraints", "")
     REQUIRE_THROWS_AS(cdt.insertEdges(edges), CDT::InvalidEdgeSplitVertex);
 }
 
+TEST_CASE("Regression test #230: vertex near existing constraint edge", "")
+{
+    // Vertex 3 is 4e-17 inside hull edge (0, 1), within minDistToConstraintEdge:
+    // the edge is split at it instead of keeping a zero-area triangle
+    // (https://github.com/artem-ogre/CDT/issues/230)
+    const auto in = readInputFromFile<double>("inputs/issue-230.txt");
+    const bool isConforming = GENERATE(false, true);
+    auto cdt = Triangulation<double>(
+        VertexInsertionOrder::AsProvided,
+        IntersectingConstraintEdges::NotAllowed,
+        1e-3);
+    cdt.insertVertices(in.first);
+    isConforming ? cdt.conformToEdges(in.second) : cdt.insertEdges(in.second);
+    cdt.eraseOuterTrianglesAndHoles();
+    REQUIRE(cdt.triangles.size() == 3);
+    REQUIRE(cdt.fixedEdges.count(Edge(VertInd(0), VertInd(3))));
+    REQUIRE(cdt.fixedEdges.count(Edge(VertInd(1), VertInd(3))));
+}
+
+TEST_CASE("Vertex near existing edge but outside its diametral circle", "")
+{
+    // Vertex 2 is near edge (0, 1) and projects inside it, but is outside its
+    // diametral circle. Splitting there would make (1, 2) longer than (0, 1)
+    // and split it back at vertex 0, looping forever: the edge is kept.
+    const std::vector<V2d<double> > vertices = {
+        {0., 0.},
+        {1., 0.},
+        {1e-7, 5e-4},
+        {0.5, 1.},
+        {-1., 1.},
+    };
+    const std::vector<Edge> edges = {{VertInd(0), VertInd(1)}};
+    const bool isConforming = GENERATE(false, true);
+    auto cdt = Triangulation<double>(
+        VertexInsertionOrder::AsProvided,
+        IntersectingConstraintEdges::NotAllowed,
+        1e-3);
+    cdt.insertVertices(vertices);
+    isConforming ? cdt.conformToEdges(edges) : cdt.insertEdges(edges);
+    cdt.eraseSuperTriangle();
+    REQUIRE(cdt.fixedEdges.size() == 1);
+    REQUIRE(cdt.fixedEdges.count(Edge(VertInd(0), VertInd(1))));
+}
+
 TEST_CASE("Ruppert refinement achieves the requested minimum angle", "")
 {
     const std::vector<V2d<double> > vertices = {

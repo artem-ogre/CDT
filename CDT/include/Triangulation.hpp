@@ -585,12 +585,6 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
     if(iA == iB) // edge connects a vertex to itself
         return;
 
-    if(hasEdge(iA, iB))
-    {
-        fixEdge(edge, originalEdge);
-        return;
-    }
-
     const V2d<T>& a = vertices[iA];
     const V2d<T>& b = vertices[iB];
     const T distanceTolerance =
@@ -598,16 +592,28 @@ void Triangulation<T, TNearPointLocator>::insertEdgeIteration(
             ? T(0)
             : m_minDistToConstraintEdge * distance(a, b);
 
+    if(hasEdge(iA, iB))
+    {
+        const VertInd iV = opposedVertexOnEdge(edge, distanceTolerance);
+        if(iV != noVertex)
+        {
+            remaining.push_back(Edge(iV, iB));
+            remaining.push_back(Edge(iA, iV));
+            return;
+        }
+        fixEdge(edge, originalEdge);
+        return;
+    }
+
     TriInd iT;
     // Note: 'L' is left and 'R' is right of the inserted constraint edge
     VertInd iVL, iVR;
     tie(iT, iVL, iVR) = intersectedTriangle(iA, a, b, distanceTolerance);
-    // if one of the triangle vertices is on the edge, move edge start
+    // if one of the triangle vertices is on the edge, split edge at it
     if(iT == noNeighbor)
     {
-        const Edge edgePart(iA, iVL);
-        fixEdge(edgePart, originalEdge);
         remaining.push_back(Edge(iVL, iB));
+        remaining.push_back(Edge(iA, iVL));
         return;
     }
     Triangle t = triangles[iT];
@@ -789,8 +795,27 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
     if(iA == iB) // edge connects a vertex to itself
         return;
 
+    const V2d<T>& a = vertices[iA];
+    const V2d<T>& b = vertices[iB];
+    const T distanceTolerance =
+        m_minDistToConstraintEdge == T(0)
+            ? T(0)
+            : m_minDistToConstraintEdge * distance(a, b);
+
     if(hasEdge(iA, iB))
     {
+        const VertInd iV = opposedVertexOnEdge(edge, distanceTolerance);
+        if(iV != noVertex)
+        {
+#ifdef CDT_CXX11_IS_SUPPORTED
+            remaining.emplace_back(Edge(iV, iB), originals, overlaps);
+            remaining.emplace_back(Edge(iA, iV), originals, overlaps);
+#else
+            remaining.push_back(make_tuple(Edge(iV, iB), originals, overlaps));
+            remaining.push_back(make_tuple(Edge(iA, iV), originals, overlaps));
+#endif
+            return;
+        }
         fixEdge(edge);
         if(overlaps > 0)
             overlapCount[edge] = overlaps;
@@ -802,27 +827,18 @@ void Triangulation<T, TNearPointLocator>::conformToEdgeIteration(
         return;
     }
 
-    const V2d<T>& a = vertices[iA];
-    const V2d<T>& b = vertices[iB];
-    const T distanceTolerance =
-        m_minDistToConstraintEdge == T(0)
-            ? T(0)
-            : m_minDistToConstraintEdge * distance(a, b);
     TriInd iT;
     VertInd iVleft, iVright;
     tie(iT, iVleft, iVright) = intersectedTriangle(iA, a, b, distanceTolerance);
-    // if one of the triangle vertices is on the edge, move edge start
+    // if one of the triangle vertices is on the edge, split edge at it
     if(iT == noNeighbor)
     {
-        const Edge edgePart(iA, iVleft);
-        fixEdge(edgePart);
-        if(overlaps > 0)
-            overlapCount[edgePart] = overlaps;
-        detail::insert_unique(pieceToOriginals[edgePart], originals);
 #ifdef CDT_CXX11_IS_SUPPORTED
         remaining.emplace_back(Edge(iVleft, iB), originals, overlaps);
+        remaining.emplace_back(Edge(iA, iVleft), originals, overlaps);
 #else
         remaining.push_back(make_tuple(Edge(iVleft, iB), originals, overlaps));
+        remaining.push_back(make_tuple(Edge(iA, iVleft), originals, overlaps));
 #endif
         return;
     }
@@ -2531,6 +2547,31 @@ bool Triangulation<T, TNearPointLocator>::hasEdge(
     const VertInd b) const
 {
     return edgeTriangles(a, b).first != invalidIndexSizeType;
+}
+
+template <typename T, typename TNearPointLocator>
+VertInd Triangulation<T, TNearPointLocator>::opposedVertexOnEdge(
+    const Edge& edge,
+    const T tolerance) const
+{
+    if(fixedEdges.count(edge))
+        return noVertex;
+    const V2d<T>& a = vertices[edge.v1()];
+    const V2d<T>& b = vertices[edge.v2()];
+    const std::pair<TriInd, TriInd> tris = edgeTriangles(edge.v1(), edge.v2());
+    const VertInd opposed[] = {
+        opposedVertex(triangles[tris.first], tris.second),
+        opposedVertex(triangles[tris.second], tris.first)};
+    for(int i = 0; i < 2; ++i)
+    {
+        const V2d<T>& v = vertices[opposed[i]];
+        // near line ab and inside its diametral circle: both parts are
+        // shorter than ab, so splitting terminates
+        if(locatePointLine(v, a, b, tolerance) == PtLineLocation::OnLine &&
+           detail::isEncroachingOnEdge(v, a, b))
+            return opposed[i];
+    }
+    return noVertex;
 }
 
 /// Checks whether vertex v has a fixed edge, other than excludeEdge, incident
