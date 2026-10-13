@@ -1210,6 +1210,8 @@ private:
     void insertVertices_KDTreeBFS(VertInd superGeomVertCount, Box2d<T> box);
     std::pair<TriInd, TriInd> edgeTriangles(VertInd a, VertInd b) const;
     bool hasEdge(VertInd a, VertInd b) const;
+    /// Vertex opposed to a non-fixed edge that lies on it within tolerance
+    VertInd opposedVertexOnEdge(const Edge& edge, T tolerance) const;
     bool
     hasAnotherFixedEdgeAtSmallAngle(VertInd v, const Edge& excludeEdge) const;
     void setAdjacentTriangle(const VertInd v, const TriInd t);
