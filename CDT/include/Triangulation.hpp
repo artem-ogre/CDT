@@ -2676,7 +2676,8 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
         unrefined);
 
     // refine triangulation by inserting bad-quality triangles' circumcenters
-    TriIndQueue badTriangles;
+    // keep vertices to detect triangles modified after enqueueing
+    std::queue<std::pair<TriInd, VerticesArr3> > badTriangles;
     for(TriInd iT(0), n(triangles.size()); iT < n; ++iT)
     {
         const Triangle& t = triangles[iT];
@@ -2684,29 +2685,31 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
            !(toEraseOrNull && toEraseOrNull->count(iT)) &&
            isRefinementNeeded(t, refinementCriterion, refinementThreshold))
         {
-            badTriangles.push(iT);
+            badTriangles.push(std::make_pair(iT, t.vertices));
         }
     }
 
     while(!badTriangles.empty() && remainingVertexBudget > 0)
     {
-        const TriInd iT = badTriangles.front();
+        const TriInd iT = badTriangles.front().first;
+        const VerticesArr3 vv = badTriangles.front().second;
+        const Triangle& t = triangles[iT];
         badTriangles.pop();
         if(toEraseOrNull && toEraseOrNull->count(iT))
             continue;
-        if(!isRefinementNeeded(
-               triangles[iT], refinementCriterion, refinementThreshold) ||
+        if(vv != t.vertices)
+            continue; // skip triangle that got modified since put in queue
+        if(!isRefinementNeeded(t, refinementCriterion, refinementThreshold) ||
            (refinementCriterion == RefinementCriterion::SmallestAngle &&
-            isSmallestAngleFixed(triangles[iT])))
+            isSmallestAngleFixed(t)))
         {
             // fixed-edge sharp angle is impossible to refine
             continue;
         }
         // copy: resolveEncroachedEdges below can re-allocate 'triangles'
-        const VerticesArr3 badTVerts = triangles[iT].vertices;
-        const V2d<T>& v0 = vertices[badTVerts[0]];
-        const V2d<T>& v1 = vertices[badTVerts[1]];
-        const V2d<T>& v2 = vertices[badTVerts[2]];
+        const V2d<T>& v0 = vertices[vv[0]];
+        const V2d<T>& v1 = vertices[vv[1]];
+        const V2d<T>& v2 = vertices[vv[2]];
         const T shortestEdge = std::min(
             distance(v0, v1), std::min(distance(v1, v2), distance(v2, v0)));
         if(shortestEdge <= minEdgeLength)
@@ -2749,9 +2752,9 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
             typedef TriIndVec::const_iterator It;
             for(It it = badTris.begin(); it != badTris.end(); ++it)
             {
-                badTriangles.push(*it);
+                badTriangles.push(std::make_pair(*it, triangles[*it].vertices));
             }
-            badTriangles.push(iT);
+            badTriangles.push(std::make_pair(iT, triangles[iT].vertices));
             continue;
         }
         // splitting was given up on: inserting would encroach anyway
@@ -2810,7 +2813,7 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
                !touchesSuperTriangle(t) &&
                isRefinementNeeded(t, refinementCriterion, refinementThreshold))
             {
-                badTriangles.push(currTri);
+                badTriangles.push(std::make_pair(currTri, t.vertices));
             }
             currTri = t.next(iVert).first;
         } while(currTri != start);
