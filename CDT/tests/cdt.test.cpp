@@ -1298,8 +1298,10 @@ TEST_CASE(
     // A bad triangle is re-visited only when splitting the edges its
     // circumcenter encroaches on consumed vertices: giving up on all of them
     // used to let the encroaching circumcenter through.
-    const auto [vv, ee] = readInputFromFile<double>(
-        "inputs/dont_flip_constraint_when_resolving_intersection.txt");
+    // Giving up happens when rounding breaks down deep in a sharp corner: at
+    // which angle depends on refinement order, so sweep the angles.
+    const auto [vv, ee] =
+        readInputFromFile<double>("inputs/refine-sharp-corners.txt");
 
     struct CallbackHandler final : public CDT::ICallbackHandler
     {
@@ -1330,26 +1332,30 @@ TEST_CASE(
         }
     };
 
-    CallbackHandler callbackHandler;
-    auto cdt = Triangulation<double>(
-        VertexInsertionOrder::Auto,
-        IntersectingConstraintEdges::TryResolve,
-        1e-6);
-    cdt.setCallbackHandler(&callbackHandler);
-    callbackHandler.cdt = &cdt;
-    cdt.insertVertices(vv);
-    cdt.insertEdges(ee);
-    const auto unrefined = cdt.refineTriangles(
-        VertInd(2000),
-        RefinementCriterion::SmallestAngle,
-        degToRad(20.),
-        nullptr,
-        0.);
-
+    std::size_t splitVertexInvalid = 0;
+    for(int deg = 15; deg <= 30; ++deg)
+    {
+        CallbackHandler callbackHandler;
+        auto cdt = Triangulation<double>(
+            VertexInsertionOrder::Auto,
+            IntersectingConstraintEdges::TryResolve,
+            1e-6);
+        cdt.setCallbackHandler(&callbackHandler);
+        callbackHandler.cdt = &cdt;
+        cdt.insertVertices(vv);
+        cdt.insertEdges(ee);
+        const auto unrefined = cdt.refineTriangles(
+            VertInd(2000),
+            RefinementCriterion::SmallestAngle,
+            degToRad(double(deg)),
+            nullptr,
+            0.);
+        splitVertexInvalid += unrefined.splitVertexInvalid;
+        REQUIRE(callbackHandler.circumcenters > std::size_t(0));
+        REQUIRE(callbackHandler.encroaching == std::size_t(0));
+    }
     // the input is chosen so that splitting an encroached edge does give up
-    REQUIRE(unrefined.splitVertexInvalid > std::size_t(0));
-    REQUIRE(callbackHandler.circumcenters > std::size_t(0));
-    REQUIRE(callbackHandler.encroaching == std::size_t(0));
+    REQUIRE(splitVertexInvalid > std::size_t(0));
 }
 
 #endif
@@ -1595,6 +1601,39 @@ TEST_CASE("Regression test #230: vertex near existing constraint edge", "")
     REQUIRE(cdt.triangles.size() == 3);
     REQUIRE(cdt.fixedEdges.count(Edge(VertInd(0), VertInd(3))));
     REQUIRE(cdt.fixedEdges.count(Edge(VertInd(1), VertInd(3))));
+}
+
+TEST_CASE("Regression test #235: no cluster of tiny refined triangles", "")
+{
+    // Triangle indices are re-used: a queued index of a replaced triangle used
+    // to make its replacement jump the queue, refining in a cascade around the
+    // newest vertex (https://github.com/artem-ogre/CDT/issues/235)
+    const auto [vv, ee] = readInputFromFile<double>("inputs/issue-235.txt");
+    auto cdt = Triangulation<double>();
+    cdt.insertVertices(vv);
+    cdt.insertEdges(ee);
+    auto toErase = cdt.collectOuterTrianglesAndHoles();
+    const double maxArea = 0.05;
+    cdt.refineTriangles(
+        VertInd(10000), RefinementCriterion::LargestArea, maxArea, &toErase);
+    cdt.refineTriangles(
+        VertInd(10000),
+        RefinementCriterion::SmallestAngle,
+        degToRad(30.),
+        &toErase);
+    cdt.finalizeTriangulation(toErase);
+    REQUIRE(CDT::verifyTopology(cdt));
+
+    double minArea = maxArea;
+    for(std::size_t i = 0; i < cdt.triangles.size(); ++i)
+    {
+        const VerticesArr3& v = cdt.triangles[i].vertices;
+        minArea = std::min(
+            minArea,
+            area(cdt.vertices[v[0]], cdt.vertices[v[1]], cdt.vertices[v[2]]));
+    }
+    // the cluster had triangles under maxArea / 18; now it's about maxArea / 5
+    REQUIRE(minArea > maxArea / 10);
 }
 
 TEST_CASE("Vertex near existing edge but outside its diametral circle", "")
@@ -2078,26 +2117,30 @@ TEST_CASE("Ruppert refinement skips a circumcenter that lands on a vertex", "")
 {
     // A sharp corner with no minEdgeLength keeps refining until a rounded
     // circumcenter falls exactly onto an existing vertex, which inserting
-    // would duplicate. Sensitive: a zero count needs a new input, not a
-    // relaxed assert.
+    // would duplicate. At which angle depends on refinement order, so sweep
+    // the angles.
     const auto [vv, ee] =
-        readInputFromFile<double>("inputs/refine-circumcenter-on-vertex.txt");
-    auto cdt = Triangulation<double>(
-        VertexInsertionOrder::Auto,
-        IntersectingConstraintEdges::TryResolve,
-        1e-9);
-    cdt.insertVertices(vv);
-    cdt.insertEdges(ee);
-    const auto unrefined = cdt.refineTriangles(
-        VertInd(2000),
-        RefinementCriterion::SmallestAngle,
-        degToRad(20.),
-        nullptr,
-        0.);
-
-    REQUIRE(unrefined.circumcenterOnVertex > std::size_t(0));
-    REQUIRE(CDT::verifyTopology(cdt));
-    REQUIRE(CDT::verifyWinding(cdt));
+        readInputFromFile<double>("inputs/refine-sharp-corners.txt");
+    std::size_t circumcenterOnVertex = 0;
+    for(int deg = 15; deg <= 30; ++deg)
+    {
+        auto cdt = Triangulation<double>(
+            VertexInsertionOrder::Auto,
+            IntersectingConstraintEdges::TryResolve,
+            1e-9);
+        cdt.insertVertices(vv);
+        cdt.insertEdges(ee);
+        const auto unrefined = cdt.refineTriangles(
+            VertInd(2000),
+            RefinementCriterion::SmallestAngle,
+            degToRad(double(deg)),
+            nullptr,
+            0.);
+        circumcenterOnVertex += unrefined.circumcenterOnVertex;
+        REQUIRE(CDT::verifyTopology(cdt));
+        REQUIRE(CDT::verifyWinding(cdt));
+    }
+    REQUIRE(circumcenterOnVertex > std::size_t(0));
 }
 
 TEST_CASE(
