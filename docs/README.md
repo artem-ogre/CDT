@@ -366,6 +366,7 @@ For Python bindings check-out [PythonCDT](https://github.com/artem-ogre/PythonCD
 - [davidkellerman](https://github.com/davidkellerman): finding and reproducing bug in KDTree's `nearest` method ([#200](https://github.com/artem-ogre/CDT/issues/200))
 - [Boris Clémençon](https://github.com/borisclemencon): finding and reproducing, and reporting a bug ([#204](https://github.com/artem-ogre/CDT/issues/204))
 - [Islam Omar](https://github.com/Islam0mar): first implementation of Ruppert refinement
+- [Stéphane Mottelet](https://github.com/mottelet): finding, reproducing, and reporting bugs in Ruppert's Delaunay refinement ([#235](https://github.com/artem-ogre/CDT/issues/235), [#237](https://github.com/artem-ogre/CDT/issues/237))
 
 <a name="contributing"></a>
 

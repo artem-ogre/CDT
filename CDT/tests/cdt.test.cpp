@@ -1636,6 +1636,34 @@ TEST_CASE("Regression test #235: no cluster of tiny refined triangles", "")
     REQUIRE(minArea > maxArea / 10);
 }
 
+TEST_CASE("Regression test #237: rejected circumcenter splits no more edges", "")
+{
+    // A rejected circumcenter 1e-11 from an edge midpoint used to encroach
+    // every piece at the split vertex: the piece was halved down to
+    // minEdgeLength (https://github.com/artem-ogre/CDT/issues/237)
+    const std::vector<V2d<double> > vertices = {
+        {-1., -3.}, {10., 0.}, {10., 13.}, {0., 10.},
+        {4., 4.},   {6., 4.},  {6., 6.},   {4., 6.},
+    };
+    const std::vector<Edge> edges = {
+        {VertInd(0), VertInd(1)},
+        {VertInd(1), VertInd(2)},
+        {VertInd(2), VertInd(3)},
+        {VertInd(3), VertInd(0)},
+        {VertInd(4), VertInd(7)},
+        {VertInd(7), VertInd(6)},
+        {VertInd(6), VertInd(5)},
+        {VertInd(5), VertInd(4)},
+    };
+    auto cdt = Triangulation<double>();
+    cdt.insertVertices(vertices);
+    cdt.insertEdges(edges);
+    auto toErase = cdt.collectOuterTrianglesAndHoles();
+    const Unrefined unrefined = cdt.refineTriangles(
+        VertInd(1000000), RefinementCriterion::LargestArea, 1e-3, &toErase);
+    REQUIRE(unrefined.shortEdges == 0);
+}
+
 TEST_CASE("Vertex near existing edge but outside its diametral circle", "")
 {
     // Vertex 2 is near edge (0, 1) and projects inside it, but is outside its

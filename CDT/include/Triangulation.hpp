@@ -1681,9 +1681,7 @@ TriIndVec Triangulation<T, TNearPointLocator>::resolveEncroachedEdges(
                 const Edge triEdge(t.vertices[i], t.vertices[cw(i)]);
                 if(fixedEdges.find(triEdge) == fixedEdges.end())
                     continue;
-                if(isEdgeEncroached(triEdge) ||
-                   (circumcenterOrNull &&
-                    isEdgeEncroachedBy(triEdge, *circumcenterOrNull)))
+                if(isEdgeEncroached(triEdge))
                 {
                     encroachedEdges.push(triEdge);
                 }
