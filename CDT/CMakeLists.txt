@@ -227,7 +227,15 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_ENABLE_PREPROCESSING NO)
     set(DOXYGEN_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/docs")
     set(CDT_DOCS_DIRECTORY ${PROJECT_SOURCE_DIR}/../docs)
-    set(DOXYGEN_USE_MDFILE_AS_MAINPAGE ${CDT_DOCS_DIRECTORY}/README.md)
+    # Doxygen does not support <picture> used for GitHub dark mode images: strip it
+    set(CDT_README ${CDT_DOCS_DIRECTORY}/README.md)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${CDT_README})
+    file(READ ${CDT_README} CDT_README_CONTENT)
+    string(REGEX REPLACE "</?picture>|<source [^>]*>" "" CDT_README_CONTENT "${CDT_README_CONTENT}")
+    set(CDT_DOXYGEN_README ${DOXYGEN_OUTPUT_DIRECTORY}/README.md)
+    file(WRITE ${CDT_DOXYGEN_README} "${CDT_README_CONTENT}")
+    set(DOXYGEN_EXCLUDE ${CDT_README})
+    set(DOXYGEN_USE_MDFILE_AS_MAINPAGE ${CDT_DOXYGEN_README})
     set(DOXYGEN_IMAGE_PATH ${CDT_DOCS_DIRECTORY}/images)
 
     set(DOXYGEN_GENERATE_TREEVIEW YES)
@@ -236,6 +244,10 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_DISABLE_INDEX NO)
     # Disable Doxygen's own dark mode: it overrides doxygen-awesome's themes.
     set(DOXYGEN_HTML_COLORSTYLE LIGHT)
+    # doxygen-awesome provides its own copy button
+    set(DOXYGEN_HTML_COPY_CLIPBOARD NO)
+    set(DOXYGEN_DOT_IMAGE_FORMAT svg)
+    set(DOXYGEN_INTERACTIVE_SVG YES)
     set(CDT_DOXYGEN_AWESOME_DIRECTORY ${CDT_DOCS_DIRECTORY}/doxygen-custom/doxygen-awesome)
     set(DOXYGEN_HTML_EXTRA_STYLESHEET
         ${CDT_DOXYGEN_AWESOME_DIRECTORY}/doxygen-awesome.css
@@ -262,6 +274,7 @@ if(DOXYGEN_FOUND)
         ${PROJECT_NAME}-docs
         ${PROJECT_SOURCE_DIR}
         ${CDT_DOCS_DIRECTORY}
+        ${CDT_DOXYGEN_README}
         COMMENT "Generate doxygen documentation for CDT."
     )
     # copy README.md images to doxygen so that they are displayed

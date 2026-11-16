@@ -1,4 +1,4 @@
-<img src="./images/CDT_logo.png" alt="CDT Logo" style='height: 100%; width: 100%; max-height: 250px; object-fit: contain'/>
+<picture><source media="(prefers-color-scheme: dark)" srcset="./images/CDT_logo-dark.png"><img src="./images/CDT_logo.png" alt="CDT Logo" style='height: 100%; width: 100%; max-height: 250px; object-fit: contain'/></picture>
 
 ## What is CDT
 
@@ -47,7 +47,7 @@ CDT is a C++ library for generating and refining constraint or conforming Delaun
 <a name="what-can-cdt-do"></a>
 
 ## What can CDT do?
-<img src="./images/show-case.png" alt="CDT show-case: constrained and conforming triangulations, convex hulls, automatically removing holes, refinement" style='height: 100%; width: 100%; max-height: 300px; object-fit: contain'/>
+<picture><source media="(prefers-color-scheme: dark)" srcset="./images/show-case-dark.png"><img src="./images/show-case.png" alt="CDT show-case: constrained and conforming triangulations, convex hulls, automatically removing holes, refinement" style='height: 100%; width: 100%; max-height: 300px; object-fit: contain'/></picture>
 
 - Constrained Delaunay Triangulations: force edges into Delaunay triangulation
 - Conforming Delaunay Triangulations: add new points into Delaunay triangulation until the edge is present in triangulation
@@ -58,7 +58,7 @@ CDT is a C++ library for generating and refining constraint or conforming Delaun
 <a name="properly-handling-the-corner-cases"></a>
 
 ## Properly Handling the Corner-Cases
-<img src="./images/corner-cases.png" alt="CDT supported corner cases: points on edges, overlapping edges, resolving edge intersections" style='height: 100%; width: 100%; max-height: 300px; object-fit: contain'/>
+<picture><source media="(prefers-color-scheme: dark)" srcset="./images/corner-cases-dark.png"><img src="./images/corner-cases.png" alt="CDT supported corner cases: points on edges, overlapping edges, resolving edge intersections" style='height: 100%; width: 100%; max-height: 300px; object-fit: contain'/></picture>
 
 - Points exactly on the edges
 - Exactly overlapping edges
@@ -67,7 +67,7 @@ CDT is a C++ library for generating and refining constraint or conforming Delaun
 <a name="refinement"></a>
 
 ## Refinement
-<img src="./images/refinement.png" alt="CDT refinement: minimum angle and maximum triangle area criteria" style='height: 100%; width: 100%; max-height: 300px; object-fit: contain'/>
+<picture><source media="(prefers-color-scheme: dark)" srcset="./images/refinement-dark.png"><img src="./images/refinement.png" alt="CDT refinement: minimum angle and maximum triangle area criteria" style='height: 100%; width: 100%; max-height: 300px; object-fit: contain'/></picture>
 
 `CDT::Triangulation::refineTriangles` improves the shape of the triangles by inserting new points (Steiner points).
 
@@ -84,7 +84,7 @@ CDT is a C++ library for generating and refining constraint or conforming Delaun
 
 **Limits of refinement**
 
-<img src="./images/refinement-limits.png" alt="Sharp corner of the input that refinement can not improve" style='height: 100%; width: 100%; max-height: 200px; object-fit: contain'/>
+<picture><source media="(prefers-color-scheme: dark)" srcset="./images/refinement-limits-dark.png"><img src="./images/refinement-limits.png" alt="Sharp corner of the input that refinement can not improve" style='height: 100%; width: 100%; max-height: 200px; object-fit: contain'/></picture>
 
 Some places can not be refined: e.g., a sharp angle between two constraint edges comes from the input and can not be made any larger.
 - `CDT::Triangulation::refineTriangles` returns `CDT::Unrefined` with the counts of the refinements that could not be performed
@@ -232,7 +232,7 @@ Public API is provided in two places:
 
 **Delaunay triangulation without constraints (triangulated convex-hull)**
 
-<img src="./images/LakeSuperior.png" alt="Example of a triangulated convex hull" height="150"/>
+<picture><source media="(prefers-color-scheme: dark)" srcset="./images/LakeSuperior-dark.png"><img src="./images/LakeSuperior.png" alt="Example of a triangulated convex hull" height="150"/></picture>
 
 ```cpp
 #include "CDT.h"
@@ -247,7 +247,7 @@ cdt.eraseSuperTriangle();
 
 **Constrained Delaunay triangulation (auto-detected boundaries and holes)**
 
-<img src="./images/A.png" alt="Example of a triangulation with constrained boundaries and auto-detected holes" height="150"/>
+<picture><source media="(prefers-color-scheme: dark)" srcset="./images/A-dark.png"><img src="./images/A.png" alt="Example of a triangulation with constrained boundaries and auto-detected holes" height="150"/></picture>
 
 ```cpp
 // ... same as above
@@ -266,7 +266,7 @@ Use `CDT::Triangulation::conformToEdges` instead of `CDT::Triangulation::insertE
 
 **Refinement**
 
-<img src="./images/A_refined.png" alt="Example of a refined triangulation" height="150"/>
+<picture><source media="(prefers-color-scheme: dark)" srcset="./images/A_refined-dark.png"><img src="./images/A_refined.png" alt="Example of a refined triangulation" height="150"/></picture>
 
 ```cpp
 // ... same as above
@@ -398,7 +398,7 @@ ${INSERT_FULL_MPL_2.0_TEXT}
 <a name="example-gallery"></a>
 
 ## Example Gallery
-<img src="./images/A.png" alt="A" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/A_refined.png" alt="A" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/A_refined_area.png" alt="A" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Bean.png" alt="Bean" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Guitar.png" alt="Guitar" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Guitar_no_holes.png" alt="Guitar with holes" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Guitar_refined.png" alt="Guitar refined by maximum triangle area" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/LakeSuperior.png" alt="Lake Superior" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Sweden.png" alt="Sweden" style='height: 45%; width: 45%; object-fit: contain'/> <img src="./images/Sweden_refined.png" alt="Sweden refined by minimum angle" style='height: 45%; width: 45%; object-fit: contain'/> <a name="overlapping-boundaries-example"/><img src="./images/Overlapping_boundaries.png" alt="Overlapping boundaries" style='height: 45%; width: 45%; object-fit: contain'/></a> 
+<picture><source media="(prefers-color-scheme: dark)" srcset="./images/A-dark.png"><img src="./images/A.png" alt="A" style='height: 45%; width: 45%; object-fit: contain'/></picture> <picture><source media="(prefers-color-scheme: dark)" srcset="./images/A_refined-dark.png"><img src="./images/A_refined.png" alt="A" style='height: 45%; width: 45%; object-fit: contain'/></picture> <picture><source media="(prefers-color-scheme: dark)" srcset="./images/A_refined_area-dark.png"><img src="./images/A_refined_area.png" alt="A" style='height: 45%; width: 45%; object-fit: contain'/></picture> <picture><source media="(prefers-color-scheme: dark)" srcset="./images/Bean-dark.png"><img src="./images/Bean.png" alt="Bean" style='height: 45%; width: 45%; object-fit: contain'/></picture> <picture><source media="(prefers-color-scheme: dark)" srcset="./images/Guitar-dark.png"><img src="./images/Guitar.png" alt="Guitar" style='height: 45%; width: 45%; object-fit: contain'/></picture> <picture><source media="(prefers-color-scheme: dark)" srcset="./images/Guitar_no_holes-dark.png"><img src="./images/Guitar_no_holes.png" alt="Guitar with holes" style='height: 45%; width: 45%; object-fit: contain'/></picture> <picture><source media="(prefers-color-scheme: dark)" srcset="./images/Guitar_refined-dark.png"><img src="./images/Guitar_refined.png" alt="Guitar refined by maximum triangle area" style='height: 45%; width: 45%; object-fit: contain'/></picture> <picture><source media="(prefers-color-scheme: dark)" srcset="./images/LakeSuperior-dark.png"><img src="./images/LakeSuperior.png" alt="Lake Superior" style='height: 45%; width: 45%; object-fit: contain'/></picture> <picture><source media="(prefers-color-scheme: dark)" srcset="./images/Sweden-dark.png"><img src="./images/Sweden.png" alt="Sweden" style='height: 45%; width: 45%; object-fit: contain'/></picture> <picture><source media="(prefers-color-scheme: dark)" srcset="./images/Sweden_refined-dark.png"><img src="./images/Sweden_refined.png" alt="Sweden refined by minimum angle" style='height: 45%; width: 45%; object-fit: contain'/></picture> <a name="overlapping-boundaries-example"/><picture><source media="(prefers-color-scheme: dark)" srcset="./images/Overlapping_boundaries-dark.png"><img src="./images/Overlapping_boundaries.png" alt="Overlapping boundaries" style='height: 45%; width: 45%; object-fit: contain'/></picture></a> 
 
 <a name="bibliography"></a>
 
