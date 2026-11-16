@@ -227,13 +227,17 @@ if(DOXYGEN_FOUND)
     set(DOXYGEN_ENABLE_PREPROCESSING NO)
     set(DOXYGEN_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/docs")
     set(CDT_DOCS_DIRECTORY ${PROJECT_SOURCE_DIR}/../docs)
-    # Doxygen does not support <picture> used for GitHub dark mode images: strip it
+    # Doxygen does not support <picture> used for GitHub dark mode images:
+    # replace it with light and dark images that custom.css shows depending on the theme
     set(CDT_README ${CDT_DOCS_DIRECTORY}/README.md)
     set(CDT_DOXYGEN_README ${DOXYGEN_OUTPUT_DIRECTORY}/README.md)
     if(EXISTS ${CDT_README})
         set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${CDT_README})
         file(READ ${CDT_README} CDT_README_CONTENT)
-        string(REGEX REPLACE "</?picture>|<source [^>]*>" "" CDT_README_CONTENT "${CDT_README_CONTENT}")
+        string(REGEX REPLACE
+            "<picture><source [^>]*srcset=\"([^\"]*)\"><img src=\"([^\"]*)\"([^>]*)></picture>"
+            "<span class=\"light-mode-only\"><img src=\"\\2\"\\3></span><span class=\"dark-mode-only\"><img src=\"\\1\"\\3></span>"
+            CDT_README_CONTENT "${CDT_README_CONTENT}")
         file(WRITE ${CDT_DOXYGEN_README} "${CDT_README_CONTENT}")
     endif()
     set(DOXYGEN_EXCLUDE ${CDT_README})

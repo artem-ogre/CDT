@@ -34,13 +34,21 @@ html {
     --primary-color: #0366d6;
 }
 
+.dark-mode-only {
+    display: none;
+}
+
 @media (prefers-color-scheme: dark) {
     html:not(.light-mode) {
         --primary-color: #4493f8;
     }
 
-    html:not(.light-mode) div.textblock img[src^="./images/"] {
-        filter: brightness(89%) hue-rotate(180deg) invert();
+    html:not(.light-mode) .light-mode-only {
+        display: none;
+    }
+
+    html:not(.light-mode) .dark-mode-only {
+        display: inline;
     }
 }
 
@@ -48,6 +56,10 @@ html.dark-mode {
     --primary-color: #4493f8;
 }
 
-html.dark-mode div.textblock img[src^="./images/"] {
-    filter: brightness(89%) hue-rotate(180deg) invert();
+html.dark-mode .light-mode-only {
+    display: none;
+}
+
+html.dark-mode .dark-mode-only {
+    display: inline;
 }
