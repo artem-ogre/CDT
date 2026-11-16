@@ -97,6 +97,7 @@ using std::unordered_set;
 #include <boost/functional/hash.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <boost/tuple/tuple_comparison.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
 namespace CDT

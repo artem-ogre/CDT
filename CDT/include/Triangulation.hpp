@@ -1491,6 +1491,19 @@ bool Triangulation<T, TNearPointLocator>::isRefinementNeeded(
 }
 
 template <typename T, typename TNearPointLocator>
+T Triangulation<T, TNearPointLocator>::triangleBadness(
+    const Triangle& tri,
+    const RefinementCriterion::Enum refinementCriterion) const
+{
+    const V2d<T>& a = vertices[tri.vertices[0]];
+    const V2d<T>& b = vertices[tri.vertices[1]];
+    const V2d<T>& c = vertices[tri.vertices[2]];
+    return refinementCriterion == RefinementCriterion::SmallestAngle
+               ? -smallestAngle(a, b, c)
+               : area(a, b, c);
+}
+
+template <typename T, typename TNearPointLocator>
 bool Triangulation<T, TNearPointLocator>::isSmallestAngleFixed(
     const Triangle& tri) const
 {
@@ -2650,6 +2663,38 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
     const RefinementCriterion::Enum refinementCriterion,
     const T refinementThreshold,
     TriIndUSet* const toEraseOrNull,
+    const T minEdgeLength,
+    const RefinementOrder::Enum refinementOrder)
+{
+    switch(refinementOrder)
+    {
+    case RefinementOrder::FIFO:
+        return refineTriangles<FifoQueue<tuple<T, TriInd, VerticesArr3> > >(
+            maxVerticesToInsert,
+            refinementCriterion,
+            refinementThreshold,
+            toEraseOrNull,
+            minEdgeLength);
+    case RefinementOrder::WorstFirst:
+        return refineTriangles<
+            std::priority_queue<tuple<T, TriInd, VerticesArr3> > >(
+            maxVerticesToInsert,
+            refinementCriterion,
+            refinementThreshold,
+            toEraseOrNull,
+            minEdgeLength);
+    }
+    assert(false); // unreachable code
+    return Unrefined();
+}
+
+template <typename T, typename TNearPointLocator>
+template <typename TQueue>
+Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
+    const VertInd maxVerticesToInsert,
+    const RefinementCriterion::Enum refinementCriterion,
+    const T refinementThreshold,
+    TriIndUSet* const toEraseOrNull,
     const T minEdgeLength)
 {
     if(isFinalized())
@@ -2675,7 +2720,7 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
 
     // refine triangulation by inserting bad-quality triangles' circumcenters
     // keep vertices to detect triangles modified after enqueueing
-    std::queue<std::pair<TriInd, VerticesArr3> > badTriangles;
+    TQueue badTriangles;
     for(TriInd iT(0), n(triangles.size()); iT < n; ++iT)
     {
         const Triangle& t = triangles[iT];
@@ -2683,14 +2728,15 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
            !(toEraseOrNull && toEraseOrNull->count(iT)) &&
            isRefinementNeeded(t, refinementCriterion, refinementThreshold))
         {
-            badTriangles.push(std::make_pair(iT, t.vertices));
+            badTriangles.push(make_tuple(
+                triangleBadness(t, refinementCriterion), iT, t.vertices));
         }
     }
 
     while(!badTriangles.empty() && remainingVertexBudget > 0)
     {
-        const TriInd iT = badTriangles.front().first;
-        const VerticesArr3 vv = badTriangles.front().second;
+        const TriInd iT = get<1>(badTriangles.top());
+        const VerticesArr3 vv = get<2>(badTriangles.top());
         const Triangle& t = triangles[iT];
         badTriangles.pop();
         if(toEraseOrNull && toEraseOrNull->count(iT))
@@ -2750,9 +2796,16 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
             typedef TriIndVec::const_iterator It;
             for(It it = badTris.begin(); it != badTris.end(); ++it)
             {
-                badTriangles.push(std::make_pair(*it, triangles[*it].vertices));
+                const Triangle& bad = triangles[*it];
+                badTriangles.push(make_tuple(
+                    triangleBadness(bad, refinementCriterion),
+                    *it,
+                    bad.vertices));
             }
-            badTriangles.push(std::make_pair(iT, triangles[iT].vertices));
+            badTriangles.push(make_tuple(
+                triangleBadness(triangles[iT], refinementCriterion),
+                iT,
+                triangles[iT].vertices));
             continue;
         }
         // splitting was given up on: inserting would encroach anyway
@@ -2811,7 +2864,10 @@ Unrefined Triangulation<T, TNearPointLocator>::refineTriangles(
                !touchesSuperTriangle(t) &&
                isRefinementNeeded(t, refinementCriterion, refinementThreshold))
             {
-                badTriangles.push(std::make_pair(currTri, t.vertices));
+                badTriangles.push(make_tuple(
+                    triangleBadness(t, refinementCriterion),
+                    currTri,
+                    t.vertices));
             }
             currTri = t.next(iVert).first;
         } while(currTri != start);

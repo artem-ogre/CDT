@@ -30,6 +30,35 @@ template struct CDT_EXPORT Box2d<double>;
 template class CDT_EXPORT Triangulation<float>;
 template class CDT_EXPORT Triangulation<double>;
 
+template CDT_EXPORT Unrefined Triangulation<float>::refineTriangles<
+    FifoQueue<tuple<float, TriInd, VerticesArr3> > >(
+    VertInd,
+    RefinementCriterion::Enum,
+    float,
+    TriIndUSet*,
+    float);
+template CDT_EXPORT Unrefined Triangulation<double>::refineTriangles<
+    FifoQueue<tuple<double, TriInd, VerticesArr3> > >(
+    VertInd,
+    RefinementCriterion::Enum,
+    double,
+    TriIndUSet*,
+    double);
+template CDT_EXPORT Unrefined Triangulation<float>::refineTriangles<
+    std::priority_queue<tuple<float, TriInd, VerticesArr3> > >(
+    VertInd,
+    RefinementCriterion::Enum,
+    float,
+    TriIndUSet*,
+    float);
+template CDT_EXPORT Unrefined Triangulation<double>::refineTriangles<
+    std::priority_queue<tuple<double, TriInd, VerticesArr3> > >(
+    VertInd,
+    RefinementCriterion::Enum,
+    double,
+    TriIndUSet*,
+    double);
+
 template CDT_EXPORT DuplicatesInfo
 RemoveDuplicates<float>(std::vector<V2d<float> >&);
 template CDT_EXPORT DuplicatesInfo

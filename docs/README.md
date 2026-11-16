@@ -76,6 +76,10 @@ CDT is a C++ library for generating and refining constraint or conforming Delaun
 - Two criteria are supported with `CDT::RefinementCriterion`:
     - `SmallestAngle`: smallest angle of a triangle must be at least the threshold (in radians, use `CDT::degToRad`)
     - `LargestArea`: area of a triangle must be at most the threshold
+- Two orders of refining the triangles are supported with `CDT::RefinementOrder`:
+    - `FIFO`: triangles are refined in the order they are found (default)
+    - `WorstFirst`: worst triangles are refined first
+- A custom queue of triangles to refine can be used with the `CDT::Triangulation::refineTriangles` template overload: `CDT::FifoQueue` or `std::priority_queue` of `(badness, triangle, its vertices)` tuples.
 - Constraint edges are conformed to: an edge that is encroached by a nearby point is split. New points are never inserted across an input boundary.
 - Refinement stops when the budget of inserted vertices `maxVerticesToInsert` is used up. Edges and triangles that are already shorter than `minEdgeLength` are not split any further.
 - Refinement must be done before the triangulation is finalized with one of the `erase` methods. To refine only the triangles that are kept, collect the triangles to remove first (`CDT::Triangulation::collectSuperTriangle`, `CDT::Triangulation::collectOuterTriangles`, `CDT::Triangulation::collectOuterTrianglesAndHoles`), pass them to `CDT::Triangulation::refineTriangles`, and remove them afterwards with `CDT::Triangulation::finalizeTriangulation`.
