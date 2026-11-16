@@ -25,3 +25,7 @@ table.memberdecls .memItemRight,
 table.memberdecls .memTemplItemRight {
     vertical-align: top;
 }
+
+code {
+    vertical-align: baseline;
+}
