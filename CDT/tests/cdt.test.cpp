@@ -1709,8 +1709,15 @@ TEST_CASE("Ruppert refinement achieves the requested minimum angle", "")
     auto toErase = cdt.collectOuterTrianglesAndHoles();
 
     const double minAngle = degToRad(20.);
+    const RefinementOrder::Enum order =
+        GENERATE(RefinementOrder::FIFO, RefinementOrder::WorstFirst);
     cdt.refineTriangles(
-        VertInd(10000), RefinementCriterion::SmallestAngle, minAngle, &toErase);
+        VertInd(10000),
+        RefinementCriterion::SmallestAngle,
+        minAngle,
+        &toErase,
+        1e-6,
+        order);
     REQUIRE(cdt.findEncroachedFixedEdges().empty());
     cdt.finalizeTriangulation(toErase);
 
@@ -1719,6 +1726,24 @@ TEST_CASE("Ruppert refinement achieves the requested minimum angle", "")
     REQUIRE(
         cdt.findUnrefinedTriangles(RefinementCriterion::SmallestAngle, minAngle)
             .empty());
+}
+
+TEST_CASE("Worst-first refinement starts with the worst triangle", "")
+{
+    const std::vector<V2d<double> > vertices = {
+        {1., 1.}, {0., 0.}, {2., 0.}, {1., -5.}};
+    auto cdt = Triangulation<double>();
+    cdt.insertVertices(vertices);
+    cdt.refineTriangles(
+        VertInd(1),
+        RefinementCriterion::LargestArea,
+        0.5,
+        nullptr,
+        1e-6,
+        RefinementOrder::WorstFirst);
+    REQUIRE(
+        cdt.vertices.back() ==
+        circumcenter(vertices[1], vertices[2], vertices[3]));
 }
 
 TEST_CASE("Ruppert refinement with LargestArea criterion", "")

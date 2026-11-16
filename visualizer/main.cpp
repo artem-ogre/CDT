@@ -157,6 +157,7 @@ public:
         , m_minRefinementEdgeLength(1e-6)
         , m_refinementCriterion(CDT::RefinementCriterion::SmallestAngle)
         , m_refinementThreshold(20.0)
+        , m_refinementOrder(CDT::RefinementOrder::FIFO)
         , m_vertexInsertionOrder(CDT::VertexInsertionOrder::Auto)
         , m_intersectingEdgesStrategy(
               CDT::IntersectingConstraintEdges::TryResolve)
@@ -278,6 +279,13 @@ public slots:
     void setRefinementThreshold(double threshold)
     {
         m_refinementThreshold = static_cast<CoordType>(threshold);
+        updateCDT();
+    }
+
+    void setRefinementOrder(int index)
+    {
+        m_refinementOrder = index == 0 ? CDT::RefinementOrder::FIFO
+                                       : CDT::RefinementOrder::WorstFirst;
         updateCDT();
     }
 
@@ -535,7 +543,8 @@ private:
                         m_refinementCriterion,
                         threshold,
                         &toErase,
-                        m_minRefinementEdgeLength);
+                        m_minRefinementEdgeLength,
+                        m_refinementOrder);
                     // store positions: finalizing invalidates the indices
                     storeUnrefined(m_cdt.findEncroachedFixedEdges());
                 }
@@ -877,6 +886,7 @@ private:
     CoordType m_minRefinementEdgeLength;
     CDT::RefinementCriterion::Enum m_refinementCriterion;
     CoordType m_refinementThreshold; // degrees if SmallestAngle, else raw area
+    CDT::RefinementOrder::Enum m_refinementOrder;
     CDT::VertexInsertionOrder::Enum m_vertexInsertionOrder;
     CDT::IntersectingConstraintEdges::Enum m_intersectingEdgesStrategy;
     CoordType m_minDistToConstraintEdge;
@@ -983,9 +993,9 @@ public:
             new QLabel("intersectingEdgesStrategy"), isecStrategy);
         triangulationConfig->addRow(
             new QLabel("minDistToConstraintEdge"), distTolerance);
-        triangulationConfig->addRow(triType);
-        triangulationConfig->addRow(finalizeWith);
-        triangulationConfig->addRow(fixDupes);
+        triangulationConfig->addRow(new QLabel("triangulation"), triType);
+        triangulationConfig->addRow(new QLabel("finalize"), finalizeWith);
+        triangulationConfig->addRow(new QLabel("duplicates"), fixDupes);
         QGroupBox* triOptGroup = new QGroupBox("Triangulation");
         triOptGroup->setLayout(triangulationConfig);
 
@@ -1025,6 +1035,15 @@ public:
             m_cdtWidget,
             SLOT(setRefinementCriterion(int)));
 
+        QComboBox* refinementOrder = new QComboBox;
+        refinementOrder->addItem("FIFO");
+        refinementOrder->addItem("worst first");
+        connect(
+            refinementOrder,
+            SIGNAL(currentIndexChanged(int)),
+            m_cdtWidget,
+            SLOT(setRefinementOrder(int)));
+
         QDoubleSpinBox* refinementThreshold = new QDoubleSpinBox;
         refinementThreshold->setDecimals(6);
         refinementThreshold->setRange(0.0, 1000000.0);
@@ -1063,6 +1082,8 @@ public:
             new QLabel(tr("Refinement points")), refinementSpinbox);
         limitsLayout->addRow(
             new QLabel(tr("Refinement criterion")), refinementCriterion);
+        limitsLayout->addRow(
+            new QLabel(tr("Refinement order")), refinementOrder);
         limitsLayout->addRow(
             new QLabel(tr("Refinement threshold")), refinementThreshold);
         limitsLayout->addRow(

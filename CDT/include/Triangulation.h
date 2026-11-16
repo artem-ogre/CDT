@@ -92,6 +92,32 @@ struct CDT_EXPORT RefinementCriterion
 };
 
 /**
+ * Enum of bad triangles refinement orders
+ */
+struct CDT_EXPORT RefinementOrder
+{
+    /**
+     * The Enum itself
+     * @note needed to pre c++11 compilers that don't support 'class enum'
+     */
+    enum Enum
+    {
+        FIFO,       ///< in the order found
+        WorstFirst, ///< worst first
+    };
+};
+
+/// FIFO queue with `top()` like `std::priority_queue`
+template <typename T>
+struct FifoQueue : std::queue<T>
+{
+    const T& top() const
+    {
+        return this->front();
+    }
+};
+
+/**
  * Counts of the refinements that Triangulation::refineTriangles was not able
  * to perform
  * @note a triangle or an edge is counted once per attempt to refine it and is
@@ -764,9 +790,24 @@ public:
      * @param minEdgeLength don't split edges/triangles already this short:
      * acute corners and close fixed edges can otherwise force ever-shrinking
      * splits. 0 never gives up.
+     * @param refinementOrder bad triangles refinement order
      * @return refinements that could not be performed
      * @throw FinalizedError if triangulation was already finalized
      */
+    Unrefined refineTriangles(
+        VertInd maxVerticesToInsert,
+        RefinementCriterion::Enum refinementCriterion =
+            RefinementCriterion::SmallestAngle,
+        T refinementThreshold = degToRad(T(20)),
+        TriIndUSet* toEraseOrNull = NULL,
+        T minEdgeLength = T(1e-6),
+        RefinementOrder::Enum refinementOrder = RefinementOrder::FIFO);
+    /**
+     * #refineTriangles with a custom queue of bad triangles
+     * @tparam TQueue FifoQueue or `std::priority_queue` of
+     * `tuple<T, TriInd, VerticesArr3>`: badness, triangle, its vertices
+     */
+    template <typename TQueue>
     Unrefined refineTriangles(
         VertInd maxVerticesToInsert,
         RefinementCriterion::Enum refinementCriterion =
@@ -1056,6 +1097,9 @@ private:
         const Triangle& tri,
         RefinementCriterion::Enum refinementCriterion,
         T refinementThreshold) const;
+    T triangleBadness(
+        const Triangle& tri,
+        RefinementCriterion::Enum refinementCriterion) const;
     /// Check if the triangle's smallest angle is enclosed by two fixed edges:
     /// such an angle comes from the input and can not be made any larger
     bool isSmallestAngleFixed(const Triangle& tri) const;

@@ -97,6 +97,7 @@ using std::unordered_set;
 #include <boost/functional/hash.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <boost/tuple/tuple_comparison.hpp>
 #include <boost/unordered_map.hpp>
 #include <boost/unordered_set.hpp>
 namespace CDT
@@ -117,22 +118,20 @@ std::string to_string(const T& value)
 } // namespace CDT
 #endif
 
-/// Ensure precise floating-point math without contraction to fused multiply-add operations.
+/// Ensure precise floating-point math without contraction to fused multiply-add
+/// operations.
 #ifdef _MSC_VER
-#define CDT_ENSURE_PRECISE_MATH \
-    __pragma(float_control(push)) \
-    __pragma(float_control(precise, on)) \
-    __pragma(fp_contract(off))
+#define CDT_ENSURE_PRECISE_MATH                                                \
+    __pragma(float_control(push)) __pragma(float_control(precise, on))         \
+        __pragma(fp_contract(off))
 #elif defined(__clang__)
-#define CDT_ENSURE_PRECISE_MATH \
-    _Pragma("float_control(push)") \
-    _Pragma("float_control(precise, on)") \
-    _Pragma("clang fp contract(off)")
+#define CDT_ENSURE_PRECISE_MATH                                                \
+    _Pragma("float_control(push)") _Pragma("float_control(precise, on)")       \
+        _Pragma("clang fp contract(off)")
 #elif defined(__GNUC__)
-#define CDT_ENSURE_PRECISE_MATH \
-    _Pragma("GCC push_options") \
-    _Pragma("GCC optimize(\"no-fast-math\")") \
-    _Pragma("GCC optimize(\"fp-contract=off\")")
+#define CDT_ENSURE_PRECISE_MATH                                                \
+    _Pragma("GCC push_options") _Pragma("GCC optimize(\"no-fast-math\")")      \
+        _Pragma("GCC optimize(\"fp-contract=off\")")
 #else
 #define CDT_ENSURE_PRECISE_MATH _Pragma("STDC FP_CONTRACT OFF")
 #endif
