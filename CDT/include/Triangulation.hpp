@@ -2262,6 +2262,9 @@ template <typename T, typename TNearPointLocator>
 std::vector<LayerDepth>
 Triangulation<T, TNearPointLocator>::calculateTriangleDepths() const
 {
+    if(isFinalized())
+        handleException(FinalizedError(CDT_SOURCE_LOCATION));
+
     std::vector<LayerDepth> triDepths(
         triangles.size(), std::numeric_limits<LayerDepth>::max());
     std::stack<TriInd> seeds(TriDeque(1, m_vertTris[0]));
