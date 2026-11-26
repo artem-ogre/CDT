@@ -2350,6 +2350,7 @@ TEST_CASE("Finalized triangulation rejects erasing, collecting, refining", "")
     REQUIRE_THROWS_AS(cdt.collectSuperTriangle(), FinalizedError);
     REQUIRE_THROWS_AS(cdt.collectOuterTriangles(), FinalizedError);
     REQUIRE_THROWS_AS(cdt.collectOuterTrianglesAndHoles(), FinalizedError);
+    REQUIRE_THROWS_AS(cdt.calculateTriangleDepths(), FinalizedError);
     REQUIRE_THROWS_AS(cdt.refineTriangles(VertInd(100)), FinalizedError);
     REQUIRE_THROWS_AS(cdt.findEncroachedFixedEdges(), FinalizedError);
 
