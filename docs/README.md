@@ -38,6 +38,7 @@ CDT is a C++ library for generating and refining constraint or conforming Delaun
     - Callbacks
 - [Error handling](#error-handling)
 - [Python bindings?](#python-bindings)
+- [Unofficial bindings](#unofficial-bindings)
 - [Contributors](#contributors)
 - [Contributing](#contributing)
 - [License](#license)
@@ -350,6 +351,12 @@ CDT reports errors by throwing exceptions. All of them derive from `CDT::Error` 
 ## Python bindings?
 
 For Python bindings check-out [PythonCDT](https://github.com/artem-ogre/PythonCDT)
+
+<a name="unofficial-bindings"></a>
+
+## Unofficial bindings
+
+- C#: [CSharpCDT](https://github.com/aidannewsome/CSharpCDT)
 
 <a name="contributors"></a>
 
